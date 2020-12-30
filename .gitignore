@@ -1,0 +1,33 @@
+### Editor/IDE files
+.idea/
+*.iml
+*~
+*.swp
+*.sublime*
+.vscode/symbols.json
+
+
+### Logs
+logs
+*.log
+npm-debug.log*
+
+#### Diagnostic reports (https://nodejs.org/api/report.html)
+report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
+
+### Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
+
+### Dependencies
+node_modules/
+
+### Local History extension
+.history/
+
+### Instalation files
+storage
+
+.DS_Store
