@@ -1,6 +1,6 @@
 const fs = require('fs');
 const Discord = require('discord.js');
-const { prefix, token } = require('./config.json');
+const { prefix, token } = require('./storage/config.json');
 
 const client = new Discord.Client();
 client.commands = new Discord.Collection();
@@ -15,20 +15,51 @@ for (const file of commandFiles) {
 	client.commands.set(command.name, command);
 }
 
+//set random activity status
+function intervalRandomStatus() {
+    var arrActivity = [
+        'Sparkling, glittering, rock-paper-scissors! Cure Peace!',
+        'Healin good precure!',
+        'The two lights that come together! Cure Sparkle!',
+        'Puzzlun Cure!'
+    ];
+    var randIndex = Math.floor(Math.random() * Math.floor(arrActivity.length));
+    client.user.setActivity(arrActivity[randIndex]);
+    //console.log(DBM_Card_User_Data.columns.id_user);
+    // const guild = new Discord.Guild();
+    // guild.channels.cache.find(ch => ch.name === 'testing-ground').send('Hello world.');
+    //client.channel.fetch(795299749745131560).send("hello world");
+}
+
+function invtervalCardSpawn(){
+
+}
+
 client.once('ready', () => {
-    console.log('Ready!');
-    client.user.setActivity('Sparkling, glittering, rock-paper-scissors! Cure Peace!');
+    //same like guildAvailable
+    client.guilds.cache.forEach(guild => {
+        console.log("connected to:"+guild.name);
+
+        //set card spawn interval
+        
+
+    });
+
+    //randomize the status:
+    setInterval(intervalRandomStatus, 15000);
+
+    console.log('Cure Peace Ready!');
 });
 
 client.on('message', message => {
     if (!message.content.startsWith(prefix) || message.author.bot) return;
 
-    const args = message.content.slice(prefix.length).trim().split(' ');
+    const args = message.content.slice(prefix.length).trim().split(/ +/);
     const commandName = args.shift().toLowerCase();
-    
+
     if (!client.commands.has(commandName)) return;
     const command = client.commands.get(commandName);
-
+    
     if (command.args && !args.length) {
         return message.reply(`I don't know what you're talking about. Can you give me some arguments?`);
     }
