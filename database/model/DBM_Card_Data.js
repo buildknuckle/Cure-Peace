@@ -4,6 +4,7 @@ class DBM_Card_Data {
     static columns = {
         id_card: "id_card",
         color: "color",
+        series: "series",
         pack: "pack",
         rarity: "rarity",
         name: "name",

@@ -15,7 +15,7 @@ DB.conn.query(
         }
     );
 */
-function selectAll(tableName,parameterWhere,callback){
+async function select(tableName,parameterWhere){
     var arrParameterized = [];
     var query = `SELECT * FROM ${tableName} WHERE `;
     //WHERE
@@ -23,20 +23,42 @@ function selectAll(tableName,parameterWhere,callback){
         query += ` ${key}=? AND `;
         arrParameterized.push(value);
     }
-    query = query.replace(/AND\s*$/, "");//remove the last comma and any whitespace
+    query = query.replace(/AND\s*$/, "");//remove the last AND and any whitespace
     query += " LIMIT 1";
-    DB.conn.query(
-        query,arrParameterized, 
-        function (err, rows) {
-            rows.forEach(function(row) {
-                //console.log(row.name);
-                return callback(row);
-            });
-        }
-    );
+    return await DB.conn.promise().query(query, arrParameterized);
 }
 
-function insert(tableName,parameter){
+async function selectAll(tableName,parameterWhere,parameterOrderBy=null){
+    var arrParameterized = [];
+    var query = `SELECT * FROM ${tableName} WHERE `;
+    //WHERE
+    for (const [key, value] of parameterWhere.entries()) {
+        query += ` ${key}=? AND `;
+        arrParameterized.push(value);
+    }
+    query = query.replace(/AND\s*$/, "");//remove the last AND and any whitespace
+    if(parameterOrderBy!=null){
+        query+=" ORDER BY ";
+        for (const [key, value] of parameterOrderBy.entries()) {
+            query += ` ${key} ${value}, `;
+        }
+    }
+    query = query.replace(/,\s*$/, "");//remove the last comma and any whitespace
+    
+    // query += " LIMIT 1";
+    // DB.conn.query(
+    //     query,arrParameterized, 
+    //     function (err, rows) {
+    //         rows.forEach(function(row) {
+    //             //console.log(row.name);
+    //             return callback(row);
+    //         });
+    //     }
+    // );
+    return await DB.conn.promise().query(query, arrParameterized);
+}
+
+async function insert(tableName,parameter){
     var arrParameterized = [];
     var query = `INSERT INTO ${tableName} `;
     query += `(`;
@@ -51,13 +73,14 @@ function insert(tableName,parameter){
     });
     query = query.replace(/,\s*$/, "");//remove the last comma and any whitespace
     query += `)`;
-    DB.conn.query(
-         query,arrParameterized,
-        function (err) {}
-    );
+    return await DB.conn.promise().query(query, arrParameterized);
+    // DB.conn.query(
+    //      query,arrParameterized,
+    //     function (err) {}
+    // );
 }
 
-function update(tableName,parameterSet,parameterWhere){
+async function update(tableName,parameterSet,parameterWhere){
     var arrParameterized = [];
     var query = `UPDATE ${tableName} SET `;
     //SET
@@ -73,7 +96,9 @@ function update(tableName,parameterSet,parameterWhere){
         arrParameterized.push(value);
     }
     query = query.replace(/AND\s*$/, "");//remove the last comma and any whitespace
-    DB.conn.query(query,arrParameterized,function (err) {});
+    // DB.conn.query(query,arrParameterized,function (err) {});
+    console.log(arrParameterized);
+    return await DB.conn.promise().query(query, arrParameterized);
 }
 
-module.exports = {selectAll,insert,update};
+module.exports = {DB,select,selectAll,insert,update};

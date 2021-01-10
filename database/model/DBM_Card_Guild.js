@@ -7,6 +7,7 @@ class DBM_Card_Guild {
         id_channel_invade: "id_channel_invade",
         spawn_interval: "spawn_interval",
         spawn_token: "spawn_token",
+        spawn_type: "spawn_type",
         spawn_id: "spawn_id",
         spawn_color: "spawn_color",
     };

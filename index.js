@@ -1,5 +1,7 @@
 const fs = require('fs');
 const Discord = require('discord.js');
+const DBM_Card_Guild = require('./database/model/DBM_Card_Guild');
+const CardGuildModules = require('./modules/CardGuild');
 const { prefix, token } = require('./storage/config.json');
 
 const client = new Discord.Client();
@@ -14,6 +16,8 @@ for (const file of commandFiles) {
 	const command = require(`./commands/${file}`);
 	client.commands.set(command.name, command);
 }
+
+var arrTimer = {};
 
 //set random activity status
 function intervalRandomStatus() {
@@ -31,23 +35,25 @@ function intervalRandomStatus() {
     //client.channel.fetch(795299749745131560).send("hello world");
 }
 
-function invtervalCardSpawn(){
-
-}
-
 client.once('ready', () => {
     //same like guildAvailable
-    client.guilds.cache.forEach(guild => {
-        console.log("connected to:"+guild.name);
+    client.guilds.cache.forEach(async guild => {
+        console.log(`connected to: ${guild.id} - ${guild.name}`);
+        //guild.channels.cache.find(ch => ch.name === 'testing-ground').send('Hello world.');
 
+        //get card spawn guild data
+        var cardGuildData = await CardGuildModules.getCardGuildData(guild.id);
         //set card spawn interval
+        if(cardGuildData[DBM_Card_Guild.columns.id_channel_spawn]!=null){
+            arrTimer[guild.id] = setInterval(async function intervalCardSpawn(){
+                console.log(cardGuildData[DBM_Card_Guild.columns.spawn_interval]);
+            }, cardGuildData.spawn_interval*100, [guild.id]);
+        }
         
-
     });
 
     //randomize the status:
-    setInterval(intervalRandomStatus, 15000);
-
+    // setInterval(intervalRandomStatus, 15000);
     console.log('Cure Peace Ready!');
 });
 
