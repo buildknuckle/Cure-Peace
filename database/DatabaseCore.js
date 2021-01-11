@@ -97,7 +97,6 @@ async function update(tableName,parameterSet,parameterWhere){
     }
     query = query.replace(/AND\s*$/, "");//remove the last comma and any whitespace
     // DB.conn.query(query,arrParameterized,function (err) {});
-    console.log(arrParameterized);
     return await DB.conn.promise().query(query, arrParameterized);
 }
 
