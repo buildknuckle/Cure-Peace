@@ -15,7 +15,7 @@ module.exports = {
               },
               {
                 "name": "Card",
-                "value": "`catch`,`detail`,`status [username]`,`inventory [pack][username]`,`guess [lower/higher]`,`color set [color]`"
+                "value": "`catch`,`detail`,`guide`,`status [username]`,`inventory [pack][username]`,`guess [lower/higher]`,`color set [color]`"
               }
             ]
           }

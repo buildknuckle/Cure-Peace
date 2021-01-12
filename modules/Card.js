@@ -585,7 +585,7 @@ async function updateColorPoint(id_user,objColor){
             }
         }
     }
-    
+
     if(objColor!=null){
         queryColor = queryColor.replace(/,\s*$/, "");//remove the last comma and any whitespace
     }
@@ -779,44 +779,37 @@ async function generateCardSpawn(id_guild,specificType=null,overwriteToken = tru
             var arrParameterized = Properties.arrColor;
             query = `select (select ${DBM_Card_Data.columns.id_card}  
                 from ${DBM_Card_Data.TABLENAME} 
-                where ${DBM_Card_Data.columns.color}=? AND 
-                ${DBM_Card_Data.columns.rarity}<=5 
+                where ${DBM_Card_Data.columns.color}=?  
                 order by rand() 
                 limit 1) as id_card_pink,
                 (select ${DBM_Card_Data.columns.id_card}  
                 from ${DBM_Card_Data.TABLENAME} 
-                where ${DBM_Card_Data.columns.color}=? AND 
-                ${DBM_Card_Data.columns.rarity}<=5 
+                where ${DBM_Card_Data.columns.color}=? 
                 order by rand() 
                 limit 1) as id_card_purple,
                 (select ${DBM_Card_Data.columns.id_card}  
                 from ${DBM_Card_Data.TABLENAME} 
-                where ${DBM_Card_Data.columns.color}=? AND 
-                ${DBM_Card_Data.columns.rarity}<=5 
+                where ${DBM_Card_Data.columns.color}=? 
                 order by rand() 
                 limit 1) as id_card_green,
                 (select ${DBM_Card_Data.columns.id_card}  
                 from ${DBM_Card_Data.TABLENAME} 
-                where ${DBM_Card_Data.columns.color}=? AND 
-                ${DBM_Card_Data.columns.rarity}<=5 
+                where ${DBM_Card_Data.columns.color}=? 
                 order by rand() 
                 limit 1) as id_card_yellow,
                 (select ${DBM_Card_Data.columns.id_card}  
                 from ${DBM_Card_Data.TABLENAME} 
-                where ${DBM_Card_Data.columns.color}=? AND 
-                ${DBM_Card_Data.columns.rarity}<=5 
+                where ${DBM_Card_Data.columns.color}=? 
                 order by rand() 
                 limit 1) as id_card_white,
                 (select ${DBM_Card_Data.columns.id_card}  
                 from ${DBM_Card_Data.TABLENAME} 
-                where ${DBM_Card_Data.columns.color}=? AND 
-                ${DBM_Card_Data.columns.rarity}<=5 
+                where ${DBM_Card_Data.columns.color}=? 
                 order by rand() 
                 limit 1) as id_card_blue,
                 (select ${DBM_Card_Data.columns.id_card}  
                 from ${DBM_Card_Data.TABLENAME} 
-                where ${DBM_Card_Data.columns.color}=? AND 
-                ${DBM_Card_Data.columns.rarity}<=5 
+                where ${DBM_Card_Data.columns.color}=? 
                 order by rand() 
                 limit 1) as id_card_red`;
             var resultData = await DBConn.conn.promise().query(query,arrParameterized);
@@ -851,7 +844,7 @@ async function generateCardSpawn(id_guild,specificType=null,overwriteToken = tru
             objEmbed.author = {
                 name:`Number Card: ${selectedColor.charAt(0).toUpperCase()+selectedColor.slice(1)} 1-4* Edition`
             }
-            objEmbed.title = "It's Lucky Numbers Time!";
+            objEmbed.title = ":game_die: It's Lucky Numbers Time!";
             objEmbed.description = `Guess whether the next hidden number will be **lower** or **higher** than the current number: **${rndNumber}** or not with: **p!card guess <lower/higher>**.`;
             objEmbed.image ={
                 url:Properties.dataColorCore[selectedColor].imgMysteryUrl

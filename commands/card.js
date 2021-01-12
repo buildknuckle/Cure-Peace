@@ -811,13 +811,36 @@ module.exports = {
                 message.channel.send({embed:objEmbed});
 
                 break;
-            // case "debug":
-            //     var objReturnEmbed = await CardModule.generateCardSpawn(guildId);
-            //     if(objReturnEmbed!=null){
-            //         message.channel.send({embed:objReturnEmbed});
-            //     }
+            case "guide":
+                var objEmbed = {
+                    color:CardModule.Properties.embedColor,
+                    title: "Precure Cardcatcher! Guide 101",
+                    description: "This is the basic guide starter for precure cardcatcher thingy. ",
+                    fields: [
+                    {
+                        name: "How many card color/packs/rarity available?",
+                        value: `7 Color: pink, purple, green, yellow, white, blue, red. There are also 63 card pack that you can collect. 
+                        Each card also provided with number of rarity, the higher number of rarity the lower of the chance that you can capture it. You can track down your card progression with **p!card status** or **p!card inventory <pack>**.`
+                    },
+                    {
+                        name: "How many card spawn type are there?",
+                        value: `Currently there are 3 spawn type:
+                        -**normal card**: the normal card spawn that you can capture with **p!card catch** command.
+                        -**number card**: a random current number from 1-12 with the card rarity of 1-4* will be provided and you need to guess if the next hidden number will be **lower** or **higher** with **p!card guess <lower/higher>**. After you guessed it up the next random number card will be spawned immediately and other user can guess the next number card. You can only guess it once every spawn turn. This card spawn also guarantee with a 100% catch rate.
+                        - **color card**: 7 different color card: **pink, purple, green, yellow, white, blue, red** will be provided and every color will provide 1 random card with the color of the card. You can only capture the card with based from the assigned color. After a color has been captured that color will be removed. This card spawn also provide with a bonus +10% catch rate.`
+                    },
+                    {
+                        name: "Getting started",
+                        value: `-Gather daily color point everyday (24 hour bot server time reset) with **p!daily**. Color point can be used to change your color. If you provide use the daily command with color parameter the received point will be doubled, otherwise you'll receive overall color point.
+                        -Capture the card based from the card spawn type ruleset. Example: **p!card capture** or **p!card guess<lower/higher>** if the card spawn is number type.
+                        -You can use **p!card status** or **p!card inventory <pack>** to track down your card progress.`
+                    },
+                    ]
+                    
+                  }
+                  message.channel.send({embed:objEmbed});
                 
-            //     break;
+                break;
             default:
                 break;
         }

@@ -48,11 +48,10 @@ client.once('ready', () => {
             const channelExists = guild.channels.cache.find(ch => ch.id === cardGuildData[DBM_Card_Guild.columns.id_channel_spawn])
             if(channelExists){
                 CardGuildModules.arrTimerCardSpawn[guild.id] = setInterval(async function intervalCardSpawn(){
-                    console.log(cardGuildData[DBM_Card_Guild.columns.spawn_interval]);
                     var objEmbed = await CardModules.generateCardSpawn(guild.id);
                     guild.channels.cache.find(ch => ch.id === cardGuildData[DBM_Card_Guild.columns.id_channel_spawn])
                     .send({embed:objEmbed});
-                }, 15000);
+                }, parseInt(cardGuildData[DBM_Card_Guild.columns.spawn_interval])*1000);
             }
         }
 

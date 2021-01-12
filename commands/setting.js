@@ -64,7 +64,7 @@ module.exports = {
                                 var objEmbed = await CardModules.generateCardSpawn(guildId);
                                 message.guild.channels.cache.find(ch => ch.id === assignedChannel)
                                 .send({embed:objEmbed});
-                            }, 15000);
+                            }, parseInt(intervalMinutes)*1000);
 
                         }
 
