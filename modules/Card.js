@@ -1,5 +1,6 @@
 const DB = require('../database/DatabaseCore');
 const DBConn = require('../storage/dbconn');
+const GlobalFunctions = require('../modules/GlobalFunctions.js');
 const DBM_Card_Data = require('../database/model/DBM_Card_Data');
 const DBM_Card_User_Data = require('../database/model/DBM_Card_User_Data');
 const DBM_Card_Inventory = require('../database/model/DBM_Card_Inventory');
@@ -401,6 +402,91 @@ async function getCardData(id_card) {
     //return callback(DB.selectAll(DBM_Card_Data.TABLENAME,parameterWhere));
 }
 
+function embedCardCapture(embedColor,id_card,packName,
+    cardName,imgUrl,series,rarity,avatarImgUrl,username,currentCard){
+    //embedColor in string and will be readed on Properties class: object variable
+    //received date readed from db, will be converted here
+
+    var objEmbed = {
+        color:Properties.dataColorCore[embedColor].color,
+        author:{
+            iconURL:Properties.dataCardCore[packName].icon,
+            name:`${GlobalFunctions.capitalize(packName)} Card Pack`
+        },
+        title:cardName,
+        image:{
+            url:imgUrl
+        },
+        fields:[
+            {
+                name:"ID:",
+                value:id_card,
+                inline:true
+            },
+            {
+                name:"Series:",
+                value:series,
+                inline:true
+            },
+            {
+                name:"Rarity:",
+                value:`${rarity} :star:`,
+                inline:true
+            }
+        ],
+        footer:{
+            iconURL:avatarImgUrl,
+            text:`Captured By: ${username} (${currentCard}/${Properties.dataCardCore[packName].total})`
+        }
+    }
+
+    return objEmbed;
+}
+
+function embedCardDetail(embedColor,id_card,packName,
+    cardName,imgUrl,series,rarity,avatarImgUrl,receivedDate){
+    //embedColor in string and will be readed on Properties class: object variable
+    //received date readed from db, will be converted here
+
+    var customReceivedDate = new Date(receivedDate);
+    customReceivedDate = `${("0" + receivedDate.getDate()).slice(-2)}/${("0" + (receivedDate.getMonth() + 1)).slice(-2)}/${customReceivedDate.getFullYear()}`;
+
+    var objEmbed = {
+        color:Properties.dataColorCore[embedColor].color,
+        author:{
+            iconURL:Properties.dataCardCore[packName].icon,
+            name:`${GlobalFunctions.capitalize(packName)} Card Pack`
+        },
+        title:cardName,
+        image:{
+            url:imgUrl
+        },
+        fields:[
+            {
+                name:"ID:",
+                value:id_card,
+                inline:true
+            },
+            {
+                name:"Series:",
+                value:series,
+                inline:true
+            },
+            {
+                name:"Rarity:",
+                value:`${rarity} :star:`,
+                inline:true
+            }
+        ],
+        footer:{
+            iconURL:avatarImgUrl,
+            text:`Received at: ${customReceivedDate}`
+        }
+    }
+
+    return objEmbed;
+}
+
 //get 1 card user data
 async function getCardUserStatusData(id_user){
     var parameterWhere = new Map();
@@ -448,16 +534,64 @@ async function getUserTotalCard(id_user,pack){
 async function updateCatchAttempt(id_user,spawn_token,objColor=null){
     //update catch attempt, add color exp in object if parameter existed
     //get color point
+    var maxColorPoint = 1000;
     var cardUserStatusData = await getCardUserStatusData(id_user);
     var arrParameterized = [];
     arrParameterized.push(spawn_token);
     var queryColor = "";
     for (const [key, value] of objColor.entries()) {
-        queryColor = `,${key} = ${key}+${value}`;
+        //get current color point
+        // var selectedColor = `color_point_${key}`;
+        if(cardUserStatusData[key]+value>=maxColorPoint){
+            queryColor += `, ${key} = ${maxColorPoint}, `;
+        } else {
+            queryColor += `, ${key} = ${key}+${value}, `;
+        }
+    }
+    if(objColor!=null){
+        queryColor = queryColor.replace(/,\s*$/, "");//remove the last comma and any whitespace
     }
 
     var query = `UPDATE ${DBM_Card_User_Data.TABLENAME} 
     SET ${DBM_Card_User_Data.columns.spawn_token}=? ${queryColor}
+    WHERE ${DBM_Card_User_Data.columns.id_user}=?`;
+    arrParameterized.push(id_user);
+
+    await DBConn.conn.promise().query(query, arrParameterized);
+}
+
+async function updateColorPoint(id_user,objColor){
+    //get color point
+    var maxColorPoint = 1000;
+    var cardUserStatusData = await getCardUserStatusData(id_user);
+    var arrParameterized = [];
+    var queryColor = "";
+    for (const [key, value] of objColor.entries()) {
+        //get current color point
+        // var selectedColor = `color_point_${key}`;
+        if(value>=1){
+            //addition
+            if(cardUserStatusData[key]+value>=maxColorPoint){
+                queryColor += ` ${key} = ${maxColorPoint}, `;
+            } else {
+                queryColor += ` ${key} = ${key}+${value}, `;
+            }
+        } else {
+            //substract
+            if(cardUserStatusData[key]-value<=0){
+                queryColor += ` ${key} = 0, `;
+            } else {
+                queryColor += ` ${key} = ${key}${value}, `;
+            }
+        }
+    }
+    
+    if(objColor!=null){
+        queryColor = queryColor.replace(/,\s*$/, "");//remove the last comma and any whitespace
+    }
+
+    var query = `UPDATE ${DBM_Card_User_Data.TABLENAME} 
+    SET ${queryColor}
     WHERE ${DBM_Card_User_Data.columns.id_user}=?`;
     arrParameterized.push(id_user);
 
@@ -609,13 +743,19 @@ async function removeCardGuildSpawn(id_guild){
     await DB.update(DBM_Card_Guild.TABLENAME,parameterSet,parameterWhere);
 }
 
-async function generateCardSpawn(id_guild){
-    //update & erase last spawn information
-    await removeCardGuildSpawn(id_guild);
-
+async function generateCardSpawn(id_guild,specificType=null,overwriteToken = true){
+    //update & erase last spawn information if overwriteToken param is provided
+    if(overwriteToken){
+        await removeCardGuildSpawn(id_guild);
+    }
+    
     //start randomize
     var rndIndex = Math.floor(Math.random() * Properties.spawnType.length); 
     var cardSpawnType = Properties.spawnType[rndIndex].toLowerCase();
+    if(specificType!=null){
+        cardSpawnType = specificType;
+    }
+
     var query = "";
     //prepare the embed object
     var objEmbed = {
@@ -631,7 +771,9 @@ async function generateCardSpawn(id_guild){
 
     var parameterSet = new Map();
     parameterSet.set(DBM_Card_Guild.columns.spawn_type,cardSpawnType); //set the spawn type
-    parameterSet.set(DBM_Card_Guild.columns.spawn_token,Math.floor(Math.random() * 1000)+10); //set & randomize the spawn token
+    if(overwriteToken){
+        parameterSet.set(DBM_Card_Guild.columns.spawn_token,Math.floor(Math.random() * 1000)+10); //set & randomize the spawn token
+    }
     switch(cardSpawnType) {
         case "color": // color spawn type
             var arrParameterized = Properties.arrColor;
@@ -691,7 +833,7 @@ async function generateCardSpawn(id_guild){
             break;
         case "number": //gambling spawn type
             //get color total:
-            var rndNumber = Math.floor(Math.random()*10)+1;
+            var rndNumber = Math.floor(Math.random()*10)+2;
             var rndIndexColor = Math.floor(Math.random()*Properties.arrColor.length);
             var selectedColor = Properties.arrColor[rndIndexColor];
             parameterSet.set(DBM_Card_Guild.columns.spawn_color,selectedColor);
@@ -710,7 +852,7 @@ async function generateCardSpawn(id_guild){
                 name:`Number Card: ${selectedColor.charAt(0).toUpperCase()+selectedColor.slice(1)} 1-4* Edition`
             }
             objEmbed.title = "It's Lucky Numbers Time!";
-            objEmbed.description = `Guess whether the next number will be **lower** or **higher** than **${rndNumber}** or not with: **p!card guess <lower/higher>**.`;
+            objEmbed.description = `Guess whether the next hidden number will be **lower** or **higher** than the current number: **${rndNumber}** or not with: **p!card guess <lower/higher>**.`;
             objEmbed.image ={
                 url:Properties.dataColorCore[selectedColor].imgMysteryUrl
             }
@@ -751,7 +893,6 @@ async function generateCardSpawn(id_guild){
     await DB.update(DBM_Card_Guild.TABLENAME,parameterSet,parameterWhere);
     // console.log(objEmbed);
     return objEmbed;
-
 }
 
 async function addNewCardInventory(id_user,id_card){
@@ -763,4 +904,5 @@ async function addNewCardInventory(id_user,id_card){
 
 module.exports = {Properties,getCardData,getAllCardDataByPack,
     getCardUserStatusData,getCardPack,checkUserHaveCard,getUserTotalCard,
-    updateCatchAttempt,removeCardGuildSpawn,generateCardSpawn,addNewCardInventory};
+    updateCatchAttempt,updateColorPoint,removeCardGuildSpawn,generateCardSpawn,addNewCardInventory,
+    embedCardCapture,embedCardDetail};

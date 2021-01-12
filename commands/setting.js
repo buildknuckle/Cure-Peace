@@ -1,4 +1,5 @@
 const DB = require('../database/DatabaseCore');
+const CardModules = require('../modules/Card');
 const CardGuildModules = require('../modules/CardGuild');
 
 const DBM_Card_Guild = require('../database/model/DBM_Card_Guild');
@@ -15,6 +16,18 @@ module.exports = {
         
         switch(args[0]) {
             case "spawn":
+                if(args[1].toLowerCase()=="remove"){
+                    //remove the card spawn settings, remove the timer
+                    clearInterval(CardGuildModules.arrTimerCardSpawn[guildId]);
+                    var parameterSet = new Map();
+                    parameterSet.set(DBM_Card_Guild.columns.id_channel_spawn,null);
+                    parameterSet.set(DBM_Card_Guild.columns.spawn_interval,null);
+                    var parameterWhere = new Map();
+                    parameterWhere.set(DBM_Card_Guild.columns.id_guild,guildId);
+                    DB.update(DBM_Card_Guild.TABLENAME,parameterSet,parameterWhere);
+                    return message.channel.send(`Card spawn settings has been removed.`); 
+                }
+
                 // var slicedArgs = args.slice(1);
                 var assignedChannel = args[1];
                 assignedChannel = assignedChannel.match(/^<#?(\d+)>$/); //regex if channel format is correct/not
@@ -44,6 +57,15 @@ module.exports = {
                         if(!channelExists){
                             //channel not exists
                             return message.channel.send(`Please mention the correct channel name.`);
+                        } else {
+                            columnSet.set(DBM_Card_Guild.columns.id_channel_spawn, assignedChannel);
+                            //set new card spawn
+                            CardGuildModules.arrTimerCardSpawn[guildId] = setInterval(async function intervalCardSpawn(){
+                                var objEmbed = await CardModules.generateCardSpawn(guildId);
+                                message.guild.channels.cache.find(ch => ch.id === assignedChannel)
+                                .send({embed:objEmbed});
+                            }, 15000);
+
                         }
 
                         DB.update(DBM_Card_Guild.TABLENAME,
@@ -61,6 +83,7 @@ module.exports = {
                 // code block
                 //return message.channel.send(slicedArgs[0]);
                 break;
+            
             default:
                 break;
             // code block

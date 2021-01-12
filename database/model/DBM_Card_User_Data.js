@@ -5,6 +5,7 @@ class DBM_Card_User_Data {
         id_user: "id_user", 
         level: "level",
         exp: "exp",
+        daily_last: "daily_last",
         spawn_token: "spawn_token",
         card_id_selected: "card_id_selected",
         color: "color",

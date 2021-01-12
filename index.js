@@ -1,6 +1,7 @@
 const fs = require('fs');
 const Discord = require('discord.js');
 const DBM_Card_Guild = require('./database/model/DBM_Card_Guild');
+const CardModules = require('./modules/Card');
 const CardGuildModules = require('./modules/CardGuild');
 const { prefix, token } = require('./storage/config.json');
 
@@ -16,8 +17,6 @@ for (const file of commandFiles) {
 	const command = require(`./commands/${file}`);
 	client.commands.set(command.name, command);
 }
-
-var arrTimer = {};
 
 //set random activity status
 function intervalRandomStatus() {
@@ -45,10 +44,23 @@ client.once('ready', () => {
         var cardGuildData = await CardGuildModules.getCardGuildData(guild.id);
         //set card spawn interval
         if(cardGuildData[DBM_Card_Guild.columns.id_channel_spawn]!=null){
-            arrTimer[guild.id] = setInterval(async function intervalCardSpawn(){
-                console.log(cardGuildData[DBM_Card_Guild.columns.spawn_interval]);
-            }, cardGuildData.spawn_interval*100, [guild.id]);
+            //check if channel exists/not
+            const channelExists = guild.channels.cache.find(ch => ch.id === cardGuildData[DBM_Card_Guild.columns.id_channel_spawn])
+            if(channelExists){
+                CardGuildModules.arrTimerCardSpawn[guild.id] = setInterval(async function intervalCardSpawn(){
+                    console.log(cardGuildData[DBM_Card_Guild.columns.spawn_interval]);
+                    var objEmbed = await CardModules.generateCardSpawn(guild.id);
+                    guild.channels.cache.find(ch => ch.id === cardGuildData[DBM_Card_Guild.columns.id_channel_spawn])
+                    .send({embed:objEmbed});
+                }, 15000);
+            }
         }
+
+        // if(cardGuildData[DBM_Card_Guild.columns.id_channel_spawn]!=null){
+        //     CardGuildModules.arrTimerCardSpawn[guild.id] = setInterval(async function intervalCardSpawn(){
+        //         console.log(cardGuildData[DBM_Card_Guild.columns.spawn_interval]);
+        //     }, cardGuildData.spawn_interval*100, [guild.id]);
+        // }
         
     });
 

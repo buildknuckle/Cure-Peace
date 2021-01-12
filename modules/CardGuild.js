@@ -1,4 +1,5 @@
 const DB = require('../database/DatabaseCore');
+const CardModule = require('../modules/Card');
 const DBM_Card_Guild = require('../database/model/DBM_Card_Guild');
 
 var arrTimerCardSpawn = {};
@@ -23,4 +24,4 @@ async function getCardGuildData(id_guild){
     
 }
 
-module.exports = {getCardGuildData,arrTimerCardSpawn};
+module.exports = {arrTimerCardSpawn,getCardGuildData};
