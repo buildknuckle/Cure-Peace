@@ -9,6 +9,7 @@ const DBM_Card_User_Data = require('../database/model/DBM_Card_User_Data');
 const DBM_Card_Data = require('../database/model/DBM_Card_Data');
 const DBM_Card_Inventory = require('../database/model/DBM_Card_Inventory');
 const DBM_Card_Guild = require('../database/model/DBM_Card_Guild');
+const DBM_Card_Leaderboard = require('../database/model/DBM_Card_Leaderboard');
 
 module.exports = {
     name: 'card',
@@ -72,7 +73,25 @@ module.exports = {
                 });
 
                 var cardUserStatusData = await CardModule.getCardUserStatusData(userId);
-                objEmbed.title = `Card Status | Level: ${cardUserStatusData[DBM_Card_User_Data.columns.level]} | EXP: ${cardUserStatusData[DBM_Card_User_Data.columns.exp]} | Color: ${cardUserStatusData[DBM_Card_User_Data.columns.color]}`;
+                //get the color level average
+                var arrColorLevel = [
+                    cardUserStatusData[DBM_Card_User_Data.columns.color_level_blue],
+                    cardUserStatusData[DBM_Card_User_Data.columns.color_level_green],
+                    cardUserStatusData[DBM_Card_User_Data.columns.color_level_pink],
+                    cardUserStatusData[DBM_Card_User_Data.columns.color_level_purple],
+                    cardUserStatusData[DBM_Card_User_Data.columns.color_level_red],
+                    cardUserStatusData[DBM_Card_User_Data.columns.color_level_white],
+                    cardUserStatusData[DBM_Card_User_Data.columns.color_level_yellow]
+                ]
+
+                var clvl = 0;
+                for( var i = 0; i < arrColorLevel.length; i++ ){
+                    clvl += parseInt( arrColorLevel[i], 10 ); //don't forget to add the base
+                }
+                clvl = Math.ceil(clvl/arrColorLevel.length);
+
+                //prepare the embed
+                objEmbed.title = `Card Status | cLvl: ${clvl} | Color: ${cardUserStatusData[DBM_Card_User_Data.columns.color]}`;
                 objEmbed.fields = [{
                         name: `Pink(CL: ${cardUserStatusData[DBM_Card_User_Data.columns.color_level_pink]}/ CP: ${cardUserStatusData[DBM_Card_User_Data.columns.color_point_pink]}):`,
                         value: `Nagisa: ${arrCardTotal.nagisa}/${CardModule.Properties.dataCardCore.nagisa.total}
@@ -189,103 +208,10 @@ module.exports = {
                     return message.channel.send({embed:objEmbed});
                 } else if(!CardModule.Properties.dataCardCore.hasOwnProperty(pack)){
                     var cardUserStatusData = await CardModule.getCardUserStatusData(userId);
-                    objEmbed.title = `Card Pack List`;
-                    objEmbed.fields = [{
-                            name: `Pink`,
-                            value: `Nagisa
-                            Saki
-                            Nozomi
-                            Love
-                            Tsubomi
-                            Hibiki
-                            Miyuki
-                            Mana
-                            Megumi
-                            Haruka
-                            Mirai
-                            Ichika
-                            Hana
-                            Hikaru
-                            Nodoka`,
-                            inline: true
-                        },
-                        {
-                            name: `Blue`,
-                            value: `Karen
-                            Miki
-                            Erika
-                            Ellen
-                            Reika
-                            Rikka
-                            Hime
-                            Minami
-                            Aoi
-                            Saaya
-                            Yuni
-                            Chiyu`,
-                            inline: true
-                        },
-                        {
-                            name: `Yellow`,
-                            value: `Hikari
-                            Urara
-                            Inori
-                            Itsuki
-                            Ako
-                            Yayoi
-                            Alice
-                            Yuko
-                            Kirara
-                            Himari
-                            Homare
-                            Elena
-                            Hinata`,
-                            inline: true
-                        },
-                        {
-                            name: `Purple`,
-                            value: `Yuri
-                            Makoto
-                            Iona
-                            Riko
-                            Yukari
-                            Amour
-                            Madoka
-                            Kurumi`,
-                            inline: true
-                        },
-                        {
-                            name: `Red`,
-                            value: `Rin
-                            Setsuna
-                            Akane
-                            Aguri
-                            Towa
-                            Akira
-                            Emiru`,
-                            inline: true
-                        },
-                        {
-                            name: `Green`,
-                            value: `Komachi
-                            Nao
-                            Kotoha
-                            Ciel
-                            Lala
-                            `,
-                            inline: true
-                        },
-                        {
-                            name: `White`,
-                            value: `Honoka
-                            Mai
-                            Kanade`,
-                            inline: true
-                        }
-                    ];
+                    
                     return message.channel.send({
                         content:"Sorry, I cannot find that card pack. Here are the list of all available card pack:",
-                        embed:objEmbed});
+                        embed:CardModule.embedCardPackList});
                 }
 
                 //user parameter validator
@@ -471,11 +397,13 @@ module.exports = {
 
                 //RNG: calculate catch attempt
                 var captured = false;
-                var chance = parseInt(cardSpawnData[DBM_Card_Data.columns.rarity]); 
-                var rngCatch = Math.floor(Math.random() * 10);//rng point
+                var chance = parseInt(cardSpawnData[DBM_Card_Data.columns.rarity])*10; 
+                var rngCatch = Math.floor(Math.random() * 100)+
+                CardModule.getBonusCatchAttempt(parseInt(userCardData[`color_level_${spawnedCardData.color}`]));//rng point
                 switch(spawnedCardData.type){
                     case "color":
-                        if(rngCatch+1>=chance){
+                        //bonus +10% catch rate
+                        if(rngCatch+10>=chance){
                             captured = true;
                         }
                         break;
@@ -771,7 +699,7 @@ module.exports = {
                         thumbnail : {
                             url: CardModule.Properties.imgResponse.imgError
                         },
-                        description : ":x: Please enter the correct color set command with: **p!card color set <pink/purple/green/yellow/white/blue/red>**."
+                        description : ":x: Please enter the correct color set command with: **p!card color set <pink/purple/green/yellow/white/blue/red>**"
                     };
                     return message.channel.send({embed:objEmbed});
                 }
@@ -805,7 +733,8 @@ module.exports = {
 
                 var objEmbed = {
                     color: CardModule.Properties.embedColor,
-                    description : `:white_check_mark: ${userUsername} is now assigned with color: **${newColor}** and use **100 ${assignedColor}** color point.`
+                    title: `:white_check_mark: New color has been set`,
+                    description : `:white_check_mark: <@${userId}> is now assigned with color: **${newColor}** and use **100 ${assignedColor}** color point.`
                 };
 
                 message.channel.send({embed:objEmbed});
@@ -815,7 +744,10 @@ module.exports = {
                 var objEmbed = {
                     color:CardModule.Properties.embedColor,
                     title: "Precure Cardcatcher! Guide 101",
-                    description: "This is the basic guide starter for precure cardcatcher thingy. ",
+                    // thumbnail: {
+                    //     url: CardModule.Properties.imgResponse.imgOk
+                    // },
+                    description: "This is the basic guide starter for precure cardcatcher:",
                     fields: [
                     {
                         name: "How many card color/packs/rarity available?",
@@ -823,16 +755,21 @@ module.exports = {
                         Each card also provided with number of rarity, the higher number of rarity the lower of the chance that you can capture it. You can track down your card progression with **p!card status** or **p!card inventory <pack>**.`
                     },
                     {
+                        name: "What is cLvl,color level and color point?",
+                        value: `cLvl stands for the average of all your color level. Starting from level 2 you will get 5% card capture chance bonus and will be increased for every level. To level up your color you need a multiplier of 100 color point with your level and use the command: **p!card up <color>**.`
+                    },
+                    {
                         name: "How many card spawn type are there?",
                         value: `Currently there are 3 spawn type:
                         -**normal card**: the normal card spawn that you can capture with **p!card catch** command.
-                        -**number card**: a random current number from 1-12 with the card rarity of 1-4* will be provided and you need to guess if the next hidden number will be **lower** or **higher** with **p!card guess <lower/higher>**. After you guessed it up the next random number card will be spawned immediately and other user can guess the next number card. You can only guess it once every spawn turn. This card spawn also guarantee with a 100% catch rate.
+                        -**number card**: a random current number from 1-12 with the card rarity of 1-4 :star: will be spawned and you need to guess if the next hidden number will be **lower** or **higher** with **p!card guess <lower/higher>**. After you guessed it up the next random number card will be spawned immediately and other user can guess the next number card. You can only guess it once every spawn turn. This card spawn also guarantee with a 100% catch rate.
                         - **color card**: 7 different color card: **pink, purple, green, yellow, white, blue, red** will be provided and every color will provide 1 random card with the color of the card. You can only capture the card with based from the assigned color. After a color has been captured that color will be removed. This card spawn also provide with a bonus +10% catch rate.`
                     },
                     {
-                        name: "Getting started",
+                        name: "Summary & Getting Started",
                         value: `-Gather daily color point everyday (24 hour bot server time reset) with **p!daily**. Color point can be used to change your color. If you provide use the daily command with color parameter the received point will be doubled, otherwise you'll receive overall color point.
                         -Capture the card based from the card spawn type ruleset. Example: **p!card capture** or **p!card guess<lower/higher>** if the card spawn is number type.
+                        -You can level up the your color with: **p!card up <color>**.
                         -You can use **p!card status** or **p!card inventory <pack>** to track down your card progress.`
                     },
                     ]
@@ -841,6 +778,130 @@ module.exports = {
                   message.channel.send({embed:objEmbed});
                 
                 break;
+            case "leaderboard":
+                var selection = ""; var pack = ""; var color = "";
+                //validator
+                if(args[1]!=null&&CardModule.Properties.dataCardCore.hasOwnProperty(args[1].toLowerCase())){
+                    selection = "pack"; pack = args[1].toLowerCase();
+                } else if(args[1]!=null&&CardModule.Properties.arrColor.includes(args[1].toLowerCase())){
+                    selection = "color"; color = args[1].toLowerCase();
+                } else {
+                    return message.channel.send({
+                        content:`Please enter the parameter with one of the color list:**${CardModule.Properties.arrColor.toString().split(",").join("/")}** or pack list that is listed bellow:`,
+                        embed:CardModule.embedCardPackList
+                    });
+                }
+
+                //prepare the embed
+                var objEmbed = {
+                    color: CardModule.Properties.embedColor
+                }
+                
+                var completion = args[1].toLowerCase();
+                var query = `SELECT * 
+                FROM ${DBM_Card_Leaderboard.TABLENAME} 
+                WHERE ${DBM_Card_Leaderboard.columns.id_guild}=? AND 
+                ${DBM_Card_Leaderboard.columns.category}=? AND 
+                ${DBM_Card_Leaderboard.columns.completion}=?
+                ORDER BY ${DBM_Card_Leaderboard.columns.created_at} ASC 
+                LIMIT 10`; 
+                var leaderboardContent = "";
+                var arrParameterized = [guildId,selection,completion];
+                var dataLeaderboard = await DBConn.conn.promise().query(query, arrParameterized);
+                var ctr = 1;
+                dataLeaderboard[0].forEach(function(entry){
+                    leaderboardContent += `${ctr}. <@${entry[DBM_Card_Leaderboard.columns.id_user]}> : ${GlobalFunctions.convertDateTime(entry[DBM_Card_Leaderboard.columns.created_at])}\n`; ctr++;
+                })
+
+                switch(selection){
+                    case "pack":
+                        objEmbed.title = `:trophy: Top 10 ${GlobalFunctions.capitalize(completion)} Card Pack Leaderboard`;
+                        if(leaderboardContent==""){
+                            objEmbed.description = `No one has complete the **${completion}** card pack yet...`;
+                        } else {
+                            objEmbed.description = `Here are the top 10 list of **${completion}** card pack:
+                            ${leaderboardContent}`;
+                        }
+                        break;
+                    case "color":
+                        objEmbed.title = `:trophy: Top 10 Cure ${GlobalFunctions.capitalize(completion)} Master Leaderboard`;
+                        if(leaderboardContent==""){
+                            objEmbed.description = `No one has become the master of **cure ${completion}** yet...`;
+                        } else {
+                            objEmbed.description = `Here are the top 10 list master of **cure ${completion}**:
+                            ${leaderboardContent}`;
+                        }
+                        break;
+                }
+
+                return message.channel.send({embed:objEmbed});
+            case "up":
+                //level up the color
+                var selectedColor = args[1];
+                //validator is parameter format is not correct
+
+                if(!CardModule.Properties.arrColor.includes(selectedColor)){
+                    var objEmbed = {
+                        color: CardModule.Properties.embedColor,
+                        thumbnail : {
+                            url: CardModule.Properties.imgResponse.imgError
+                        },
+                        description : ":x: Please enter the correct color level up command with: **p!card up <pink/purple/green/yellow/white/blue/red>**"
+                    };
+                    return message.channel.send({embed:objEmbed});
+                }
+
+                var userCardData = await CardModule.getCardUserStatusData(userId);
+                var colorLevel = userCardData[`color_level_${selectedColor}`];
+                var colorPoint = userCardData[`color_point_${selectedColor}`];
+                var nextColorPoint = CardModule.getNextColorPoint(colorLevel);
+                //validator: check if color point is enough/not
+                if(colorPoint<nextColorPoint){
+                    var objEmbed = {
+                        color: CardModule.Properties.embedColor,
+                        thumbnail : {
+                            url: CardModule.Properties.imgResponse.imgError
+                        },
+                        description : `:x: Sorry, you need **${nextColorPoint} ${selectedColor}** color point to level up.`
+                    };
+                    return message.channel.send({embed:objEmbed});
+                }
+
+                //update the color point
+                var parameterSetColorPoint = new Map();
+                parameterSetColorPoint.set(`color_point_${selectedColor}`,-nextColorPoint);
+                await CardModule.updateColorPoint(userId,parameterSetColorPoint);
+
+                //add 1 color level
+                var query = `UPDATE ${DBM_Card_User_Data.TABLENAME} 
+                SET color_level_${selectedColor} = color_level_${selectedColor}+1
+                WHERE ${DBM_Card_User_Data.columns.id_user}=?`;
+                await DBConn.conn.promise().query(query, [userId]);
+
+                colorLevel+=1;
+
+                var objEmbed = {
+                    color: CardModule.Properties.embedColor,
+                    title: `${userUsername}' ${GlobalFunctions.capitalize(selectedColor)} Level Up!`,
+                    thumbnail:{
+                        url: userAvatarUrl
+                    },
+                    description : `:white_check_mark: <@${userId}> is now level ${colorLevel} !`,
+                    fields: [
+                        {
+                            name:`Total bonus capture rate:`,
+                            value:`+${CardModule.getBonusCatchAttempt(colorLevel)}%`,
+                            inline: true
+                        },
+                        {
+                            name:`Next ${GlobalFunctions.capitalize(selectedColor)} Color Point:`,
+                            value:`+${CardModule.getNextColorPoint(colorLevel)}%`,
+                            inline: true
+                        },
+                    ]
+                };
+
+                message.channel.send({embed:objEmbed});
             default:
                 break;
         }

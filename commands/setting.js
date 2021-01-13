@@ -10,14 +10,20 @@ module.exports = {
     args: true,
 	async execute(message, args) {
         var guildId = message.guild.id;
+        var userId = message.author.id;
+
+        //check if user is moderator
+        if (!message.guild.members.cache.find(member => member.id === userId).hasPermission('KICK_MEMBERS')) {
+            return message.channel.send("Sorry, you need to be moderator to use this command.");
+        }
         
         //init & get card guild data
         var cardGuildData = await CardGuildModules.getCardGuildData(guildId);
         
         switch(args[0]) {
             case "spawn":
+                //remove the card spawn settings and the timer
                 if(args[1].toLowerCase()=="remove"){
-                    //remove the card spawn settings, remove the timer
                     clearInterval(CardGuildModules.arrTimerCardSpawn[guildId]);
                     var parameterSet = new Map();
                     parameterSet.set(DBM_Card_Guild.columns.id_channel_spawn,null);
@@ -59,13 +65,28 @@ module.exports = {
                             return message.channel.send(`Please mention the correct channel name.`);
                         } else {
                             columnSet.set(DBM_Card_Guild.columns.id_channel_spawn, assignedChannel);
-                            //set new card spawn
+                            //clear & set new card spawn
+                            clearInterval(CardGuildModules.arrTimerCardSpawn[guildId]);
                             CardGuildModules.arrTimerCardSpawn[guildId] = setInterval(async function intervalCardSpawn(){
+                                //get the card guild data to get the role of card catcher
+                                cardGuildData = await CardGuildModules.getCardGuildData(guildId);
                                 var objEmbed = await CardModules.generateCardSpawn(guildId);
-                                message.guild.channels.cache.find(ch => ch.id === assignedChannel)
-                                .send({embed:objEmbed});
-                            }, parseInt(intervalMinutes)*1000);
 
+                                var finalSend = {}; 
+                                if(cardGuildData[DBM_Card_Guild.columns.id_cardcatcher]!=null){
+                                    finalSend = {
+                                        content:`<@&${cardGuildData[DBM_Card_Guild.columns.id_cardcatcher]}>`,
+                                        embed:objEmbed
+                                    }
+                                } else {
+                                    finalSend = {
+                                        embed:objEmbed
+                                    }
+                                }
+
+                                message.guild.channels.cache.find(ch => ch.id === assignedChannel)
+                                .send(finalSend);
+                            }, parseInt(intervalMinutes)*1000);
                         }
 
                         DB.update(DBM_Card_Guild.TABLENAME,
@@ -82,11 +103,67 @@ module.exports = {
                 }
                 // code block
                 //return message.channel.send(slicedArgs[0]);
-                break;
-            
+            case "cardcatcher":
+                if(args[1].toLowerCase()=="remove"){
+                    //remove the cardcatcher role
+                    var columnSet = new Map();
+                    columnSet.set(DBM_Card_Guild.columns.id_cardcatcher, null);
+                    var columnWhere = new Map();
+                    columnWhere.set(DBM_Card_Guild.columns.id_guild, guildId);
+                    DB.update(DBM_Card_Guild.TABLENAME,
+                        columnSet,
+                        columnWhere
+                    );
+
+                    //update the timer
+                    //clea & update the card spawn timer if timer exists
+                    cardGuildData = await CardGuildModules.getCardGuildData(guildId);
+                    if(cardGuildData[DBM_Card_Guild.columns.id_channel_spawn]!=null){
+                        clearInterval(CardGuildModules.arrTimerCardSpawn[guildId]);
+                        CardGuildModules.arrTimerCardSpawn[guildId] = setInterval(async function intervalCardSpawn(){
+                            var objEmbed = await CardModules.generateCardSpawn(guildId);
+                            message.guild.channels.cache.find(ch => ch.id === cardGuildData[DBM_Card_Guild.columns.id_channel_spawn]).send({embed:objEmbed});
+                        }, parseInt(cardGuildData[DBM_Card_Guild.columns.spawn_interval])*1000);
+                    }
+                    
+                    return message.channel.send("**Cardcatcher** roles has been removed.");
+                }
+
+                var assignedRole = args[1];
+                var roleExists = assignedRole.match(/^\d+$/); //regex if channel format is correct/not
+
+                //check role format
+                if(!roleExists){
+                    return message.channel.send(`Please enter the role ID for **cardcatcher** or enter **remove** to remove the cardcatcher role.`);
+                }
+
+                //check if channel exists
+                roleExists = message.guild.roles.cache.has(assignedRole);
+
+                if(!roleExists){
+                    //channel not exists
+                    return message.channel.send(`Sorry, I can't find that role ID. Please enter the correct role ID for **cardcatcher**.`);
+                } else {
+                    //set new card catcher role ID
+                    var columnSet = new Map();
+                    columnSet.set(DBM_Card_Guild.columns.id_cardcatcher, assignedRole);
+                    var columnWhere = new Map();
+                    columnWhere.set(DBM_Card_Guild.columns.id_guild, guildId);
+                    DB.update(DBM_Card_Guild.TABLENAME,
+                        columnSet,
+                        columnWhere
+                    );
+
+                    return message.channel.send({
+                        embed:{
+                            color:CardModules.Properties.embedColor,
+                            description:`<@&${assignedRole}> has been set as card catcher role.`
+                        }
+                    });
+
+                }
             default:
                 break;
-            // code block
         }
 
 	},

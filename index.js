@@ -18,22 +18,6 @@ for (const file of commandFiles) {
 	client.commands.set(command.name, command);
 }
 
-//set random activity status
-function intervalRandomStatus() {
-    var arrActivity = [
-        'Sparkling, glittering, rock-paper-scissors! Cure Peace!',
-        'Healin good precure!',
-        'The two lights that come together! Cure Sparkle!',
-        'Puzzlun Cure!'
-    ];
-    var randIndex = Math.floor(Math.random() * Math.floor(arrActivity.length));
-    client.user.setActivity(arrActivity[randIndex]);
-    //console.log(DBM_Card_User_Data.columns.id_user);
-    // const guild = new Discord.Guild();
-    // guild.channels.cache.find(ch => ch.name === 'testing-ground').send('Hello world.');
-    //client.channel.fetch(795299749745131560).send("hello world");
-}
-
 client.once('ready', () => {
     //same like guildAvailable
     client.guilds.cache.forEach(async guild => {
@@ -49,22 +33,38 @@ client.once('ready', () => {
             if(channelExists){
                 CardGuildModules.arrTimerCardSpawn[guild.id] = setInterval(async function intervalCardSpawn(){
                     var objEmbed = await CardModules.generateCardSpawn(guild.id);
+                    //check if cardcatcher role exists/not
+                    var finalSend = {}; 
+                    if(cardGuildData[DBM_Card_Guild.columns.id_cardcatcher]!=null){
+                        finalSend = {
+                            content:`<@&${cardGuildData[DBM_Card_Guild.columns.id_cardcatcher]}>`,
+                            embed:objEmbed
+                        }
+                    } else {
+                        finalSend = {
+                            embed:objEmbed
+                        }
+                    }
+
                     guild.channels.cache.find(ch => ch.id === cardGuildData[DBM_Card_Guild.columns.id_channel_spawn])
-                    .send({embed:objEmbed});
+                    .send(finalSend);
                 }, parseInt(cardGuildData[DBM_Card_Guild.columns.spawn_interval])*1000);
             }
         }
-
-        // if(cardGuildData[DBM_Card_Guild.columns.id_channel_spawn]!=null){
-        //     CardGuildModules.arrTimerCardSpawn[guild.id] = setInterval(async function intervalCardSpawn(){
-        //         console.log(cardGuildData[DBM_Card_Guild.columns.spawn_interval]);
-        //     }, cardGuildData.spawn_interval*100, [guild.id]);
-        // }
         
     });
 
     //randomize the status:
-    // setInterval(intervalRandomStatus, 15000);
+    setInterval(function intervalRandomStatus() {
+        var arrActivity = [
+            'Sparkling, glittering, rock-paper-scissors! Cure Peace!',
+            'Healin\' good precure!',
+            'The two lights that come together! Cure Sparkle!',
+            'Puzzlun Cure!'
+        ];
+        var randIndex = Math.floor(Math.random() * Math.floor(arrActivity.length));
+        client.user.setActivity(arrActivity[randIndex]);
+    }, 3600000);
     console.log('Cure Peace Ready!');
 });
 

@@ -1,20 +1,6 @@
 const fs = require('fs');
 const DB = require('../storage/dbconn');
 
-/*
-template to select manual:
-DB.conn.query(
-        `SELECT * 
-        FROM ${DBM_Card_Data.TABLENAME} 
-        WHERE ${DBM_Card_Data.columns.id_card}=? LIMIT 1`,[id_card], 
-        function (err, rows) {
-            rows.forEach(function(row) {
-                //console.log(row.name);
-                return callback(row);
-            });
-        }
-    );
-*/
 async function select(tableName,parameterWhere){
     var arrParameterized = [];
     var query = `SELECT * FROM ${tableName} WHERE `;
@@ -45,16 +31,6 @@ async function selectAll(tableName,parameterWhere,parameterOrderBy=null){
     }
     query = query.replace(/,\s*$/, "");//remove the last comma and any whitespace
     
-    // query += " LIMIT 1";
-    // DB.conn.query(
-    //     query,arrParameterized, 
-    //     function (err, rows) {
-    //         rows.forEach(function(row) {
-    //             //console.log(row.name);
-    //             return callback(row);
-    //         });
-    //     }
-    // );
     return await DB.conn.promise().query(query, arrParameterized);
 }
 

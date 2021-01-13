@@ -15,7 +15,11 @@ module.exports = {
               },
               {
                 "name": "Card",
-                "value": "`catch`,`detail`,`guide`,`status [username]`,`inventory [pack][username]`,`guess [lower/higher]`,`color set [color]`"
+                "value": "`catch`,`detail`,`guide`,`status [username]`,`inventory [pack][username]`,`guess [lower/higher]`,`color set [color]`,`color up [color]`"
+              },
+              {
+                "name": "Setting [Moderator]",
+                "value": "`spawn <channelname> <minutes interval>`,`spawn remove`,`spawn cardcatcher <roleId>`,`spawn cardcatcher remove`"
               }
             ]
           }

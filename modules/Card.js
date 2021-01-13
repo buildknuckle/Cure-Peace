@@ -487,6 +487,103 @@ function embedCardDetail(embedColor,id_card,packName,
     return objEmbed;
 }
 
+const embedCardPackList = {
+    color: Properties.embedColor,
+    title : `Card Pack List`,
+    fields : [{
+        name: `Pink`,
+        value: `Nagisa
+        Saki
+        Nozomi
+        Love
+        Tsubomi
+        Hibiki
+        Miyuki
+        Mana
+        Megumi
+        Haruka
+        Mirai
+        Ichika
+        Hana
+        Hikaru
+        Nodoka`,
+        inline: true
+    },
+    {
+        name: `Blue`,
+        value: `Karen
+        Miki
+        Erika
+        Ellen
+        Reika
+        Rikka
+        Hime
+        Minami
+        Aoi
+        Saaya
+        Yuni
+        Chiyu`,
+        inline: true
+    },
+    {
+        name: `Yellow`,
+        value: `Hikari
+        Urara
+        Inori
+        Itsuki
+        Ako
+        Yayoi
+        Alice
+        Yuko
+        Kirara
+        Himari
+        Homare
+        Elena
+        Hinata`,
+        inline: true
+    },
+    {
+        name: `Purple`,
+        value: `Yuri
+        Makoto
+        Iona
+        Riko
+        Yukari
+        Amour
+        Madoka
+        Kurumi`,
+        inline: true
+    },
+    {
+        name: `Red`,
+        value: `Rin
+        Setsuna
+        Akane
+        Aguri
+        Towa
+        Akira
+        Emiru`,
+        inline: true
+    },
+    {
+        name: `Green`,
+        value: `Komachi
+        Nao
+        Kotoha
+        Ciel
+        Lala
+        `,
+        inline: true
+    },
+    {
+        name: `White`,
+        value: `Honoka
+        Mai
+        Kanade`,
+        inline: true
+    }]
+}
+
 //get 1 card user data
 async function getCardUserStatusData(id_user){
     var parameterWhere = new Map();
@@ -531,6 +628,15 @@ async function getUserTotalCard(id_user,pack){
     return cardDataInventory[0][0].total;
 }
 
+async function getAverageLevel(id_user,amount){
+    var oldUserData = await getCardUserStatusData(id_user);
+    if(oldUserData[DBM_Card_User_Data.columns.level]<=10){
+
+    }
+    var nextLevelExp = parseInt(oldUserData[DBM_Card_User_Data.columns.level])*100;
+    
+}
+
 async function updateCatchAttempt(id_user,spawn_token,objColor=null){
     //update catch attempt, add color exp in object if parameter existed
     //get color point
@@ -560,10 +666,24 @@ async function updateCatchAttempt(id_user,spawn_token,objColor=null){
     await DBConn.conn.promise().query(query, arrParameterized);
 }
 
+function getNextColorPoint(level){
+    return level*100;
+}
+
+function getBonusCatchAttempt(level){
+    //starting from level 2: every level get 5% catch bonus
+    if(level>=2){
+        return level*5;
+    } else {
+        return 0;
+    }
+}
+
 async function updateColorPoint(id_user,objColor){
     //get color point
     var maxColorPoint = 1000;
     var cardUserStatusData = await getCardUserStatusData(id_user);
+
     var arrParameterized = [];
     var queryColor = "";
     for (const [key, value] of objColor.entries()) {
@@ -869,11 +989,11 @@ async function generateCardSpawn(id_guild,specificType=null,overwriteToken = tru
             parameterSet.set(DBM_Card_Guild.columns.spawn_id,cardSpawnId);
             objEmbed.color = Properties.dataColorCore[resultData[0][0][DBM_Card_Data.columns.color]].color;
             objEmbed.author = {
-                name:`${cardSpawnSeries.charAt(0).toUpperCase()+cardSpawnSeries.slice(1)} Card - ${resultData[0][0][DBM_Card_Data.columns.pack].charAt(0).toUpperCase()+resultData[0][0][DBM_Card_Data.columns.pack].slice(1)} ${cardRarity}*`,
+                name:`${cardSpawnSeries.charAt(0).toUpperCase()+cardSpawnSeries.slice(1)} Card - ${resultData[0][0][DBM_Card_Data.columns.pack].charAt(0).toUpperCase()+resultData[0][0][DBM_Card_Data.columns.pack].slice(1)}`,
                 iconURL:Properties.dataCardCore[cardSpawnPack].icon,
             }
             objEmbed.title = resultData[0][0][DBM_Card_Data.columns.name];
-            objEmbed.description = `**${cardSpawnPack.charAt(0).toUpperCase()+cardSpawnPack.slice(1)}** card has appeared! Use: **p!card catch** to capture the card.`;
+            objEmbed.description = `${cardRarity} :star: **${cardSpawnPack.charAt(0).toUpperCase()+cardSpawnPack.slice(1)}** card has appeared! Use: **p!card catch** to capture the card.`;
             objEmbed.image ={
                 url:resultData[0][0][DBM_Card_Data.columns.img_url]
             }
@@ -898,4 +1018,4 @@ async function addNewCardInventory(id_user,id_card){
 module.exports = {Properties,getCardData,getAllCardDataByPack,
     getCardUserStatusData,getCardPack,checkUserHaveCard,getUserTotalCard,
     updateCatchAttempt,updateColorPoint,removeCardGuildSpawn,generateCardSpawn,addNewCardInventory,
-    embedCardCapture,embedCardDetail};
+    embedCardCapture,embedCardDetail,embedCardPackList,getBonusCatchAttempt,getNextColorPoint};
