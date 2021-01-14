@@ -595,94 +595,37 @@ const embedCardPackList = {
     title : `Card Pack List`,
     fields : [{
         name: `Pink`,
-        value: `Nagisa
-        Saki
-        Nozomi
-        Love
-        Tsubomi
-        Hibiki
-        Miyuki
-        Mana
-        Megumi
-        Haruka
-        Mirai
-        Ichika
-        Hana
-        Hikaru
-        Nodoka`,
+        value: `Nagisa\nSaki\nNozomi\nLove\nTsubomi\nHibiki\nMiyuki\nMana\nMegumi\nHaruka\nMirai\nIchika\nHana\nHikaru\nNodoka`,
         inline: true
     },
     {
         name: `Blue`,
-        value: `Karen
-        Miki
-        Erika
-        Ellen
-        Reika
-        Rikka
-        Hime
-        Minami
-        Aoi
-        Saaya
-        Yuni
-        Chiyu`,
+        value: `Karen\nMiki\nErika\nEllen\nReika\nRikka\nHime\nMinami\nAoi\nSaaya\nYuni\nChiyu`,
         inline: true
     },
     {
         name: `Yellow`,
-        value: `Hikari
-        Urara
-        Inori
-        Itsuki
-        Ako
-        Yayoi
-        Alice
-        Yuko
-        Kirara
-        Himari
-        Homare
-        Elena
-        Hinata`,
+        value: `Hikari\nUrara\nInori\nItsuki\nAko\nYayoi\nAlice\nYuko\nKirara\nHimari\nHomare\nElena\nHinata`,
         inline: true
     },
     {
         name: `Purple`,
-        value: `Yuri
-        Makoto
-        Iona
-        Riko
-        Yukari
-        Amour
-        Madoka
-        Kurumi`,
+        value: `Yuri\nMakoto\nIona\nRiko\nYukari\nAmour\nMadoka\nKurumi`,
         inline: true
     },
     {
         name: `Red`,
-        value: `Rin
-        Setsuna
-        Akane
-        Aguri
-        Towa
-        Akira
-        Emiru`,
+        value: `Rin\nSetsuna\nAkane\nAguri\nTowa\nAkira\nEmiru`,
         inline: true
     },
     {
         name: `Green`,
-        value: `Komachi
-        Nao
-        Kotoha
-        Ciel
-        Lala
-        `,
+        value: `Komachi\nNao\nKotoha\nCiel\nLala`,
         inline: true
     },
     {
         name: `White`,
-        value: `Honoka
-        Mai
-        Kanade`,
+        value: `Honoka\nMai\nKanade`,
         inline: true
     }]
 }
@@ -1209,9 +1152,7 @@ async function generateCardSpawn(id_guild,specificType=null,overwriteToken = tru
             objEmbed.description = `The series theme/motif was about: **${Properties.spawnHintSeries[cardSpawnSeries]}**.**${cardSpawnColor}** is my theme color. Who am I?`;
             objEmbed.fields = [{
                 name:`Answer it with: p!card answer <a/b/c>`,
-                value:`**A. ${Properties.dataCardCore[arrAnswerList[0]].fullname}
-                B. ${Properties.dataCardCore[arrAnswerList[1]].fullname}
-                C. ${Properties.dataCardCore[arrAnswerList[2]].fullname}**`
+                value:`**A. ${Properties.dataCardCore[arrAnswerList[0]].fullname}\nB. ${Properties.dataCardCore[arrAnswerList[1]].fullname}\nC. ${Properties.dataCardCore[arrAnswerList[2]].fullname}**`
             }]
             objEmbed.image ={
                 url:Properties.spawnData.quiz.embed_img

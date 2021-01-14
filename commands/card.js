@@ -94,93 +94,37 @@ module.exports = {
                 objEmbed.title = `Card Status | cLvl: ${clvl} | Color: ${cardUserStatusData[DBM_Card_User_Data.columns.color]}`;
                 objEmbed.fields = [{
                         name: `Pink(CL: ${cardUserStatusData[DBM_Card_User_Data.columns.color_level_pink]}/ CP: ${cardUserStatusData[DBM_Card_User_Data.columns.color_point_pink]}):`,
-                        value: `Nagisa: ${arrCardTotal.nagisa}/${CardModule.Properties.dataCardCore.nagisa.total}
-                        Saki: ${arrCardTotal.saki}/${CardModule.Properties.dataCardCore.saki.total}
-                        Nozomi: ${arrCardTotal.nozomi}/${CardModule.Properties.dataCardCore.nozomi.total}
-                        Love: ${arrCardTotal.love}/${CardModule.Properties.dataCardCore.love.total}
-                        Tsubomi: ${arrCardTotal.tsubomi}/${CardModule.Properties.dataCardCore.tsubomi.total}
-                        Hibiki: ${arrCardTotal.hibiki}/${CardModule.Properties.dataCardCore.hibiki.total}
-                        Miyuki: ${arrCardTotal.miyuki}/${CardModule.Properties.dataCardCore.miyuki.total}
-                        Mana: ${arrCardTotal.mana}/${CardModule.Properties.dataCardCore.mana.total}
-                        Megumi: ${arrCardTotal.megumi}/${CardModule.Properties.dataCardCore.megumi.total}
-                        Haruka: ${arrCardTotal.haruka}/${CardModule.Properties.dataCardCore.haruka.total}
-                        Mirai: ${arrCardTotal.mirai}/${CardModule.Properties.dataCardCore.mirai.total}
-                        Ichika: ${arrCardTotal.ichika}/${CardModule.Properties.dataCardCore.ichika.total}
-                        Hana: ${arrCardTotal.hana}/${CardModule.Properties.dataCardCore.hana.total}
-                        Hikaru: ${arrCardTotal.hikaru}/${CardModule.Properties.dataCardCore.hikaru.total}
-                        Nodoka: ${arrCardTotal.nodoka}/${CardModule.Properties.dataCardCore.nodoka.total}`,
+                        value: `Nagisa: ${arrCardTotal.nagisa}/${CardModule.Properties.dataCardCore.nagisa.total}\nSaki: ${arrCardTotal.saki}/${CardModule.Properties.dataCardCore.saki.total}\nNozomi: ${arrCardTotal.nozomi}/${CardModule.Properties.dataCardCore.nozomi.total}\nLove: ${arrCardTotal.love}/${CardModule.Properties.dataCardCore.love.total}\nTsubomi: ${arrCardTotal.tsubomi}/${CardModule.Properties.dataCardCore.tsubomi.total}\nHibiki: ${arrCardTotal.hibiki}/${CardModule.Properties.dataCardCore.hibiki.total}\nMiyuki: ${arrCardTotal.miyuki}/${CardModule.Properties.dataCardCore.miyuki.total}\nMana: ${arrCardTotal.mana}/${CardModule.Properties.dataCardCore.mana.total}\nMegumi: ${arrCardTotal.megumi}/${CardModule.Properties.dataCardCore.megumi.total}\nHaruka: ${arrCardTotal.haruka}/${CardModule.Properties.dataCardCore.haruka.total}\nMirai: ${arrCardTotal.mirai}/${CardModule.Properties.dataCardCore.mirai.total}\nIchika: ${arrCardTotal.ichika}/${CardModule.Properties.dataCardCore.ichika.total}\nHana: ${arrCardTotal.hana}/${CardModule.Properties.dataCardCore.hana.total}\nHikaru: ${arrCardTotal.hikaru}/${CardModule.Properties.dataCardCore.hikaru.total}\nNodoka: ${arrCardTotal.nodoka}/${CardModule.Properties.dataCardCore.nodoka.total}`,
                         inline: true
                     },
                     {
                         name: `Blue(CL: ${cardUserStatusData[DBM_Card_User_Data.columns.color_level_blue]}/ CP: ${cardUserStatusData[DBM_Card_User_Data.columns.color_point_blue]}):`,
-                        value: `Karen: ${arrCardTotal.karen}/${CardModule.Properties.dataCardCore.karen.total}
-                        Miki: ${arrCardTotal.miki}/${CardModule.Properties.dataCardCore.miki.total}
-                        Erika: ${arrCardTotal.erika}/${CardModule.Properties.dataCardCore.erika.total}
-                        Ellen: ${arrCardTotal.ellen}/${CardModule.Properties.dataCardCore.ellen.total}
-                        Reika: ${arrCardTotal.hikaru}/${CardModule.Properties.dataCardCore.reika.total}
-                        Rikka: ${arrCardTotal.rikka}/${CardModule.Properties.dataCardCore.rikka.total}
-                        Hime: ${arrCardTotal.hime}/${CardModule.Properties.dataCardCore.hime.total}
-                        Minami: ${arrCardTotal.minami}/${CardModule.Properties.dataCardCore.minami.total}
-                        Aoi: ${arrCardTotal.aoi}/${CardModule.Properties.dataCardCore.aoi.total}
-                        Saaya: ${arrCardTotal.saaya}/${CardModule.Properties.dataCardCore.saaya.total}
-                        Yuni: ${arrCardTotal.yuni}/${CardModule.Properties.dataCardCore.yuni.total}
-                        Chiyu: ${arrCardTotal.chiyu}/${CardModule.Properties.dataCardCore.chiyu.total}`,
+                        value: `Karen: ${arrCardTotal.karen}/${CardModule.Properties.dataCardCore.karen.total}\nMiki: ${arrCardTotal.miki}/${CardModule.Properties.dataCardCore.miki.total}\nErika: ${arrCardTotal.erika}/${CardModule.Properties.dataCardCore.erika.total}\nEllen: ${arrCardTotal.ellen}/${CardModule.Properties.dataCardCore.ellen.total}\nReika: ${arrCardTotal.hikaru}/${CardModule.Properties.dataCardCore.reika.total}\nRikka: ${arrCardTotal.rikka}/${CardModule.Properties.dataCardCore.rikka.total}\nHime: ${arrCardTotal.hime}/${CardModule.Properties.dataCardCore.hime.total}\nMinami: ${arrCardTotal.minami}/${CardModule.Properties.dataCardCore.minami.total}\nAoi: ${arrCardTotal.aoi}/${CardModule.Properties.dataCardCore.aoi.total}\nSaaya: ${arrCardTotal.saaya}/${CardModule.Properties.dataCardCore.saaya.total}\nYuni: ${arrCardTotal.yuni}/${CardModule.Properties.dataCardCore.yuni.total}\nChiyu: ${arrCardTotal.chiyu}/${CardModule.Properties.dataCardCore.chiyu.total}`,
                         inline: true
                     },
                     {
                         name: `Yellow(CL: ${cardUserStatusData[DBM_Card_User_Data.columns.color_level_yellow]}/ CP: ${cardUserStatusData[DBM_Card_User_Data.columns.color_point_yellow]}):`,
-                        value: `Hikari: ${arrCardTotal.hikari}/${CardModule.Properties.dataCardCore.hikari.total}
-                        Urara: ${arrCardTotal.urara}/${CardModule.Properties.dataCardCore.urara.total}
-                        Inori: ${arrCardTotal.inori}/${CardModule.Properties.dataCardCore.inori.total}
-                        Itsuki: ${arrCardTotal.itsuki}/${CardModule.Properties.dataCardCore.itsuki.total}
-                        Ako: ${arrCardTotal.ako}/${CardModule.Properties.dataCardCore.ako.total}
-                        Yayoi: ${arrCardTotal.yayoi}/${CardModule.Properties.dataCardCore.yayoi.total}
-                        Alice: ${arrCardTotal.alice}/${CardModule.Properties.dataCardCore.alice.total}
-                        Yuko: ${arrCardTotal.yuko}/${CardModule.Properties.dataCardCore.yuko.total}
-                        Kirara: ${arrCardTotal.kirara}/${CardModule.Properties.dataCardCore.kirara.total}
-                        Himari: ${arrCardTotal.himari}/${CardModule.Properties.dataCardCore.himari.total}
-                        Homare: ${arrCardTotal.homare}/${CardModule.Properties.dataCardCore.homare.total}
-                        Elena: ${arrCardTotal.elena}/${CardModule.Properties.dataCardCore.elena.total}
-                        Hinata: ${arrCardTotal.hinata}/${CardModule.Properties.dataCardCore.hinata.total}`,
+                        value: `Hikari: ${arrCardTotal.hikari}/${CardModule.Properties.dataCardCore.hikari.total}\nUrara: ${arrCardTotal.urara}/${CardModule.Properties.dataCardCore.urara.total}\nInori: ${arrCardTotal.inori}/${CardModule.Properties.dataCardCore.inori.total}\nItsuki: ${arrCardTotal.itsuki}/${CardModule.Properties.dataCardCore.itsuki.total}\nAko: ${arrCardTotal.ako}/${CardModule.Properties.dataCardCore.ako.total}\nYayoi: ${arrCardTotal.yayoi}/${CardModule.Properties.dataCardCore.yayoi.total}\nAlice: ${arrCardTotal.alice}/${CardModule.Properties.dataCardCore.alice.total}\nYuko: ${arrCardTotal.yuko}/${CardModule.Properties.dataCardCore.yuko.total}\nKirara: ${arrCardTotal.kirara}/${CardModule.Properties.dataCardCore.kirara.total}\nHimari: ${arrCardTotal.himari}/${CardModule.Properties.dataCardCore.himari.total}\nHomare: ${arrCardTotal.homare}/${CardModule.Properties.dataCardCore.homare.total}\nElena: ${arrCardTotal.elena}/${CardModule.Properties.dataCardCore.elena.total}\nHinata: ${arrCardTotal.hinata}/${CardModule.Properties.dataCardCore.hinata.total}`,
                         inline: true
                     },
                     {
                         name: `Purple(CL: ${cardUserStatusData[DBM_Card_User_Data.columns.color_level_purple]}/ CP: ${cardUserStatusData[DBM_Card_User_Data.columns.color_point_purple]}):`,
-                        value: `Yuri: ${arrCardTotal.yuri}/${CardModule.Properties.dataCardCore.yuri.total}
-                        Makoto: ${arrCardTotal.makoto}/${CardModule.Properties.dataCardCore.makoto.total}
-                        Iona: ${arrCardTotal.iona}/${CardModule.Properties.dataCardCore.iona.total}
-                        Riko: ${arrCardTotal.riko}/${CardModule.Properties.dataCardCore.riko.total}
-                        Yukari: ${arrCardTotal.yukari}/${CardModule.Properties.dataCardCore.yukari.total}
-                        Amour: ${arrCardTotal.amour}/${CardModule.Properties.dataCardCore.amour.total}
-                        Madoka: ${arrCardTotal.madoka}/${CardModule.Properties.dataCardCore.madoka.total}
-                        Kurumi: ${arrCardTotal.kurumi}/${CardModule.Properties.dataCardCore.kurumi.total}`,
+                        value: `Yuri: ${arrCardTotal.yuri}/${CardModule.Properties.dataCardCore.yuri.total}\nMakoto: ${arrCardTotal.makoto}/${CardModule.Properties.dataCardCore.makoto.total}\nIona: ${arrCardTotal.iona}/${CardModule.Properties.dataCardCore.iona.total}\nRiko: ${arrCardTotal.riko}/${CardModule.Properties.dataCardCore.riko.total}\nYukari: ${arrCardTotal.yukari}/${CardModule.Properties.dataCardCore.yukari.total}\nAmour: ${arrCardTotal.amour}/${CardModule.Properties.dataCardCore.amour.total}\nMadoka: ${arrCardTotal.madoka}/${CardModule.Properties.dataCardCore.madoka.total}\nKurumi: ${arrCardTotal.kurumi}/${CardModule.Properties.dataCardCore.kurumi.total}`,
                         inline: true
                     },
                     {
                         name: `Red(CL: ${cardUserStatusData[DBM_Card_User_Data.columns.color_level_red]}/ CP: ${cardUserStatusData[DBM_Card_User_Data.columns.color_point_red]}):`,
-                        value: `Rin: ${arrCardTotal.rin}/${CardModule.Properties.dataCardCore.rin.total}
-                        Setsuna: ${arrCardTotal.setsuna}/${CardModule.Properties.dataCardCore.setsuna.total}
-                        Akane: ${arrCardTotal.akane}/${CardModule.Properties.dataCardCore.akane.total}
-                        Aguri: ${arrCardTotal.aguri}/${CardModule.Properties.dataCardCore.aguri.total}
-                        Towa: ${arrCardTotal.towa}/${CardModule.Properties.dataCardCore.towa.total}
-                        Akira: ${arrCardTotal.akira}/${CardModule.Properties.dataCardCore.akira.total}
-                        Emiru: ${arrCardTotal.emiru}/${CardModule.Properties.dataCardCore.emiru.total}`,
+                        value: `Rin: ${arrCardTotal.rin}/${CardModule.Properties.dataCardCore.rin.total}\nSetsuna: ${arrCardTotal.setsuna}/${CardModule.Properties.dataCardCore.setsuna.total}\nAkane: ${arrCardTotal.akane}/${CardModule.Properties.dataCardCore.akane.total}\nAguri: ${arrCardTotal.aguri}/${CardModule.Properties.dataCardCore.aguri.total}\nTowa: ${arrCardTotal.towa}/${CardModule.Properties.dataCardCore.towa.total}\nAkira: ${arrCardTotal.akira}/${CardModule.Properties.dataCardCore.akira.total}\nEmiru: ${arrCardTotal.emiru}/${CardModule.Properties.dataCardCore.emiru.total}`,
                         inline: true
                     },
                     {
                         name: `Green(CL: ${cardUserStatusData[DBM_Card_User_Data.columns.color_level_green]}/ CP: ${cardUserStatusData[DBM_Card_User_Data.columns.color_point_green]}):`,
-                        value: `Komachi: ${arrCardTotal.komachi}/${CardModule.Properties.dataCardCore.komachi.total}
-                        Nao: ${arrCardTotal.nao}/${CardModule.Properties.dataCardCore.nao.total}
-                        Kotoha: ${arrCardTotal.kotoha}/${CardModule.Properties.dataCardCore.kotoha.total}
-                        Ciel: ${arrCardTotal.ciel}/${CardModule.Properties.dataCardCore.ciel.total}
-                        Lala: ${arrCardTotal.lala}/${CardModule.Properties.dataCardCore.lala.total}`,
+                        value: `Komachi: ${arrCardTotal.komachi}/${CardModule.Properties.dataCardCore.komachi.total}\nNao: ${arrCardTotal.nao}/${CardModule.Properties.dataCardCore.nao.total}\nKotoha: ${arrCardTotal.kotoha}/${CardModule.Properties.dataCardCore.kotoha.total}\nCiel: ${arrCardTotal.ciel}/${CardModule.Properties.dataCardCore.ciel.total}\nLala: ${arrCardTotal.lala}/${CardModule.Properties.dataCardCore.lala.total}`,
                         inline: true
                     },
                     {
                         name: `White(CL: ${cardUserStatusData[DBM_Card_User_Data.columns.color_level_white]}/ CP: ${cardUserStatusData[DBM_Card_User_Data.columns.color_point_white]}):`,
-                        value: `Honoka: ${arrCardTotal.honoka}/${CardModule.Properties.dataCardCore.honoka.total}
-                        Mai: ${arrCardTotal.mai}/${CardModule.Properties.dataCardCore.mai.total}
-                        Kanade: ${arrCardTotal.kanade}/${CardModule.Properties.dataCardCore.kanade.total}`,
+                        value: `Honoka: ${arrCardTotal.honoka}/${CardModule.Properties.dataCardCore.honoka.total}\nMai: ${arrCardTotal.mai}/${CardModule.Properties.dataCardCore.mai.total}\nKanade: ${arrCardTotal.kanade}/${CardModule.Properties.dataCardCore.kanade.total}`,
                         inline: true
                     }
                 ];
@@ -237,7 +181,7 @@ module.exports = {
                 }
 
                 //end user parameter validator
-                objEmbed.title = `${pack} Card Pack:`;
+                objEmbed.title = `${GlobalFunctions.capitalize(pack)} Card Pack:`;
                 objEmbed.author = {
                     name: userUsername,
                     icon_url: userAvatarUrl
@@ -260,10 +204,10 @@ module.exports = {
                 // var cardDataInventory = await CardModule.getAllCardDataByPack(pack);
                 var progressTotal = 0; var ctr = 0; var maxCtr = 4; var pointerMaxData = cardDataInventory[0].length;
                 cardDataInventory[0].forEach(function(entry){
-                    var icon = ":x:";
+                    var icon = "❌ ";
                     //checkmark if card is owned
                     if(entry[DBM_Card_Inventory.columns.id_user]!=null){
-                        icon = ":white_check_mark:"; progressTotal++;
+                        icon = "✅ "; progressTotal++;
                     }
                     cardList+=`[${icon}${entry[DBM_Card_Data.columns.id_card]} - ${entry[DBM_Card_Data.columns.name]}](${entry[DBM_Card_Data.columns.img_url]})\n`;
                     objEmbed.thumbnail = {
@@ -383,8 +327,7 @@ module.exports = {
                     objEmbed.thumbnail = {
                         url: CardModule.Properties.imgResponse.imgError
                     }
-                    objEmbed.description = `:x: Sorry, you already have this card: **${spawnedCardData.id} - ${cardSpawnData[DBM_Card_Data.columns.name]}**. 
-                    As a bonus you have received **${randomPoint} ${cardSpawnData[DBM_Card_Data.columns.color]}** color point.`;
+                    objEmbed.description = `:x: Sorry, you already have this card: **${spawnedCardData.id} - ${cardSpawnData[DBM_Card_Data.columns.name]}**. As a bonus you have received **${randomPoint} ${cardSpawnData[DBM_Card_Data.columns.color]}** color point.`;
                     //update the catch token & color point
                     var objColor = new Map();
                     objColor.set(`color_point_${spawnedCardData.color}`,randomPoint);
@@ -786,26 +729,19 @@ module.exports = {
                     fields: [
                     {
                         name: "How many card color/packs/rarity available?",
-                        value: `7 Color: pink, purple, green, yellow, white, blue, red. There are also 63 card pack that you can collect. 
-                        Each card also provided with number of rarity from 1-7, the higher number of rarity the lower of the chance that you can capture it. You can track down your card progression with **p!card status** or **p!card inventory <pack>**`
+                        value: `7 Color: pink, purple, green, yellow, white, blue, red. There are also 63 card pack that you can collect.\nEach card also provided with number of rarity from 1-7, the higher number of rarity the lower of the chance that you can capture it. You can track down your card progression with **p!card status** or **p!card inventory <pack>**`
                     },
                     {
                         name: "What is cLvl, assigned color, CL(color level) and CP(color point) on my status?",
-                        value: `**cLvl** stands for the average of all your color level and just used to represent your overall color level. Starting from color level 2 you will get 5% card capture chance bonus and will be increased for every level. To level up your color, you need a multiplier of 100 color point for every color level that you have and use the command: **p!card up <color>**. Color point can be used to change your color too.`
+                        value: `**cLvl** stands for the average of all your color level and just used to represent your overall color level.\nStarting from color level 2 you will get 5% card capture chance bonus and will be increased for every level. To level up your color, you need a multiplier of 100 color point for every color level that you have and use the command: **p!card up <color>**. Color point can be used to change your color too.`
                     },
                     {
                         name: "What are the list of card spawn type?",
-                        value: `-**normal**: the common card spawn that you can capture with **p!card catch** command.
-                        -**color**: 7 different color card will be spawned and every color will provide 1 random card from its color. You can only capture the card from your assigned color and do it one time. After a color has been captured that color will be removed. Base catch rate +10% for this spawn.
-                        -**number**: a random number from 1-12 & card rarity within 1-4 will be spawned. You need to guess if the next hidden number will be **lower** or **higher** with **p!card guess <lower/higher>**. After you guessed it, the next random number card will be spawned immediately and other user can guess the next number card. Bonus spawn type: 100% catch rate & **respawnable**.
-                        -**quiz**: A set of question, answer and card rarity from 5 to higher will be spawned. You need to answer it with **p!card answer <a/b/c>**. Bonus spawn type: 100% catch rate & **respawnable**.`
+                        value: `-**normal**: the common card spawn that you can capture with **p!card catch** command.\n-**color**: 7 different color card will be spawned and every color will provide 1 random card from its color. You can only capture the card from your assigned color and do it one time. After a color has been captured that color will be removed. Base catch rate +10% for this spawn.\n-**number**: a random number from 1-12 & card rarity within 1-4 will be spawned. You need to guess if the next hidden number will be **lower** or **higher** with **p!card guess <lower/higher>**. After you guessed it, the next random number card will be spawned immediately and other user can guess the next number card. Bonus spawn type: 100% catch rate & **respawnable**.\n-**quiz**: A set of question, answer and card rarity from 5 to higher will be spawned. You need to answer it with **p!card answer <a/b/c>**. Bonus spawn type: 100% catch rate & **respawnable**.`
                     },
                     {
                         name: "Summary & Getting Started",
-                        value: `-Gather daily color point everyday (24 hour bot server time reset) with **p!daily <color>**. The **<color>** parameter is optional and the point will be doubled if you didn't provide the **<color>** parameter, otherwise you'll receive overall color point.
-                        -Capture the card based from the card spawn type ruleset.
-                        -You can level up the your color with: **p!card up <color>**.
-                        -You can use **p!card status** or **p!card inventory <pack>** to track down your card progress.`
+                        value: `-Gather daily color point everyday (24 hour bot server time reset) with **p!daily <color>**. The **<color>** parameter is optional and the point will be doubled if you didn't provide the **<color>** parameter, otherwise you'll receive overall color point.\n-Capture the card based from the card spawn type ruleset.\n-You can level up the your color with: **p!card up <color>**.\n-You can use **p!card status** or **p!card inventory <pack>** to track down your card progress.`
                     }]
                   }
                   message.channel.send({embed:objEmbed});
@@ -852,8 +788,7 @@ module.exports = {
                         if(leaderboardContent==""){
                             objEmbed.description = `No one has complete the **${completion}** card pack yet...`;
                         } else {
-                            objEmbed.description = `Here are the top 10 list of **${completion}** card pack:
-                            ${leaderboardContent}`;
+                            objEmbed.description = `Here are the top 10 list of **${completion}** card pack:\n${leaderboardContent}`;
                         }
                         break;
                     case "color":
@@ -861,8 +796,7 @@ module.exports = {
                         if(leaderboardContent==""){
                             objEmbed.description = `No one has become the master of **cure ${completion}** yet...`;
                         } else {
-                            objEmbed.description = `Here are the top 10 list master of **cure ${completion}**:
-                            ${leaderboardContent}`;
+                            objEmbed.description = `Here are the top 10 list master of **cure ${completion}**:\n${leaderboardContent}`;
                         }
                         break;
                 }
@@ -1067,11 +1001,11 @@ module.exports = {
                 
                 break;
 
-            case "debug":
-                //for card spawn debug purpose
-                var cardSpawnData = await CardModule.generateCardSpawn(guildId);
-                message.channel.send({embed:cardSpawnData});
-                break;
+            // case "debug":
+            //     //for card spawn debug purpose
+            //     var cardSpawnData = await CardModule.generateCardSpawn(guildId);
+            //     message.channel.send({embed:cardSpawnData});
+            //     break;
             default:
                 break;
         }
