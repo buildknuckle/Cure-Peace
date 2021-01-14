@@ -1206,7 +1206,7 @@ async function generateCardSpawn(id_guild,specificType=null,overwriteToken = tru
                 name:`Quiz Card`,
             }
             objEmbed.title = `:grey_question: It's Quiz Time!`;
-            objEmbed.description = `Current series theme/motif was: **${Properties.spawnHintSeries[cardSpawnSeries]}**. I have **${cardSpawnColor}** for my theme color. Who am I?`;
+            objEmbed.description = `The series theme/motif was about: **${Properties.spawnHintSeries[cardSpawnSeries]}**.**${cardSpawnColor}** is my theme color. Who am I?`;
             objEmbed.fields = [{
                 name:`Answer it with: p!card answer <a/b/c>`,
                 value:`**A. ${Properties.dataCardCore[arrAnswerList[0]].fullname}
