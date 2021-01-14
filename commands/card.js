@@ -484,10 +484,27 @@ module.exports = {
                             break;
                     }
 
-                    return message.channel.send({
+                    message.channel.send({
                         content:`Nice catch! **${userUsername}** has captured: **${cardSpawnData[DBM_Card_Data.columns.name]}**. You also received **${cpReward} ${spawnedCardData.color}** color point.`,
                         embed:objEmbed
                     });
+
+                    //check card pack completion:
+                    var embedCompletion = null;
+                    var checkCardCompletionPack = await CardModule.checkCardCompletion(userId,"pack",cardSpawnData[DBM_Card_Data.columns.pack]);
+                    var checkCardCompletionColor = await CardModule.checkCardCompletion(userId,"color",spawnedCardData.color);
+
+                    if(checkCardCompletionPack){
+                        //card pack completion
+                        embedCompletion = await CardModule.leaderboardAddNew(guildId,userId,userAvatarUrl,CardModule.Properties.dataColorCore[cardSpawnData[DBM_Card_Data.columns.color]].color,"pack",cardSpawnData[DBM_Card_Data.columns.pack]);
+                    } else if(checkCardCompletionColor) {
+                        //color set completion
+                        embedCompletion = await CardModule.leaderboardAddNew(guildId,userId,userAvatarUrl,CardModule.Properties.dataColorCore[cardSpawnData[DBM_Card_Data.columns.color]].color,"color",spawnedCardData.color);
+                    }
+
+                    if(embedCompletion!=null){
+                        return message.channel.send({embed:embedCompletion});
+                    }
                 } else {
                     //update the catch token & color point
                     var objColor = new Map();
@@ -659,6 +676,24 @@ module.exports = {
                             cardSpawnData[DBM_Card_Data.columns.pack],cardSpawnData[DBM_Card_Data.columns.name],cardSpawnData[DBM_Card_Data.columns.img_url],cardSpawnData[DBM_Card_Data.columns.series],cardSpawnData[DBM_Card_Data.columns.rarity],userAvatarUrl,userUsername,currentTotalCard);
                         message.channel.send({content:msgSend,embed:objEmbed});
                     }
+
+                    //check card pack completion:
+                    var embedCompletion = null;
+                    var checkCardCompletionPack = await CardModule.checkCardCompletion(userId,"pack",cardSpawnData[DBM_Card_Data.columns.pack]);
+                    var checkCardCompletionColor = await CardModule.checkCardCompletion(userId,"color",spawnedCardData.color);
+
+                    if(checkCardCompletionPack){
+                        //card pack completion
+                        embedCompletion = await CardModule.leaderboardAddNew(guildId,userId,userAvatarUrl,CardModule.Properties.dataColorCore[cardSpawnData[DBM_Card_Data.columns.color]].color,"pack",cardSpawnData[DBM_Card_Data.columns.pack]);
+                    } else if(checkCardCompletionColor) {
+                        //color set completion
+                        embedCompletion = await CardModule.leaderboardAddNew(guildId,userId,userAvatarUrl,CardModule.Properties.dataColorCore[cardSpawnData[DBM_Card_Data.columns.color]].color,"color",spawnedCardData.color);
+                    }
+
+                    if(embedCompletion!=null){
+                        message.channel.send({embed:embedCompletion});
+                    }
+
                 } else if(same) {
                     message.channel.send({embed:objEmbed});
                 } else {
@@ -752,26 +787,25 @@ module.exports = {
                     {
                         name: "How many card color/packs/rarity available?",
                         value: `7 Color: pink, purple, green, yellow, white, blue, red. There are also 63 card pack that you can collect. 
-                        Each card also provided with number of rarity from 1-7, the higher number of rarity the lower of the chance that you can capture it. You can track down your card progression with **p!card status** or **p!card inventory <pack>**.`
+                        Each card also provided with number of rarity from 1-7, the higher number of rarity the lower of the chance that you can capture it. You can track down your card progression with **p!card status** or **p!card inventory <pack>**`
                     },
                     {
-                        name: "What is cLvl,color level and color point?",
-                        value: `cLvl stands for the average of all your color level. Starting from level 2 you will get 5% card capture chance bonus and will be increased for every level. To level up your color you need a multiplier of 100 color point with your level and use the command: **p!card up <color>**.`
+                        name: "What is cLvl, assigned color, CL(color level) and CP(color point) on my status?",
+                        value: `**cLvl** stands for the average of all your color level and just used to represent your overall color level. Starting from color level 2 you will get 5% card capture chance bonus and will be increased for every level. To level up your color, you need a multiplier of 100 color point for every color level that you have and use the command: **p!card up <color>**. Color point can be used to change your color too.`
                     },
                     {
-                        name: "How many card spawn type are there?",
-                        value: `Currently there are 3 spawn type:
-                        -**normal**: the common card spawn that you can capture with **p!card catch** command.
-                        -**number**: a random number from 1-12 & rarity of 1-4 :star: will be spawned. You need to guess if the next hidden number will be **lower** or **higher** with **p!card guess <lower/higher>**. After you guessed it, the next random number card will be spawned immediately and other user can guess the next number card. This card spawn also guarantee with a 100% catch rate.
-                        - **color**: 7 different color card will be spawned and every color will provide 1 random card from its color. You can only capture the card from your assigned color and do it one time. After a color has been captured that color will be removed. This card spawn also provide with a bonus +10% catch rate.
-                        -**quiz**: A question and 3 list of answer will be provided. You need to answer it with **p!card answer <a/b/c>**`
+                        name: "What are the list of card spawn type?",
+                        value: `-**normal**: the common card spawn that you can capture with **p!card catch** command.
+                        -**color**: 7 different color card will be spawned and every color will provide 1 random card from its color. You can only capture the card from your assigned color and do it one time. After a color has been captured that color will be removed. Base catch rate +10% for this spawn.
+                        -**number**: a random number from 1-12 & card rarity within 1-4 will be spawned. You need to guess if the next hidden number will be **lower** or **higher** with **p!card guess <lower/higher>**. After you guessed it, the next random number card will be spawned immediately and other user can guess the next number card. Bonus spawn type: 100% catch rate & **respawnable**.
+                        -**quiz**: A set of question, answer and card rarity from 5 to higher will be spawned. You need to answer it with **p!card answer <a/b/c>**. Bonus spawn type: 100% catch rate & **respawnable**.`
                     },
                     {
                         name: "Summary & Getting Started",
-                        value: `-Gather daily color point everyday (24 hour bot server time reset) with **p!daily**. Color point can be used to change your color. If you provide use the daily command with color parameter the received point will be doubled, otherwise you'll receive overall color point.
+                        value: `-Gather daily color point everyday (24 hour bot server time reset) with **p!daily <color>**. The **<color>** parameter is optional and the point will be doubled if you didn't provide the **<color>** parameter, otherwise you'll receive overall color point.
                         -Capture the card based from the card spawn type ruleset.
-                        -You can level up the your color with: **p!card up <color>**
-                        -You can use **p!card status** or **p!card inventory <pack>** to track down your card progress`
+                        -You can level up the your color with: **p!card up <color>**.
+                        -You can use **p!card status** or **p!card inventory <pack>** to track down your card progress.`
                     }]
                   }
                   message.channel.send({embed:objEmbed});
@@ -1010,17 +1044,34 @@ module.exports = {
                     objColor
                 );
 
+                //check card pack completion:
+                var embedCompletion = null;
+                var checkCardCompletionPack = await CardModule.checkCardCompletion(userId,"pack",cardSpawnData[DBM_Card_Data.columns.pack]);
+                var checkCardCompletionColor = await CardModule.checkCardCompletion(userId,"color",spawnedCardData.color);
+
+                if(checkCardCompletionPack){
+                    //card pack completion
+                    embedCompletion = await CardModule.leaderboardAddNew(guildId,userId,userAvatarUrl,CardModule.Properties.dataColorCore[cardSpawnData[DBM_Card_Data.columns.color]].color,"pack",cardSpawnData[DBM_Card_Data.columns.pack]);
+                } else if(checkCardCompletionColor) {
+                    //color set completion
+                    embedCompletion = await CardModule.leaderboardAddNew(guildId,userId,userAvatarUrl,CardModule.Properties.dataColorCore[cardSpawnData[DBM_Card_Data.columns.color]].color,"color",spawnedCardData.color);
+                }
+
+                if(embedCompletion!=null){
+                    message.channel.send({embed:embedCompletion});
+                }
+
                 //generate new card:
                 var objEmbedNewCard =  await CardModule.generateCardSpawn(guildId,"quiz",false);
                 message.channel.send({embed:objEmbedNewCard});
                 
                 break;
 
-            // case "debug":
-            //     //for card spawn debug purpose
-            //     var cardSpawnData = await CardModule.generateCardSpawn(guildId);
-            //     message.channel.send({embed:cardSpawnData});
-            //     break;
+            case "debug":
+                //for card spawn debug purpose
+                var cardSpawnData = await CardModule.generateCardSpawn(guildId);
+                message.channel.send({embed:cardSpawnData});
+                break;
             default:
                 break;
         }

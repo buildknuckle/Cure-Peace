@@ -5,6 +5,7 @@ const DBM_Card_Data = require('../database/model/DBM_Card_Data');
 const DBM_Card_User_Data = require('../database/model/DBM_Card_User_Data');
 const DBM_Card_Inventory = require('../database/model/DBM_Card_Inventory');
 const DBM_Card_Guild = require('../database/model/DBM_Card_Guild');
+const DBM_Card_Leaderboard = require('../database/model/DBM_Card_Leaderboard');
 
 class Properties{
     static embedColor = '#efcc2c';
@@ -45,32 +46,38 @@ class Properties{
     static dataColorCore = {
         pink:{
             imgMysteryUrl:"https://cdn.discordapp.com/attachments/793415946738860072/798116047575842846/mystery_pink.jpg",
-            color:"#FEA1E6"
+            color:"#FEA1E6",
+            total:194
         },
         purple:{
             imgMysteryUrl:"https://cdn.discordapp.com/attachments/793415946738860072/798116058485227520/mystery_purple.jpg",
-            color:"#897CFE"
+            color:"#897CFE",
+            total:102
         },
         green:{
             imgMysteryUrl:"https://cdn.discordapp.com/attachments/793415946738860072/798116027358773258/mystery_green.jpg",
-            color:"#7CF885"
+            color:"#7CF885",
+            total:62
         },
         yellow:{
             imgMysteryUrl:"https://cdn.discordapp.com/attachments/793415946738860072/798116089950502942/mystery_yellow.jpg",
-            color:"#FDF13B"
-
+            color:"#FDF13B",
+            total:152
         },
         white:{
             imgMysteryUrl:"https://cdn.discordapp.com/attachments/793415946738860072/798116077112393738/mystery_white.jpg",
-            color:"#FFFFEA"
+            color:"#FFFFEA",
+            total:39
         },
         blue:{
             imgMysteryUrl:"https://cdn.discordapp.com/attachments/793415946738860072/798116003649159219/mystery_blue.jpg",
-            color:"#7FC7FF"
+            color:"#7FC7FF",
+            total:136
         },
         red:{
             imgMysteryUrl:"https://cdn.discordapp.com/attachments/793415946738860072/798116067250536458/mystery_red.jpg",
-            color:"#FF9389"
+            color:"#FF9389",
+            total:87
         },
         all:{
             imgMysteryUrl:"https://cdn.discordapp.com/attachments/793415946738860072/798179736475926528/mystery_card_animate.gif"
@@ -762,6 +769,84 @@ async function updateCatchAttempt(id_user,spawn_token,objColor=null){
     await DBConn.conn.promise().query(query, arrParameterized);
 }
 
+async function checkCardCompletion(id_user,category,value){
+    //category parameter: color/pack
+    if(category=="color"){
+        //check color set completion:
+        var queryColorCompletion = `select count(ci.${DBM_Card_Inventory.columns.id_card}) as total 
+        from ${DBM_Card_Inventory.TABLENAME} ci, ${DBM_Card_Data.TABLENAME} cd
+        where ci.${DBM_Card_Inventory.columns.id_card}=cd.${DBM_Card_Data.columns.id_card} and 
+        cd.${DBM_Card_Data.columns.color}=? and 
+        ci.${DBM_Card_Inventory.columns.id_user}=?`;
+        var arrParameterized = [value,id_user];
+        var checkColorCompletion = await DBConn.conn.promise().query(queryColorCompletion, arrParameterized);
+        if(checkColorCompletion[0]["total"]>=Properties.dataColorCore[value].total){
+            return true;
+        }
+    } else {
+        //pack category
+        var currentTotalCard = await getUserTotalCard(id_user,value);
+        var maxTotalCard = Properties.dataCardCore[value].total;
+        if(currentTotalCard>=maxTotalCard){
+            return true;
+        }
+    }
+
+    return false;
+}
+
+async function leaderboardAddNew(id_guild,id_user,imgAvatarUrl,_color,category,completion){
+    //check if leaderboard data exists/not
+    var parameterWhere = new Map();
+    parameterWhere.set(DBM_Card_Leaderboard.columns.id_guild,id_guild);
+    parameterWhere.set(DBM_Card_Leaderboard.columns.id_user,id_user);
+    parameterWhere.set(DBM_Card_Leaderboard.columns.category,category);
+    parameterWhere.set(DBM_Card_Leaderboard.columns.completion,completion);
+    var checkExistsLeaderboard = await DB.select(DBM_Card_Leaderboard.TABLENAME,parameterWhere);
+    if(checkExistsLeaderboard[0][DBM_Card_Leaderboard.columns.id_user]==null){
+        var parameterNew = new Map();
+        parameterNew.set(DBM_Card_Leaderboard.columns.id_guild,id_guild);
+        parameterNew.set(DBM_Card_Leaderboard.columns.id_user,id_user);
+        parameterNew.set(DBM_Card_Leaderboard.columns.category,category);
+        parameterNew.set(DBM_Card_Leaderboard.columns.completion,completion);
+        await DB.insert(DBM_Card_Leaderboard.TABLENAME,parameterNew);
+        
+        //prepare the completion date
+        var completionDate = new Date();
+        var dd = String(completionDate.getDate()).padStart(2, '0');
+        var mm = String(completionDate.getMonth() + 1).padStart(2, '0'); //January is 0!
+        var yyyy = completionDate.getFullYear();
+        completionDate = dd + '/' + mm + '/' + yyyy;
+
+        var objEmbed = {
+            color: _color,
+            thumbnail : {
+                url:imgAvatarUrl
+            }
+        }
+
+        if(category=="color"){
+            //color completed
+            objEmbed.title = `Card Color Set ${GlobalFunctions.capitalize(completion)} Completed!`;
+            objEmbed.description = `<@${id_user}> has become new master of cure **${completion}**!`;
+        } else {
+            //pack completed
+            objEmbed.title = `${GlobalFunctions.capitalize(completion)} Card Pack Completed!`;
+            objEmbed.description = `<@${id_user}> has completed the card pack: **${completion}**!`;
+        }
+
+        objEmbed.footer = {
+            iconURL:imgAvatarUrl,
+            text:`Completed at: ${completionDate}`
+        };
+
+        return objEmbed;
+
+    } else {
+        return null;
+    }
+}
+
 function getNextColorPoint(level){
     return level*100;
 }
@@ -972,6 +1057,8 @@ async function generateCardSpawn(id_guild,specificType=null,overwriteToken = tru
         cardSpawnType = specificType;
     }
 
+    cardSpawnType = "quiz";
+
     var query = "";
     //prepare the embed object
     var objEmbed = {
@@ -1057,7 +1144,7 @@ async function generateCardSpawn(id_guild,specificType=null,overwriteToken = tru
             parameterSet.set(DBM_Card_Guild.columns.spawn_id,resultData[0][0][DBM_Card_Data.columns.id_card]);
 
             objEmbed.author = {
-                name:`Number Card: ${selectedColor.charAt(0).toUpperCase()+selectedColor.slice(1)} 1-4* Edition`
+                name:`Number Card: ${selectedColor.charAt(0).toUpperCase()+selectedColor.slice(1)} Edition`
             }
             objEmbed.title = ":game_die: It's Lucky Numbers Time!";
             objEmbed.description = `Guess whether the next hidden number will be **lower** or **higher** than the current number: **${rndNumber}** or not with: **p!card guess <lower/higher>**.`;
@@ -1085,11 +1172,12 @@ async function generateCardSpawn(id_guild,specificType=null,overwriteToken = tru
             //get the other pack answer
             var queryAnotherQuestion = `SELECT ${DBM_Card_Data.columns.pack} 
             FROM ${DBM_Card_Data.TABLENAME} 
-            WHERE ${DBM_Card_Data.columns.pack}<>? 
+            WHERE ${DBM_Card_Data.columns.pack}<>? AND 
+            ${DBM_Card_Data.columns.rarity}>=? 
             GROUP BY ${DBM_Card_Data.columns.pack} 
             ORDER BY rand() 
             LIMIT 2`;
-            var resultDataAnotherAnswer = await DBConn.conn.promise().query(queryAnotherQuestion,[cardSpawnPack]);
+            var resultDataAnotherAnswer = await DBConn.conn.promise().query(queryAnotherQuestion,[cardSpawnPack,5]);
             resultDataAnotherAnswer[0].forEach(function(entry){
                 arrAnswerList.push(entry[DBM_Card_Data.columns.pack]);
             })
@@ -1118,7 +1206,7 @@ async function generateCardSpawn(id_guild,specificType=null,overwriteToken = tru
                 name:`Quiz Card`,
             }
             objEmbed.title = `:grey_question: It's Quiz Time!`;
-            objEmbed.description = `Current series theme/motif was: **${Properties.spawnHintSeries[cardSpawnSeries]}**. I have the **${cardSpawnColor}** color for my alter ego. Who am I?`;
+            objEmbed.description = `Current series theme/motif was: **${Properties.spawnHintSeries[cardSpawnSeries]}**. I have **${cardSpawnColor}** for my theme color. Who am I?`;
             objEmbed.fields = [{
                 name:`Answer it with: p!card answer <a/b/c>`,
                 value:`**A. ${Properties.dataCardCore[arrAnswerList[0]].fullname}
@@ -1127,6 +1215,9 @@ async function generateCardSpawn(id_guild,specificType=null,overwriteToken = tru
             }]
             objEmbed.image ={
                 url:Properties.spawnData.quiz.embed_img
+            }
+            objEmbed.footer = {
+                text:`Catch Rate: 100%`
             }
             break;
         default: // normal spawn type
@@ -1173,4 +1264,5 @@ async function addNewCardInventory(id_user,id_card){
 module.exports = {Properties,getCardData,getAllCardDataByPack,
     getCardUserStatusData,getCardPack,checkUserHaveCard,getUserTotalCard,
     updateCatchAttempt,updateColorPoint,removeCardGuildSpawn,generateCardSpawn,addNewCardInventory,
-    embedCardCapture,embedCardDetail,embedCardPackList,getBonusCatchAttempt,getNextColorPoint};
+    embedCardCapture,embedCardDetail,embedCardPackList,getBonusCatchAttempt,getNextColorPoint,
+    checkCardCompletion,leaderboardAddNew};
