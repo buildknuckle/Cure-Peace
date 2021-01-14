@@ -86,7 +86,7 @@ module.exports = {
 
                                 message.guild.channels.cache.find(ch => ch.id === assignedChannel)
                                 .send(finalSend);
-                            }, parseInt(intervalMinutes)*1000);
+                            }, parseInt(intervalMinutes)*60*1000);
                         }
 
                         DB.update(DBM_Card_Guild.TABLENAME,
@@ -116,14 +116,14 @@ module.exports = {
                     );
 
                     //update the timer
-                    //clea & update the card spawn timer if timer exists
-                    cardGuildData = await CardGuildModules.getCardGuildData(guildId);
+                    //clear & update the card spawn timer if timer exists
+                    // cardGuildData = await CardGuildModules.getCardGuildData(guildId);
                     if(cardGuildData[DBM_Card_Guild.columns.id_channel_spawn]!=null){
                         clearInterval(CardGuildModules.arrTimerCardSpawn[guildId]);
                         CardGuildModules.arrTimerCardSpawn[guildId] = setInterval(async function intervalCardSpawn(){
                             var objEmbed = await CardModules.generateCardSpawn(guildId);
                             message.guild.channels.cache.find(ch => ch.id === cardGuildData[DBM_Card_Guild.columns.id_channel_spawn]).send({embed:objEmbed});
-                        }, parseInt(cardGuildData[DBM_Card_Guild.columns.spawn_interval])*1000);
+                        }, parseInt(cardGuildData[DBM_Card_Guild.columns.spawn_interval])*60*1000);
                     }
                     
                     return message.channel.send("**Cardcatcher** roles has been removed.");
@@ -149,10 +149,21 @@ module.exports = {
                     columnSet.set(DBM_Card_Guild.columns.id_cardcatcher, assignedRole);
                     var columnWhere = new Map();
                     columnWhere.set(DBM_Card_Guild.columns.id_guild, guildId);
-                    DB.update(DBM_Card_Guild.TABLENAME,
+                    await DB.update(DBM_Card_Guild.TABLENAME,
                         columnSet,
                         columnWhere
                     );
+
+                    //update the card spawn timer if timer exists
+                    if(cardGuildData[DBM_Card_Guild.columns.id_channel_spawn]!=null){
+                        clearInterval(CardGuildModules.arrTimerCardSpawn[guildId]);
+                        CardGuildModules.arrTimerCardSpawn[guildId] = setInterval(async function intervalCardSpawn(){
+                            var objEmbed = await CardModules.generateCardSpawn(guildId);
+                            message.guild.channels.cache.find(ch => ch.id === cardGuildData[DBM_Card_Guild.columns.id_channel_spawn])
+                            .send({content:`<@&${assignedRole}>`,
+                                embed:objEmbed});
+                        }, parseInt(cardGuildData[DBM_Card_Guild.columns.spawn_interval])*60*1000);
+                    }
 
                     return message.channel.send({
                         embed:{

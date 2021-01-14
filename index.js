@@ -48,21 +48,25 @@ client.once('ready', () => {
 
                     guild.channels.cache.find(ch => ch.id === cardGuildData[DBM_Card_Guild.columns.id_channel_spawn])
                     .send(finalSend);
-                }, parseInt(cardGuildData[DBM_Card_Guild.columns.spawn_interval])*1000);
+                }, parseInt(cardGuildData[DBM_Card_Guild.columns.spawn_interval])*60*1000);
             }
         }
         
     });
 
-    //randomize the status:
+    //added the activity
+    var arrActivity = [
+        'Sparkling, glittering, rock-paper-scissors! Cure Peace!',
+        'Healin\' good precure!',
+        'The two lights that come together! Cure Sparkle!',
+        'Puzzlun Cure!'
+    ];
+
+    var randIndex = Math.floor(Math.random() * Math.floor(arrActivity.length));
+    client.user.setActivity(arrActivity[randIndex]);
+
+    //randomize the status every 1 hour:
     setInterval(function intervalRandomStatus() {
-        var arrActivity = [
-            'Sparkling, glittering, rock-paper-scissors! Cure Peace!',
-            'Healin\' good precure!',
-            'The two lights that come together! Cure Sparkle!',
-            'Puzzlun Cure!'
-        ];
-        var randIndex = Math.floor(Math.random() * Math.floor(arrActivity.length));
         client.user.setActivity(arrActivity[randIndex]);
     }, 3600000);
     console.log('Cure Peace Ready!');
