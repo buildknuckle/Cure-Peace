@@ -1070,6 +1070,7 @@ async function removeCardGuildSpawn(id_guild){
     parameterSet.set(DBM_Card_Guild.columns.spawn_id,null);
     parameterSet.set(DBM_Card_Guild.columns.spawn_color,null);
     parameterSet.set(DBM_Card_Guild.columns.spawn_number,null);
+    parameterSet.set(DBM_Card_Guild.columns.spawn_data,null);
     var parameterWhere = new Map();
     parameterWhere.set(DBM_Card_Guild.columns.id_guild,id_guild);
     await DB.update(DBM_Card_Guild.TABLENAME,parameterSet,parameterWhere);
