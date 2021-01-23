@@ -100,107 +100,107 @@ class Properties{
     static dataCardCore = {
         nagisa:{
             total:16,
-            icon:"https://cdn.discordapp.com/attachments/793415946738860072/797863794470027294/unknown.png",
+            icon:"https://waa.ai/JEca",
             color:"pink",
-            fullname:"Misumi Nagisa",
+            fullname:"Nagisa Misumi",
             alter_ego:"Cure Black"
         },
         saki:{
             total:12,
-            icon:"https://cdn.discordapp.com/attachments/793415946738860072/797863605470888007/unknown.png",
+            icon:"https://waa.ai/JEcX",
             color:"pink",
-            fullname:"Hyuuga Saki",
-            alter_ego:"Cure Bright"
+            fullname:"Saki Hyuuga",
+            alter_ego:"Cure Bloom"
         },
         nozomi:{
             total:11,
-            icon:"https://cdn.discordapp.com/attachments/793415946738860072/797864034095202334/unknown.png",
+            icon:"https://waa.ai/JEc3",
             color:"pink",
             fullname:"Yumehara Nozomi",
             alter_ego:"Cure Dream"
         },
         love:{
             total:11,
-            icon:"https://cdn.discordapp.com/attachments/793415946738860072/797864276218871828/unknown.png",
+            icon:"https://waa.ai/JEcT",
             color:"pink",
-            fullname:"Momozono Love",
+            fullname:"Love Momozono",
             alter_ego:"Cure Peach"
         },
         tsubomi:{
             total:13,
-            icon:"https://cdn.discordapp.com/attachments/793415946738860072/797864461200916480/unknown.png",
+            icon:"https://waa.ai/JEce",
             color:"pink",
-            fullname: "Hanasaki Tsubomi",
+            fullname: "Tsubomi Hanasaki",
             alter_ego:"Cure Blossom"
         },
         hibiki:{
             total:12,
-            icon:"https://cdn.discordapp.com/attachments/793415946738860072/797864677190402108/unknown.png",
+            icon:"https://waa.ai/JEcu",
             color:"pink",
-            fullname: "Hojo Hibiki",
+            fullname: "Hibiki Hojo",
             alter_ego:"Cure Melody"
         },
         miyuki:{
             total:13,
-            icon:"https://cdn.discordapp.com/attachments/793415946738860072/797864868480024596/unknown.png",
+            icon:"https://waa.ai/JEct",
             color:"pink",
-            fullname: "Hoshizora Miyuki",
+            fullname: "Miyuki Hoshizora",
             alter_ego:"Cure Happy"
         },
         mana:{
             total:12,
-            icon:"https://cdn.discordapp.com/attachments/793415946738860072/797864989615849492/unknown.png",
+            icon:"https://waa.ai/JEcJ",
             color:"pink",
-            fullname: "Aida Mana",
+            fullname: "Mana Aida",
             alter_ego:"Cure Heart"
         },
         megumi:{
             total:10,
-            icon:"https://cdn.discordapp.com/attachments/793415946738860072/797865131652022293/unknown.png",
+            icon:"https://waa.ai/JEcx",
             color:"pink",
-            fullname: "Aino Megumi",
+            fullname: "Megumi Aino",
             alter_ego:"Cure Lovely"
         },
         haruka:{
             total:16,
-            icon:"https://cdn.discordapp.com/attachments/793415946738860072/797865276615819284/unknown.png",
+            icon:"https://waa.ai/JEcq",
             color:"pink",
-            fullname: "Haruno Haruka",
+            fullname: "Haruka Haruno",
             alter_ego:"Cure Flora"
         },
         mirai:{
             total:16,
-            icon:"https://cdn.discordapp.com/attachments/793415946738860072/797865411777396736/unknown.png",
+            icon:"https://waa.ai/JEcl",
             color:"pink",
-            fullname:"Asahina Mirai",
+            fullname:"Mirai Asahina",
             alter_ego:"Cure Miracle"
         },
         ichika:{
             total:18,
-            icon:"https://cdn.discordapp.com/attachments/793415946738860072/797865571593093120/unknown.png",
+            icon:"https://waa.ai/JEcF",
             color:"pink",
-            fullname:"Usami Ichika",
+            fullname:"Ichika Usami",
             alter_ego:"Cure Whip"
         },
         hana:{
             total:16,
-            icon:"https://cdn.discordapp.com/attachments/793415946738860072/797865745811636284/unknown.png",
+            icon:"https://waa.ai/JEc0",
             color:"pink",
-            fullname: "Nono Hana",
+            fullname: "Hana Nono",
             alter_ego:"Cure Yell"
         },
         hikaru:{
             total:13,
-            icon:"https://cdn.discordapp.com/attachments/793415946738860072/797865902783725568/unknown.png",
+            icon:"https://waa.ai/JEc9",
             color:"pink",
-            fullname: "Hoshina Hikaru",
+            fullname: "Hikaru Hoshina",
             alter_ego:"Cure Star"
         },
         nodoka:{
             total:5,
-            icon:"https://cdn.discordapp.com/attachments/793415946738860072/797866132206911528/unknown.png",
+            icon:"https://waa.ai/JEcS",
             color:"pink",
-            fullname: "Hanadera Nodoka",
+            fullname: "Nodoka Hanadera",
             alter_ego:"Cure Grace"
         },
         karen:{
@@ -551,9 +551,9 @@ class Properties{
         "smile":"fairy tales",
         "doki doki!":"emotions and selflessness",
         "happiness":"mirrors, fashion, dancing and romance",
-        "go! princess":"princesses and personal goals and dreams",
-        "mahou tsukai":"sorcery, gemstones, and centrally friendship",
-        "kirakira":"sweets, animals and creativity and the Cures manage a patissierie",
+        "go! princess":"princesses, personal goals and dreams",
+        "mahou tsukai":"sorcery, gemstones and friendship",
+        "kirakira":"sweets, animals and creativity",
         "hugtto":"destiny, future, heroism, parenting, and jobs",
         "star twinkle":" space, astrology and imagination",
         "healin' good":"health, nature, and animals"
