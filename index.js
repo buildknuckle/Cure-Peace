@@ -1,6 +1,9 @@
 const fs = require('fs');
 const Discord = require('discord.js');
-const { prefix, token } = require('./config.json');
+const DBM_Card_Guild = require('./database/model/DBM_Card_Guild');
+const CardModules = require('./modules/Card');
+const CardGuildModules = require('./modules/CardGuild');
+const { prefix, token } = require('./storage/config.json');
 
 const client = new Discord.Client();
 client.commands = new Discord.Collection();
@@ -16,19 +19,68 @@ for (const file of commandFiles) {
 }
 
 client.once('ready', () => {
-    console.log('Ready!');
-    client.user.setActivity('Sparkling, glittering, rock-paper-scissors! Cure Peace!');
+    //same like guildAvailable
+    client.guilds.cache.forEach(async guild => {
+        console.log(`connected to: ${guild.id} - ${guild.name}`);
+        //guild.channels.cache.find(ch => ch.name === 'testing-ground').send('Hello world.');
+
+        //get card spawn guild data
+        var cardGuildData = await CardGuildModules.getCardGuildData(guild.id);
+        //set card spawn interval
+        if(cardGuildData[DBM_Card_Guild.columns.id_channel_spawn]!=null){
+            //check if channel exists/not
+            const channelExists = guild.channels.cache.find(ch => ch.id === cardGuildData[DBM_Card_Guild.columns.id_channel_spawn])
+            if(channelExists){
+                CardGuildModules.arrTimerCardSpawn[guild.id] = setInterval(async function intervalCardSpawn(){
+                    var objEmbed = await CardModules.generateCardSpawn(guild.id);
+                    //check if cardcatcher role exists/not
+                    var finalSend = {}; 
+                    if(cardGuildData[DBM_Card_Guild.columns.id_cardcatcher]!=null){
+                        finalSend = {
+                            content:`<@&${cardGuildData[DBM_Card_Guild.columns.id_cardcatcher]}>`,
+                            embed:objEmbed
+                        }
+                    } else {
+                        finalSend = {
+                            embed:objEmbed
+                        }
+                    }
+
+                    guild.channels.cache.find(ch => ch.id === cardGuildData[DBM_Card_Guild.columns.id_channel_spawn])
+                    .send(finalSend);
+                }, parseInt(cardGuildData[DBM_Card_Guild.columns.spawn_interval])*60*1000);
+            }
+        }
+        
+    });
+
+    //added the activity
+    var arrActivity = [
+        'Sparkling, glittering, rock-paper-scissors! Cure Peace!',
+        'Healin\' good precure!',
+        'The two lights that come together! Cure Sparkle!',
+        'Puzzlun Cure!'
+    ];
+
+    var randIndex = Math.floor(Math.random() * Math.floor(arrActivity.length));
+    client.user.setActivity(arrActivity[randIndex]);
+
+    //randomize the status every 1 hour:
+    setInterval(function intervalRandomStatus() {
+        client.user.setActivity(arrActivity[randIndex]);
+    }, 3600000);
+    console.log('Cure Peace Ready!');
 });
 
 client.on('message', message => {
     if (!message.content.startsWith(prefix) || message.author.bot) return;
 
-    const args = message.content.slice(prefix.length).trim().split(' ');
+    const args = message.content.slice(prefix.length).trim().split(/ +/);
     const commandName = args.shift().toLowerCase();
-    
+
     if (!client.commands.has(commandName)) return;
     const command = client.commands.get(commandName);
-
+    
     if (command.args && !args.length) {
         return message.reply(`I don't know what you're talking about. Can you give me some arguments?`);
     }
