@@ -20,5 +20,16 @@ module.exports = {
      }
     
       return array;
-    }
+   },
+
+   randomNumber(min, max) {
+      return Math.floor(Math.random() * (max - min + 1) ) + min;
+   },
+
+   str_pad_left(string,pad,length){  
+      //example:
+      //var finalTime = str_pad_left(minutes,'0',2) will output: 02
+      return (new Array(length+1).join(pad)+string).slice(-length); 
+      
+   }
 }

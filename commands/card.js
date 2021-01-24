@@ -338,7 +338,7 @@ module.exports = {
                 spawnedCardData.color = cardSpawnData[DBM_Card_Data.columns.color];
 
                 if(duplicateCard){
-                    var randomPoint = Math.floor(Math.random() * 5)+1;//for received random card point
+                    var randomPoint = GlobalFunctions.randomNumber(1,5);//for received random card point
                     objEmbed.thumbnail = {
                         url: CardModule.Properties.imgResponse.imgError
                     }
@@ -355,18 +355,21 @@ module.exports = {
 
                 //RNG: calculate catch attempt
                 var captured = false;
-                var chance = parseInt(cardSpawnData[DBM_Card_Data.columns.rarity])*10; 
-                var rngCatch = Math.floor(Math.random() * 100)+
-                CardModule.getBonusCatchAttempt(parseInt(userCardData[`color_level_${spawnedCardData.color}`]));//rng point
+                var chance = parseInt(cardSpawnData[DBM_Card_Data.columns.rarity])*10;//the minimum chance
+                var rngCatch = GlobalFunctions.randomNumber(0,100);//rng point
+                var bonusCatch = 
+                CardModule.getBonusCatchAttempt(parseInt(userCardData[`color_level_${spawnedCardData.color}`]));
+                // console.log(`rng:${rngCatch+bonusCatch}`); //for debugging output
+                // console.log(`rarity:${chance}`); //for debugging output
                 switch(spawnedCardData.type){
                     case "color":
                         //bonus +10% catch rate
-                        if(rngCatch+10>=chance){
+                        if(rngCatch+bonusCatch+10>=chance){
                             captured = true;
                         }
                         break;
                     default://normal card spawn
-                        if(rngCatch>=chance){
+                        if(rngCatch+bonusCatch>=chance){
                             captured = true;
                         }
                         break;
@@ -464,7 +467,7 @@ module.exports = {
                     }
                 } else {
                     //update the catch token & color point
-                    var cpReward = Math.floor(Math.random() * 5)+1;
+                    var cpReward = GlobalFunctions.randomNumber(1,5);
                     var objColor = new Map();
                     objColor.set(`color_point_${spawnedCardData.color}`,cpReward);
                     await CardModule.updateCatchAttempt(userId,
@@ -489,8 +492,8 @@ module.exports = {
                 }
                 if(cardId==null){
                     objEmbed.thumbnail = {
-                            url:CardModule.Properties.imgResponse.imgError
-                        }
+                        url:CardModule.Properties.imgResponse.imgError
+                    }
                     objEmbed.description = ":x: Please enter the card ID.";
                     return message.channel.send({embed:objEmbed});
                 }
@@ -550,7 +553,13 @@ module.exports = {
                 }
 
                 //card catcher validator, check if card is still spawning/not
-                if(spawnedCardData.type==null||
+                if(spawnedCardData.type!=null&&spawnedCardData.type != "number"){
+                    objEmbed.thumbnail = {
+                        url: CardModule.Properties.imgResponse.imgError
+                    }
+                    objEmbed.description = ":x: Sorry, current card spawn type is not a lucky number.";
+                    return message.channel.send({embed:objEmbed});
+                } else if(spawnedCardData.type==null||
                     spawnedCardData.token==null||
                     (spawnedCardData.id==null&&spawnedCardData.color==null)){
                     objEmbed.thumbnail = {
@@ -565,12 +574,6 @@ module.exports = {
                     }
                     objEmbed.description = ":x: Sorry, you have already used the guess command. Please wait until the next card spawn.";
                     return message.channel.send({embed:objEmbed});
-                } else if(spawnedCardData.type != "number"){
-                    objEmbed.thumbnail = {
-                        url: CardModule.Properties.imgResponse.imgError
-                    }
-                    objEmbed.description = ":x: Sorry, current card spawn type is not a lucky number.";
-                    return message.channel.send({embed:objEmbed});
                 } else if(guess==null||(guess.toLowerCase()!="lower"&&guess.toLowerCase()!="higher")){
                     objEmbed.thumbnail = {
                         url: CardModule.Properties.imgResponse.imgError
@@ -581,14 +584,14 @@ module.exports = {
 
                 var success = false; var same = false; var msgSend = "";
                 var currentNumber = parseInt(guildSpawnData[DBM_Card_Guild.columns.spawn_number]);
-                var nextNumber = Math.floor(Math.random() * 12) + 1;
+                var nextNumber = GlobalFunctions.randomNumber(1,12);
                 var pointReward = 0;
                 if(nextNumber==currentNumber){
+                    pointReward = 10;
                     objEmbed.thumbnail = {
                         url: CardModule.Properties.imgResponse.imgFailed
                     }
-                    objEmbed.description = `:x: Current number was: **${currentNumber}** and the next hidden number was **${nextNumber}**. Neither number is lower or higher. As a bonus you received **10 ${spawnedCardData.color}** color point.`;
-                    pointReward = 10;
+                    objEmbed.description = `:x: Current number was: **${currentNumber}** and the next hidden number was **${nextNumber}**. Neither number is lower or higher. As a bonus you received **${pointReward} ${spawnedCardData.color}** color point.`;
                     same = true;
                 } else {
                     switch(guess.toLowerCase()){
@@ -613,7 +616,7 @@ module.exports = {
                     var duplicateCard = await CardModule.checkUserHaveCard(userId,spawnedCardData.id);
 
                     if(duplicateCard){
-                        var randomPoint = Math.floor(Math.random() * 5)+1;//for received random card point
+                        var randomPoint = GlobalFunctions.randomNumber(1,5);//for received random card point
 
                         objEmbed.thumbnail = {
                             url: CardModule.Properties.imgResponse.imgFailed
@@ -765,11 +768,11 @@ module.exports = {
                     },
                     {
                         name: "What are the list of card spawn that is available?",
-                        value: `-**normal**: the common card spawn that you can capture with **p!card catch** command.\n-**color**: 7 different color cards will be spawned and every color will provide 1 random card from its color. You can only capture the card from your assigned color and do it one time. After a color has been captured that color will be removed. Base catch rate +10% for this spawn.\n-**number**: a random number from 1-12 & card rarity within 1-4 will be spawned. You need to guess if the next hidden number will be **lower** or **higher** with **p!card guess <lower/higher>**. After you guessed it, the next random number card will be spawned immediately and other user can guess the next number card. Bonus spawn type: 100% catch rate.\n-**quiz**: A set of question, answer and card rarity from 5 to higher will be spawned. You need to answer it with **p!card answer <a/b/c>**. Bonus spawn type: 100% catch rate.`
+                        value: `-**normal**: the common card spawn that you can capture with **p!card catch** command.\n-**color**: 7 different color cards will be spawned and every color will provide 1 random card from its color. You can only capture the card from your assigned color and do it one time. After a color has been captured that color will be removed. Base catch rate +10% for this spawn.\n-**number**: a random number from 1-12 & card rarity within 1-4 will be spawned. You need to guess if the next hidden number will be **lower** or **higher** with **p!card guess <lower/higher>**. Bonus spawn type: 100% catch rate.\n-**quiz**: A set of question, answer and card rarity within 1-4 will be spawned. You need to answer it with **p!card answer <a/b/c>**. Bonus spawn type: 100% catch rate.`
                     },
                     {
                         name: "Summary & Getting Started",
-                        value: `-Gather daily color points once every 24 hours with **p!daily <color>**. The **<color>** parameter is optional and the points will be doubled if you didn't provide the **<color>** parameter, otherwise you'll receive overall color point.\n-Capture the card based from the card spawn type ruleset.\n-You can level up the your color with: **p!card up <color>**.\n-You can use **p!card status** or **p!card inventory <pack>** to track down your card progress.\n-You can use the **p!card respawn** to spawn a new card for 20 color points but the chances are 20%. If that fails, you will need to wait until the next card spawn.`
+                        value: `-Gather daily color points once every 24 hours with **p!daily <color>**. The **<color>** parameter is optional and the points will be doubled if you didn't provide the **<color>** parameter, otherwise you'll receive overall color point.\n-Capture the card based from the card spawn type ruleset.\n-You can level up your color with: **p!card up <color>**.\n-You can use **p!card status** or **p!card inventory <pack>** to track down your card progress.\n-You can use the **p!card respawn** to spawn a new card for 20 color points but the chances are 20%. If that fails, you will need to wait until the next card spawn.`
                     }]
                   }
                   message.channel.send({embed:objEmbed});
@@ -921,7 +924,13 @@ module.exports = {
                 }
 
                 //card catcher validator, check if card is still spawning/not
-                if(spawnedCardData.type==null||
+                if(spawnedCardData.type!=null && spawnedCardData.type != "quiz"){
+                    objEmbed.thumbnail = {
+                        url: CardModule.Properties.imgResponse.imgError
+                    }
+                    objEmbed.description = ":x: Sorry, it's not quiz time yet.";
+                    return message.channel.send({embed:objEmbed});
+                } else if(spawnedCardData.type==null||
                     spawnedCardData.token==null||
                     spawnedCardData.spawn_data==null){
                     objEmbed.thumbnail = {
@@ -936,18 +945,12 @@ module.exports = {
                     }
                     objEmbed.description = ":x: Sorry, you already use the answer command. Please wait until the next card spawn.";
                     return message.channel.send({embed:objEmbed});
-                } else if(spawnedCardData.type != "quiz"){
-                    objEmbed.thumbnail = {
-                        url: CardModule.Properties.imgResponse.imgError
-                    }
-                    objEmbed.description = ":x: Sorry, it's not quiz time yet.";
-                    return message.channel.send({embed:objEmbed});
                 } else if(answer==null||
                     (answer.toLowerCase()!="a"&&answer.toLowerCase()!="b"&&answer.toLowerCase()!="c")){
                     objEmbed.thumbnail = {
                         url: CardModule.Properties.imgResponse.imgError
                     }
-                    objEmbed.description = ":x: Please enter the answer parameter with **a** or **b** or **c**.";
+                    objEmbed.description = ":x: Please enter the answer parameter with **a** or **b** or **c**. Example: **p!card answer a**";
                     return message.channel.send({embed:objEmbed});
                 }
 
@@ -968,7 +971,7 @@ module.exports = {
                     objEmbed.thumbnail = {
                         url: CardModule.Properties.imgResponse.imgFailed
                     }
-                    objEmbed.description = `:x: Sorry, your answer is wrong. The correct answer was: **${spawnedCardData.answer} - ${CardModule.Properties.dataCardCore[spawnedCardData.pack].fullname}**`;
+                    objEmbed.description = `:x: Sorry, but that's not the answer.`;
                     return message.channel.send({embed:objEmbed});
                 } else {
                     success = true;
@@ -979,7 +982,7 @@ module.exports = {
                     var duplicateCard = await CardModule.checkUserHaveCard(userId,spawnedCardData.id);
                     
                     if(duplicateCard){
-                        var randomPoint = Math.floor(Math.random() * 5)+3;//for received random card point
+                        var randomPoint = GlobalFunctions.randomNumber(3,5);//for received random card point
 
                         objEmbed.thumbnail = {
                             url: CardModule.Properties.imgResponse.imgFailed
@@ -1083,10 +1086,10 @@ module.exports = {
                 parameterSetColorPoint.set(`color_point_${assignedColor}`,-priceRespawn);
                 await CardModule.updateColorPoint(userId,parameterSetColorPoint);
 
-                var rndChances = Math.floor(Math.random()*10);
+                var rndChances = GlobalFunctions.randomNumber(0,10);
 
                 if(rndChances>=9){
-                    objEmbed.title="Card Spawn Activated!";
+                    objEmbed.title="Card Respawn Activated!";
                     objEmbed.description = `<@${userId}> has use the **card spawn** & **${priceRespawn} ${assignedColor} color point**!`;
                     message.channel.send({embed:objEmbed});
                     var cardSpawnData = await CardModule.generateCardSpawn(guildId);
@@ -1109,6 +1112,28 @@ module.exports = {
                 //get card spawn information
                 
                 
+                break;
+            case "timer":
+                var minutes = GlobalFunctions.str_pad_left(Math.floor(CardGuildModule.arrTimerGuildInformation[guildId].remaining / 60),'0',2);
+                var seconds = GlobalFunctions.str_pad_left(CardGuildModule.arrTimerGuildInformation[guildId].remaining - minutes * 60,'0',2);
+                var objEmbed = {
+                    color: CardModule.Properties.embedColor,
+                    title: `⏱️ Card Spawn Timer`,
+                    description:`Countdown until the next card spawn: **${minutes}:${seconds}**`
+                };
+                return message.channel.send({embed:objEmbed});
+                break;
+            case "update":
+                return message.channel.send({embed:
+                    {
+                    "color": CardModule.Properties.embedColor,
+                    "title": "Card Catcher Updates 1.03",
+                    "fields":[
+                        { "name": "New Command:","value": "-**p!card timer**: This command will show the duration until next card spawn" },
+                        { "name": "Updates List & Fixes:","value": "-capture chance calculation fixes\n-card spawn embed display updates\n-number card: fixes where random number is not between 2-10\n-quiz card: the correct answer will no longer displayed if someone answer it wrong" },
+                    ]
+                }})
+                  
                 break;
             // case "debug":
             //     //for card spawn debug purpose

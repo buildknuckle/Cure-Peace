@@ -7,6 +7,8 @@ const DBM_Card_Inventory = require('../database/model/DBM_Card_Inventory');
 const DBM_Card_Guild = require('../database/model/DBM_Card_Guild');
 const DBM_Card_Leaderboard = require('../database/model/DBM_Card_Leaderboard');
 
+const latestVersion = "1.03";
+
 class Properties{
     static embedColor = '#efcc2c';
 
@@ -1077,20 +1079,22 @@ async function removeCardGuildSpawn(id_guild){
 }
 
 async function generateCardSpawn(id_guild,specificType=null,overwriteToken = true){
+    //reset guild timer information
+
     //update & erase last spawn information if overwriteToken param is provided
     if(overwriteToken){
         await removeCardGuildSpawn(id_guild);
     }
     
     //start randomize
-    var rndIndex = Math.floor(Math.random() * Properties.spawnType.length); 
+    var rndIndex = GlobalFunctions.randomNumber(0,Properties.spawnType.length-1); 
     var cardSpawnType = Properties.spawnType[rndIndex].toLowerCase();
     if(specificType!=null){
         cardSpawnType = specificType;
     }
 
     //for debugging purpose:
-    // cardSpawnType = "color";
+    // cardSpawnType = "quiz";
 
     var query = "";
     //prepare the embed object
@@ -1108,7 +1112,7 @@ async function generateCardSpawn(id_guild,specificType=null,overwriteToken = tru
     var parameterSet = new Map();
     parameterSet.set(DBM_Card_Guild.columns.spawn_type,cardSpawnType); //set the spawn type
     if(overwriteToken){
-        parameterSet.set(DBM_Card_Guild.columns.spawn_token,Math.floor(Math.random() * 1000)+10); //set & randomize the spawn token
+        parameterSet.set(DBM_Card_Guild.columns.spawn_token,GlobalFunctions.randomNumber(0,1000)); //set & randomize the spawn token
     }
     switch(cardSpawnType) {
         case "color": // color spawn type
@@ -1158,13 +1162,13 @@ async function generateCardSpawn(id_guild,specificType=null,overwriteToken = tru
             objEmbed.title = "Color Card";
             objEmbed.description = `A **color** card has appeared! Use: **p!card catch** to capture the card based from your assigned color.`;
             objEmbed.footer = {
-                text:`ID: ???(variant) | Base Catch Rate+10%`
+                text:`⭐ Rarity: 1-7 | ⬆️ Bonus Catch Rate+10%`
             }
             break;
-        case "number": //gambling spawn type
+        case "number": //number spawn type
             //get color total:
-            var rndNumber = Math.floor(Math.random()*10)+2;
-            var rndIndexColor = Math.floor(Math.random()*Properties.arrColor.length);
+            var rndNumber = GlobalFunctions.randomNumber(2,10);
+            var rndIndexColor = GlobalFunctions.randomNumber(0,Properties.arrColor.length-1);
             var selectedColor = Properties.arrColor[rndIndexColor];
             parameterSet.set(DBM_Card_Guild.columns.spawn_color,selectedColor);
             parameterSet.set(DBM_Card_Guild.columns.spawn_number,rndNumber);
@@ -1182,12 +1186,12 @@ async function generateCardSpawn(id_guild,specificType=null,overwriteToken = tru
                 name:`Number Card: ${selectedColor.charAt(0).toUpperCase()+selectedColor.slice(1)} Edition`
             }
             objEmbed.title = ":game_die: It's Lucky Numbers Time!";
-            objEmbed.description = `Guess whether the next hidden number will be **lower** or **higher** than the current number: **${rndNumber}** or not with: **p!card guess <lower/higher>**.`;
+            objEmbed.description = `Guess whether the next hidden number will be **lower** or **higher** than the current number: **${rndNumber}** or not with: **p!card guess <lower/higher>**`;
             objEmbed.image ={
                 url:Properties.dataColorCore[selectedColor].imgMysteryUrl
             }
             objEmbed.footer = {
-                text:`ID: ???(variant) | Catch Rate: 100%`
+                text:`⭐ Rarity: 1-4 | ⏫ Catch Rate: 100%`
             }
             
             break;
@@ -1195,9 +1199,10 @@ async function generateCardSpawn(id_guild,specificType=null,overwriteToken = tru
         case "quiz":
             var query = `SELECT * 
             FROM ${DBM_Card_Data.TABLENAME} 
+            WHERE ${DBM_Card_Data.columns.rarity}<=? 
             ORDER BY rand() 
             LIMIT 1`;
-            var resultData = await DBConn.conn.promise().query(query);
+            var resultData = await DBConn.conn.promise().query(query,[4]);
             var cardSpawnId = resultData[0][0][DBM_Card_Data.columns.id_card];
             var cardSpawnColor = resultData[0][0][DBM_Card_Data.columns.color];
             var cardSpawnSeries = resultData[0][0][DBM_Card_Data.columns.series];
@@ -1208,12 +1213,11 @@ async function generateCardSpawn(id_guild,specificType=null,overwriteToken = tru
             //get the other pack answer
             var queryAnotherQuestion = `SELECT ${DBM_Card_Data.columns.pack} 
             FROM ${DBM_Card_Data.TABLENAME} 
-            WHERE ${DBM_Card_Data.columns.pack}<>? AND 
-            ${DBM_Card_Data.columns.rarity}>=? 
+            WHERE ${DBM_Card_Data.columns.pack}<>? 
             GROUP BY ${DBM_Card_Data.columns.pack} 
             ORDER BY rand() 
             LIMIT 2`;
-            var resultDataAnotherAnswer = await DBConn.conn.promise().query(queryAnotherQuestion,[cardSpawnPack,5]);
+            var resultDataAnotherAnswer = await DBConn.conn.promise().query(queryAnotherQuestion,[cardSpawnPack]);
             resultDataAnotherAnswer[0].forEach(function(entry){
                 arrAnswerList.push(entry[DBM_Card_Data.columns.pack]);
             })
@@ -1251,13 +1255,13 @@ async function generateCardSpawn(id_guild,specificType=null,overwriteToken = tru
                 url:Properties.spawnData.quiz.embed_img
             }
             objEmbed.footer = {
-                text:`Catch Rate: 100%`
+                text:`⭐ Rarity: 1-4 | ⏫ Catch Rate: 100%`
             }
             break;
         default: // normal spawn type
             //get the card id
             query = `SELECT * 
-            FROM ${DBM_Card_Data.TABLENAME} 
+            FROM ${DBM_Card_Data.TABLENAME}  
             ORDER BY RAND() LIMIT 1`;
             var resultData = await DBConn.conn.promise().query(query);
             var cardSpawnId = resultData[0][0][DBM_Card_Data.columns.id_card];
@@ -1278,7 +1282,7 @@ async function generateCardSpawn(id_guild,specificType=null,overwriteToken = tru
                 url:resultData[0][0][DBM_Card_Data.columns.img_url]
             }
             objEmbed.footer = {
-                text:`ID: ${cardSpawnId} | Base Catch Rate: ${captureChance}%`
+                text:`ID: ${cardSpawnId} | ✔️ Catch Rate: ${captureChance}%`
             }
             break;
     }
@@ -1295,7 +1299,7 @@ async function addNewCardInventory(id_user,id_card){
     await DB.insert(DBM_Card_Inventory.TABLENAME,parameterSet);
 }
 
-module.exports = {Properties,getCardData,getAllCardDataByPack,
+module.exports = {latestVersion,Properties,getCardData,getAllCardDataByPack,
     getCardUserStatusData,getCardPack,checkUserHaveCard,getUserTotalCard,
     updateCatchAttempt,updateColorPoint,removeCardGuildSpawn,generateCardSpawn,addNewCardInventory,
     embedCardCapture,embedCardDetail,embedCardPackList,getBonusCatchAttempt,getNextColorPoint,

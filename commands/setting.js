@@ -25,13 +25,14 @@ module.exports = {
                 //remove the card spawn settings and the timer
                 if(args[1].toLowerCase()=="remove"){
                     clearInterval(CardGuildModules.arrTimerCardSpawn[guildId]);
+                    clearInterval(CardGuildModules.arrTimerGuildInformation[guildId].timer);//clear the timer remaining information
                     var parameterSet = new Map();
                     parameterSet.set(DBM_Card_Guild.columns.id_channel_spawn,null);
                     parameterSet.set(DBM_Card_Guild.columns.spawn_interval,null);
                     var parameterWhere = new Map();
                     parameterWhere.set(DBM_Card_Guild.columns.id_guild,guildId);
                     DB.update(DBM_Card_Guild.TABLENAME,parameterSet,parameterWhere);
-                    return message.channel.send(`Card spawn settings has been removed.`); 
+                    return message.channel.send(`Card spawn settings has been removed.`);
                 }
 
                 // var slicedArgs = args.slice(1);
@@ -89,10 +90,13 @@ module.exports = {
                             }, parseInt(intervalMinutes)*60*1000);
                         }
 
-                        DB.update(DBM_Card_Guild.TABLENAME,
+                        await DB.update(DBM_Card_Guild.TABLENAME,
                             columnSet,
                             columnWhere
                         );
+
+                        //update the time remaining information:
+                        await CardGuildModules.updateTimerRemaining(guildId);
 
                         return message.channel.send(`Card spawn interval has been set into **${intervalMinutes}** minutes at <#${assignedChannel}>.`);
                     } else {
