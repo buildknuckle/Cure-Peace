@@ -67,7 +67,7 @@ module.exports = {
         };
 
         var query = "";
-        var colorPoint = (Math.floor(Math.random() * 20) + 5);
+        var colorPoint = GlobalFunctions.randomNumber(5,20);
         var arrParameterized = [];
         if(optionalColor!=null){
             //double the color point

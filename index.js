@@ -50,6 +50,8 @@ client.once('ready', () => {
                     .send(finalSend);
                 }, parseInt(cardGuildData[DBM_Card_Guild.columns.spawn_interval])*60*1000);
             }
+            //update the time remaining information:
+            await CardGuildModules.updateTimerRemaining(guild.id);
         }
         
     });
