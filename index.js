@@ -46,8 +46,11 @@ client.once('ready', () => {
                         }
                     }
 
-                    guild.channels.cache.find(ch => ch.id === cardGuildData[DBM_Card_Guild.columns.id_channel_spawn])
+                    var msgObject = await guild.channels.cache.find(ch => ch.id === cardGuildData[DBM_Card_Guild.columns.id_channel_spawn])
                     .send(finalSend);
+                    //update the last message id
+                    await CardModules.updateMessageIdSpawn(guild.id,msgObject.id);
+
                 }, parseInt(cardGuildData[DBM_Card_Guild.columns.spawn_interval])*60*1000);
             }
             //update the time remaining information:

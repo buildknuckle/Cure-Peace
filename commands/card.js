@@ -282,14 +282,14 @@ module.exports = {
                         objEmbed.thumbnail = {
                             url: CardModule.Properties.imgResponse.imgError
                         }
-                        objEmbed.description = ":x: Current card spawn type is **quiz**. You need to use: **p!card answer <a/b/c>** to guess the next number and capture the card.";
+                        objEmbed.description = ":x: Current card spawn type is **quiz**. You need to use: **p!card answer <a/b/c>** to guess the answer and capture the card.";
                         return message.channel.send({embed:objEmbed});
                     case "number":
                         //check if card spawn is number
                         objEmbed.thumbnail = {
                             url: CardModule.Properties.imgResponse.imgError
                         }
-                        objEmbed.description = ":x: Current card spawn type is **number**. You need to use: **p!card guess <lower/higher>** to guess the next number and capture the card.";
+                        objEmbed.description = ":x: Current card spawn type is **number**. You need to use: **p!card guess <lower/higher>** to guess the next hidden number and capture the card.";
                         return message.channel.send({embed:objEmbed});
                     case "color": //color card spawn
                         // spawnedCardData.color = guildSpawnData[DBM_Card_Guild.columns.spawn_data];
@@ -578,21 +578,31 @@ module.exports = {
                     objEmbed.thumbnail = {
                         url: CardModule.Properties.imgResponse.imgError
                     }
-                    objEmbed.description = ":x: Please enter the guess parameter with **lower** or **higher**.";
+                    objEmbed.description = ":x: Please enter the guess parameter with **lower** or **higher**. Example: **p!card guess higher**";
                     return message.channel.send({embed:objEmbed});
                 }
 
-                var success = false; var same = false; var msgSend = "";
+                var success = false; var msgSend = "";
                 var currentNumber = parseInt(guildSpawnData[DBM_Card_Guild.columns.spawn_number]);
                 var nextNumber = GlobalFunctions.randomNumber(1,12);
                 var pointReward = 0;
                 if(nextNumber==currentNumber){
+                    //number was same
                     pointReward = 10;
                     objEmbed.thumbnail = {
                         url: CardModule.Properties.imgResponse.imgFailed
                     }
-                    objEmbed.description = `:x: Current number was: **${currentNumber}** and the next hidden number was **${nextNumber}**. Neither number is lower or higher. As a bonus you received **${pointReward} ${spawnedCardData.color}** color point.`;
-                    same = true;
+                    objEmbed.author = {
+                        iconURL:userAvatarUrl,
+                        name:userUsername
+                    }
+                    objEmbed.description = `:x: Current number was: **${currentNumber}** and the next hidden number was **${nextNumber}**. Neither number is lower or higher. As a bonus you received **${pointReward} ${spawnedCardData.color}** color point this time, also you have another chance to guess the next hidden number.`;
+                    
+                    var objColor = new Map();
+                    objColor.set(`color_point_${spawnedCardData.color}`,pointReward);
+                    await CardModule.updateColorPoint(userId,objColor);
+                    return message.channel.send({embed:objEmbed});
+
                 } else {
                     switch(guess.toLowerCase()){
                         case "lower":
@@ -612,10 +622,10 @@ module.exports = {
                 var cardSpawnData = await CardModule.getCardData(spawnedCardData.id);
 
                 if(success){
-                    //check for duplicates
+                    //if success
                     var duplicateCard = await CardModule.checkUserHaveCard(userId,spawnedCardData.id);
 
-                    if(duplicateCard){
+                    if(duplicateCard){//if card is duplicates
                         var randomPoint = GlobalFunctions.randomNumber(1,5);//for received random card point
 
                         objEmbed.thumbnail = {
@@ -631,7 +641,7 @@ module.exports = {
                             objColor
                         );
                         return message.channel.send({embed:objEmbed});
-                    } else {
+                    } else { //if card is not duplicates
                         pointReward = 5;
                         msgSend = `:white_check_mark: Current number was: **${currentNumber}** and the next hidden number was **${nextNumber}**. Your guess was: **${guess}** and you guessed it correctly!`;
 
@@ -643,6 +653,8 @@ module.exports = {
                         var objEmbed = CardModule.embedCardCapture(spawnedCardData.color,spawnedCardData.id,
                             cardSpawnData[DBM_Card_Data.columns.pack],cardSpawnData[DBM_Card_Data.columns.name],cardSpawnData[DBM_Card_Data.columns.img_url],cardSpawnData[DBM_Card_Data.columns.series],cardSpawnData[DBM_Card_Data.columns.rarity],userAvatarUrl,userUsername,currentTotalCard);
                         message.channel.send({content:msgSend,embed:objEmbed});
+
+                        await CardModule.removeCardGuildSpawn(guildId);
                     }
 
                     //check card pack completion:
@@ -650,11 +662,9 @@ module.exports = {
                     var checkCardCompletionPack = await CardModule.checkCardCompletion(userId,"pack",cardSpawnData[DBM_Card_Data.columns.pack]);
                     var checkCardCompletionColor = await CardModule.checkCardCompletion(userId,"color",spawnedCardData.color);
 
-                    if(checkCardCompletionPack){
-                        //card pack completion
+                    if(checkCardCompletionPack){ //card pack completion
                         embedCompletion = await CardModule.leaderboardAddNew(guildId,userId,userAvatarUrl,CardModule.Properties.dataColorCore[cardSpawnData[DBM_Card_Data.columns.color]].color,"pack",cardSpawnData[DBM_Card_Data.columns.pack]);
-                    } else if(checkCardCompletionColor) {
-                        //color set completion
+                    } else if(checkCardCompletionColor) { //color set completion
                         embedCompletion = await CardModule.leaderboardAddNew(guildId,userId,userAvatarUrl,CardModule.Properties.dataColorCore[cardSpawnData[DBM_Card_Data.columns.color]].color,"color",spawnedCardData.color);
                     }
 
@@ -662,12 +672,15 @@ module.exports = {
                         message.channel.send({embed:embedCompletion});
                     }
 
-                } else if(same) {
-                    message.channel.send({embed:objEmbed});
-                } else {
+                } else { //guessed the wrong hidden number
                     objEmbed.thumbnail = {
                         url: CardModule.Properties.imgResponse.imgFailed
                     }
+                    objEmbed.author = {
+                        iconURL:userAvatarUrl,
+                        name:userUsername
+                    }
+                    
                     objEmbed.description = `:x: Current number was: **${currentNumber}** and the next hidden number was **${nextNumber}**. Your guess was: **${guess}**. Sorry, you guessed it wrong this time.`;
                     await CardModule.updateCatchAttempt(userId,
                         spawnedCardData.token,
@@ -676,20 +689,14 @@ module.exports = {
                     return message.channel.send({embed:objEmbed});
                 }
 
-                // if(!same){
+                //update the information
                 var objColor = new Map();
                 objColor.set(`color_point_${spawnedCardData.color}`,pointReward);
                 await CardModule.updateCatchAttempt(userId,
                     spawnedCardData.token,
                     objColor
                 );
-                // } else {
-                //     var objColor = new Map();
-                //     objColor.set(`color_point_${spawnedCardData.color}`,pointReward);
-                //     await CardModule.updateColorPoint(userId,objColor);
-                // }
-
-                await CardModule.removeCardGuildSpawn(guildId);
+                await CardModule.updateColorPoint(userId,objColor);
 
                 //generate new card:
                 // var objEmbedNewCard =  await CardModule.generateCardSpawn(guildId,"number",false);
@@ -741,12 +748,16 @@ module.exports = {
                 await CardModule.updateColorPoint(userId,parameterSetColorPoint);
 
                 var objEmbed = {
+                    author : {
+                        iconURL:userAvatarUrl,
+                        name:userUsername
+                    },
                     color: CardModule.Properties.embedColor,
                     title: `New color has been set`,
                     description : `:white_check_mark: <@${userId}> is now assigned with color: **${newColor}** and use **100 ${assignedColor}** color point.`
                 };
 
-                message.channel.send({embed:objEmbed});
+                return message.channel.send({embed:objEmbed});
 
                 break;
             case "guide":
@@ -884,7 +895,7 @@ module.exports = {
                     thumbnail:{
                         url: userAvatarUrl
                     },
-                    description : `:white_check_mark: <@${userId}> is now level ${colorLevel} !`,
+                    description : `:white_check_mark: <@${userId}> **${selectedColor}** color is now level **${colorLevel}**!`,
                     fields: [
                         {
                             name:`Total bonus capture rate:`,
@@ -893,7 +904,7 @@ module.exports = {
                         },
                         {
                             name:`Next ${GlobalFunctions.capitalize(selectedColor)} Color Point:`,
-                            value:`+${CardModule.getNextColorPoint(colorLevel)}%`,
+                            value:`${CardModule.getNextColorPoint(colorLevel)}`,
                             inline: true
                         },
                     ]
@@ -959,7 +970,6 @@ module.exports = {
                 spawnedCardData.id = jsonParsedSpawnData[CardModule.Properties.spawnData.quiz.id_card];
                 spawnedCardData.answer = jsonParsedSpawnData[CardModule.Properties.spawnData.quiz.answer];
 
-                var success = false; var msgSend = "";
                 //get card data
                 var cardSpawnData = await CardModule.getCardData(spawnedCardData.id);
                 spawnedCardData.color = cardSpawnData[DBM_Card_Data.columns.color];
@@ -968,46 +978,45 @@ module.exports = {
                 answer = answer.toLowerCase();
                 var pointReward = 0;
                 if(answer!=spawnedCardData.answer){
+                    //wrong answer - update the token
+                    await CardModule.updateCatchAttempt(userId,
+                        spawnedCardData.token
+                    );
                     objEmbed.thumbnail = {
                         url: CardModule.Properties.imgResponse.imgFailed
                     }
                     objEmbed.description = `:x: Sorry, but that's not the answer.`;
-                    return message.channel.send({embed:objEmbed});
-                } else {
-                    success = true;
+
+                    return await message.channel.send({embed:objEmbed});
                 }
 
-                if(success){
-                    //check for duplicates
-                    var duplicateCard = await CardModule.checkUserHaveCard(userId,spawnedCardData.id);
-                    
-                    if(duplicateCard){
-                        var randomPoint = GlobalFunctions.randomNumber(3,5);//for received random card point
+                //correct answer - check for duplicates
+                var duplicateCard = await CardModule.checkUserHaveCard(userId,spawnedCardData.id);
+                
+                if(duplicateCard){ //duplicates
+                    pointReward = GlobalFunctions.randomNumber(3,5);//for received random color point
 
-                        objEmbed.thumbnail = {
-                            url: CardModule.Properties.imgResponse.imgFailed
-                        }
-                        objEmbed.description = `:x: The answer was correct! But you already have this card: **${spawnedCardData.id} - ${cardSpawnData[DBM_Card_Data.columns.name]}**. As a bonus you have received **${randomPoint} ${spawnedCardData.color}** color points.`;
-                        //update the catch token & color point
-                        pointReward = randomPoint;
-                        message.channel.send({embed:objEmbed});
-                    } else {
-                        pointReward = 10;
-                        msgSend = `:white_check_mark: The answer was correct! **${userUsername}** have received: **${cardSpawnData[DBM_Card_Data.columns.name]}** & **${pointReward} ${spawnedCardData.color}** color points.`;
-
-                        //insert new card
-                        await CardModule.addNewCardInventory(userId,spawnedCardData.id);
-                        var currentTotalCard = await CardModule.getUserTotalCard(userId,spawnedCardData.pack);//get the current card total
-                        
-                        var objEmbed = CardModule.embedCardCapture(spawnedCardData.color,spawnedCardData.id,
-                            spawnedCardData.pack,cardSpawnData[DBM_Card_Data.columns.name],cardSpawnData[DBM_Card_Data.columns.img_url],cardSpawnData[DBM_Card_Data.columns.series],cardSpawnData[DBM_Card_Data.columns.rarity],userAvatarUrl,userUsername,currentTotalCard);
-                        
-                        message.channel.send({content:msgSend,embed:objEmbed});
+                    objEmbed.thumbnail = {
+                        url: CardModule.Properties.imgResponse.imgFailed
                     }
-                } else {
-                    message.channel.send({embed:objEmbed});
+                    objEmbed.description = `:x: The answer was correct! But you already have this card: **${spawnedCardData.id} - ${cardSpawnData[DBM_Card_Data.columns.name]}**. As a bonus you have received **${pointReward} ${spawnedCardData.color}** color points.`;
+                    //update the catch token & color point
+                    await message.channel.send({embed:objEmbed});
+                } else { //not duplicates
+                    pointReward = 10;
+                    var msgSend = `:white_check_mark: The answer was correct! **${userUsername}** have received: **${cardSpawnData[DBM_Card_Data.columns.name]}** & **${pointReward} ${spawnedCardData.color}** color points.`;
+
+                    //insert new card
+                    await CardModule.addNewCardInventory(userId,spawnedCardData.id);
+                    var currentTotalCard = await CardModule.getUserTotalCard(userId,spawnedCardData.pack);//get the current card total
+                    
+                    var objEmbed = CardModule.embedCardCapture(spawnedCardData.color,spawnedCardData.id,
+                        spawnedCardData.pack,cardSpawnData[DBM_Card_Data.columns.name],cardSpawnData[DBM_Card_Data.columns.img_url],cardSpawnData[DBM_Card_Data.columns.series],cardSpawnData[DBM_Card_Data.columns.rarity],userAvatarUrl,userUsername,currentTotalCard);
+                    
+                    await message.channel.send({content:msgSend,embed:objEmbed});
                 }
 
+                //update token & color point
                 var objColor = new Map();
                 objColor.set(`color_point_${spawnedCardData.color}`,pointReward);
                 await CardModule.updateCatchAttempt(userId,
@@ -1113,24 +1122,25 @@ module.exports = {
                 
                 
                 break;
-            case "timer":
-                var minutes = GlobalFunctions.str_pad_left(Math.floor(CardGuildModule.arrTimerGuildInformation[guildId].remaining / 60),'0',2);
-                var seconds = GlobalFunctions.str_pad_left(CardGuildModule.arrTimerGuildInformation[guildId].remaining - minutes * 60,'0',2);
-                var objEmbed = {
-                    color: CardModule.Properties.embedColor,
-                    title: `⏱️ Card Spawn Timer`,
-                    description:`Countdown until the next card spawn: **${minutes}:${seconds}**`
-                };
-                return message.channel.send({embed:objEmbed});
-                break;
+            // case "timer":
+            //     var minutes = GlobalFunctions.str_pad_left(Math.floor(CardGuildModule.arrTimerGuildInformation[guildId].remaining / 60),'0',2);
+            //     var seconds = GlobalFunctions.str_pad_left(CardGuildModule.arrTimerGuildInformation[guildId].remaining - minutes * 60,'0',2);
+            //     var objEmbed = {
+            //         color: CardModule.Properties.embedColor,
+            //         title: `⏱️ Card Spawn Timer`,
+            //         description:`Countdown until the next card spawn: **${minutes}:${seconds}**`
+            //     };
+            //     return message.channel.send({embed:objEmbed});
+            //     break;
             case "update":
                 return message.channel.send({embed:
                     {
                     "color": CardModule.Properties.embedColor,
-                    "title": "Card Catcher Updates 1.03",
+                    "title": `Card Catcher Updates ${CardModule.latestVersion}`,
                     "fields":[
-                        { "name": "New Command:","value": "-**p!card timer**: This command will show the duration until next card spawn" },
-                        { "name": "Updates List & Fixes:","value": "-capture chance calculation fixes\n-card spawn embed display updates\n-number card: fixes where random number is not between 2-10\n-quiz card: the correct answer will no longer displayed if someone answer it wrong" },
+                        { "name": "New Command:","value": "-**p!card spawn**: This command replace the **timer** command and show the current card spawn information." },
+                        { "name": "Updates List & Fixes:","value": "-quiz card bug fix: prevent user from answering the question again if the answer is wrong.\n-number card bug fix & update: if it's same number prevent the  card spawn removal & give another chance to guess the next hidden number again.\n-error embed updates: added username author/header.\n-countdown timer fixes & reset after card has spawned.\n-error message updates for quiz card type.\n-bonus catch attempt calculation updates of color level." },
+                        { "name": "Under testing fixes/known issues:","value": "-Card that are catched at same time/less than 1 second." },
                     ]
                 }})
                   
@@ -1138,8 +1148,77 @@ module.exports = {
             // case "debug":
             //     //for card spawn debug purpose
             //     var cardSpawnData = await CardModule.generateCardSpawn(guildId);
-            //     message.channel.send({embed:cardSpawnData});
+            //     var msgObject = await message.channel.send({embed:cardSpawnData});
+            //     await CardModule.updateMessageIdSpawn(guildId,msgObject.id);
             //     break;
+            case "spawn":
+                //get card spawn information
+                var guildSpawnData = await CardGuildModule.getCardGuildData(guildId);
+                var spawnedCardData = {
+                    token:guildSpawnData[DBM_Card_Guild.columns.spawn_token],
+                    type:guildSpawnData[DBM_Card_Guild.columns.spawn_type]
+                }
+                var channelSpawnId = guildSpawnData[DBM_Card_Guild.columns.id_channel_spawn];
+                
+                //for countdown timer
+                var minutes = GlobalFunctions.str_pad_left(Math.floor(CardGuildModule.arrTimerGuildInformation[guildId].remaining / 60),'0',2);
+                var seconds = GlobalFunctions.str_pad_left(CardGuildModule.arrTimerGuildInformation[guildId].remaining - minutes * 60,'0',2);
+                var timerLeft = `**${minutes}:${seconds}**`;
+
+                var currentSpawnType = "normal";
+                if(spawnedCardData.token!=null&&
+                    spawnedCardData.type!=null){
+                    switch(spawnedCardData.type.toLowerCase()) {
+                        case "color":
+                            currentSpawnType = "color";
+                            break;
+                        case "number":
+                            currentSpawnType = ":game_die: number";
+                            break;
+                        case "quiz":
+                            currentSpawnType = ":grey_question: quiz";
+                            break;
+                    }
+                    
+                } else {
+                    var objEmbed = {
+                        color: CardModule.Properties.embedColor,
+                        fields : [
+                            {
+                                name:'Next Spawn Countdown:',
+                                value:timerLeft,
+                                inline:true
+                            }
+                        ],
+                        description :':x: There are no Precure cards spawning right now.'
+                    }
+                    return message.channel.send({embed:objEmbed});
+                }
+
+                var objEmbed = {
+                    color: CardModule.Properties.embedColor,
+                    title: `Card Spawn Information`,
+                    description : `Here are the current card spawn information that is available now:`,
+                    fields : [
+                        {
+                            name:'Type:',
+                            value:currentSpawnType,
+                            inline:true
+                        },
+                        {
+                            name:'Countdown:',
+                            value:timerLeft,
+                            inline:true
+                        },
+                        {
+                            name:'Link:',
+                            value:`[Jump to spawn](${GlobalFunctions.discordMessageLinkFormat(guildId,channelSpawnId,guildSpawnData[DBM_Card_Guild.columns.id_last_message_spawn])})`,
+                            inline:true
+                        }
+                    ]
+                };
+                return message.channel.send({embed:objEmbed});
+                break;
             default:
                 break;
         }
