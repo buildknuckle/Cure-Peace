@@ -1,1302 +1,1098 @@
+const Discord = require('discord.js');
+const paginationEmbed = require('discord.js-pagination');
 const DB = require('../database/DatabaseCore');
 const DBConn = require('../storage/dbconn');
+const CardModule = require('../modules/Card');
+const CardGuildModule = require('../modules/CardGuild');
 const GlobalFunctions = require('../modules/GlobalFunctions.js');
-const DBM_Card_Data = require('../database/model/DBM_Card_Data');
 const DBM_Card_User_Data = require('../database/model/DBM_Card_User_Data');
+const DBM_Card_Data = require('../database/model/DBM_Card_Data');
 const DBM_Card_Inventory = require('../database/model/DBM_Card_Inventory');
 const DBM_Card_Guild = require('../database/model/DBM_Card_Guild');
 const DBM_Card_Leaderboard = require('../database/model/DBM_Card_Leaderboard');
 
-class Properties{
-    static embedColor = '#efcc2c';
+module.exports = {
+    name: 'card',
+    cooldown: 5,
+    description: 'Contains all card categories',
+    args: true,
+	async execute(message, args) {
+        const guildId = message.guild.id;
+        var userId = message.author.id;
+        var userUsername = message.author.username;
+        var userAvatarUrl = message.author.avatarURL();
 
-    static spawnType = [
-        "number",
-        "normal",
-        "color",
-        "quiz"
-        //golden_week
-        //combat
-        //virus
-    ];
+        // var members = message.guild.members;
+        switch(args[0]) {
+            case "status":
+                //show the card status
+                var objEmbed ={
+                    color: CardModule.Properties.embedColor,
+                    author: {
+                        name: userUsername,
+                        icon_url: userAvatarUrl
+                    }
+                };
+                //get card total:
+                //user parameter validator if placed
+                var memberExists = true;
+                if(args[1]!=null){
+                    var parameterUsername = args[1];
+                    await message.guild.members.fetch({query:`${parameterUsername}`,limit:1})
+                    .then(
+                        members=> {
+                            if(members.size>=1){
+                                userId = members.first().user.id;
+                                objEmbed.author = {
+                                    name:members.first().user.username,
+                                    icon_url:members.first().user.avatarURL()
+                                }
+                            } else {
+                                memberExists = false;
+                            }
+                        }
+                    );
+                }
 
-    static imgResponse = {
-        imgOk: "https://cdn.discordapp.com/attachments/793415946738860072/797862343983497216/unknown.png",
-        imgError: "https://cdn.discordapp.com/attachments/793415946738860072/797861955033366568/EfmTXAAWAAAbdRA.png",
-        imgFailed: "https://cdn.discordapp.com/attachments/793415946738860072/797862111484182562/10225867f8a7c5accdde3e78181faca547530a28.png"
-    }
+                if(!memberExists){
+                    return message.channel.send("Sorry, I can't find that username.");
+                }
 
-    //contains the data structure for card spawn
-    static spawnData = {
-        normal:{
-            id_card:"id_card",
-        },
-        quiz:{
-            //for column structure:
-            answer:"answer",
-            id_card:"id_card",
-            //for the embed image
-            embed_img:"https://cdn.discordapp.com/attachments/793415946738860072/798179736475926528/mystery_card_animate.gif"
-        },
-        color:{
-            //for column structure:
-            pink:"pink",
-            purple:"purple",
-            green:"green",
-            yellow:"yellow",
-            white:"white",
-            blue:"blue",
-            red:"red",
-            //for the embed image
-            embed_img:"https://cdn.discordapp.com/attachments/793415946738860072/798179736475926528/mystery_card_animate.gif"
-        }
-    }
-    
-    //contain basic information of the color
-    static arrColor = ["pink","purple","green","yellow","white","blue","red"];
 
-    static dataColorCore = {
-        pink:{
-            imgMysteryUrl:"https://cdn.discordapp.com/attachments/793415946738860072/798116047575842846/mystery_pink.jpg",
-            color:"#FEA1E6",
-            total:194
-        },
-        purple:{
-            imgMysteryUrl:"https://cdn.discordapp.com/attachments/793415946738860072/798116058485227520/mystery_purple.jpg",
-            color:"#897CFE",
-            total:102
-        },
-        green:{
-            imgMysteryUrl:"https://cdn.discordapp.com/attachments/793415946738860072/798116027358773258/mystery_green.jpg",
-            color:"#7CF885",
-            total:62
-        },
-        yellow:{
-            imgMysteryUrl:"https://cdn.discordapp.com/attachments/793415946738860072/798116089950502942/mystery_yellow.jpg",
-            color:"#FDF13B",
-            total:152
-        },
-        white:{
-            imgMysteryUrl:"https://cdn.discordapp.com/attachments/793415946738860072/798116077112393738/mystery_white.jpg",
-            color:"#FFFFEA",
-            total:39
-        },
-        blue:{
-            imgMysteryUrl:"https://cdn.discordapp.com/attachments/793415946738860072/798116003649159219/mystery_blue.jpg",
-            color:"#7FC7FF",
-            total:136
-        },
-        red:{
-            imgMysteryUrl:"https://cdn.discordapp.com/attachments/793415946738860072/798116067250536458/mystery_red.jpg",
-            color:"#FF9389",
-            total:87
-        },
-        all:{
-            imgMysteryUrl:"https://cdn.discordapp.com/attachments/793415946738860072/798179736475926528/mystery_card_animate.gif"
-        }
-    };
-    
-    //the constant of all available/required card
-    static dataCardCore = {
-        nagisa:{
-            total:16,
-            icon:"https://waa.ai/JEca",
-            color:"pink",
-            fullname:"Nagisa Misumi",
-            alter_ego:"Cure Black"
-        },
-        saki:{
-            total:12,
-            icon:"https://waa.ai/JEcX",
-            color:"pink",
-            fullname:"Saki Hyuuga",
-            alter_ego:"Cure Bloom"
-        },
-        nozomi:{
-            total:11,
-            icon:"https://waa.ai/JEc3",
-            color:"pink",
-            fullname:"Yumehara Nozomi",
-            alter_ego:"Cure Dream"
-        },
-        love:{
-            total:11,
-            icon:"https://waa.ai/JEcT",
-            color:"pink",
-            fullname:"Love Momozono",
-            alter_ego:"Cure Peach"
-        },
-        tsubomi:{
-            total:13,
-            icon:"https://waa.ai/JEce",
-            color:"pink",
-            fullname: "Tsubomi Hanasaki",
-            alter_ego:"Cure Blossom"
-        },
-        hibiki:{
-            total:12,
-            icon:"https://waa.ai/JEcu",
-            color:"pink",
-            fullname: "Hibiki Hojo",
-            alter_ego:"Cure Melody"
-        },
-        miyuki:{
-            total:13,
-            icon:"https://waa.ai/JEct",
-            color:"pink",
-            fullname: "Miyuki Hoshizora",
-            alter_ego:"Cure Happy"
-        },
-        mana:{
-            total:12,
-            icon:"https://waa.ai/JEcJ",
-            color:"pink",
-            fullname: "Mana Aida",
-            alter_ego:"Cure Heart"
-        },
-        megumi:{
-            total:10,
-            icon:"https://waa.ai/JEcx",
-            color:"pink",
-            fullname: "Megumi Aino",
-            alter_ego:"Cure Lovely"
-        },
-        haruka:{
-            total:16,
-            icon:"https://waa.ai/JEcq",
-            color:"pink",
-            fullname: "Haruka Haruno",
-            alter_ego:"Cure Flora"
-        },
-        mirai:{
-            total:16,
-            icon:"https://waa.ai/JEcl",
-            color:"pink",
-            fullname:"Mirai Asahina",
-            alter_ego:"Cure Miracle"
-        },
-        ichika:{
-            total:18,
-            icon:"https://waa.ai/JEcF",
-            color:"pink",
-            fullname:"Ichika Usami",
-            alter_ego:"Cure Whip"
-        },
-        hana:{
-            total:16,
-            icon:"https://waa.ai/JEc0",
-            color:"pink",
-            fullname: "Hana Nono",
-            alter_ego:"Cure Yell"
-        },
-        hikaru:{
-            total:13,
-            icon:"https://waa.ai/JEc9",
-            color:"pink",
-            fullname: "Hikaru Hoshina",
-            alter_ego:"Cure Star"
-        },
-        nodoka:{
-            total:5,
-            icon:"https://waa.ai/JEcS",
-            color:"pink",
-            fullname: "Nodoka Hanadera",
-            alter_ego:"Cure Grace"
-        },
-        karen:{
-            total:12,
-            icon:"https://cdn.discordapp.com/attachments/793415946738860072/797866307264839690/unknown.png",
-            color:"blue",
-            fullname: "Minazuki Karen",
-            alter_ego:"Cure Aqua"
-        },
-        miki:{
-            total:10,
-            icon:"https://cdn.discordapp.com/attachments/793415946738860072/797866496171835432/unknown.png",
-            color:"blue",
-            fullname: "Aono Miki",
-            alter_ego:"Cure Berry"
-        },
-        erika:{
-            total:13,
-            icon:"https://cdn.discordapp.com/attachments/793415946738860072/797866948116348968/unknown.png",
-            color:"blue",
-            fullname:"Kurumi Erika",
-            alter_ego:"Cure Marine"
-        },
-        ellen:{
-            total:12,
-            icon:"https://cdn.discordapp.com/attachments/793415946738860072/797867854866939905/unknown.png",
-            color:"blue",
-            fullname:"Kurokawa Ellen",
-            alter_ego:"Cure Beat"
-        },
-        reika:{
-            total:12,
-            icon:"https://cdn.discordapp.com/attachments/793415946738860072/797868039810973796/unknown.png",
-            color:"blue",
-            fullname: "Aoki Reika",
-            alter_ego:"Cure Beauty"
-        },
-        rikka:{
-            total:11,
-            icon:"https://cdn.discordapp.com/attachments/793415946738860072/797868236036767804/unknown.png",
-            color:"blue",
-            fullname:"Hishikawa Rikka",
-            alter_ego:"Cure Diamond"
-        },
-        hime:{
-            total:11,
-            icon:"https://cdn.discordapp.com/attachments/793415946738860072/797868477422895144/unknown.png",
-            color:"blue",
-            fullname:"Shirayuki Hime",
-            alter_ego:"Cure Princess"
-        },
-        minami:{
-            total:14,
-            icon:"https://cdn.discordapp.com/attachments/793415946738860072/797868678141050880/unknown.png",
-            color:"blue",
-            fullname:"Kaido Minami",
-            alter_ego:"Cure Mermaid"
-        },
-        aoi:{
-            total:14,
-            icon:"https://cdn.discordapp.com/attachments/793415946738860072/797868885595783178/unknown.png",
-            color:"blue",
-            fullname:"Tategami Aoi",
-            alter_ego:"Cure Gelato"
-        },
-        saaya:{
-            total:14,
-            icon:"https://cdn.discordapp.com/attachments/793415946738860072/797869049916031016/unknown.png",
-            color:"blue",
-            fullname: "Yakushiji Saaya",
-            alter_ego:"Cure Ange"
-        },
-        yuni:{
-            total:8,
-            icon:"https://cdn.discordapp.com/attachments/793415946738860072/797869194690953226/unknown.png",
-            color:"blue",
-            fullname:"Yuni",
-            alter_ego:"Cure Cosmo"
-        },
-        chiyu:{
-            total:5,
-            icon:"https://cdn.discordapp.com/attachments/793415946738860072/797869330799919205/unknown.png",
-            color:"blue",
-            fullname:"Sawaizumi Chiyu",
-            alter_ego:"Cure Fontaine"
-        },
-        hikari:{
-            total:14,
-            icon:"https://cdn.discordapp.com/attachments/793415946738860072/797869947023130634/unknown.png",
-            color:"yellow",
-            fullname:"Kujou Hikari",
-            alter_ego:"Shiny Luminous"
-        },
-        urara:{
-            total:11,
-            icon:"https://cdn.discordapp.com/attachments/793415946738860072/797870146756542494/unknown.png",
-            color:"yellow",
-            fullname:"Kasugano Urara",
-            alter_ego:"Cure Lemonade"
-        },
-        inori:{
-            total:10,
-            icon:"https://cdn.discordapp.com/attachments/793415946738860072/797870295964450846/unknown.png",
-            color:"yellow",
-            fullname:"Yamabuki Inori",
-            alter_ego:"Cure Pine"
-        },
-        itsuki:{
-            total:12,
-            icon:"https://cdn.discordapp.com/attachments/793415946738860072/797870479209267230/unknown.png",
-            color:"yellow",
-            fullname:"Myoudouin Itsuki",
-            alter_ego:"Cure Sunshine"
-        },
-        ako:{
-            total:11,
-            icon:"https://cdn.discordapp.com/attachments/793415946738860072/797873360632807455/unknown.png",
-            color:"yellow",
-            fullname:"Shirabe Ako",
-            alter_ego:"Cure Muse"
-        },
-        yayoi:{
-            total:11,
-            icon:"https://cdn.discordapp.com/attachments/793415946738860072/797873533002317844/unknown.png",
-            color:"yellow",
-            fullname:"Kise Yayoi",
-            alter_ego:"Cure Peace"
-        },
-        alice:{
-            total:10,
-            icon:"https://cdn.discordapp.com/attachments/793415946738860072/797873685800681492/unknown.png",
-            color:"yellow",
-            fullname:"Yotsuba Alice",
-            alter_ego:"Cure Rosetta"
-        },
-        yuko:{
-            total:12,
-            icon:"https://cdn.discordapp.com/attachments/793415946738860072/797873891359719434/unknown.png",
-            color:"yellow",
-            fullname:"Omori Yuko",
-            alter_ego:"Cure Honey"
-        },
-        kirara:{
-            total:16,
-            icon:"https://cdn.discordapp.com/attachments/793415946738860072/797874089334276156/unknown.png",
-            color:"yellow",
-            fullname:"Amanogawa Kirara",
-            alter_ego:"Cure Twinkle"
-        },
-        himari:{
-            total:15,
-            icon:"https://cdn.discordapp.com/attachments/793415946738860072/797875600341598228/unknown.png",
-            color:"yellow",
-            fullname:"Arisugawa Himari",
-            alter_ego:"Cure Custard"
-        },
-        homare:{
-            total:14,
-            icon:"https://cdn.discordapp.com/attachments/793415946738860072/797875742750146570/unknown.png",
-            color:"yellow",
-            fullname:"Kagayaki Homare",
-            alter_ego:"Cure Etoile"
-        },
-        elena:{
-            total:11,
-            icon:"https://cdn.discordapp.com/attachments/793415946738860072/797875900107456512/unknown.png",
-            color:"yellow",
-            fullname:"Amamiya Elena",
-            alter_ego:"Cure Soleil"
-        },
-        hinata:{
-            total:5,
-            icon:"https://cdn.discordapp.com/attachments/793415946738860072/797876042042834994/unknown.png",
-            color:"yellow",
-            fullname:"Hiramitsu Hinata",
-            alter_ego:"Cure Sparkle"
-        },
-        yuri:{
-            total:13,
-            icon:"https://cdn.discordapp.com/attachments/793415946738860072/797876212591493150/unknown.png",
-            color:"purple",
-            fullname:"Tsukikage Yuri",
-            alter_ego:"Cure Moonlight"
-        },
-        makoto:{
-            total:11,
-            icon:"https://cdn.discordapp.com/attachments/793415946738860072/797877332043628646/unknown.png",
-            color:"purple",
-            fullname:"Kenzaki Makoto",
-            alter_ego:"Cure Sword"
-        },
-        iona:{
-            total:12,
-            icon:"https://cdn.discordapp.com/attachments/793415946738860072/797877449017786418/unknown.png",
-            color:"purple",
-            fullname:"Hikawa Iona",
-            alter_ego:"Cure Fortune"
-        },
-        riko:{
-            total:15,
-            icon:"https://cdn.discordapp.com/attachments/793415946738860072/797877629469982750/unknown.png",
-            color:"purple",
-            fullname:"Izayoi Riko",
-            alter_ego:"Cure Magical"
-        },
-        yukari:{
-            total:16,
-            icon:"https://cdn.discordapp.com/attachments/793415946738860072/797877841105518602/unknown.png",
-            color:"purple",
-            fullname:"Kotozume Yukari",
-            alter_ego:"Cure Macaron"
-        },
-        amour:{
-            total:11,
-            icon:"https://cdn.discordapp.com/attachments/793415946738860072/797878877800235028/unknown.png",
-            color:"purple",
-            fullname:"Ruru Amour",
-            alter_ego:"Cure Amour"
-        },
-        madoka:{
-            total:12,
-            icon:"https://cdn.discordapp.com/attachments/793415946738860072/797879016802746388/unknown.png",
-            color:"purple",
-            fullname:"Kaguya Madoka",
-            alter_ego:"Cure Selene"
-        },
-        kurumi:{
-            total:12,
-            icon:"https://cdn.discordapp.com/attachments/793415946738860072/797879140811931649/unknown.png",
-            color:"purple",
-            fullname:"Mimino Kurumi",
-            alter_ego:"Milky Rose"
-        },
-        rin:{
-            total:11,
-            icon:"https://cdn.discordapp.com/attachments/793415946738860072/797879268372774912/unknown.png",
-            color:"red",
-            fullname:"Natsuki Rin",
-            alter_ego:"Cure Rouge"
-        },
-        setsuna:{
-            total:11,
-            icon:"https://cdn.discordapp.com/attachments/793415946738860072/797879404536660018/unknown.png",
-            color:"red",
-            fullname:"Higashi Setsuna",
-            alter_ego:"Cure Passion"
-        },
-        akane:{
-            total:11,
-            icon:"https://cdn.discordapp.com/attachments/793415946738860072/797879955207880714/unknown.png",
-            color:"red",
-            fullname:"Hino Akane",
-            alter_ego:"Cure Sunny"
-        },
-        aguri:{
-            total:12,
-            icon:"https://cdn.discordapp.com/attachments/793415946738860072/797883836549038110/unknown.png",
-            color:"red",
-            fullname:"Madoka Aguri",
-            alter_ego:"Cure Ace"
-        },
-        towa:{
-            total:15,
-            icon:"https://cdn.discordapp.com/attachments/793415946738860072/797884007189708860/unknown.png",
-            color:"red",
-            fullname:"Akagi Towa",
-            alter_ego:"Cure Scarlet"
-        },
-        akira:{
-            total:16,
-            icon:"https://cdn.discordapp.com/attachments/793415946738860072/797884127768477706/unknown.png",
-            color:"red",
-            fullname:"Kenjou Akira",
-            alter_ego:"Cure Chocolat"
-        },
-        emiru:{
-            total:11,
-            icon:"https://cdn.discordapp.com/attachments/793415946738860072/797884885314437130/unknown.png",
-            color:"red",
-            fullname:"Aisaki Emiru",
-            alter_ego:"Cure Macherie"
-        },
-        komachi:{
-            total:13,
-            icon:"https://cdn.discordapp.com/attachments/793415946738860072/797885787202125874/unknown.png",
-            color:"green",
-            fullname:"Akimoto Komachi",
-            alter_ego:"Cure Mint"
-        },
-        nao:{
-            total:11,
-            icon:"https://cdn.discordapp.com/attachments/793415946738860072/797886213264244786/unknown.png",
-            color:"green",
-            fullname:"Midorikawa Nao",
-            alter_ego:"Cure March"
-        },
-        kotoha:{
-            total:15,
-            icon:"https://cdn.discordapp.com/attachments/793415946738860072/797887526987497502/unknown.png",
-            color:"green",
-            fullname:"Hanami Kotoha",
-            alter_ego:"Cure Felice"
-        },
-        ciel:{
-            total:12,
-            icon:"https://cdn.discordapp.com/attachments/793415946738860072/797887665428365322/unknown.png",
-            color:"green",
-            fullname:"Kirahoshi Ciel",
-            alter_ego:"Cure Parfait"
-        },
-        lala:{
-            total:11,
-            icon:"https://cdn.discordapp.com/attachments/793415946738860072/797887830377889852/unknown.png",
-            color:"green",
-            fullname:"Hagoromo Lala",
-            alter_ego:"Cure Milky"
-        },
-        honoka:{
-            total:17,
-            icon:"https://cdn.discordapp.com/attachments/793415946738860072/797887960003510282/unknown.png",
-            color:"white",
-            fullname:"Yukishiro Honoka",
-            alter_ego:"Cure White"
-        },
-        mai:{
-            total:10,
-            icon:"https://cdn.discordapp.com/attachments/793415946738860072/797888139992891432/unknown.png",
-            color:"white",
-            fullname:"Mishou Mai",
-            alter_ego:"Cure Egret"
-        },
-        kanade:{
-            total:12,
-            icon:"https://cdn.discordapp.com/attachments/793415946738860072/797888264202747965/unknown.png",
-            color:"white",
-            fullname:"Minamino Kanade",
-            alter_ego:"Cure Rhythm"
-        }
-    };
+                var query = `select cd.${DBM_Card_Data.columns.pack},count(inv.${DBM_Card_Inventory.columns.id_user}) as total
+                from card_data cd
+                left join ${DBM_Card_Inventory.TABLENAME} inv
+                on cd.${DBM_Card_Data.columns.id_card}=inv.${DBM_Card_Inventory.columns.id_card} and 
+                inv.${DBM_Card_Inventory.columns.id_user}=?
+                group by cd.${DBM_Card_Data.columns.pack}`;
+                var arrParameterized = [userId];
+                var arrCardTotal = {};
+                var cardDataInventory = await DBConn.conn.promise().query(query, arrParameterized);
+                cardDataInventory[0].forEach(function(entry){
+                    arrCardTotal[entry[DBM_Card_Data.columns.pack]] = entry['total'];
+                });
 
-    static spawnHintSeries = {
-        "max heart":"yin & yang",
-        "splash star":"flower, bird, wind and moon",
-        "yes! precure 5 gogo!":"natural elements, human characteristics and emotions",
-        "fresh":"fruits, clovers, card suits, and dancing",
-        "heartcatch":"flowers and Hanakotoba",
-        "suite":":musical_note: musical theme",
-        "smile":"fairy tales",
-        "doki doki!":"emotions and selflessness",
-        "happiness":"mirrors, fashion, dancing and romance",
-        "go! princess":"princesses, personal goals and dreams",
-        "mahou tsukai":"sorcery, gemstones and friendship",
-        "kirakira":"sweets, animals and creativity",
-        "hugtto":"destiny, future, heroism, parenting, and jobs",
-        "star twinkle":" space, astrology and imagination",
-        "healin' good":"health, nature, and animals"
-    }
+                var cardUserStatusData = await CardModule.getCardUserStatusData(userId);
+                clvl = await CardModule.getAverageLevel(userId,[
+                    cardUserStatusData[DBM_Card_User_Data.columns.color_level_blue],
+                    cardUserStatusData[DBM_Card_User_Data.columns.color_level_green],
+                    cardUserStatusData[DBM_Card_User_Data.columns.color_level_pink],
+                    cardUserStatusData[DBM_Card_User_Data.columns.color_level_purple],
+                    cardUserStatusData[DBM_Card_User_Data.columns.color_level_red],
+                    cardUserStatusData[DBM_Card_User_Data.columns.color_level_white],
+                    cardUserStatusData[DBM_Card_User_Data.columns.color_level_yellow]
+                ]);
 
-}
+                //prepare the embed
+                objEmbed.title = `Card Status | cLvl: ${clvl} | Color: ${cardUserStatusData[DBM_Card_User_Data.columns.color]}`;
+                objEmbed.fields = [{
+                        name: `Pink(CL: ${cardUserStatusData[DBM_Card_User_Data.columns.color_level_pink]}/ CP: ${cardUserStatusData[DBM_Card_User_Data.columns.color_point_pink]}):`,
+                        value: `Nagisa: ${arrCardTotal.nagisa}/${CardModule.Properties.dataCardCore.nagisa.total}\nSaki: ${arrCardTotal.saki}/${CardModule.Properties.dataCardCore.saki.total}\nNozomi: ${arrCardTotal.nozomi}/${CardModule.Properties.dataCardCore.nozomi.total}\nLove: ${arrCardTotal.love}/${CardModule.Properties.dataCardCore.love.total}\nTsubomi: ${arrCardTotal.tsubomi}/${CardModule.Properties.dataCardCore.tsubomi.total}\nHibiki: ${arrCardTotal.hibiki}/${CardModule.Properties.dataCardCore.hibiki.total}\nMiyuki: ${arrCardTotal.miyuki}/${CardModule.Properties.dataCardCore.miyuki.total}\nMana: ${arrCardTotal.mana}/${CardModule.Properties.dataCardCore.mana.total}\nMegumi: ${arrCardTotal.megumi}/${CardModule.Properties.dataCardCore.megumi.total}\nHaruka: ${arrCardTotal.haruka}/${CardModule.Properties.dataCardCore.haruka.total}\nMirai: ${arrCardTotal.mirai}/${CardModule.Properties.dataCardCore.mirai.total}\nIchika: ${arrCardTotal.ichika}/${CardModule.Properties.dataCardCore.ichika.total}\nHana: ${arrCardTotal.hana}/${CardModule.Properties.dataCardCore.hana.total}\nHikaru: ${arrCardTotal.hikaru}/${CardModule.Properties.dataCardCore.hikaru.total}\nNodoka: ${arrCardTotal.nodoka}/${CardModule.Properties.dataCardCore.nodoka.total}`,
+                        inline: true
+                    },
+                    {
+                        name: `Blue(CL: ${cardUserStatusData[DBM_Card_User_Data.columns.color_level_blue]}/ CP: ${cardUserStatusData[DBM_Card_User_Data.columns.color_point_blue]}):`,
+                        value: `Karen: ${arrCardTotal.karen}/${CardModule.Properties.dataCardCore.karen.total}\nMiki: ${arrCardTotal.miki}/${CardModule.Properties.dataCardCore.miki.total}\nErika: ${arrCardTotal.erika}/${CardModule.Properties.dataCardCore.erika.total}\nEllen: ${arrCardTotal.ellen}/${CardModule.Properties.dataCardCore.ellen.total}\nReika: ${arrCardTotal.hikaru}/${CardModule.Properties.dataCardCore.reika.total}\nRikka: ${arrCardTotal.rikka}/${CardModule.Properties.dataCardCore.rikka.total}\nHime: ${arrCardTotal.hime}/${CardModule.Properties.dataCardCore.hime.total}\nMinami: ${arrCardTotal.minami}/${CardModule.Properties.dataCardCore.minami.total}\nAoi: ${arrCardTotal.aoi}/${CardModule.Properties.dataCardCore.aoi.total}\nSaaya: ${arrCardTotal.saaya}/${CardModule.Properties.dataCardCore.saaya.total}\nYuni: ${arrCardTotal.yuni}/${CardModule.Properties.dataCardCore.yuni.total}\nChiyu: ${arrCardTotal.chiyu}/${CardModule.Properties.dataCardCore.chiyu.total}`,
+                        inline: true
+                    },
+                    {
+                        name: `Yellow(CL: ${cardUserStatusData[DBM_Card_User_Data.columns.color_level_yellow]}/ CP: ${cardUserStatusData[DBM_Card_User_Data.columns.color_point_yellow]}):`,
+                        value: `Hikari: ${arrCardTotal.hikari}/${CardModule.Properties.dataCardCore.hikari.total}\nUrara: ${arrCardTotal.urara}/${CardModule.Properties.dataCardCore.urara.total}\nInori: ${arrCardTotal.inori}/${CardModule.Properties.dataCardCore.inori.total}\nItsuki: ${arrCardTotal.itsuki}/${CardModule.Properties.dataCardCore.itsuki.total}\nAko: ${arrCardTotal.ako}/${CardModule.Properties.dataCardCore.ako.total}\nYayoi: ${arrCardTotal.yayoi}/${CardModule.Properties.dataCardCore.yayoi.total}\nAlice: ${arrCardTotal.alice}/${CardModule.Properties.dataCardCore.alice.total}\nYuko: ${arrCardTotal.yuko}/${CardModule.Properties.dataCardCore.yuko.total}\nKirara: ${arrCardTotal.kirara}/${CardModule.Properties.dataCardCore.kirara.total}\nHimari: ${arrCardTotal.himari}/${CardModule.Properties.dataCardCore.himari.total}\nHomare: ${arrCardTotal.homare}/${CardModule.Properties.dataCardCore.homare.total}\nElena: ${arrCardTotal.elena}/${CardModule.Properties.dataCardCore.elena.total}\nHinata: ${arrCardTotal.hinata}/${CardModule.Properties.dataCardCore.hinata.total}`,
+                        inline: true
+                    },
+                    {
+                        name: `Purple(CL: ${cardUserStatusData[DBM_Card_User_Data.columns.color_level_purple]}/ CP: ${cardUserStatusData[DBM_Card_User_Data.columns.color_point_purple]}):`,
+                        value: `Yuri: ${arrCardTotal.yuri}/${CardModule.Properties.dataCardCore.yuri.total}\nMakoto: ${arrCardTotal.makoto}/${CardModule.Properties.dataCardCore.makoto.total}\nIona: ${arrCardTotal.iona}/${CardModule.Properties.dataCardCore.iona.total}\nRiko: ${arrCardTotal.riko}/${CardModule.Properties.dataCardCore.riko.total}\nYukari: ${arrCardTotal.yukari}/${CardModule.Properties.dataCardCore.yukari.total}\nAmour: ${arrCardTotal.amour}/${CardModule.Properties.dataCardCore.amour.total}\nMadoka: ${arrCardTotal.madoka}/${CardModule.Properties.dataCardCore.madoka.total}\nKurumi: ${arrCardTotal.kurumi}/${CardModule.Properties.dataCardCore.kurumi.total}`,
+                        inline: true
+                    },
+                    {
+                        name: `Red(CL: ${cardUserStatusData[DBM_Card_User_Data.columns.color_level_red]}/ CP: ${cardUserStatusData[DBM_Card_User_Data.columns.color_point_red]}):`,
+                        value: `Rin: ${arrCardTotal.rin}/${CardModule.Properties.dataCardCore.rin.total}\nSetsuna: ${arrCardTotal.setsuna}/${CardModule.Properties.dataCardCore.setsuna.total}\nAkane: ${arrCardTotal.akane}/${CardModule.Properties.dataCardCore.akane.total}\nAguri: ${arrCardTotal.aguri}/${CardModule.Properties.dataCardCore.aguri.total}\nTowa: ${arrCardTotal.towa}/${CardModule.Properties.dataCardCore.towa.total}\nAkira: ${arrCardTotal.akira}/${CardModule.Properties.dataCardCore.akira.total}\nEmiru: ${arrCardTotal.emiru}/${CardModule.Properties.dataCardCore.emiru.total}`,
+                        inline: true
+                    },
+                    {
+                        name: `Green(CL: ${cardUserStatusData[DBM_Card_User_Data.columns.color_level_green]}/ CP: ${cardUserStatusData[DBM_Card_User_Data.columns.color_point_green]}):`,
+                        value: `Komachi: ${arrCardTotal.komachi}/${CardModule.Properties.dataCardCore.komachi.total}\nNao: ${arrCardTotal.nao}/${CardModule.Properties.dataCardCore.nao.total}\nKotoha: ${arrCardTotal.kotoha}/${CardModule.Properties.dataCardCore.kotoha.total}\nCiel: ${arrCardTotal.ciel}/${CardModule.Properties.dataCardCore.ciel.total}\nLala: ${arrCardTotal.lala}/${CardModule.Properties.dataCardCore.lala.total}`,
+                        inline: true
+                    },
+                    {
+                        name: `White(CL: ${cardUserStatusData[DBM_Card_User_Data.columns.color_level_white]}/ CP: ${cardUserStatusData[DBM_Card_User_Data.columns.color_point_white]}):`,
+                        value: `Honoka: ${arrCardTotal.honoka}/${CardModule.Properties.dataCardCore.honoka.total}\nMai: ${arrCardTotal.mai}/${CardModule.Properties.dataCardCore.mai.total}\nKanade: ${arrCardTotal.kanade}/${CardModule.Properties.dataCardCore.kanade.total}`,
+                        inline: true
+                    }
+                ];
 
-//get 1 card data
-async function getAllCardDataByPack(card_pack){
-    var parameterWhere = new Map();
-    parameterWhere.set(DBM_Card_Data.columns.pack,card_pack);
-    var parameterOrderBy = new Map();
-    parameterOrderBy.set(DBM_Card_Data.columns.id_card,"asc");
-    var result = await DB.selectAll(DBM_Card_Data.TABLENAME,parameterWhere,parameterOrderBy);
-    return result[0];
-}
+                message.channel.send({embed:objEmbed});
+                
+                break;
+            case "inventory":
+                var pack = args[1];
+                //get the first mentionable user:
+                //console.log(message.mentions.users.first());
 
-async function getCardData(id_card) {
-    var parameterWhere = new Map();
-    parameterWhere.set(DBM_Card_Data.columns.id_card,id_card);
-    var result = await DB.selectAll(DBM_Card_Data.TABLENAME,parameterWhere);
-    return result[0][0];
-    
-    //return callback(DB.selectAll(DBM_Card_Data.TABLENAME,parameterWhere));
-}
+                //check if user is available
+                //check if user available/not
+                var objEmbed ={
+                    color: CardModule.Properties.embedColor
+                };
 
-function embedCardCapture(embedColor,id_card,packName,
-    cardName,imgUrl,series,rarity,avatarImgUrl,username,currentCard){
-    //embedColor in string and will be readed on Properties class: object variable
-    //received date readed from db, will be converted here
+                //card pack validator
+                if(pack==null){
+                    objEmbed.thumbnail = {
+                        url:CardModule.Properties.imgResponse.imgError
+                    }
+                    objEmbed.description = ":x: Please enter the card pack that you want to see.";
+                    return message.channel.send({embed:objEmbed});
+                } else if(!CardModule.Properties.dataCardCore.hasOwnProperty(pack)){
+                    var cardUserStatusData = await CardModule.getCardUserStatusData(userId);
+                    
+                    return message.channel.send({
+                        content:"Sorry, I cannot find that card pack. Here are the list of all available card pack:",
+                        embed:CardModule.embedCardPackList});
+                }
 
-    var objEmbed = {
-        color:Properties.dataColorCore[embedColor].color,
-        author:{
-            iconURL:Properties.dataCardCore[packName].icon,
-            name:`${GlobalFunctions.capitalize(packName)} Card Pack`
-        },
-        title:cardName,
-        image:{
-            url:imgUrl
-        },
-        fields:[
-            {
-                name:"ID:",
-                value:id_card,
-                inline:true
-            },
-            {
-                name:"Series:",
-                value:series,
-                inline:true
-            },
-            {
-                name:"Rarity:",
-                value:`${rarity} :star:`,
-                inline:true
-            }
-        ],
-        footer:{
-            iconURL:avatarImgUrl,
-            text:`Captured By: ${username} (${currentCard}/${Properties.dataCardCore[packName].total})`
-        }
-    }
+                //user parameter validator
+                var memberExists = true;
+                if(args[2]!=null){
+                    var parameterUsername = args[2];
+                    await message.guild.members.fetch({query:`${parameterUsername}`,limit:1,count:false})
+                    .then(
+                        members=> {
+                            if(members.size>=1){
+                                userId = members.first().user.id;
+                                userUsername = members.first().user.username;
+                                userAvatarUrl = members.first().user.avatarURL();
+                            } else {
+                                memberExists = false;
+                            }
+                        }
+                    );
+                }
 
-    return objEmbed;
-}
+                if(!memberExists){
+                    return message.channel.send("Sorry, I can't find that username.");
+                }
 
-function embedCardDetail(embedColor,id_card,packName,
-    cardName,imgUrl,series,rarity,avatarImgUrl,receivedDate){
-    //embedColor in string and will be readed on Properties class: object variable
-    //received date readed from db, will be converted here
+                //end user parameter validator
+                objEmbed.title = `${GlobalFunctions.capitalize(pack)} Card Pack:`;
+                objEmbed.author = {
+                    name: userUsername,
+                    icon_url: userAvatarUrl
+                }
 
-    var customReceivedDate = new Date(receivedDate);
-    customReceivedDate = `${("0" + receivedDate.getDate()).slice(-2)}/${("0" + (receivedDate.getMonth() + 1)).slice(-2)}/${customReceivedDate.getFullYear()}`;
+                var cardList = "";
 
-    var objEmbed = {
-        color:Properties.dataColorCore[embedColor].color,
-        author:{
-            iconURL:Properties.dataCardCore[packName].icon,
-            name:`${GlobalFunctions.capitalize(packName)} Card Pack`
-        },
-        title:cardName,
-        image:{
-            url:imgUrl
-        },
-        fields:[
-            {
-                name:"ID:",
-                value:id_card,
-                inline:true
-            },
-            {
-                name:"Series:",
-                value:series,
-                inline:true
-            },
-            {
-                name:"Rarity:",
-                value:`${rarity} :star:`,
-                inline:true
-            }
-        ],
-        footer:{
-            iconURL:avatarImgUrl,
-            text:`Received at: ${customReceivedDate}`
-        }
-    }
+                var query = `select cd.${DBM_Card_Data.columns.id_card},cd.${DBM_Card_Data.columns.color},
+                cd.${DBM_Card_Data.columns.series},cd.${DBM_Card_Data.columns.pack},cd.${DBM_Card_Data.columns.name},
+                cd.${DBM_Card_Data.columns.img_url},inv.${DBM_Card_Inventory.columns.id_user} 
+                from ${DBM_Card_Data.TABLENAME} cd
+                left join ${DBM_Card_Inventory.TABLENAME} inv
+                on cd.${DBM_Card_Data.columns.id_card}=inv.${DBM_Card_Inventory.columns.id_card} and 
+                inv.${DBM_Card_Inventory.columns.id_user}=?  
+                where cd.pack = ?`;
+                var arrParameterized = [userId,pack];
+                
+                var arrPages = [];
+                var cardDataInventory = await DBConn.conn.promise().query(query, arrParameterized);
+                // var cardDataInventory = await CardModule.getAllCardDataByPack(pack);
+                var progressTotal = 0; var ctr = 0; var maxCtr = 4; var pointerMaxData = cardDataInventory[0].length;
+                cardDataInventory[0].forEach(function(entry){
+                    var icon = "❌ ";
+                    //checkmark if card is owned
+                    if(entry[DBM_Card_Inventory.columns.id_user]!=null){
+                        icon = "✅ "; progressTotal++;
+                    }
+                    cardList+=`[${icon}${entry[DBM_Card_Data.columns.id_card]} - ${entry[DBM_Card_Data.columns.name]}](${entry[DBM_Card_Data.columns.img_url]})\n`;
+                    objEmbed.thumbnail = {
+                        url:CardModule.Properties.dataCardCore[pack].icon
+                    };
+                    
+                    //create pagination
+                    if(pointerMaxData-1<=0||ctr>maxCtr){
+                        objEmbed.fields = [{
+                            // name: `Progress: ${progressTotal}/${CardModule.Properties.dataCardCore[pack].total}`,
+                            value: cardList,
+                        }];
+                        var msgEmbed = new Discord.MessageEmbed(objEmbed);
+                        arrPages.push(msgEmbed);
+                        cardList = ""; ctr = 0;
+                    } else {
+                        ctr++;
+                    }
+                    pointerMaxData--;
+                });
 
-    return objEmbed;
-}
+                for(var i=0;i<arrPages.length;i++){
+                    arrPages[i].fields[0]['name'] = `Progress: ${progressTotal}/${CardModule.Properties.dataCardCore[pack].total}`;
+                }
+                
+                // message.channel.send({embed:objEmbed});
+                pages = arrPages;
 
-const embedCardPackList = {
-    color: Properties.embedColor,
-    title : `Card Pack List`,
-    fields : [{
-        name: `Pink`,
-        value: `Nagisa\nSaki\nNozomi\nLove\nTsubomi\nHibiki\nMiyuki\nMana\nMegumi\nHaruka\nMirai\nIchika\nHana\nHikaru\nNodoka`,
-        inline: true
-    },
-    {
-        name: `Blue`,
-        value: `Karen\nMiki\nErika\nEllen\nReika\nRikka\nHime\nMinami\nAoi\nSaaya\nYuni\nChiyu`,
-        inline: true
-    },
-    {
-        name: `Yellow`,
-        value: `Hikari\nUrara\nInori\nItsuki\nAko\nYayoi\nAlice\nYuko\nKirara\nHimari\nHomare\nElena\nHinata`,
-        inline: true
-    },
-    {
-        name: `Purple`,
-        value: `Yuri\nMakoto\nIona\nRiko\nYukari\nAmour\nMadoka\nKurumi`,
-        inline: true
-    },
-    {
-        name: `Red`,
-        value: `Rin\nSetsuna\nAkane\nAguri\nTowa\nAkira\nEmiru`,
-        inline: true
-    },
-    {
-        name: `Green`,
-        value: `Komachi\nNao\nKotoha\nCiel\nLala`,
-        inline: true
-    },
-    {
-        name: `White`,
-        value: `Honoka\nMai\nKanade`,
-        inline: true
-    }]
-}
-
-//get 1 card user data
-async function getCardUserStatusData(id_user){
-    var parameterWhere = new Map();
-    parameterWhere.set(DBM_Card_User_Data.columns.id_user,id_user);
-    var resultCheckExist = await DB.select(DBM_Card_User_Data.TABLENAME,parameterWhere);
-    if(resultCheckExist[0][0]==null){
-        //insert if not found
-        var parameter = new Map();
-        parameter.set(DBM_Card_User_Data.columns.id_user,id_user);
-        DB.insert(DBM_Card_User_Data.TABLENAME,parameter);
-        //reselect after insert new data
-        parameterWhere = new Map();
-        parameterWhere.set(DBM_Card_User_Data.columns.id_user,id_user);
-        var resultCheckExist = await DB.select(DBM_Card_User_Data.TABLENAME,parameterWhere);
-        return await resultCheckExist[0][0];
-    } else {
-        return await resultCheckExist[0][0];
-    }
-
-}
-
-async function checkUserHaveCard(id_user,id_card){
-    var parameterWhere = new Map();
-    parameterWhere.set(DBM_Card_Inventory.columns.id_user,id_user);
-    parameterWhere.set(DBM_Card_Inventory.columns.id_card,id_card);
-    var result = await DB.select(DBM_Card_Inventory.TABLENAME,parameterWhere);
-    if(result[0][0]!=null){
-        return await true;
-    } else {
-        return await false;
-    }
-}
-
-async function getUserTotalCard(id_user,pack){
-    var query = `select cd.${DBM_Card_Data.columns.pack},count(inv.${DBM_Card_Inventory.columns.id_user}) as total
-    from ${DBM_Card_Data.TABLENAME} cd, ${DBM_Card_Inventory.TABLENAME} inv 
-    where cd.${DBM_Card_Data.columns.id_card}=inv.${DBM_Card_Inventory.columns.id_card} and 
-    inv.${DBM_Card_Inventory.columns.id_user}=? and 
-    cd.${DBM_Card_Data.columns.pack} = ?`;
-    var arrParameterized = [id_user,pack];
-    var cardDataInventory = await DBConn.conn.promise().query(query, arrParameterized);
-    return cardDataInventory[0][0].total;
-}
-
-async function getAverageLevel(id_user,arrColorLevel=null){
-    if(arrColorLevel==null){
-        //if arrColorLevel provided we dont need to read it from db
-        var userData = await getCardUserStatusData(id_user);
-        arrColorLevel = [
-            userData[DBM_Card_User_Data.columns.color_level_blue],
-            userData[DBM_Card_User_Data.columns.color_level_green],
-            userData[DBM_Card_User_Data.columns.color_level_pink],
-            userData[DBM_Card_User_Data.columns.color_level_purple],
-            userData[DBM_Card_User_Data.columns.color_level_red],
-            userData[DBM_Card_User_Data.columns.color_level_white],
-            userData[DBM_Card_User_Data.columns.color_level_yellow]
-        ]
-    }
-    var total = 0;
-    for(var i = 0; i < arrColorLevel.length; i++) {
-        total += arrColorLevel[i];
-    }
-    return Math.ceil(total / arrColorLevel.length);
-}
-
-async function updateCatchAttempt(id_user,spawn_token,objColor=null){
-    //update catch attempt, add color exp in object if parameter existed
-    //get color point
-    var maxColorPoint = 1000;
-    var cardUserStatusData = await getCardUserStatusData(id_user);
-    var arrParameterized = [];
-    arrParameterized.push(spawn_token);
-    var queryColor = "";
-    
-    if(objColor!=null){
-        for (const [key, value] of objColor.entries()) {
-            //get current color point
-            // var selectedColor = `color_point_${key}`;
-            if(cardUserStatusData[key]+value>=maxColorPoint){
-                queryColor += `, ${key} = ${maxColorPoint}, `;
-            } else {
-                queryColor += `, ${key} = ${key}+${value}, `;
-            }
-        }
-        queryColor = queryColor.replace(/,\s*$/, "");//remove the last comma and any whitespace
-    }
-
-    var query = `UPDATE ${DBM_Card_User_Data.TABLENAME} 
-    SET ${DBM_Card_User_Data.columns.spawn_token}=? ${queryColor}
-    WHERE ${DBM_Card_User_Data.columns.id_user}=?`;
-    arrParameterized.push(id_user);
-
-    await DBConn.conn.promise().query(query, arrParameterized);
-}
-
-async function checkCardCompletion(id_user,category,value){
-    //category parameter: color/pack
-    if(category=="color"){
-        //check color set completion:
-        var queryColorCompletion = `select count(ci.${DBM_Card_Inventory.columns.id_card}) as total 
-        from ${DBM_Card_Inventory.TABLENAME} ci, ${DBM_Card_Data.TABLENAME} cd
-        where ci.${DBM_Card_Inventory.columns.id_card}=cd.${DBM_Card_Data.columns.id_card} and 
-        cd.${DBM_Card_Data.columns.color}=? and 
-        ci.${DBM_Card_Inventory.columns.id_user}=?`;
-        var arrParameterized = [value,id_user];
-        var checkColorCompletion = await DBConn.conn.promise().query(queryColorCompletion, arrParameterized);
-        if(checkColorCompletion[0]["total"]>=Properties.dataColorCore[value].total){
-            return true;
-        }
-    } else {
-        //pack category
-        var currentTotalCard = await getUserTotalCard(id_user,value);
-        var maxTotalCard = Properties.dataCardCore[value].total;
-        if(currentTotalCard>=maxTotalCard){
-            return true;
-        }
-    }
-
-    return false;
-}
-
-async function leaderboardAddNew(id_guild,id_user,imgAvatarUrl,_color,category,completion){
-    //check if leaderboard data exists/not
-    var parameterWhere = new Map();
-    parameterWhere.set(DBM_Card_Leaderboard.columns.id_guild,id_guild);
-    parameterWhere.set(DBM_Card_Leaderboard.columns.id_user,id_user);
-    parameterWhere.set(DBM_Card_Leaderboard.columns.category,category);
-    parameterWhere.set(DBM_Card_Leaderboard.columns.completion,completion);
-    var checkExistsLeaderboard = await DB.select(DBM_Card_Leaderboard.TABLENAME,parameterWhere);
-    if(checkExistsLeaderboard[0][DBM_Card_Leaderboard.columns.id_user]==null){
-        var parameterNew = new Map();
-        parameterNew.set(DBM_Card_Leaderboard.columns.id_guild,id_guild);
-        parameterNew.set(DBM_Card_Leaderboard.columns.id_user,id_user);
-        parameterNew.set(DBM_Card_Leaderboard.columns.category,category);
-        parameterNew.set(DBM_Card_Leaderboard.columns.completion,completion);
-        await DB.insert(DBM_Card_Leaderboard.TABLENAME,parameterNew);
-        
-        //prepare the completion date
-        var completionDate = new Date();
-        var dd = String(completionDate.getDate()).padStart(2, '0');
-        var mm = String(completionDate.getMonth() + 1).padStart(2, '0'); //January is 0!
-        var yyyy = completionDate.getFullYear();
-        completionDate = dd + '/' + mm + '/' + yyyy;
-
-        var objEmbed = {
-            color: _color,
-            thumbnail : {
-                url:imgAvatarUrl
-            }
-        }
-
-        if(category=="color"){
-            //color completed
-            objEmbed.title = `Card Color Set ${GlobalFunctions.capitalize(completion)} Completed!`;
-            objEmbed.description = `<@${id_user}> has become new master of cure **${completion}**!`;
-        } else {
-            //pack completed
-            objEmbed.title = `${GlobalFunctions.capitalize(completion)} Card Pack Completed!`;
-            objEmbed.description = `<@${id_user}> has completed the card pack: **${completion}**!`;
-        }
-
-        objEmbed.footer = {
-            iconURL:imgAvatarUrl,
-            text:`Completed at: ${completionDate}`
-        };
-
-        return objEmbed;
-
-    } else {
-        return null;
-    }
-}
-
-function getNextColorPoint(level){
-    return level*100;
-}
-
-function getBonusCatchAttempt(level){
-    //starting from level 2: every level get 5% catch bonus
-    if(level>=2){
-        return level*5;
-    } else {
-        return 0;
-    }
-}
-
-async function updateColorPoint(id_user,objColor){
-    //get color point
-    var maxColorPoint = 1000;
-    var cardUserStatusData = await getCardUserStatusData(id_user);
-
-    var arrParameterized = [];
-    var queryColor = "";
-    for (const [key, value] of objColor.entries()) {
-        //get current color point
-        // var selectedColor = `color_point_${key}`;
-        if(value>=1){
-            //addition
-            if(cardUserStatusData[key]+value>=maxColorPoint){
-                queryColor += ` ${key} = ${maxColorPoint}, `;
-            } else {
-                queryColor += ` ${key} = ${key}+${value}, `;
-            }
-        } else {
-            //substract
-            if(cardUserStatusData[key]-value<=0){
-                queryColor += ` ${key} = 0, `;
-            } else {
-                queryColor += ` ${key} = ${key}${value}, `;
-            }
-        }
-    }
-
-    if(objColor!=null){
-        queryColor = queryColor.replace(/,\s*$/, "");//remove the last comma and any whitespace
-    }
-
-    var query = `UPDATE ${DBM_Card_User_Data.TABLENAME} 
-    SET ${queryColor}
-    WHERE ${DBM_Card_User_Data.columns.id_user}=?`;
-    arrParameterized.push(id_user);
-
-    await DBConn.conn.promise().query(query, arrParameterized);
-}
-
-function getCardPack(id_card){
-    id_card = id_card.toLowerCase();
-    if(id_card.contains("agma")){
-        return "aguri";
-    } else if(id_card.contains("akhi")){
-        return "akane";
-    } else if(id_card.contains("akke")){
-        return "akira";
-    } else if(id_card.contains("aksh")){
-        return "ako";
-    } else if(id_card.contains("alyo")){
-        return "alice";
-    } else if(id_card.contains("amru")){
-        return "amour";
-    } else if(id_card.contains("aota")){
-        return "aoi";
-    } else if(id_card.contains("chsa")){
-        return "chiyu";
-    } else if(id_card.contains("ciki")){
-        return "ciel";
-    } else if(id_card.contains("elam")){
-        return "elena";
-    } else if(id_card.contains("elku")){
-        return "ellen";
-    } else if(id_card.contains("emai")){
-        return "emiru";
-    } else if(id_card.contains("erku")){
-        return "erika";
-    } else if(id_card.contains("haha")){
-        return "haruka";
-    } else if(id_card.contains("hano")){
-        return "hana";
-    } else if(id_card.contains("hiar")){
-        return "himari";
-    } else if(id_card.contains("hihi")){
-        return "hinata";
-    } else if(id_card.contains("hiho")){
-        return "hibiki";
-    } else if(id_card.contains("hiku")){
-        return "hikari";
-    } else if(id_card.contains("hise")){
-        return "hikaru";
-    } else if(id_card.contains("hish")){
-        return "hime";
-    } else if(id_card.contains("hoka")){
-        return "homare";
-    } else if(id_card.contains("hoyu")){
-        return "honoka";
-    } else if(id_card.contains("icus")){
-        return "ichika";
-    } else if(id_card.contains("inya")){
-        return "inori";
-    } else if(id_card.contains("iohi")){
-        return "iona";
-    } else if(id_card.contains("itmy")){
-        return "itsuki";
-    } else if(id_card.contains("kami")){
-        return "kanade";
-    } else if(id_card.contains("kamin")){
-        return "karen";
-    } else if(id_card.contains("kiam")){
-        return "kirara";
-    } else if(id_card.contains("koak")){
-        return "komachi";
-    } else if(id_card.contains("koha")){
-        return "kotoha";
-    } else if(id_card.contains("kumi")){
-        return "kurumi";
-    } else if(id_card.contains("laha")){
-        return "lala";
-    } else if(id_card.contains("lomo")){
-        return "love";
-    } else if(id_card.contains("maai")){
-        return "mana";
-    } else if(id_card.contains("maka")){
-        return "madoka";
-    } else if(id_card.contains("make")){
-        return "makoto";
-    } else if(id_card.contains("mami")){
-        return "mai";
-    } else if(id_card.contains("meai")){
-        return "megumi";
-    } else if(id_card.contains("miao")){
-        return "miki";
-    } else if(id_card.contains("mias")){
-        return "mirai";
-    } else if(id_card.contains("miho")){
-        return "miyuki";
-    } else if(id_card.contains("mikai")){
-        return "minami";
-    } else if(id_card.contains("nami")){
-        return "nagisa";
-    } else if(id_card.contains("naomi")){
-        return "nao";
-    } else if(id_card.contains("noha")){
-        return "nodoka";
-    } else if(id_card.contains("nozomi")){
-        return "noyu";
-    } else if(id_card.contains("reao")){
-        return "reika";
-    } else if(id_card.contains("rihi")){
-        return "rikka";
-    } else if(id_card.contains("riiz")){
-        return "riko";
-    } else if(id_card.contains("rina")){
-        return "rin";
-    } else if(id_card.contains("sahy")){
-        return "saki";
-    } else if(id_card.contains("saya")){
-        return "saaya";
-    } else if(id_card.contains("sehi")){
-        return "setsuna";
-    } else if(id_card.contains("toak")){
-        return "towa";
-    } else if(id_card.contains("tsha")){
-        return "tsubomi";
-    } else if(id_card.contains("urka")){
-        return "urara";
-    } else if(id_card.contains("yaki")){
-        return "yayoi";
-    } else if(id_card.contains("yuko")){
-        return "yukari";
-    } else if(id_card.contains("yuni")){
-        return "yuni";
-    } else if(id_card.contains("yuom")){
-        return "yuko";
-    } else if(id_card.contains("yuts")){
-        return "yuri";
-    } else {
-        return null;
-    }
-}
-
-async function removeCardGuildSpawn(id_guild){
-    //erase all card spawn information
-    var parameterSet = new Map();
-    parameterSet.set(DBM_Card_Guild.columns.spawn_type,null);
-    parameterSet.set(DBM_Card_Guild.columns.spawn_id,null);
-    parameterSet.set(DBM_Card_Guild.columns.spawn_color,null);
-    parameterSet.set(DBM_Card_Guild.columns.spawn_number,null);
-    parameterSet.set(DBM_Card_Guild.columns.spawn_data,null);
-    var parameterWhere = new Map();
-    parameterWhere.set(DBM_Card_Guild.columns.id_guild,id_guild);
-    await DB.update(DBM_Card_Guild.TABLENAME,parameterSet,parameterWhere);
-}
-
-async function generateCardSpawn(id_guild,specificType=null,overwriteToken = true){
-    //update & erase last spawn information if overwriteToken param is provided
-    if(overwriteToken){
-        await removeCardGuildSpawn(id_guild);
-    }
-    
-    //start randomize
-    var rndIndex = Math.floor(Math.random() * Properties.spawnType.length); 
-    var cardSpawnType = Properties.spawnType[rndIndex].toLowerCase();
-    if(specificType!=null){
-        cardSpawnType = specificType;
-    }
-
-    //for debugging purpose:
-    // cardSpawnType = "quiz";
-
-    var query = "";
-    //prepare the embed object
-    var objEmbed = {
-        color: Properties.embedColor
-    }
-
-    //get color total
-    var colorTotal = 0; 
-    for ( var {} in Properties.dataColorCore ) { colorTotal++; }
-
-    var parameterWhere = new Map();
-    parameterWhere.set(DBM_Card_Guild.columns.id_guild,id_guild);
-
-    var parameterSet = new Map();
-    parameterSet.set(DBM_Card_Guild.columns.spawn_type,cardSpawnType); //set the spawn type
-    if(overwriteToken){
-        parameterSet.set(DBM_Card_Guild.columns.spawn_token,Math.floor(Math.random() * 1000)+10); //set & randomize the spawn token
-    }
-    switch(cardSpawnType) {
-        case "color": // color spawn type
-            query = `select (select ${DBM_Card_Data.columns.id_card}  
-                from ${DBM_Card_Data.TABLENAME} 
-                where ${DBM_Card_Data.columns.color}=?  
-                order by rand() 
-                limit 1) as id_card_pink,
-                (select ${DBM_Card_Data.columns.id_card}  
-                from ${DBM_Card_Data.TABLENAME} 
-                where ${DBM_Card_Data.columns.color}=? 
-                order by rand() 
-                limit 1) as id_card_purple,
-                (select ${DBM_Card_Data.columns.id_card}  
-                from ${DBM_Card_Data.TABLENAME} 
-                where ${DBM_Card_Data.columns.color}=? 
-                order by rand() 
-                limit 1) as id_card_green,
-                (select ${DBM_Card_Data.columns.id_card}  
-                from ${DBM_Card_Data.TABLENAME} 
-                where ${DBM_Card_Data.columns.color}=? 
-                order by rand() 
-                limit 1) as id_card_yellow,
-                (select ${DBM_Card_Data.columns.id_card}  
-                from ${DBM_Card_Data.TABLENAME} 
-                where ${DBM_Card_Data.columns.color}=? 
-                order by rand() 
-                limit 1) as id_card_white,
-                (select ${DBM_Card_Data.columns.id_card}  
-                from ${DBM_Card_Data.TABLENAME} 
-                where ${DBM_Card_Data.columns.color}=? 
-                order by rand() 
-                limit 1) as id_card_blue,
-                (select ${DBM_Card_Data.columns.id_card}  
-                from ${DBM_Card_Data.TABLENAME} 
-                where ${DBM_Card_Data.columns.color}=? 
-                order by rand() 
-                limit 1) as id_card_red`;
-            var resultData = await DBConn.conn.promise().query(query, Properties.arrColor);
-            //save to table
-            // parameterSet.set(DBM_Card_Guild.columns.spawn_color,`{"pink":"${resultData[0][0]["id_card_pink"]}","purple":"${resultData[0][0]["id_card_purple"]}","green":"${resultData[0][0]["id_card_green"]}","yellow":"${resultData[0][0]["id_card_yellow"]}","white":"${resultData[0][0]["id_card_white"]}","blue":"${resultData[0][0]["id_card_blue"]}","red":"${resultData[0][0]["id_card_red"]}"}`); //set spawn color
-
-            parameterSet.set(DBM_Card_Guild.columns.spawn_data,`{"${Properties.spawnData.color.pink}":"${resultData[0][0]["id_card_pink"]}","${Properties.spawnData.color.purple}":"${resultData[0][0]["id_card_purple"]}","${Properties.spawnData.color.green}":"${resultData[0][0]["id_card_green"]}","${Properties.spawnData.color.yellow}":"${resultData[0][0]["id_card_yellow"]}","${Properties.spawnData.color.white}":"${resultData[0][0]["id_card_white"]}","${Properties.spawnData.color.blue}":"${resultData[0][0]["id_card_blue"]}","${Properties.spawnData.color.red}":"${resultData[0][0]["id_card_red"]}"}`);
-            objEmbed.image = {
-                url:Properties.spawnData.color.embed_img
-            }
-            objEmbed.title = "Color Card";
-            objEmbed.description = `A **color** card has appeared! Use: **p!card catch** to capture the card based from your assigned color.`;
-            objEmbed.footer = {
-                text:`ID: ???(variant) | Base Catch Rate+10%`
-            }
-            break;
-        case "number": //gambling spawn type
-            //get color total:
-            var rndNumber = Math.floor(Math.random()*10)+2;
-            var rndIndexColor = Math.floor(Math.random()*Properties.arrColor.length);
-            var selectedColor = Properties.arrColor[rndIndexColor];
-            parameterSet.set(DBM_Card_Guild.columns.spawn_color,selectedColor);
-            parameterSet.set(DBM_Card_Guild.columns.spawn_number,rndNumber);
-            objEmbed.color = Properties.dataColorCore[selectedColor].color;
+                paginationEmbed(message,pages);
+                
+                //console.log(new Discord.MessageMentions(args[1]));
+                // var options =  args[1].mention;
+                // console.log(options);
             
-            query = `SELECT * 
-            FROM ${DBM_Card_Data.TABLENAME} 
-            WHERE ${DBM_Card_Data.columns.rarity}<=? AND 
-            ${DBM_Card_Data.columns.color}=?
-            ORDER BY RAND() LIMIT 1`;
-            var resultData = await DBConn.conn.promise().query(query,[4,selectedColor]);
-            parameterSet.set(DBM_Card_Guild.columns.spawn_id,resultData[0][0][DBM_Card_Data.columns.id_card]);
+                //console.log(guild);
+                break;
+            case "catch":
+                //get card spawn information
+                var userCardData = await CardModule.getCardUserStatusData(userId);
+                var guildSpawnData = await CardGuildModule.getCardGuildData(guildId);
+                var objEmbed = {
+                    color: CardModule.Properties.embedColor
+                };
 
-            objEmbed.author = {
-                name:`Number Card: ${selectedColor.charAt(0).toUpperCase()+selectedColor.slice(1)} Edition`
-            }
-            objEmbed.title = ":game_die: It's Lucky Numbers Time!";
-            objEmbed.description = `Guess whether the next hidden number will be **lower** or **higher** than the current number: **${rndNumber}** or not with: **p!card guess <lower/higher>**.`;
-            objEmbed.image ={
-                url:Properties.dataColorCore[selectedColor].imgMysteryUrl
-            }
-            objEmbed.footer = {
-                text:`ID: ???(variant) | Catch Rate: 100%`
-            }
-            
-            break;
-        
-        case "quiz":
-            var query = `SELECT * 
-            FROM ${DBM_Card_Data.TABLENAME} 
-            ORDER BY rand() 
-            LIMIT 1`;
-            var resultData = await DBConn.conn.promise().query(query);
-            var cardSpawnId = resultData[0][0][DBM_Card_Data.columns.id_card];
-            var cardSpawnColor = resultData[0][0][DBM_Card_Data.columns.color];
-            var cardSpawnSeries = resultData[0][0][DBM_Card_Data.columns.series];
-            var cardSpawnPack = resultData[0][0][DBM_Card_Data.columns.pack];
-            var arrAnswerList = [cardSpawnPack]; //prepare the answer list
-            var alterEgo = Properties.dataCardCore[cardSpawnPack].alter_ego;
+                //get the spawn token & prepare the card color
+                var userData = {
+                    token:userCardData[DBM_Card_User_Data.columns.spawn_token],
+                    color:userCardData[DBM_Card_User_Data.columns.color]
+                }
+                var spawnedCardData = {
+                    token:guildSpawnData[DBM_Card_Guild.columns.spawn_token],
+                    type:guildSpawnData[DBM_Card_Guild.columns.spawn_type],
+                    id:guildSpawnData[DBM_Card_Guild.columns.spawn_id],
+                    color:guildSpawnData[DBM_Card_Guild.columns.spawn_color],
+                    data:guildSpawnData[DBM_Card_Guild.columns.spawn_data]
+                }
 
-            //get the other pack answer
-            var queryAnotherQuestion = `SELECT ${DBM_Card_Data.columns.pack} 
-            FROM ${DBM_Card_Data.TABLENAME} 
-            WHERE ${DBM_Card_Data.columns.pack}<>? AND 
-            ${DBM_Card_Data.columns.rarity}>=? 
-            GROUP BY ${DBM_Card_Data.columns.pack} 
-            ORDER BY rand() 
-            LIMIT 2`;
-            var resultDataAnotherAnswer = await DBConn.conn.promise().query(queryAnotherQuestion,[cardSpawnPack,5]);
-            resultDataAnotherAnswer[0].forEach(function(entry){
-                arrAnswerList.push(entry[DBM_Card_Data.columns.pack]);
-            })
+                //card catcher validator, check if card is still spawning/not
+                if(spawnedCardData.type==null||
+                spawnedCardData.token==null||
+                (spawnedCardData.id==null&&spawnedCardData.color==null&&spawnedCardData.data==null)){
+                    console.log(guildSpawnData[DBM_Card_Guild.columns.spawn_data]);
+                    objEmbed.thumbnail = {
+                        url: CardModule.Properties.imgResponse.imgError
+                    }
+                    objEmbed.description = ":x: Sorry, there are no Precure cards spawning right now. Please wait until the next card spawn.";
+                    return message.channel.send({embed:objEmbed});
+                } else if(userData.token==spawnedCardData.token) {
+                    //user already capture the card on this turn
+                    objEmbed.thumbnail = {
+                        url: CardModule.Properties.imgResponse.imgError
+                    }
+                    objEmbed.description = ":x: Sorry, you've already used the capture command. Please wait until the next card spawn.";
+                    return message.channel.send({embed:objEmbed});
+                }
 
-            //shuffle the answer
-            arrAnswerList = GlobalFunctions.shuffleArray(arrAnswerList);
-            //get the answer
-            var answer = arrAnswerList.indexOf(cardSpawnPack);
-            switch(answer){
-                case 0:
-                    answer = "a";
-                    break;
-                case 1:
-                    answer = "b";
-                    break;
-                case 2:
-                    answer = "c";
-                    break;
-            }
+                switch(spawnedCardData.type){
+                    case "quiz":
+                        //check if card spawn is quiz
+                        objEmbed.thumbnail = {
+                            url: CardModule.Properties.imgResponse.imgError
+                        }
+                        objEmbed.description = ":x: Current spawn type is quiz. You need to use: **p!card answer <a/b/c>** to guess the next number and capture the card.";
+                        return message.channel.send({embed:objEmbed});
+                    case "number":
+                        //check if card spawn is number
+                        objEmbed.thumbnail = {
+                            url: CardModule.Properties.imgResponse.imgError
+                        }
+                        objEmbed.description = ":x: Current spawn type is number. You need to use: **p!card guess <lower/higher>** to guess the next number and capture the card.";
+                        return message.channel.send({embed:objEmbed});
+                    case "color": //color card spawn
+                        spawnedCardData.color = guildSpawnData[DBM_Card_Guild.columns.spawn_data];
+                        var objColor = JSON.parse(spawnedCardData.color);
+                        //card color validator
+                        if(Object.keys(objColor).length<=0){
+                            objEmbed.thumbnail = {
+                                url: CardModule.Properties.imgResponse.imgError
+                            }
+                            objEmbed.description = ":x: Sorry, there are no available colours that can be captured right now. Please wait until the next card spawn.";
+                            return message.channel.send({embed:objEmbed});
+                        } else if(!objColor.hasOwnProperty(userData.color)){
+                            //check color lefted card
+                            var availableColor = "";
+                            for (const [key, value] of Object.entries(objColor)) {
+                                availableColor+=`${key}/ `;
+                            }
+                            availableColor = availableColor.replace(/\/\s*$/, "");//remove the last comma and any whitespace
+                            objEmbed.thumbnail = {
+                                url: CardModule.Properties.imgResponse.imgError
+                            }
+                            objEmbed.description = `:x: You are not assigned to the color: **${availableColor}** at the moment. Please assign your color with: **p!card color set <color>**`;
+                            return message.channel.send({embed:objEmbed});
+                        }
 
-            parameterSet.set(DBM_Card_Guild.columns.spawn_data,
-            `{"${Properties.spawnData.quiz.answer}":"${answer}","${Properties.spawnData.quiz.id_card}":"${cardSpawnId}"}`);
+                        spawnedCardData.id = objColor[userData.color];
+                        spawnedCardData.color = userData.color;
+                        break;
+                    default:
+                        break;
+                }
 
-            //prepare the embed:
-            objEmbed.author = {
-                name:`Quiz Card`,
-            }
-            objEmbed.title = `:grey_question: It's Quiz Time!`;
-            objEmbed.description = `The series theme/motif was about: **${Properties.spawnHintSeries[cardSpawnSeries]}** and I'm known as **${alterEgo}**. Who am I?`;
-            objEmbed.fields = [{
-                name:`Answer it with: p!card answer <a/b/c>`,
-                value:`**A. ${Properties.dataCardCore[arrAnswerList[0]].fullname}\nB. ${Properties.dataCardCore[arrAnswerList[1]].fullname}\nC. ${Properties.dataCardCore[arrAnswerList[2]].fullname}**`
-            }]
-            objEmbed.image ={
-                url:Properties.spawnData.quiz.embed_img
-            }
-            objEmbed.footer = {
-                text:`Catch Rate: 100%`
-            }
-            break;
-        default: // normal spawn type
-            //get the card id
-            query = `SELECT * 
-            FROM ${DBM_Card_Data.TABLENAME} 
-            ORDER BY RAND() LIMIT 1`;
-            var resultData = await DBConn.conn.promise().query(query);
-            var cardSpawnId = resultData[0][0][DBM_Card_Data.columns.id_card];
-            var cardSpawnSeries = resultData[0][0][DBM_Card_Data.columns.series];
-            var cardSpawnPack = resultData[0][0][DBM_Card_Data.columns.pack];
-            var cardRarity = resultData[0][0][DBM_Card_Data.columns.rarity];
-            var captureChance = `${100-(parseInt(cardRarity)*10)}`;
+                //check for duplicates
+                
+                var duplicateCard = await CardModule.checkUserHaveCard(userId,spawnedCardData.id);
+                var cardSpawnData = await CardModule.getCardData(spawnedCardData.id);
+                spawnedCardData.color = cardSpawnData[DBM_Card_Data.columns.color];
 
-            parameterSet.set(DBM_Card_Guild.columns.spawn_id,cardSpawnId);
-            objEmbed.color = Properties.dataColorCore[resultData[0][0][DBM_Card_Data.columns.color]].color;
-            objEmbed.author = {
-                name:`${cardSpawnSeries.charAt(0).toUpperCase()+cardSpawnSeries.slice(1)} Card - ${resultData[0][0][DBM_Card_Data.columns.pack].charAt(0).toUpperCase()+resultData[0][0][DBM_Card_Data.columns.pack].slice(1)}`,
-                iconURL:Properties.dataCardCore[cardSpawnPack].icon,
-            }
-            objEmbed.title = resultData[0][0][DBM_Card_Data.columns.name];
-            objEmbed.description = `${cardRarity} :star: **${cardSpawnPack.charAt(0).toUpperCase()+cardSpawnPack.slice(1)}** card has appeared! Use: **p!card catch** to capture the card.`;
-            objEmbed.image ={
-                url:resultData[0][0][DBM_Card_Data.columns.img_url]
-            }
-            objEmbed.footer = {
-                text:`ID: ${cardSpawnId} | Base Catch Rate: ${captureChance}%`
-            }
-            break;
-    }
-    
-    await DB.update(DBM_Card_Guild.TABLENAME,parameterSet,parameterWhere);
-    // console.log(objEmbed);
-    return objEmbed;
-}
+                if(duplicateCard){
+                    var randomPoint = Math.floor(Math.random() * 5)+1;//for received random card point
+                    objEmbed.thumbnail = {
+                        url: CardModule.Properties.imgResponse.imgError
+                    }
+                    objEmbed.description = `:x: Sorry, you already have this card: **${spawnedCardData.id} - ${cardSpawnData[DBM_Card_Data.columns.name]}**. As a bonus you have received **${randomPoint} ${cardSpawnData[DBM_Card_Data.columns.color]}** color point.`;
+                    //update the catch token & color point
+                    var objColor = new Map();
+                    objColor.set(`color_point_${spawnedCardData.color}`,randomPoint);
+                    await CardModule.updateCatchAttempt(userId,
+                        spawnedCardData.token,
+                        objColor
+                    );
+                    return message.channel.send({embed:objEmbed});
+                }
 
-async function addNewCardInventory(id_user,id_card){
-    var parameterSet = new Map();
-    parameterSet.set(DBM_Card_Inventory.columns.id_user,id_user);
-    parameterSet.set(DBM_Card_Inventory.columns.id_card,id_card);
-    await DB.insert(DBM_Card_Inventory.TABLENAME,parameterSet);
-}
+                //RNG: calculate catch attempt
+                var captured = false;
+                var chance = parseInt(cardSpawnData[DBM_Card_Data.columns.rarity])*10; 
+                var rngCatch = Math.floor(Math.random() * 100)+
+                CardModule.getBonusCatchAttempt(parseInt(userCardData[`color_level_${spawnedCardData.color}`]));//rng point
+                switch(spawnedCardData.type){
+                    case "color":
+                        //bonus +10% catch rate
+                        if(rngCatch+10>=chance){
+                            captured = true;
+                        }
+                        break;
+                    default://normal card spawn
+                        if(rngCatch>=chance){
+                            captured = true;
+                        }
+                        break;
+                }
 
-module.exports = {Properties,getCardData,getAllCardDataByPack,
-    getCardUserStatusData,getCardPack,checkUserHaveCard,getUserTotalCard,
-    updateCatchAttempt,updateColorPoint,removeCardGuildSpawn,generateCardSpawn,addNewCardInventory,
-    embedCardCapture,embedCardDetail,embedCardPackList,getBonusCatchAttempt,getNextColorPoint,
-    checkCardCompletion,leaderboardAddNew,getAverageLevel};
+                //get & put card data into embed
+                if(captured){
+                    var cpReward = 5;
+                    //update the catch token & color point
+                    var objColor = new Map();
+                    objColor.set(`color_point_${spawnedCardData.color}`,cpReward);
+                    await CardModule.updateCatchAttempt(userId,
+                        spawnedCardData.token,
+                        objColor
+                    );
+
+                    //insert new card
+                    await CardModule.addNewCardInventory(userId,spawnedCardData.id);
+                    
+                    var currentTotalCard = await CardModule.getUserTotalCard(userId,cardSpawnData[DBM_Card_Data.columns.pack]);//get the current card total
+                    objEmbed.color = CardModule.Properties.dataColorCore[cardSpawnData[DBM_Card_Data.columns.color]].color;
+                    objEmbed.author = {
+                        name:`${GlobalFunctions.capitalize(cardSpawnData[DBM_Card_Data.columns.pack])} Card Pack`,
+                        iconURL: CardModule.Properties.dataCardCore[cardSpawnData[DBM_Card_Data.columns.pack]].icon 
+                    }
+                    objEmbed.title = `${cardSpawnData[DBM_Card_Data.columns.name]}`;
+
+                    objEmbed.fields = [
+                        {
+                            name:"ID:",
+                            value:`${cardSpawnData[DBM_Card_Data.columns.id_card]}`,
+                            inline:true
+                        },
+                        {
+                            name:"Series:",
+                            value:`${cardSpawnData[DBM_Card_Data.columns.series]}`,
+                            inline:true
+                        },
+                        {
+                            name:"Rarity:",
+                            value:`${cardSpawnData[DBM_Card_Data.columns.rarity]} :star:`,
+                            inline:true
+                        }
+                    ]
+                    objEmbed.image = {
+                        url: cardSpawnData[DBM_Card_Data.columns.img_url]
+                    }
+                    objEmbed.footer = {
+                        text: `Captured by: ${userUsername} (${currentTotalCard}/${CardModule.Properties.dataCardCore[cardSpawnData[DBM_Card_Data.columns.pack]].total})`,
+                        iconURL: userAvatarUrl
+                    }
+
+                    //update the guild spawn data
+                    switch(spawnedCardData.type){
+                        case "color":
+                            //erase the color spawn key on guild
+                            var tempObjGuild = guildSpawnData[DBM_Card_Guild.columns.spawn_data];
+                            var newColor = JSON.parse(tempObjGuild);
+                            
+                            delete newColor[spawnedCardData.color];
+                            newColor = JSON.stringify(newColor);
+                            
+                            var query = `UPDATE ${DBM_Card_Guild.TABLENAME}
+                            SET ${DBM_Card_Guild.columns.spawn_data} = ? 
+                            WHERE ${DBM_Card_Guild.columns.id_guild} = ?`;
+                            var arrParameterized = [newColor,guildId];
+                            await DBConn.conn.promise().query(query, arrParameterized);
+                            
+                            break;
+                        default://normal card spawn, erase the card guild spawn
+                            await CardModule.removeCardGuildSpawn(guildId);
+                            break;
+                    }
+
+                    message.channel.send({
+                        content:`Nice catch! **${userUsername}** has captured: **${cardSpawnData[DBM_Card_Data.columns.name]}** & received **${cpReward} ${spawnedCardData.color}** color point.`,
+                        embed:objEmbed
+                    });
+
+                    //check card pack completion:
+                    var embedCompletion = null;
+                    var checkCardCompletionPack = await CardModule.checkCardCompletion(userId,"pack",cardSpawnData[DBM_Card_Data.columns.pack]);
+                    var checkCardCompletionColor = await CardModule.checkCardCompletion(userId,"color",spawnedCardData.color);
+
+                    if(checkCardCompletionPack){
+                        //card pack completion
+                        embedCompletion = await CardModule.leaderboardAddNew(guildId,userId,userAvatarUrl,CardModule.Properties.dataColorCore[cardSpawnData[DBM_Card_Data.columns.color]].color,"pack",cardSpawnData[DBM_Card_Data.columns.pack]);
+                    } else if(checkCardCompletionColor) {
+                        //color set completion
+                        embedCompletion = await CardModule.leaderboardAddNew(guildId,userId,userAvatarUrl,CardModule.Properties.dataColorCore[cardSpawnData[DBM_Card_Data.columns.color]].color,"color",spawnedCardData.color);
+                    }
+
+                    if(embedCompletion!=null){
+                        return message.channel.send({embed:embedCompletion});
+                    }
+                } else {
+                    //update the catch token & color point
+                    var cpReward = Math.floor(Math.random() * 5)+1;
+                    var objColor = new Map();
+                    objColor.set(`color_point_${spawnedCardData.color}`,cpReward);
+                    await CardModule.updateCatchAttempt(userId,
+                        spawnedCardData.token,
+                        objColor
+                    );
+
+                    objEmbed.thumbnail = {
+                        url: CardModule.Properties.imgResponse.imgFailed
+                    }
+                    objEmbed.description = `:x: Sorry <@${userId}>, you failed to catch the card. As a bonus you received **${cpReward} ${cardSpawnData[DBM_Card_Data.columns.color]}** color point.`;
+
+                    return message.channel.send({embed:objEmbed});
+                }
+                
+                break;
+            case "detail":
+                //get/view the card detail
+                const cardId = args[1];
+                objEmbed = {
+                    color:CardModule.Properties.embedColor
+                }
+                if(cardId==null){
+                    objEmbed.thumbnail = {
+                            url:CardModule.Properties.imgResponse.imgError
+                        }
+                    objEmbed.description = ":x: Please enter the card ID.";
+                    return message.channel.send({embed:objEmbed});
+                }
+
+                //check if card ID exists/not
+                var cardData = await CardModule.getCardData(cardId);
+
+                if(cardData==null){
+                    objEmbed.thumbnail = {
+                        url:CardModule.Properties.imgResponse.imgError
+                    }
+                    objEmbed.description = ":x: Sorry, I can't find that card ID.";
+
+                    return message.channel.send({embed:objEmbed});
+                }
+
+                //check if user have card/not
+                var userHaveCard = await CardModule.checkUserHaveCard(userId,cardId);
+                if(!userHaveCard){
+                    objEmbed.thumbnail = {
+                        url:CardModule.Properties.imgResponse.imgError
+                    }
+                    objEmbed.description = `:x: Sorry, you don't have: **${cardData[DBM_Card_Data.columns.name]}** yet. Please capture this card first.`;
+                    return message.channel.send({embed:objEmbed});
+                }
+
+                //get card user inventory data to get the received date data
+                var parameterWhere = new Map();
+                parameterWhere.set(DBM_Card_Inventory.columns.id_card,cardId);
+                parameterWhere.set(DBM_Card_Inventory.columns.id_user,userId);
+                var userInventoryData = await DB.select(DBM_Card_Inventory.TABLENAME,parameterWhere);
+
+                return message.channel.send({embed:CardModule.embedCardDetail(cardData[DBM_Card_Data.columns.color],
+                    cardData[DBM_Card_Data.columns.id_card],cardData[DBM_Card_Data.columns.pack],
+                    cardData[DBM_Card_Data.columns.name],cardData[DBM_Card_Data.columns.img_url],cardData[DBM_Card_Data.columns.series],cardData[DBM_Card_Data.columns.rarity],userAvatarUrl,
+                    userInventoryData[0][0][DBM_Card_Inventory.columns.created_at])});
+            case "guess":
+                const guess = args[1];
+
+                //get card spawn information
+                var userCardData = await CardModule.getCardUserStatusData(userId);
+                var guildSpawnData = await CardGuildModule.getCardGuildData(guildId);
+                var objEmbed = {
+                    color: CardModule.Properties.embedColor
+                };
+
+                //get the spawn token & prepare the card color
+                var userData = {
+                    token:userCardData[DBM_Card_User_Data.columns.spawn_token],
+                    color:userCardData[DBM_Card_User_Data.columns.color]
+                }
+                var spawnedCardData = {
+                    token:guildSpawnData[DBM_Card_Guild.columns.spawn_token],
+                    type:guildSpawnData[DBM_Card_Guild.columns.spawn_type],
+                    id:guildSpawnData[DBM_Card_Guild.columns.spawn_id],
+                    color:guildSpawnData[DBM_Card_Guild.columns.spawn_color],
+                }
+
+                //card catcher validator, check if card is still spawning/not
+                if(spawnedCardData.type==null||
+                    spawnedCardData.token==null||
+                    (spawnedCardData.id==null&&spawnedCardData.color==null)){
+                    objEmbed.thumbnail = {
+                        url: CardModule.Properties.imgResponse.imgError
+                    }
+                    objEmbed.description = ":x: Sorry, there are no Precure cards spawning now. Please wait until the next card spawn.";
+                    return message.channel.send({embed:objEmbed});
+                } else if(userData.token==spawnedCardData.token) {
+                    //user already capture the card on this turn
+                    objEmbed.thumbnail = {
+                        url: CardModule.Properties.imgResponse.imgError
+                    }
+                    objEmbed.description = ":x: Sorry, you have already used the guess command. Please wait until the next card spawn.";
+                    return message.channel.send({embed:objEmbed});
+                } else if(spawnedCardData.type != "number"){
+                    objEmbed.thumbnail = {
+                        url: CardModule.Properties.imgResponse.imgError
+                    }
+                    objEmbed.description = ":x: Sorry, current card spawn type is not a lucky number.";
+                    return message.channel.send({embed:objEmbed});
+                } else if(guess==null||(guess.toLowerCase()!="lower"&&guess.toLowerCase()!="higher")){
+                    objEmbed.thumbnail = {
+                        url: CardModule.Properties.imgResponse.imgError
+                    }
+                    objEmbed.description = ":x: Please enter the guess parameter with **lower** or **higher**.";
+                    return message.channel.send({embed:objEmbed});
+                }
+
+                var success = false; var same = false; var msgSend = "";
+                var currentNumber = parseInt(guildSpawnData[DBM_Card_Guild.columns.spawn_number]);
+                var nextNumber = Math.floor(Math.random() * 12) + 1; var pointReward = 0;
+                if(nextNumber==currentNumber){
+                    objEmbed.thumbnail = {
+                        url: CardModule.Properties.imgResponse.imgFailed
+                    }
+                    objEmbed.description = `:x: Current number was: **${currentNumber}** and the next hidden number was **${nextNumber}**. Neither number is lower or higher. I'll send a new number card again. As a bonus you received **10 ${spawnedCardData.color}** color point.`;
+                    pointReward = 10;
+                    same = true;
+                } else {
+                    switch(guess.toLowerCase()){
+                        case "lower":
+                            if(nextNumber<currentNumber){
+                                success = true;
+                            }
+                            break;
+                        case "higher":
+                            if(nextNumber>currentNumber){
+                                success = true;
+                            }
+                            break;
+                    }
+                }
+
+                //get card data
+                var cardSpawnData = await CardModule.getCardData(spawnedCardData.id);
+
+                if(success){
+                    //check for duplicates
+                    var duplicateCard = await CardModule.checkUserHaveCard(userId,spawnedCardData.id);
+
+                    if(duplicateCard){
+                        var randomPoint = Math.floor(Math.random() * 5)+1;//for received random card point
+
+                        objEmbed.thumbnail = {
+                            url: CardModule.Properties.imgResponse.imgFailed
+                        }
+                        objEmbed.description = `:x: Current number was: **${currentNumber}** and the next hidden number was **${nextNumber}**. Your guess was: **${guess}** and you guessed it correctly! Sorry, you already have this card: **${spawnedCardData.id} - ${cardSpawnData[DBM_Card_Data.columns.name]}**. As a bonus you have received **${randomPoint} ${spawnedCardData.color}** color point.`;
+                        //update the catch token & color point
+                        pointReward = randomPoint;
+                        message.channel.send({embed:objEmbed});
+                    } else {
+                        pointReward = 5;
+                        msgSend = `:white_check_mark: Current number was: **${currentNumber}** and the next hidden number was **${nextNumber}**. Your guess was: **${guess}** and you guessed it correctly!`;
+
+                        //insert new card
+                        await CardModule.addNewCardInventory(userId,spawnedCardData.id);
+                        var currentTotalCard = await CardModule.getUserTotalCard(userId,cardSpawnData[DBM_Card_Data.columns.pack]);//get the current card total
+
+                        msgSend += ` **${userUsername}** have received: **${cardSpawnData[DBM_Card_Data.columns.name]}** & ${pointReward} **${spawnedCardData.color}** color point.`;
+                        var objEmbed = CardModule.embedCardCapture(spawnedCardData.color,spawnedCardData.id,
+                            cardSpawnData[DBM_Card_Data.columns.pack],cardSpawnData[DBM_Card_Data.columns.name],cardSpawnData[DBM_Card_Data.columns.img_url],cardSpawnData[DBM_Card_Data.columns.series],cardSpawnData[DBM_Card_Data.columns.rarity],userAvatarUrl,userUsername,currentTotalCard);
+                        message.channel.send({content:msgSend,embed:objEmbed});
+                    }
+
+                    //check card pack completion:
+                    var embedCompletion = null;
+                    var checkCardCompletionPack = await CardModule.checkCardCompletion(userId,"pack",cardSpawnData[DBM_Card_Data.columns.pack]);
+                    var checkCardCompletionColor = await CardModule.checkCardCompletion(userId,"color",spawnedCardData.color);
+
+                    if(checkCardCompletionPack){
+                        //card pack completion
+                        embedCompletion = await CardModule.leaderboardAddNew(guildId,userId,userAvatarUrl,CardModule.Properties.dataColorCore[cardSpawnData[DBM_Card_Data.columns.color]].color,"pack",cardSpawnData[DBM_Card_Data.columns.pack]);
+                    } else if(checkCardCompletionColor) {
+                        //color set completion
+                        embedCompletion = await CardModule.leaderboardAddNew(guildId,userId,userAvatarUrl,CardModule.Properties.dataColorCore[cardSpawnData[DBM_Card_Data.columns.color]].color,"color",spawnedCardData.color);
+                    }
+
+                    if(embedCompletion!=null){
+                        message.channel.send({embed:embedCompletion});
+                    }
+
+                } else if(same) {
+                    message.channel.send({embed:objEmbed});
+                } else {
+                    objEmbed.thumbnail = {
+                        url: CardModule.Properties.imgResponse.imgFailed
+                    }
+                    objEmbed.description = `:x: Current number was: **${currentNumber}** and the next hidden number was **${nextNumber}**. Your guess was: **${guess}**. Sorry, you guessed it wrong this time.`;
+                    message.channel.send({embed:objEmbed});
+                }
+
+                if(!same){
+                    var objColor = new Map();
+                    objColor.set(`color_point_${spawnedCardData.color}`,pointReward);
+                    await CardModule.updateCatchAttempt(userId,
+                        spawnedCardData.token,
+                        objColor
+                    );
+                } else {
+                    var objColor = new Map();
+                    objColor.set(`color_point_${spawnedCardData.color}`,pointReward);
+                    await CardModule.updateColorPoint(userId,objColor);
+                }
+
+                //generate new card:
+                var objEmbedNewCard =  await CardModule.generateCardSpawn(guildId,"number",false);
+                message.channel.send({embed:objEmbedNewCard});
+                
+                break;
+            case "color":
+                var newColor = args[2];
+                //validator is parameter format is not correct
+
+                if(args[1]==null||
+                    (args[1].toLowerCase()!="set" && newColor == null)||
+                    (args[1].toLowerCase()=="set" && !CardModule.Properties.arrColor.includes(newColor))){
+                    var objEmbed = {
+                        color: CardModule.Properties.embedColor,
+                        thumbnail : {
+                            url: CardModule.Properties.imgResponse.imgError
+                        },
+                        description : ":x: Please enter the correct color set command with: **p!card color set <pink/purple/green/yellow/white/blue/red>**"
+                    };
+                    return message.channel.send({embed:objEmbed});
+                }
+
+                var userCardData = await CardModule.getCardUserStatusData(userId);
+                var assignedColor = userCardData[DBM_Card_User_Data.columns.color];
+                var assignedColorPoint = userCardData[`color_point_${assignedColor}`];
+                //validator: check if color point is enough/not
+                if(assignedColorPoint<100){
+                    var objEmbed = {
+                        color: CardModule.Properties.embedColor,
+                        thumbnail : {
+                            url: CardModule.Properties.imgResponse.imgError
+                        },
+                        description : `:x: Sorry, you need **100 ${assignedColor}** color point to change your color.`
+                    };
+                    return message.channel.send({embed:objEmbed});
+                }
+
+                //assign new color & update color
+                var parameterSet = new Map();
+                parameterSet.set(DBM_Card_User_Data.columns.color,newColor);
+                var parameterWhere = new Map();
+                parameterWhere.set(DBM_Card_User_Data.columns.id_user,userId);
+                await DB.update(DBM_Card_User_Data.TABLENAME,parameterSet,parameterWhere);
+
+                //update the color point
+                var parameterSetColorPoint = new Map();
+                parameterSetColorPoint.set(`color_point_${assignedColor}`,-100);
+                await CardModule.updateColorPoint(userId,parameterSetColorPoint);
+
+                var objEmbed = {
+                    color: CardModule.Properties.embedColor,
+                    title: `New color has been set`,
+                    description : `:white_check_mark: <@${userId}> is now assigned with color: **${newColor}** and use **100 ${assignedColor}** color point.`
+                };
+
+                message.channel.send({embed:objEmbed});
+
+                break;
+            case "guide":
+                var objEmbed = {
+                    color:CardModule.Properties.embedColor,
+                    title: "Precure Cardcatcher! Guide 101",
+                    // thumbnail: {
+                    //     url: CardModule.Properties.imgResponse.imgOk
+                    // },
+                    description: "This is the basic guide starter for the Precure Card Catcher:",
+                    fields: [
+                    {
+                        name: "How many card color/packs/rarity available?",
+                        value: `There are seven colours: pink, purple, green, yellow, white, blue and red. There are also 63 card packs that you can collect.\nEach card also provided with number of rarity from 1-7, the higher number of rarity the lower of the chance that you can capture it. You can track down your card progression with **p!card status** or **p!card inventory <pack>**`
+                    },
+                    {
+                        name: "What is cLvl, assigned color, CL(color level) and CP(color point) on my status?",
+                        value: `**cLvl** stands for the average of all your color level and just used to represent your overall color level. The **color that you assigned** will be used during the color card spawn.\nStarting from **CL(color level)** 2 you will get 5% card capture chance bonus and will be increased for every level. To level up your color, you need a multiplier of 100 **CP(color point)** for every color level and use the command: **p!card up <color>**. Color point can be used to change your color too.`
+                    },
+                    {
+                        name: "What are the list of card spawn that is available?",
+                        value: `-**normal**: the common card spawn that you can capture with **p!card catch** command.\n-**color**: 7 different color cards will be spawned and every color will provide 1 random card from its color. You can only capture the card from your assigned color and do it one time. After a color has been captured that color will be removed. Base catch rate +10% for this spawn.\n-**number**: a random number from 1-12 & card rarity within 1-4 will be spawned. You need to guess if the next hidden number will be **lower** or **higher** with **p!card guess <lower/higher>**. After you guessed it, the next random number card will be spawned immediately and other user can guess the next number card. Bonus spawn type: 100% catch rate & **respawnable**.\n-**quiz**: A set of question, answer and card rarity from 5 to higher will be spawned. You need to answer it with **p!card answer <a/b/c>**. Bonus spawn type: 100% catch rate & **respawnable**.`
+                    },
+                    {
+                        name: "Summary & Getting Started",
+                        value: `-Gather daily color points once every 24 hours with **p!daily <color>**. The **<color>** parameter is optional and the points will be doubled if you didn't provide the **<color>** parameter, otherwise you'll receive overall color point.\n-Capture the card based from the card spawn type ruleset.\n-You can level up the your color with: **p!card up <color>**.\n-You can use **p!card status** or **p!card inventory <pack>** to track down your card progress.\n-You can use the **p!card respawn** to spawn a new card for 20 color points but the chances are 20%. If that fails, you will need to wait until the next card spawn.`
+                    }]
+                  }
+                  message.channel.send({embed:objEmbed});
+                
+                break;
+            case "leaderboard":
+                var selection = ""; var pack = ""; var color = "";
+                //validator
+                if(args[1]!=null&&CardModule.Properties.dataCardCore.hasOwnProperty(args[1].toLowerCase())){
+                    selection = "pack"; pack = args[1].toLowerCase();
+                } else if(args[1]!=null&&CardModule.Properties.arrColor.includes(args[1].toLowerCase())){
+                    selection = "color"; color = args[1].toLowerCase();
+                } else {
+                    return message.channel.send({
+                        content:`Please enter the parameter with one of the color list:**${CardModule.Properties.arrColor.toString().split(",").join("/")}** or pack list that is listed bellow:`,
+                        embed:CardModule.embedCardPackList
+                    });
+                }
+
+                //prepare the embed
+                var objEmbed = {
+                    color: CardModule.Properties.embedColor
+                }
+                
+                var completion = args[1].toLowerCase();
+                var query = `SELECT * 
+                FROM ${DBM_Card_Leaderboard.TABLENAME} 
+                WHERE ${DBM_Card_Leaderboard.columns.id_guild}=? AND 
+                ${DBM_Card_Leaderboard.columns.category}=? AND 
+                ${DBM_Card_Leaderboard.columns.completion}=?
+                ORDER BY ${DBM_Card_Leaderboard.columns.created_at} ASC 
+                LIMIT 10`; 
+                var leaderboardContent = "";
+                var arrParameterized = [guildId,selection,completion];
+                var dataLeaderboard = await DBConn.conn.promise().query(query, arrParameterized);
+                var ctr = 1;
+                dataLeaderboard[0].forEach(function(entry){
+                    leaderboardContent += `${ctr}. <@${entry[DBM_Card_Leaderboard.columns.id_user]}> : ${GlobalFunctions.convertDateTime(entry[DBM_Card_Leaderboard.columns.created_at])}\n`; ctr++;
+                })
+
+                switch(selection){
+                    case "pack":
+                        objEmbed.title = `:trophy: Top 10 ${GlobalFunctions.capitalize(completion)} Card Pack Leaderboard`;
+                        if(leaderboardContent==""){
+                            objEmbed.description = `No one has completed the **${completion}** card pack yet...`;
+                        } else {
+                            objEmbed.description = `Here are the top 10 list of **${completion}** card pack:\n${leaderboardContent}`;
+                        }
+                        break;
+                    case "color":
+                        objEmbed.title = `:trophy: Top 10 Cure ${GlobalFunctions.capitalize(completion)} Master Leaderboard`;
+                        if(leaderboardContent==""){
+                            objEmbed.description = `No one has become the master of **Cure ${completion}** yet...`;
+                        } else {
+                            objEmbed.description = `Here are the top 10 list master of **Cure ${completion}**:\n${leaderboardContent}`;
+                        }
+                        break;
+                }
+
+                return message.channel.send({embed:objEmbed});
+            case "up":
+                //level up the color
+                var selectedColor = args[1];
+                //validator is parameter format is not correct
+
+                if(!CardModule.Properties.arrColor.includes(selectedColor)){
+                    var objEmbed = {
+                        color: CardModule.Properties.embedColor,
+                        thumbnail : {
+                            url: CardModule.Properties.imgResponse.imgError
+                        },
+                        description : ":x: Please enter the correct color level up command with: **p!card up <pink/purple/green/yellow/white/blue/red>**"
+                    };
+                    return message.channel.send({embed:objEmbed});
+                }
+
+                var userCardData = await CardModule.getCardUserStatusData(userId);
+                var colorLevel = userCardData[`color_level_${selectedColor}`];
+                var colorPoint = userCardData[`color_point_${selectedColor}`];
+                var nextColorPoint = CardModule.getNextColorPoint(colorLevel);
+                //validator: check if color point is enough/not
+                if(colorPoint<nextColorPoint){
+                    var objEmbed = {
+                        color: CardModule.Properties.embedColor,
+                        thumbnail : {
+                            url: CardModule.Properties.imgResponse.imgError
+                        },
+                        description : `:x: Sorry, you need **${nextColorPoint} ${selectedColor}** color point to level up.`
+                    };
+                    return message.channel.send({embed:objEmbed});
+                }
+
+                //update the color point
+                var parameterSetColorPoint = new Map();
+                parameterSetColorPoint.set(`color_point_${selectedColor}`,-nextColorPoint);
+                await CardModule.updateColorPoint(userId,parameterSetColorPoint);
+
+                //add 1 color level
+                var query = `UPDATE ${DBM_Card_User_Data.TABLENAME} 
+                SET color_level_${selectedColor} = color_level_${selectedColor}+1
+                WHERE ${DBM_Card_User_Data.columns.id_user}=?`;
+                await DBConn.conn.promise().query(query, [userId]);
+
+                colorLevel+=1;
+
+                var objEmbed = {
+                    color: CardModule.Properties.embedColor,
+                    title: `${userUsername}' ${GlobalFunctions.capitalize(selectedColor)} Level Up!`,
+                    thumbnail:{
+                        url: userAvatarUrl
+                    },
+                    description : `:white_check_mark: <@${userId}> is now level ${colorLevel} !`,
+                    fields: [
+                        {
+                            name:`Total bonus capture rate:`,
+                            value:`+${CardModule.getBonusCatchAttempt(colorLevel)}%`,
+                            inline: true
+                        },
+                        {
+                            name:`Next ${GlobalFunctions.capitalize(selectedColor)} Color Point:`,
+                            value:`+${CardModule.getNextColorPoint(colorLevel)}%`,
+                            inline: true
+                        },
+                    ]
+                };
+
+                message.channel.send({embed:objEmbed});
+                break;
+            case "answer":
+                var answer = args[1];
+
+                //get card spawn information
+                var userCardData = await CardModule.getCardUserStatusData(userId);
+                var guildSpawnData = await CardGuildModule.getCardGuildData(guildId);
+                var objEmbed = {
+                    color: CardModule.Properties.embedColor
+                };
+
+                //get the spawn token & prepare the card color
+                var userData = {
+                    token:userCardData[DBM_Card_User_Data.columns.spawn_token],
+                    color:userCardData[DBM_Card_User_Data.columns.color]
+                }
+                var jsonParsedSpawnData = JSON.parse(guildSpawnData[DBM_Card_Guild.columns.spawn_data]);
+                var spawnedCardData = {
+                    token:guildSpawnData[DBM_Card_Guild.columns.spawn_token],
+                    type:guildSpawnData[DBM_Card_Guild.columns.spawn_type],
+                    data:guildSpawnData[DBM_Card_Guild.columns.spawn_data]
+                }
+
+                //card catcher validator, check if card is still spawning/not
+                if(spawnedCardData.type==null||
+                    spawnedCardData.token==null||
+                    spawnedCardData.id==null){
+                    objEmbed.thumbnail = {
+                        url: CardModule.Properties.imgResponse.imgError
+                    }
+                    objEmbed.description = ":x: Sorry, there are no card that is spawned yet. Please wait until the next card spawn.";
+                    return message.channel.send({embed:objEmbed});
+                } else if(userData.token==spawnedCardData.token) {
+                    //user already capture the card on this turn
+                    objEmbed.thumbnail = {
+                        url: CardModule.Properties.imgResponse.imgError
+                    }
+                    objEmbed.description = ":x: Sorry, you already use the answer command. Please wait until the next card spawn.";
+                    return message.channel.send({embed:objEmbed});
+                } else if(spawnedCardData.type != "quiz"){
+                    objEmbed.thumbnail = {
+                        url: CardModule.Properties.imgResponse.imgError
+                    }
+                    objEmbed.description = ":x: Sorry, it's not quiz time yet.";
+                    return message.channel.send({embed:objEmbed});
+                } else if(answer==null||
+                    (answer.toLowerCase()!="a"&&answer.toLowerCase()!="b"&&answer.toLowerCase()!="c")){
+                    objEmbed.thumbnail = {
+                        url: CardModule.Properties.imgResponse.imgError
+                    }
+                    objEmbed.description = ":x: Please enter the answer parameter with **a** or **b** or **c**.";
+                    return message.channel.send({embed:objEmbed});
+                }
+
+                var jsonParsedSpawnData = JSON.parse(guildSpawnData[DBM_Card_Guild.columns.spawn_data]);
+                
+                spawnedCardData.id = jsonParsedSpawnData[CardModule.Properties.spawnData.quiz.id_card];
+                spawnedCardData.answer = jsonParsedSpawnData[CardModule.Properties.spawnData.quiz.answer];
+
+                var success = false; var msgSend = "";
+                //get card data
+                var cardSpawnData = await CardModule.getCardData(spawnedCardData.id);
+                spawnedCardData.color = cardSpawnData[DBM_Card_Data.columns.color];
+                spawnedCardData.pack = cardSpawnData[DBM_Card_Data.columns.pack];
+
+                answer = answer.toLowerCase();
+                var pointReward = 0;
+                if(answer!=spawnedCardData.answer){
+                    objEmbed.thumbnail = {
+                        url: CardModule.Properties.imgResponse.imgFailed
+                    }
+                    objEmbed.description = `:x: Sorry, your answer is wrong. The correct answer was: **${spawnedCardData.answer} - ${CardModule.Properties.dataCardCore[spawnedCardData.pack].fullname}**`;
+                } else {
+                    success = true;
+                }
+
+                if(success){
+                    //check for duplicates
+                    var duplicateCard = await CardModule.checkUserHaveCard(userId,spawnedCardData.id);
+                    
+                    if(duplicateCard){
+                        var randomPoint = Math.floor(Math.random() * 5)+3;//for received random card point
+
+                        objEmbed.thumbnail = {
+                            url: CardModule.Properties.imgResponse.imgFailed
+                        }
+                        objEmbed.description = `:x: The answer was correct! But you already have this card: **${spawnedCardData.id} - ${cardSpawnData[DBM_Card_Data.columns.name]}**. As a bonus you have received **${randomPoint} ${spawnedCardData.color}** color points.`;
+                        //update the catch token & color point
+                        pointReward = randomPoint;
+                        message.channel.send({embed:objEmbed});
+                    } else {
+                        pointReward = 10;
+                        msgSend = `:white_check_mark: The answer was correct! **${userUsername}** have received: **${cardSpawnData[DBM_Card_Data.columns.name]}** & **${pointReward} ${spawnedCardData.color}** color points.`;
+
+                        //insert new card
+                        await CardModule.addNewCardInventory(userId,spawnedCardData.id);
+                        var currentTotalCard = await CardModule.getUserTotalCard(userId,spawnedCardData.pack);//get the current card total
+                        
+                        var objEmbed = CardModule.embedCardCapture(spawnedCardData.color,spawnedCardData.id,
+                            spawnedCardData.pack,cardSpawnData[DBM_Card_Data.columns.name],cardSpawnData[DBM_Card_Data.columns.img_url],cardSpawnData[DBM_Card_Data.columns.series],cardSpawnData[DBM_Card_Data.columns.rarity],userAvatarUrl,userUsername,currentTotalCard);
+                        
+                        message.channel.send({content:msgSend,embed:objEmbed});
+                    }
+                } else {
+                    message.channel.send({embed:objEmbed});
+                }
+
+                var objColor = new Map();
+                objColor.set(`color_point_${spawnedCardData.color}`,pointReward);
+                await CardModule.updateCatchAttempt(userId,
+                    spawnedCardData.token,
+                    objColor
+                );
+
+                //check card pack completion:
+                var embedCompletion = null;
+                var checkCardCompletionPack = await CardModule.checkCardCompletion(userId,"pack",cardSpawnData[DBM_Card_Data.columns.pack]);
+                var checkCardCompletionColor = await CardModule.checkCardCompletion(userId,"color",spawnedCardData.color);
+
+                if(checkCardCompletionPack){
+                    //card pack completion
+                    embedCompletion = await CardModule.leaderboardAddNew(guildId,userId,userAvatarUrl,CardModule.Properties.dataColorCore[cardSpawnData[DBM_Card_Data.columns.color]].color,"pack",cardSpawnData[DBM_Card_Data.columns.pack]);
+                } else if(checkCardCompletionColor) {
+                    //color set completion
+                    embedCompletion = await CardModule.leaderboardAddNew(guildId,userId,userAvatarUrl,CardModule.Properties.dataColorCore[cardSpawnData[DBM_Card_Data.columns.color]].color,"color",spawnedCardData.color);
+                }
+
+                if(embedCompletion!=null){
+                    message.channel.send({embed:embedCompletion});
+                }
+
+                //generate new card:
+                var objEmbedNewCard =  await CardModule.generateCardSpawn(guildId,"quiz",false);
+                message.channel.send({embed:objEmbedNewCard});
+                
+                break;
+            case "respawn":
+                //respawn the question again
+                //check if user have enough color point/not
+                var userCardData = await CardModule.getCardUserStatusData(userId);
+                var assignedColor = userCardData[DBM_Card_User_Data.columns.color];
+                var assignedColorPoint = userCardData[`color_point_${assignedColor}`];
+
+                //validator: check if color point is enough/not
+                var priceRespawn = 20;
+                if(assignedColorPoint<priceRespawn){
+                    var objEmbed = {
+                        color: CardModule.Properties.embedColor,
+                        thumbnail : {
+                            url: CardModule.Properties.imgResponse.imgError
+                        },
+                        description : `:x: Sorry, you need **${priceRespawn} ${assignedColor}** color points to use the **card respawn**.`
+                    };
+                    return message.channel.send({embed:objEmbed});
+                }
+
+                var objEmbed = {
+                    color: CardModule.Properties.embedColor
+                };
+
+                var guildSpawnData = await CardGuildModule.getCardGuildData(guildId);
+                //check if token is same/not
+                if(guildSpawnData[DBM_Card_Guild.columns.spawn_token]==null||
+                userCardData[DBM_Card_User_Data.columns.spawn_token]==guildSpawnData[DBM_Card_Guild.columns.spawn_token]){
+                    var objEmbed = {
+                        color: CardModule.Properties.embedColor,
+                        thumbnail : {
+                            url: CardModule.Properties.imgResponse.imgError
+                        },
+                        author: {
+                            name: userUsername,
+                            iconURL: userAvatarUrl
+                        },
+                        description : `:x: Sorry you cannot use the **card respawn** this time.`
+                    };
+                    return message.channel.send({embed:objEmbed});
+                }
+
+                //update the color point
+                var parameterSetColorPoint = new Map();
+                parameterSetColorPoint.set(`color_point_${assignedColor}`,-priceRespawn);
+                await CardModule.updateColorPoint(userId,parameterSetColorPoint);
+
+                var rndChances = Math.floor(Math.random()*10);
+
+                if(rndChances>=9){
+                    objEmbed.title="Card Spawn Activated!";
+                    objEmbed.description = `<@${userId}> has use the **card spawn** & **${priceRespawn} ${assignedColor} color point**!`;
+                    message.channel.send({embed:objEmbed});
+                    var cardSpawnData = await CardModule.generateCardSpawn(guildId);
+                    return message.channel.send({embed:cardSpawnData});
+                } else {
+                    await CardModule.updateCatchAttempt(userId,guildSpawnData[DBM_Card_Guild.columns.spawn_token]);
+                    var objEmbed = {
+                        color: CardModule.Properties.embedColor,
+                        thumbnail : {
+                            url: CardModule.Properties.imgResponse.imgFailed
+                        },
+                        author: {
+                            name: userUsername,
+                            iconURL: userAvatarUrl
+                        },
+                        description : `:x: Sorry, the card respawn has failed. You also need to wait until the next card spawn.`
+                    };
+                    return message.channel.send({embed:objEmbed});
+                }
+                //get card spawn information
+                
+                
+                break;
+            // case "debug":
+            //     //for card spawn debug purpose
+            //     var cardSpawnData = await CardModule.generateCardSpawn(guildId);
+            //     message.channel.send({embed:cardSpawnData});
+            //     break;
+            default:
+                break;
+        }
+	},
+};
