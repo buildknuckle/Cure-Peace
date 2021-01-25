@@ -1,14 +1,13 @@
 const DB = require('../database/DatabaseCore');
 const DBConn = require('../storage/dbconn');
 const GlobalFunctions = require('../modules/GlobalFunctions.js');
-const CardGuildModules = require('../modules/CardGuild');
 const DBM_Card_Data = require('../database/model/DBM_Card_Data');
 const DBM_Card_User_Data = require('../database/model/DBM_Card_User_Data');
 const DBM_Card_Inventory = require('../database/model/DBM_Card_Inventory');
 const DBM_Card_Guild = require('../database/model/DBM_Card_Guild');
 const DBM_Card_Leaderboard = require('../database/model/DBM_Card_Leaderboard');
 
-const latestVersion = "1.04";
+const latestVersion = "1.03";
 
 class Properties{
     static embedColor = '#efcc2c';
@@ -579,6 +578,8 @@ async function getCardData(id_card) {
     parameterWhere.set(DBM_Card_Data.columns.id_card,id_card);
     var result = await DB.selectAll(DBM_Card_Data.TABLENAME,parameterWhere);
     return result[0][0];
+    
+    //return callback(DB.selectAll(DBM_Card_Data.TABLENAME,parameterWhere));
 }
 
 function embedCardCapture(embedColor,id_card,packName,
@@ -886,7 +887,7 @@ function getNextColorPoint(level){
 function getBonusCatchAttempt(level){
     //starting from level 2: every level get 5% catch bonus
     if(level>=2){
-        return (level*5)-5;
+        return level*5;
     } else {
         return 0;
     }
@@ -1077,15 +1078,6 @@ async function removeCardGuildSpawn(id_guild){
     await DB.update(DBM_Card_Guild.TABLENAME,parameterSet,parameterWhere);
 }
 
-async function updateMessageIdSpawn(id_guild,id_message){
-    //update the message id on card spawn
-    var parameterSet = new Map();
-    parameterSet.set(DBM_Card_Guild.columns.id_last_message_spawn,id_message);
-    var parameterWhere = new Map();
-    parameterWhere.set(DBM_Card_Guild.columns.id_guild,id_guild);
-    await DB.update(DBM_Card_Guild.TABLENAME,parameterSet,parameterWhere);
-}
-
 async function generateCardSpawn(id_guild,specificType=null,overwriteToken = true){
     //reset guild timer information
 
@@ -1194,7 +1186,7 @@ async function generateCardSpawn(id_guild,specificType=null,overwriteToken = tru
                 name:`Number Card: ${selectedColor.charAt(0).toUpperCase()+selectedColor.slice(1)} Edition`
             }
             objEmbed.title = ":game_die: It's Lucky Numbers Time!";
-            objEmbed.description = `Guess whether the next hidden number**(1-12)** will be **lower** or **higher** than the current number: **${rndNumber}** with: **p!card guess <lower/higher>**`;
+            objEmbed.description = `Guess whether the next hidden number will be **lower** or **higher** than the current number: **${rndNumber}** or not with: **p!card guess <lower/higher>**`;
             objEmbed.image ={
                 url:Properties.dataColorCore[selectedColor].imgMysteryUrl
             }
@@ -1296,10 +1288,6 @@ async function generateCardSpawn(id_guild,specificType=null,overwriteToken = tru
     }
     
     await DB.update(DBM_Card_Guild.TABLENAME,parameterSet,parameterWhere);
-
-    //update the time remaining information:
-    await CardGuildModules.updateTimerRemaining(id_guild);
-
     // console.log(objEmbed);
     return objEmbed;
 }
@@ -1315,4 +1303,4 @@ module.exports = {latestVersion,Properties,getCardData,getAllCardDataByPack,
     getCardUserStatusData,getCardPack,checkUserHaveCard,getUserTotalCard,
     updateCatchAttempt,updateColorPoint,removeCardGuildSpawn,generateCardSpawn,addNewCardInventory,
     embedCardCapture,embedCardDetail,embedCardPackList,getBonusCatchAttempt,getNextColorPoint,
-    checkCardCompletion,leaderboardAddNew,getAverageLevel,updateMessageIdSpawn};
+    checkCardCompletion,leaderboardAddNew,getAverageLevel};

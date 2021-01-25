@@ -31,9 +31,5 @@ module.exports = {
       //var finalTime = str_pad_left(minutes,'0',2) will output: 02
       return (new Array(length+1).join(pad)+string).slice(-length); 
       
-   },
-   discordMessageLinkFormat(id_guild,id_channel,id_messsage){
-      return `https://discord.com/channels/${id_guild}/${id_channel}/${id_messsage}`;
    }
-
 }

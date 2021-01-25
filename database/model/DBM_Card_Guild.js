@@ -12,7 +12,6 @@ class DBM_Card_Guild {
         id_channel_spawn: "id_channel_spawn",
         id_channel_invade: "id_channel_invade",
         id_cardcatcher: "id_cardcatcher",
-        id_last_message_spawn: "id_last_message_spawn",
         spawn_interval: "spawn_interval",
         spawn_token: "spawn_token",
         spawn_type: "spawn_type",
