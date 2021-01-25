@@ -1102,7 +1102,7 @@ async function generateCardSpawn(id_guild,specificType=null,overwriteToken = tru
     }
 
     //for debugging purpose:
-    // cardSpawnType = "quiz";
+    cardSpawnType = "quiz";
 
     var query = "";
     //prepare the embed object
@@ -1120,7 +1120,7 @@ async function generateCardSpawn(id_guild,specificType=null,overwriteToken = tru
     var parameterSet = new Map();
     parameterSet.set(DBM_Card_Guild.columns.spawn_type,cardSpawnType); //set the spawn type
     if(overwriteToken){
-        parameterSet.set(DBM_Card_Guild.columns.spawn_token,GlobalFunctions.randomNumber(0,1000)); //set & randomize the spawn token
+        parameterSet.set(DBM_Card_Guild.columns.spawn_token,GlobalFunctions.randomNumber(0,100000)); //set & randomize the spawn token
     }
     switch(cardSpawnType) {
         case "color": // color spawn type
