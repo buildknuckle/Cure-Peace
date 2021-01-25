@@ -342,8 +342,8 @@ module.exports = {
                     objEmbed.thumbnail = {
                         url: CardModule.Properties.imgResponse.imgError
                     }
-                    objEmbed.description = `:x: Sorry, you already have this card: **${spawnedCardData.id} - ${cardSpawnData[DBM_Card_Data.columns.name]}**. As a bonus you have received **${randomPoint} ${cardSpawnData[DBM_Card_Data.columns.color]}** color point.`;
-                    //update the catch token & color point
+                    objEmbed.description = `:x: Sorry, you already have this card: **${spawnedCardData.id} - ${cardSpawnData[DBM_Card_Data.columns.name]}**. As a bonus you have received **${randomPoint} ${cardSpawnData[DBM_Card_Data.columns.color]}** color points.`;
+                    //update the catch token & color points
                     var objColor = new Map();
                     objColor.set(`color_point_${spawnedCardData.color}`,randomPoint);
                     await CardModule.updateCatchAttempt(userId,
@@ -378,7 +378,7 @@ module.exports = {
                 //get & put card data into embed
                 if(captured){
                     var cpReward = 5;
-                    //update the catch token & color point
+                    //update the catch token & color points
                     var objColor = new Map();
                     objColor.set(`color_point_${spawnedCardData.color}`,cpReward);
                     await CardModule.updateCatchAttempt(userId,
@@ -445,7 +445,7 @@ module.exports = {
                     }
 
                     message.channel.send({
-                        content:`Nice catch! **${userUsername}** has captured: **${cardSpawnData[DBM_Card_Data.columns.name]}** & received **${cpReward} ${spawnedCardData.color}** color point.`,
+                        content:`Nice catch! **${userUsername}** has captured: **${cardSpawnData[DBM_Card_Data.columns.name]}** & received **${cpReward} ${spawnedCardData.color}** color points.`,
                         embed:objEmbed
                     });
 
@@ -466,7 +466,7 @@ module.exports = {
                         return message.channel.send({embed:embedCompletion});
                     }
                 } else {
-                    //update the catch token & color point
+                    //update the catch token & color points
                     var cpReward = GlobalFunctions.randomNumber(1,5);
                     var objColor = new Map();
                     objColor.set(`color_point_${spawnedCardData.color}`,cpReward);
@@ -478,7 +478,7 @@ module.exports = {
                     objEmbed.thumbnail = {
                         url: CardModule.Properties.imgResponse.imgFailed
                     }
-                    objEmbed.description = `:x: Sorry <@${userId}>, you failed to catch the card. As a bonus you received **${cpReward} ${cardSpawnData[DBM_Card_Data.columns.color]}** color point.`;
+                    objEmbed.description = `:x: Sorry <@${userId}>, you failed to catch the card. As a bonus you received **${cpReward} ${cardSpawnData[DBM_Card_Data.columns.color]}** color points.`;
 
                     return message.channel.send({embed:objEmbed});
                 }
@@ -596,7 +596,7 @@ module.exports = {
                         iconURL:userAvatarUrl,
                         name:userUsername
                     }
-                    objEmbed.description = `:x: Current number was: **${currentNumber}** and the next hidden number was **${nextNumber}**. Neither number is lower or higher. As a bonus you received **${pointReward} ${spawnedCardData.color}** color point this time, also you have another chance to guess the next hidden number.`;
+                    objEmbed.description = `:x: Current number was: **${currentNumber}** and the next hidden number was **${nextNumber}**. Neither number is lower or higher. As a bonus you received **${pointReward} ${spawnedCardData.color}** color points, also you have another chance to guess the next hidden number.`;
                     
                     var objColor = new Map();
                     objColor.set(`color_point_${spawnedCardData.color}`,pointReward);
@@ -631,7 +631,7 @@ module.exports = {
                         objEmbed.thumbnail = {
                             url: CardModule.Properties.imgResponse.imgFailed
                         }
-                        objEmbed.description = `:x: Current number was: **${currentNumber}** and the next hidden number was **${nextNumber}**. Your guess was: **${guess}** and you guessed it correctly! Sorry, you already have this card: **${spawnedCardData.id} - ${cardSpawnData[DBM_Card_Data.columns.name]}**. As a bonus you have received **${randomPoint} ${spawnedCardData.color}** color point.`;
+                        objEmbed.description = `:x: Current number was: **${currentNumber}** and the next hidden number was **${nextNumber}**. Your guess was: **${guess}** and you guessed it correctly! Sorry, you already have this card: **${spawnedCardData.id} - ${cardSpawnData[DBM_Card_Data.columns.name]}**. As a bonus you have received **${randomPoint} ${spawnedCardData.color}** color points.`;
                         //update the catch token & color point
                         pointReward = randomPoint;
                         var objColor = new Map();
@@ -649,7 +649,7 @@ module.exports = {
                         await CardModule.addNewCardInventory(userId,spawnedCardData.id);
                         var currentTotalCard = await CardModule.getUserTotalCard(userId,cardSpawnData[DBM_Card_Data.columns.pack]);//get the current card total
 
-                        msgSend += ` **${userUsername}** have received: **${cardSpawnData[DBM_Card_Data.columns.name]}** & ${pointReward} **${spawnedCardData.color}** color point.`;
+                        msgSend += ` **${userUsername}** has received: **${cardSpawnData[DBM_Card_Data.columns.name]}** & ${pointReward} **${spawnedCardData.color}** color points.`;
                         var objEmbed = CardModule.embedCardCapture(spawnedCardData.color,spawnedCardData.id,
                             cardSpawnData[DBM_Card_Data.columns.pack],cardSpawnData[DBM_Card_Data.columns.name],cardSpawnData[DBM_Card_Data.columns.img_url],cardSpawnData[DBM_Card_Data.columns.series],cardSpawnData[DBM_Card_Data.columns.rarity],userAvatarUrl,userUsername,currentTotalCard);
                         message.channel.send({content:msgSend,embed:objEmbed});
@@ -723,14 +723,14 @@ module.exports = {
                 var userCardData = await CardModule.getCardUserStatusData(userId);
                 var assignedColor = userCardData[DBM_Card_User_Data.columns.color];
                 var assignedColorPoint = userCardData[`color_point_${assignedColor}`];
-                //validator: check if color point is enough/not
+                //validator: check if color points is enough/not
                 if(assignedColorPoint<100){
                     var objEmbed = {
                         color: CardModule.Properties.embedColor,
                         thumbnail : {
                             url: CardModule.Properties.imgResponse.imgError
                         },
-                        description : `:x: Sorry, you need **100 ${assignedColor}** color point to change your color.`
+                        description : `:x: Sorry, you need **100 ${assignedColor}** color points to change your color.`
                     };
                     return message.channel.send({embed:objEmbed});
                 }
@@ -742,7 +742,7 @@ module.exports = {
                 parameterWhere.set(DBM_Card_User_Data.columns.id_user,userId);
                 await DB.update(DBM_Card_User_Data.TABLENAME,parameterSet,parameterWhere);
 
-                //update the color point
+                //update the color points
                 var parameterSetColorPoint = new Map();
                 parameterSetColorPoint.set(`color_point_${assignedColor}`,-100);
                 await CardModule.updateColorPoint(userId,parameterSetColorPoint);
@@ -754,7 +754,7 @@ module.exports = {
                     },
                     color: CardModule.Properties.embedColor,
                     title: `New color has been set`,
-                    description : `:white_check_mark: <@${userId}> is now assigned with color: **${newColor}** and use **100 ${assignedColor}** color point.`
+                    description : `:white_check_mark: <@${userId}> is now assigned with color: **${newColor}** and use **100 ${assignedColor}** color points.`
                 };
 
                 return message.channel.send({embed:objEmbed});
@@ -774,8 +774,8 @@ module.exports = {
                         value: `There are seven colours: pink, purple, green, yellow, white, blue and red. There are also 63 card packs that you can collect.\nEach card also provided with number of rarity from 1-7, the higher number of rarity the lower of the chance that you can capture it. You can track down your card progression with **p!card status** or **p!card inventory <pack>**`
                     },
                     {
-                        name: "What is cLvl, assigned color, CL(color level) and CP(color point) on my status?",
-                        value: `**cLvl** stands for the average of all your color level and just used to represent your overall color level. The **color that you assigned** will be used during the color card spawn.\nStarting from **CL(color level)** 2 you will get 5% card capture chance bonus and will be increased for every level. To level up your color, you need a multiplier of 100 **CP(color point)** for every color level and use the command: **p!card up <color>**. Color point can be used to change your color too.`
+                        name: "What is cLvl, assigned color, CL(color level) and CP(color points) on my status?",
+                        value: `**cLvl** stands for the average of all your color level and just used to represent your overall color level. The **color that you assigned** will be used during the color card spawn.\nStarting from **CL(color level)** 2 you will get 5% card capture chance bonus and will be increased for every level. To level up your color, you need a multiplier of 100 **CP(color points)** for every color level and use the command: **p!card up <color>**. Color points can be used to change your color too.`
                     },
                     {
                         name: "What are the list of card spawn that is available?",
@@ -783,7 +783,7 @@ module.exports = {
                     },
                     {
                         name: "Summary & Getting Started",
-                        value: `-Gather daily color points once every 24 hours with **p!daily <color>**. The **<color>** parameter is optional and the points will be doubled if you didn't provide the **<color>** parameter, otherwise you'll receive overall color point.\n-Capture the card based from the card spawn type ruleset.\n-You can level up your color with: **p!card up <color>**.\n-You can use **p!card status** or **p!card inventory <pack>** to track down your card progress.\n-You can use the **p!card respawn** to spawn a new card for 20 color points but the chances are 20%. If that fails, you will need to wait until the next card spawn.`
+                        value: `-Gather daily color points once every 24 hours with **p!daily <color>**. The **<color>** parameter is optional and the points will be doubled if you didn't provide the **<color>** parameter, otherwise you'll receive overall color points.\n-Capture the card based from the card spawn type ruleset.\n-You can level up your color with: **p!card up <color>**.\n-You can use **p!card status** or **p!card inventory <pack>** to track down your card progress.\n-You can use the **p!card respawn** to spawn a new card for 20 color points but the chances are 20%. If that fails, you will need to wait until the next card spawn.`
                     }]
                   }
                   message.channel.send({embed:objEmbed});
@@ -864,19 +864,19 @@ module.exports = {
                 var colorLevel = userCardData[`color_level_${selectedColor}`];
                 var colorPoint = userCardData[`color_point_${selectedColor}`];
                 var nextColorPoint = CardModule.getNextColorPoint(colorLevel);
-                //validator: check if color point is enough/not
+                //validator: check if color points is enough/not
                 if(colorPoint<nextColorPoint){
                     var objEmbed = {
                         color: CardModule.Properties.embedColor,
                         thumbnail : {
                             url: CardModule.Properties.imgResponse.imgError
                         },
-                        description : `:x: Sorry, you need **${nextColorPoint} ${selectedColor}** color point to level up.`
+                        description : `:x: Sorry, you need **${nextColorPoint} ${selectedColor}** color points to level up.`
                     };
                     return message.channel.send({embed:objEmbed});
                 }
 
-                //update the color point
+                //update the color points
                 var parameterSetColorPoint = new Map();
                 parameterSetColorPoint.set(`color_point_${selectedColor}`,-nextColorPoint);
                 await CardModule.updateColorPoint(userId,parameterSetColorPoint);
@@ -903,7 +903,7 @@ module.exports = {
                             inline: true
                         },
                         {
-                            name:`Next ${GlobalFunctions.capitalize(selectedColor)} Color Point:`,
+                            name:`Next ${GlobalFunctions.capitalize(selectedColor)} Color Points:`,
                             value:`${CardModule.getNextColorPoint(colorLevel)}`,
                             inline: true
                         },
@@ -994,13 +994,13 @@ module.exports = {
                 var duplicateCard = await CardModule.checkUserHaveCard(userId,spawnedCardData.id);
                 
                 if(duplicateCard){ //duplicates
-                    pointReward = GlobalFunctions.randomNumber(3,5);//for received random color point
+                    pointReward = GlobalFunctions.randomNumber(3,5);//for received random color points
 
                     objEmbed.thumbnail = {
                         url: CardModule.Properties.imgResponse.imgFailed
                     }
                     objEmbed.description = `:x: The answer was correct! But you already have this card: **${spawnedCardData.id} - ${cardSpawnData[DBM_Card_Data.columns.name]}**. As a bonus you have received **${pointReward} ${spawnedCardData.color}** color points.`;
-                    //update the catch token & color point
+                    //update the catch token & color points
                     await message.channel.send({embed:objEmbed});
                 } else { //not duplicates
                     pointReward = 10;
@@ -1016,7 +1016,7 @@ module.exports = {
                     await message.channel.send({content:msgSend,embed:objEmbed});
                 }
 
-                //update token & color point
+                //update token & color points
                 var objColor = new Map();
                 objColor.set(`color_point_${spawnedCardData.color}`,pointReward);
                 await CardModule.updateCatchAttempt(userId,
@@ -1050,12 +1050,12 @@ module.exports = {
                 break;
             case "respawn":
                 //respawn the question again
-                //check if user have enough color point/not
+                //check if user have enough color points/not
                 var userCardData = await CardModule.getCardUserStatusData(userId);
                 var assignedColor = userCardData[DBM_Card_User_Data.columns.color];
                 var assignedColorPoint = userCardData[`color_point_${assignedColor}`];
 
-                //validator: check if color point is enough/not
+                //validator: check if color points is enough/not
                 var priceRespawn = 20;
                 if(assignedColorPoint<priceRespawn){
                     var objEmbed = {
@@ -1090,7 +1090,7 @@ module.exports = {
                     return message.channel.send({embed:objEmbed});
                 }
 
-                //update the color point
+                //update the color points
                 var parameterSetColorPoint = new Map();
                 parameterSetColorPoint.set(`color_point_${assignedColor}`,-priceRespawn);
                 await CardModule.updateColorPoint(userId,parameterSetColorPoint);
@@ -1099,7 +1099,7 @@ module.exports = {
 
                 if(rndChances>=9){
                     objEmbed.title="Card Respawn Activated!";
-                    objEmbed.description = `<@${userId}> has use the **card spawn** & **${priceRespawn} ${assignedColor} color point**!`;
+                    objEmbed.description = `<@${userId}> has used the **card spawn** & **${priceRespawn} ${assignedColor} color points**!`;
                     message.channel.send({embed:objEmbed});
                     var cardSpawnData = await CardModule.generateCardSpawn(guildId);
                     return message.channel.send({embed:cardSpawnData});
