@@ -1014,6 +1014,7 @@ module.exports = {
                         spawnedCardData.pack,cardSpawnData[DBM_Card_Data.columns.name],cardSpawnData[DBM_Card_Data.columns.img_url],cardSpawnData[DBM_Card_Data.columns.series],cardSpawnData[DBM_Card_Data.columns.rarity],userAvatarUrl,userUsername,currentTotalCard);
                     
                     await message.channel.send({content:msgSend,embed:objEmbed});
+                    await CardModule.removeCardGuildSpawn(guildId); //remove the card spawn
                 }
 
                 //update token & color points
@@ -1038,10 +1039,8 @@ module.exports = {
                 }
 
                 if(embedCompletion!=null){
-                    message.channel.send({embed:embedCompletion});
+                    return message.channel.send({embed:embedCompletion});
                 }
-
-                await CardModule.removeCardGuildSpawn(guildId);
 
                 //generate new card:
                 // var objEmbedNewCard =  await CardModule.generateCardSpawn(guildId,"quiz",false);
@@ -1139,8 +1138,8 @@ module.exports = {
                     "title": `Card Catcher Updates ${CardModule.latestVersion}`,
                     "fields":[
                         { "name": "New Command:","value": "-**p!card spawn**: This command replace the **timer** command and show the current card spawn information." },
-                        { "name": "Updates List & Fixes:","value": "-quiz card bug fix: prevent user from answering the question again if the answer is wrong.\n-number card bug fix & update: if it's same number prevent the  card spawn removal & give another chance to guess the next hidden number again.\n-error embed updates: added username author/header.\n-countdown timer fixes & reset after card has spawned.\n-error message updates for quiz card type.\n-bonus catch attempt calculation updates of color level." },
-                        { "name": "Under testing fixes/known issues:","value": "-Card that are catched at same time/less than 1 second." },
+                        { "name": "Updates List & Fixes:","value": "-**[bug fix]** - quiz card: prevent user from answering the question again if the answer is wrong.\n-**[bug fix]** - quiz card: allow other user to answer the quiz after wrong answer for first attempt.\n-**[bug fix & update]** - number card: if it's same number, prevent the  card spawn removal & give another chance to guess the next hidden number again.\n-error embed updates: added username author/header.\n-countdown timer fixes & reset after card has spawned.\n-error message updates for quiz card type.\n-bonus catch attempt calculation updates of color level." },
+                        { "name": "Under testing fixes/known issues:","value": "-Card that are catched at same time within 1-2 seconds." },
                     ]
                 }})
                   
