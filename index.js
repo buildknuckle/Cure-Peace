@@ -18,7 +18,7 @@ for (const file of commandFiles) {
 	client.commands.set(command.name, command);
 }
 
-client.once('ready', () => {
+/* client.once('ready', () => {
     // //force bot to leave from all of the guild:
     client.guilds.cache.forEach(async guild => {
         var whitelistServerId = 793074374663995412;//DON'T FORGET TO REPLACE THIS ID WITH YOUR SERVER ID. This server ID is just for example
@@ -29,6 +29,7 @@ client.once('ready', () => {
     });
     console.log("All done!");
     return;
+*/
 
     //same like guildAvailable
     client.guilds.cache.forEach(async guild => {
