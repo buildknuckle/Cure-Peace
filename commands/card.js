@@ -92,7 +92,7 @@ module.exports = {
                     },
                     {
                         name: `Blue(CL: ${cardUserStatusData[DBM_Card_User_Data.columns.color_level_blue]}/ CP: ${cardUserStatusData[DBM_Card_User_Data.columns.color_point_blue]}):`,
-                        value: `Karen: ${arrCardTotal.karen}/${CardModule.Properties.dataCardCore.karen.total}\nMiki: ${arrCardTotal.miki}/${CardModule.Properties.dataCardCore.miki.total}\nErika: ${arrCardTotal.erika}/${CardModule.Properties.dataCardCore.erika.total}\nEllen: ${arrCardTotal.ellen}/${CardModule.Properties.dataCardCore.ellen.total}\nReika: ${arrCardTotal.hikaru}/${CardModule.Properties.dataCardCore.reika.total}\nRikka: ${arrCardTotal.rikka}/${CardModule.Properties.dataCardCore.rikka.total}\nHime: ${arrCardTotal.hime}/${CardModule.Properties.dataCardCore.hime.total}\nMinami: ${arrCardTotal.minami}/${CardModule.Properties.dataCardCore.minami.total}\nAoi: ${arrCardTotal.aoi}/${CardModule.Properties.dataCardCore.aoi.total}\nSaaya: ${arrCardTotal.saaya}/${CardModule.Properties.dataCardCore.saaya.total}\nYuni: ${arrCardTotal.yuni}/${CardModule.Properties.dataCardCore.yuni.total}\nChiyu: ${arrCardTotal.chiyu}/${CardModule.Properties.dataCardCore.chiyu.total}`,
+                        value: `Karen: ${arrCardTotal.karen}/${CardModule.Properties.dataCardCore.karen.total}\nMiki: ${arrCardTotal.miki}/${CardModule.Properties.dataCardCore.miki.total}\nErika: ${arrCardTotal.erika}/${CardModule.Properties.dataCardCore.erika.total}\nEllen: ${arrCardTotal.ellen}/${CardModule.Properties.dataCardCore.ellen.total}\nReika: ${arrCardTotal.reika}/${CardModule.Properties.dataCardCore.reika.total}\nRikka: ${arrCardTotal.rikka}/${CardModule.Properties.dataCardCore.rikka.total}\nHime: ${arrCardTotal.hime}/${CardModule.Properties.dataCardCore.hime.total}\nMinami: ${arrCardTotal.minami}/${CardModule.Properties.dataCardCore.minami.total}\nAoi: ${arrCardTotal.aoi}/${CardModule.Properties.dataCardCore.aoi.total}\nSaaya: ${arrCardTotal.saaya}/${CardModule.Properties.dataCardCore.saaya.total}\nYuni: ${arrCardTotal.yuni}/${CardModule.Properties.dataCardCore.yuni.total}\nChiyu: ${arrCardTotal.chiyu}/${CardModule.Properties.dataCardCore.chiyu.total}`,
                         inline: true
                     },
                     {
@@ -1014,6 +1014,7 @@ module.exports = {
                         spawnedCardData.pack,cardSpawnData[DBM_Card_Data.columns.name],cardSpawnData[DBM_Card_Data.columns.img_url],cardSpawnData[DBM_Card_Data.columns.series],cardSpawnData[DBM_Card_Data.columns.rarity],userAvatarUrl,userUsername,currentTotalCard);
                     
                     await message.channel.send({content:msgSend,embed:objEmbed});
+                    await CardModule.removeCardGuildSpawn(guildId); //remove the card spawn
                 }
 
                 //update token & color points
@@ -1038,10 +1039,8 @@ module.exports = {
                 }
 
                 if(embedCompletion!=null){
-                    message.channel.send({embed:embedCompletion});
+                    return message.channel.send({embed:embedCompletion});
                 }
-
-                await CardModule.removeCardGuildSpawn(guildId);
 
                 //generate new card:
                 // var objEmbedNewCard =  await CardModule.generateCardSpawn(guildId,"quiz",false);
@@ -1139,8 +1138,8 @@ module.exports = {
                     "title": `Card Catcher Updates ${CardModule.latestVersion}`,
                     "fields":[
                         { "name": "New Command:","value": "-**p!card spawn**: This command replace the **timer** command and show the current card spawn information." },
-                        { "name": "Updates List & Fixes:","value": "-quiz card bug fix: prevent user from answering the question again if the answer is wrong.\n-number card bug fix & update: if it's same number prevent the  card spawn removal & give another chance to guess the next hidden number again.\n-error embed updates: added username author/header.\n-countdown timer fixes & reset after card has spawned.\n-error message updates for quiz card type.\n-bonus catch attempt calculation updates of color level." },
-                        { "name": "Under testing fixes/known issues:","value": "-Card that are catched at same time/less than 1 second." },
+                        { "name": "Updates List & Fixes:","value": "-**[bug fix]** - quiz card: prevent user from answering the question again if the answer is wrong.\n-**[bug fix]** - quiz card: allow other user to answer the quiz after wrong answer for first attempt.\n-**[bug fix & update]** - number card: if it's same number, prevent the  card spawn removal & give another chance to guess the next hidden number again.\n-**[bug fix]**: Card amount not displayed correctly for **reika**.\n-error embed updates: added username author/header.\n-countdown timer fixes & reset after card has spawned.\n-error message updates for quiz card type.\n-bonus catch attempt calculation updates of color level." },
+                        { "name": "Under testing fixes/known issues:","value": "-Card that are catched at same time within 1-2 seconds." },
                     ]
                 }})
                   

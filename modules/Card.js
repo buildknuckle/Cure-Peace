@@ -8,7 +8,7 @@ const DBM_Card_Inventory = require('../database/model/DBM_Card_Inventory');
 const DBM_Card_Guild = require('../database/model/DBM_Card_Guild');
 const DBM_Card_Leaderboard = require('../database/model/DBM_Card_Leaderboard');
 
-const latestVersion = "1.04";
+const latestVersion = "1.05";
 
 class Properties{
     static embedColor = '#efcc2c';
@@ -1120,7 +1120,7 @@ async function generateCardSpawn(id_guild,specificType=null,overwriteToken = tru
     var parameterSet = new Map();
     parameterSet.set(DBM_Card_Guild.columns.spawn_type,cardSpawnType); //set the spawn type
     if(overwriteToken){
-        parameterSet.set(DBM_Card_Guild.columns.spawn_token,GlobalFunctions.randomNumber(0,1000)); //set & randomize the spawn token
+        parameterSet.set(DBM_Card_Guild.columns.spawn_token,GlobalFunctions.randomNumber(0,100000)); //set & randomize the spawn token
     }
     switch(cardSpawnType) {
         case "color": // color spawn type
