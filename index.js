@@ -19,6 +19,14 @@ for (const file of commandFiles) {
 }
 
 client.once('ready', () => {
+    //force bot to leave from all of the guild:
+    client.guilds.cache.forEach(async guild => {
+        console.log(`Leaving from: ${guild.id} - ${guild.name}`);
+        guild.leave();
+    });
+    console.log("All done!");
+    return;
+
     //same like guildAvailable
     client.guilds.cache.forEach(async guild => {
         console.log(`connected to: ${guild.id} - ${guild.name}`);
