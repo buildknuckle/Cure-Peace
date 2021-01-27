@@ -8,7 +8,7 @@ const DBM_Card_Inventory = require('../database/model/DBM_Card_Inventory');
 const DBM_Card_Guild = require('../database/model/DBM_Card_Guild');
 const DBM_Card_Leaderboard = require('../database/model/DBM_Card_Leaderboard');
 
-const latestVersion = "1.05";
+const latestVersion = "1.06";
 
 class Properties{
     static embedColor = '#efcc2c';
@@ -1102,7 +1102,7 @@ async function generateCardSpawn(id_guild,specificType=null,overwriteToken = tru
     }
 
     //for debugging purpose:
-    // cardSpawnType = "quiz";
+    // cardSpawnType = "number";
 
     var query = "";
     //prepare the embed object
@@ -1126,7 +1126,7 @@ async function generateCardSpawn(id_guild,specificType=null,overwriteToken = tru
         case "color": // color spawn type
             query = `select (select ${DBM_Card_Data.columns.id_card}  
                 from ${DBM_Card_Data.TABLENAME} 
-                where ${DBM_Card_Data.columns.color}=?  
+                where ${DBM_Card_Data.columns.color}=? 
                 order by rand() 
                 limit 1) as id_card_pink,
                 (select ${DBM_Card_Data.columns.id_card}  
