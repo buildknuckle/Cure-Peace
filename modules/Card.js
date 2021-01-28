@@ -8,7 +8,7 @@ const DBM_Card_Inventory = require('../database/model/DBM_Card_Inventory');
 const DBM_Card_Guild = require('../database/model/DBM_Card_Guild');
 const DBM_Card_Leaderboard = require('../database/model/DBM_Card_Leaderboard');
 
-const latestVersion = "1.05";
+const latestVersion = "1.07";
 
 class Properties{
     static embedColor = '#efcc2c';
@@ -1126,7 +1126,7 @@ async function generateCardSpawn(id_guild,specificType=null,overwriteToken = tru
         case "color": // color spawn type
             query = `select (select ${DBM_Card_Data.columns.id_card}  
                 from ${DBM_Card_Data.TABLENAME} 
-                where ${DBM_Card_Data.columns.color}=?  
+                where ${DBM_Card_Data.columns.color}=? 
                 order by rand() 
                 limit 1) as id_card_pink,
                 (select ${DBM_Card_Data.columns.id_card}  
@@ -1185,19 +1185,32 @@ async function generateCardSpawn(id_guild,specificType=null,overwriteToken = tru
             query = `SELECT * 
             FROM ${DBM_Card_Data.TABLENAME} 
             WHERE ${DBM_Card_Data.columns.rarity}<=? AND 
-            ${DBM_Card_Data.columns.color}=?
+            ${DBM_Card_Data.columns.color}=? AND 
+            ${DBM_Card_Data.columns.series}<>? AND 
+            ${DBM_Card_Data.columns.series}<>? 
             ORDER BY RAND() LIMIT 1`;
-            var resultData = await DBConn.conn.promise().query(query,[4,selectedColor]);
+            var resultData = await DBConn.conn.promise().query(query,[4,selectedColor,"yes! precure 5 gogo!","healin' good"]);
             parameterSet.set(DBM_Card_Guild.columns.spawn_id,resultData[0][0][DBM_Card_Data.columns.id_card]);
-
-            objEmbed.author = {
-                name:`Number Card: ${selectedColor.charAt(0).toUpperCase()+selectedColor.slice(1)} Edition`
+            if(cardSpawnType=="number"){
+                objEmbed.author = {
+                    name:`Number Card: ${GlobalFunctions.capitalize(selectedColor)} Edition`
+                }
+                objEmbed.title = ":game_die: It's Lucky Numbers Time!";
+                objEmbed.description = `Guess whether the next hidden number**(1-12)** will be **lower** or **higher** than the current number: **${rndNumber}** with: **p!card guess <lower/higher>**`;
+                objEmbed.image = {
+                    url:Properties.dataColorCore[selectedColor].imgMysteryUrl
+                }
+            } else {
+                objEmbed.author = {
+                    name:`Invert Number Card: ${GlobalFunctions.capitalize(selectedColor)} Edition`
+                }
+                objEmbed.title = "↕️ It's Invert Numbers Time!";
+                objEmbed.description = `Guess whether the next current number**(1-12)** will be the inverted results of **lower** or **higher** than the next hidden number: **${rndNumber}** with: **p!card guess <lower/higher>**`;
+                objEmbed.image ={
+                    url:Properties.dataColorCore[selectedColor].imgMysteryUrl
+                }
             }
-            objEmbed.title = ":game_die: It's Lucky Numbers Time!";
-            objEmbed.description = `Guess whether the next hidden number**(1-12)** will be **lower** or **higher** than the current number: **${rndNumber}** with: **p!card guess <lower/higher>**`;
-            objEmbed.image ={
-                url:Properties.dataColorCore[selectedColor].imgMysteryUrl
-            }
+            
             objEmbed.footer = {
                 text:`⭐ Rarity: 1-4 | ⏫ Catch Rate: 100%`
             }
@@ -1207,10 +1220,12 @@ async function generateCardSpawn(id_guild,specificType=null,overwriteToken = tru
         case "quiz":
             var query = `SELECT * 
             FROM ${DBM_Card_Data.TABLENAME} 
-            WHERE ${DBM_Card_Data.columns.rarity}<=? 
+            WHERE ${DBM_Card_Data.columns.rarity}<=? AND 
+            ${DBM_Card_Data.columns.series}<>? AND 
+            ${DBM_Card_Data.columns.series}<>? 
             ORDER BY rand() 
             LIMIT 1`;
-            var resultData = await DBConn.conn.promise().query(query,[4]);
+            var resultData = await DBConn.conn.promise().query(query,[4,"yes! precure 5 gogo!","healin' good"]);
             var cardSpawnId = resultData[0][0][DBM_Card_Data.columns.id_card];
             var cardSpawnColor = resultData[0][0][DBM_Card_Data.columns.color];
             var cardSpawnSeries = resultData[0][0][DBM_Card_Data.columns.series];
@@ -1269,9 +1284,11 @@ async function generateCardSpawn(id_guild,specificType=null,overwriteToken = tru
         default: // normal spawn type
             //get the card id
             query = `SELECT * 
-            FROM ${DBM_Card_Data.TABLENAME}  
+            FROM ${DBM_Card_Data.TABLENAME} 
+            WHERE ${DBM_Card_Data.columns.series}<>? AND 
+            ${DBM_Card_Data.columns.series}<>? 
             ORDER BY RAND() LIMIT 1`;
-            var resultData = await DBConn.conn.promise().query(query);
+            var resultData = await DBConn.conn.promise().query(query,["yes! precure 5 gogo!","healin' good"]);
             var cardSpawnId = resultData[0][0][DBM_Card_Data.columns.id_card];
             var cardSpawnSeries = resultData[0][0][DBM_Card_Data.columns.series];
             var cardSpawnPack = resultData[0][0][DBM_Card_Data.columns.pack];

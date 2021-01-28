@@ -342,7 +342,7 @@ module.exports = {
                     objEmbed.thumbnail = {
                         url: CardModule.Properties.imgResponse.imgError
                     }
-                    objEmbed.description = `:x: Sorry, you already have this card: **${spawnedCardData.id} - ${cardSpawnData[DBM_Card_Data.columns.name]}**. As a bonus you have received **${randomPoint} ${cardSpawnData[DBM_Card_Data.columns.color]}** color points.`;
+                    objEmbed.description = `:x: Sorry, you already have this card: **${spawnedCardData.id} - ${cardSpawnData[DBM_Card_Data.columns.name]}**. As a bonus you have received **${randomPoint} ${spawnedCardData.color}** color points.`;
                     //update the catch token & color points
                     var objColor = new Map();
                     objColor.set(`color_point_${spawnedCardData.color}`,randomPoint);
@@ -444,7 +444,7 @@ module.exports = {
                             break;
                     }
 
-                    message.channel.send({
+                    await message.channel.send({
                         content:`Nice catch! **${userUsername}** has captured: **${cardSpawnData[DBM_Card_Data.columns.name]}** & received **${cpReward} ${spawnedCardData.color}** color points.`,
                         embed:objEmbed
                     });
@@ -643,13 +643,11 @@ module.exports = {
                         return message.channel.send({embed:objEmbed});
                     } else { //if card is not duplicates
                         pointReward = 5;
-                        msgSend = `:white_check_mark: Current number was: **${currentNumber}** and the next hidden number was **${nextNumber}**. Your guess was: **${guess}** and you guessed it correctly!`;
-
                         //insert new card
                         await CardModule.addNewCardInventory(userId,spawnedCardData.id);
                         var currentTotalCard = await CardModule.getUserTotalCard(userId,cardSpawnData[DBM_Card_Data.columns.pack]);//get the current card total
 
-                        msgSend += ` **${userUsername}** has received: **${cardSpawnData[DBM_Card_Data.columns.name]}** & ${pointReward} **${spawnedCardData.color}** color points.`;
+                        msgSend = `:white_check_mark: Current number was: **${currentNumber}** and the next hidden number was **${nextNumber}**. Your guess was: **${guess}** and you guessed it correctly! **${userUsername}** has received: **${cardSpawnData[DBM_Card_Data.columns.name]}** & ${pointReward} **${spawnedCardData.color}** color points.`;
                         var objEmbed = CardModule.embedCardCapture(spawnedCardData.color,spawnedCardData.id,
                             cardSpawnData[DBM_Card_Data.columns.pack],cardSpawnData[DBM_Card_Data.columns.name],cardSpawnData[DBM_Card_Data.columns.img_url],cardSpawnData[DBM_Card_Data.columns.series],cardSpawnData[DBM_Card_Data.columns.rarity],userAvatarUrl,userUsername,currentTotalCard);
                         message.channel.send({content:msgSend,embed:objEmbed});
@@ -672,6 +670,14 @@ module.exports = {
                         message.channel.send({embed:embedCompletion});
                     }
 
+                    //update the token & color points
+                    var objColor = new Map();
+                    objColor.set(`color_point_${spawnedCardData.color}`,pointReward);
+                    await CardModule.updateCatchAttempt(userId,
+                        spawnedCardData.token,
+                        objColor
+                    );  
+
                 } else { //guessed the wrong hidden number
                     objEmbed.thumbnail = {
                         url: CardModule.Properties.imgResponse.imgFailed
@@ -688,15 +694,6 @@ module.exports = {
                     );
                     return message.channel.send({embed:objEmbed});
                 }
-
-                //update the information
-                var objColor = new Map();
-                objColor.set(`color_point_${spawnedCardData.color}`,pointReward);
-                await CardModule.updateCatchAttempt(userId,
-                    spawnedCardData.token,
-                    objColor
-                );
-                await CardModule.updateColorPoint(userId,objColor);
 
                 //generate new card:
                 // var objEmbedNewCard =  await CardModule.generateCardSpawn(guildId,"number",false);
@@ -999,6 +996,10 @@ module.exports = {
                     objEmbed.thumbnail = {
                         url: CardModule.Properties.imgResponse.imgFailed
                     }
+                    objEmbed.author = {
+                        iconURL: userAvatarUrl,
+                        name: userUsername
+                    }
                     objEmbed.description = `:x: The answer was correct! But you already have this card: **${spawnedCardData.id} - ${cardSpawnData[DBM_Card_Data.columns.name]}**. As a bonus you have received **${pointReward} ${spawnedCardData.color}** color points.`;
                     //update the catch token & color points
                     await message.channel.send({embed:objEmbed});
@@ -1137,9 +1138,8 @@ module.exports = {
                     "color": CardModule.Properties.embedColor,
                     "title": `Card Catcher Updates ${CardModule.latestVersion}`,
                     "fields":[
-                        { "name": "New Command:","value": "-**p!card spawn**: This command replace the **timer** command and show the current card spawn information." },
-                        { "name": "Updates List & Fixes:","value": "-**[bug fix]** - quiz card: prevent user from answering the question again if the answer is wrong.\n-**[bug fix]** - quiz card: allow other user to answer the quiz after wrong answer for first attempt.\n-**[bug fix & update]** - number card: if it's same number, prevent the  card spawn removal & give another chance to guess the next hidden number again.\n-**[bug fix]**: Card amount not displayed correctly for **reika**.\n-error embed updates: added username author/header.\n-countdown timer fixes & reset after card has spawned.\n-error message updates for quiz card type.\n-bonus catch attempt calculation updates of color level." },
-                        { "name": "Under testing fixes/known issues:","value": "-Card that are catched at same time within 1-2 seconds." },
+                        { "name": "Update List:","value": "-**[Bug fix] - Number Card**: fixed the double point reward if it's guessed correctly." },
+                        { "name": "Announcement:","value": "Due to the known color point bug, the color point rewards will be updated shortly and  this process will takes a while to be completed." }
                     ]
                 }})
                   
