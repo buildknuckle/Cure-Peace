@@ -1138,7 +1138,8 @@ module.exports = {
                     "color": CardModule.Properties.embedColor,
                     "title": `Card Catcher Updates ${CardModule.latestVersion}`,
                     "fields":[
-                        { "name": "Update List:","value": "-**[Bug fix] - Number Card**: fixed the double point reward if it's guessed correctly." }
+                        { "name": "Update List:","value": "-**[Bug fix] - Number Card**: fixed the double point reward if it's guessed correctly." },
+                        { "name": "Announcement:","value": "Due to the known color point bug, the color point rewards will be updated shortly and  this process will takes a while to be completed." }
                     ]
                 }})
                   
