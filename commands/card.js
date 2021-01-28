@@ -342,6 +342,10 @@ module.exports = {
                     objEmbed.thumbnail = {
                         url: CardModule.Properties.imgResponse.imgError
                     }
+                    objEmbed.author = {
+                        name:userUsername,
+                        iconURL:userAvatarUrl
+                    }
                     objEmbed.description = `:x: Sorry, you already have this card: **${spawnedCardData.id} - ${cardSpawnData[DBM_Card_Data.columns.name]}**. As a bonus you have received **${randomPoint} ${spawnedCardData.color}** color points.`;
                     //update the catch token & color points
                     var objColor = new Map();
@@ -630,6 +634,10 @@ module.exports = {
 
                         objEmbed.thumbnail = {
                             url: CardModule.Properties.imgResponse.imgFailed
+                        }
+                        objEmbed.author = {
+                            iconURL:userAvatarUrl,
+                            name:userUsername
                         }
                         objEmbed.description = `:x: Current number was: **${currentNumber}** and the next hidden number was **${nextNumber}**. Your guess was: **${guess}** and you guessed it correctly! Sorry, you already have this card: **${spawnedCardData.id} - ${cardSpawnData[DBM_Card_Data.columns.name]}**. As a bonus you have received **${randomPoint} ${spawnedCardData.color}** color points.`;
                         //update the catch token & color point
