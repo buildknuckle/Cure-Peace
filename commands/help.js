@@ -25,6 +25,10 @@ module.exports = {
                 "name": "Cure Peace's Jankenpon",
                 "value": "`leaderboard`, `myscore`, `peacescore`, `view`, `jankenpon <rock/paper/scissors>`" 
               },
+              {
+                "name": "Anilist",
+                "value": "`search <anime title>`, `whois/profile <character name>`" 
+              },
             ]
           }
         message.channel.send({embed:objEmbed})

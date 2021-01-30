@@ -8,7 +8,7 @@ const DBM_Card_Inventory = require('../database/model/DBM_Card_Inventory');
 const DBM_Card_Guild = require('../database/model/DBM_Card_Guild');
 const DBM_Card_Leaderboard = require('../database/model/DBM_Card_Leaderboard');
 
-const latestVersion = "1.07";
+const latestVersion = "1.08";
 
 class Properties{
     static embedColor = '#efcc2c';
@@ -1102,7 +1102,7 @@ async function generateCardSpawn(id_guild,specificType=null,overwriteToken = tru
     }
 
     //for debugging purpose:
-    // cardSpawnType = "quiz";
+    // cardSpawnType = "color";
 
     var query = "";
     //prepare the embed object
