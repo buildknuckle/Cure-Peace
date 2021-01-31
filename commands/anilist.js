@@ -218,7 +218,7 @@ module.exports = {
                             name: `${dt.data.Character.name.full} (${dt.data.Character.name.native})`,
                             url: dt.data.Character.siteUrl
                         }
-                        objEmbed.image = {
+                        objEmbed.thumbnail = {
                             url: dt.data.Character.image.large
                         }
                         var appearances = "";
