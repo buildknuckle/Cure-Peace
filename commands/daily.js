@@ -67,29 +67,29 @@ module.exports = {
         };
 
         var query = "";
-        var colorPoint = (Math.floor(Math.random() * 20) + 5);
+        var colorPoint = GlobalFunctions.randomNumber(5,20);
         var arrParameterized = [];
         if(optionalColor!=null){
             //double the color point
-            colorPoint*=2; 
+            colorPoint*=2;
             query = `UPDATE ${DBM_Card_User_Data.TABLENAME} 
-            SET ${DBM_Card_User_Data.columns.daily_last} = ?, color_point_${optionalColor} = ?
+            SET ${DBM_Card_User_Data.columns.daily_last} = ?, color_point_${optionalColor} = color_point_${optionalColor} + ?
             WHERE ${DBM_Card_User_Data.columns.id_user}=?`;
             arrParameterized = [dateToken,colorPoint,userId];
             objEmbed.description = `<@${userId}> have received ** ${colorPoint} ${optionalColor} color point ** from the daily command.`;
         } else {
             query = `UPDATE ${DBM_Card_User_Data.TABLENAME} 
             SET ${DBM_Card_User_Data.columns.daily_last} = ?, 
+            ${DBM_Card_User_Data.columns.color_point_pink} = ${DBM_Card_User_Data.columns.color_point_pink}+${colorPoint}, 
             ${DBM_Card_User_Data.columns.color_point_blue} = ${DBM_Card_User_Data.columns.color_point_blue}+${colorPoint}, 
             ${DBM_Card_User_Data.columns.color_point_green} = ${DBM_Card_User_Data.columns.color_point_green}+${colorPoint}, 
-            ${DBM_Card_User_Data.columns.color_point_pink} = ${DBM_Card_User_Data.columns.color_point_pink}+${colorPoint}, 
             ${DBM_Card_User_Data.columns.color_point_purple} = ${DBM_Card_User_Data.columns.color_point_purple}+${colorPoint}, 
             ${DBM_Card_User_Data.columns.color_point_red} = ${DBM_Card_User_Data.columns.color_point_red}+${colorPoint}, 
             ${DBM_Card_User_Data.columns.color_point_white} = ${DBM_Card_User_Data.columns.color_point_white}+${colorPoint}, 
             ${DBM_Card_User_Data.columns.color_point_yellow} = ${DBM_Card_User_Data.columns.color_point_yellow}+${colorPoint} 
             WHERE ${DBM_Card_User_Data.columns.id_user}=?`;
             arrParameterized = [dateToken,userId];
-            objEmbed.description = `<@${userId}> have received ** ${colorPoint} overall color point ** from the daily command.`;
+            objEmbed.description = `<@${userId}> have received **${colorPoint} overall color point** from the daily command.`;
         }
 
         //update the token & color point data

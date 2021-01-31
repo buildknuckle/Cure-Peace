@@ -9,6 +9,7 @@ const client = new Discord.Client();
 client.commands = new Discord.Collection();
 
 const cooldowns = new Discord.Collection();
+var cooldown = false;
 
 const commandFiles = fs.readdirSync('./commands').filter(file => file.endsWith('.js'));
 var peacestats = JSON.parse(fs.readFileSync('storage/peacestats.json', 'utf8'));
@@ -19,6 +20,18 @@ for (const file of commandFiles) {
 }
 
 client.once('ready', () => {
+    // //force bot to leave from all of the guild:
+   /* client.guilds.cache.forEach(async guild => {
+        var whitelistServerId = 793074374663995412;//DON'T FORGET TO REPLACE THIS ID WITH YOUR SERVER ID. This server ID is just for example
+        if(guild.id!=whitelistServerId){
+            console.log(`Leaving from: ${guild.id} - ${guild.name}`);
+            guild.leave();
+        }
+    });
+    console.log("All done!");
+    return;
+*/
+
     //same like guildAvailable
     client.guilds.cache.forEach(async guild => {
         console.log(`connected to: ${guild.id} - ${guild.name}`);
@@ -46,10 +59,15 @@ client.once('ready', () => {
                         }
                     }
 
-                    guild.channels.cache.find(ch => ch.id === cardGuildData[DBM_Card_Guild.columns.id_channel_spawn])
+                    var msgObject = await guild.channels.cache.find(ch => ch.id === cardGuildData[DBM_Card_Guild.columns.id_channel_spawn])
                     .send(finalSend);
+                    //update the last message id
+                    await CardModules.updateMessageIdSpawn(guild.id,msgObject.id);
+
                 }, parseInt(cardGuildData[DBM_Card_Guild.columns.spawn_interval])*60*1000);
             }
+            //update the time remaining information:
+            await CardGuildModules.updateTimerRemaining(guild.id);
         }
         
     });
@@ -72,7 +90,7 @@ client.once('ready', () => {
     console.log('Cure Peace Ready!');
 });
 
-client.on('message', message => {
+client.on('message', async message => {
     if (!message.content.startsWith(prefix) || message.author.bot) return;
 
     const args = message.content.slice(prefix.length).trim().split(/ +/);
@@ -86,7 +104,11 @@ client.on('message', message => {
     }
 
     try {
-        command.execute(message, args);
+        if(!cooldown){
+            cooldown = true;
+            await command.execute(message, args);
+            cooldown = false
+        }
     } catch (error) {
         console.error(error);
         message.reply("I'm having trouble doing what you're asking me to do, help!");

@@ -1,11 +1,14 @@
 const DB = require('../database/DatabaseCore');
 const DBConn = require('../storage/dbconn');
 const GlobalFunctions = require('../modules/GlobalFunctions.js');
+const CardGuildModules = require('../modules/CardGuild');
 const DBM_Card_Data = require('../database/model/DBM_Card_Data');
 const DBM_Card_User_Data = require('../database/model/DBM_Card_User_Data');
 const DBM_Card_Inventory = require('../database/model/DBM_Card_Inventory');
 const DBM_Card_Guild = require('../database/model/DBM_Card_Guild');
 const DBM_Card_Leaderboard = require('../database/model/DBM_Card_Leaderboard');
+
+const latestVersion = "1.08";
 
 class Properties{
     static embedColor = '#efcc2c';
@@ -21,9 +24,9 @@ class Properties{
     ];
 
     static imgResponse = {
-        imgOk: "https://cdn.discordapp.com/attachments/793415946738860072/797862343983497216/unknown.png",
-        imgError: "https://cdn.discordapp.com/attachments/793415946738860072/797861955033366568/EfmTXAAWAAAbdRA.png",
-        imgFailed: "https://cdn.discordapp.com/attachments/793415946738860072/797862111484182562/10225867f8a7c5accdde3e78181faca547530a28.png"
+        imgOk: "https://waa.ai/JEwn.png",
+        imgError: "https://waa.ai/JEw5.png",
+        imgFailed: "https://waa.ai/JEwr.png"
     }
 
     //contains the data structure for card spawn
@@ -36,7 +39,7 @@ class Properties{
             answer:"answer",
             id_card:"id_card",
             //for the embed image
-            embed_img:"https://cdn.discordapp.com/attachments/793415946738860072/798179736475926528/mystery_card_animate.gif"
+            embed_img:"https://waa.ai/JEyE.png"
         },
         color:{
             //for column structure:
@@ -48,495 +51,495 @@ class Properties{
             blue:"blue",
             red:"red",
             //for the embed image
-            embed_img:"https://cdn.discordapp.com/attachments/793415946738860072/798179736475926528/mystery_card_animate.gif"
+            embed_img:"https://waa.ai/JEyE.png"
         }
     }
     
     //contain basic information of the color
     static arrColor = ["pink","purple","green","yellow","white","blue","red"];
-
     static dataColorCore = {
         pink:{
-            imgMysteryUrl:"https://cdn.discordapp.com/attachments/793415946738860072/798116047575842846/mystery_pink.jpg",
+            imgMysteryUrl:"https://waa.ai/JEyE.png",
             color:"#FEA1E6",
             total:194
         },
         purple:{
-            imgMysteryUrl:"https://cdn.discordapp.com/attachments/793415946738860072/798116058485227520/mystery_purple.jpg",
+            imgMysteryUrl:"https://waa.ai/JEyE.png",
             color:"#897CFE",
             total:102
         },
         green:{
-            imgMysteryUrl:"https://cdn.discordapp.com/attachments/793415946738860072/798116027358773258/mystery_green.jpg",
+            imgMysteryUrl:"https://waa.ai/JEyE.png",
             color:"#7CF885",
             total:62
         },
         yellow:{
-            imgMysteryUrl:"https://cdn.discordapp.com/attachments/793415946738860072/798116089950502942/mystery_yellow.jpg",
+            imgMysteryUrl:"https://waa.ai/JEyE.png",
             color:"#FDF13B",
             total:152
         },
         white:{
-            imgMysteryUrl:"https://cdn.discordapp.com/attachments/793415946738860072/798116077112393738/mystery_white.jpg",
+            imgMysteryUrl:"https://waa.ai/JEyE.png",
             color:"#FFFFEA",
             total:39
         },
         blue:{
-            imgMysteryUrl:"https://cdn.discordapp.com/attachments/793415946738860072/798116003649159219/mystery_blue.jpg",
+            imgMysteryUrl:"https://waa.ai/JEyE.png",
             color:"#7FC7FF",
             total:136
         },
         red:{
-            imgMysteryUrl:"https://cdn.discordapp.com/attachments/793415946738860072/798116067250536458/mystery_red.jpg",
+            imgMysteryUrl:"https://waa.ai/JEyE.png",
             color:"#FF9389",
             total:87
         },
         all:{
-            imgMysteryUrl:"https://cdn.discordapp.com/attachments/793415946738860072/798179736475926528/mystery_card_animate.gif"
+            imgMysteryUrl:"https://waa.ai/JEyE.png"
         }
     };
     
     //the constant of all available/required card
+    //the constant of all available/required card
     static dataCardCore = {
         nagisa:{
             total:16,
-            icon:"https://cdn.discordapp.com/attachments/793415946738860072/797863794470027294/unknown.png",
+            icon:"https://waa.ai/JEVB.png",
             color:"pink",
-            fullname:"Misumi Nagisa",
+            fullname:"Nagisa Misumi",
             alter_ego:"Cure Black"
         },
         saki:{
             total:12,
-            icon:"https://cdn.discordapp.com/attachments/793415946738860072/797863605470888007/unknown.png",
+            icon:"https://waa.ai/JEVI.png",
             color:"pink",
-            fullname:"Hyuuga Saki",
-            alter_ego:"Cure Bright"
+            fullname:"Saki Hyuuga",
+            alter_ego:"Cure Bloom"
         },
         nozomi:{
             total:11,
-            icon:"https://cdn.discordapp.com/attachments/793415946738860072/797864034095202334/unknown.png",
+            icon:"https://waa.ai/JEV8.png",
             color:"pink",
             fullname:"Yumehara Nozomi",
             alter_ego:"Cure Dream"
         },
         love:{
             total:11,
-            icon:"https://cdn.discordapp.com/attachments/793415946738860072/797864276218871828/unknown.png",
+            icon:"https://waa.ai/JEVW.png",
             color:"pink",
-            fullname:"Momozono Love",
+            fullname:"Love Momozono",
             alter_ego:"Cure Peach"
         },
         tsubomi:{
             total:13,
-            icon:"https://cdn.discordapp.com/attachments/793415946738860072/797864461200916480/unknown.png",
+            icon:"https://waa.ai/JEVD.png",
             color:"pink",
-            fullname: "Hanasaki Tsubomi",
+            fullname: "Tsubomi Hanasaki",
             alter_ego:"Cure Blossom"
         },
         hibiki:{
             total:12,
-            icon:"https://cdn.discordapp.com/attachments/793415946738860072/797864677190402108/unknown.png",
+            icon:"https://waa.ai/JEVd.png",
             color:"pink",
-            fullname: "Hojo Hibiki",
+            fullname: "Hibiki Hojo",
             alter_ego:"Cure Melody"
         },
         miyuki:{
             total:13,
-            icon:"https://cdn.discordapp.com/attachments/793415946738860072/797864868480024596/unknown.png",
+            icon:"https://waa.ai/JEVM.png",
             color:"pink",
-            fullname: "Hoshizora Miyuki",
+            fullname: "Miyuki Hoshizora",
             alter_ego:"Cure Happy"
         },
         mana:{
             total:12,
-            icon:"https://cdn.discordapp.com/attachments/793415946738860072/797864989615849492/unknown.png",
+            icon:"https://waa.ai/JEV6.png",
             color:"pink",
-            fullname: "Aida Mana",
+            fullname: "Mana Aida",
             alter_ego:"Cure Heart"
         },
         megumi:{
             total:10,
-            icon:"https://cdn.discordapp.com/attachments/793415946738860072/797865131652022293/unknown.png",
+            icon:"https://waa.ai/JEVg.png",
             color:"pink",
-            fullname: "Aino Megumi",
+            fullname: "Megumi Aino",
             alter_ego:"Cure Lovely"
         },
         haruka:{
             total:16,
-            icon:"https://cdn.discordapp.com/attachments/793415946738860072/797865276615819284/unknown.png",
+            icon:"https://waa.ai/JEVN.png",
             color:"pink",
-            fullname: "Haruno Haruka",
+            fullname: "Haruka Haruno",
             alter_ego:"Cure Flora"
         },
         mirai:{
             total:16,
-            icon:"https://cdn.discordapp.com/attachments/793415946738860072/797865411777396736/unknown.png",
+            icon:"https://waa.ai/JEVh.png",
             color:"pink",
-            fullname:"Asahina Mirai",
+            fullname:"Mirai Asahina",
             alter_ego:"Cure Miracle"
         },
         ichika:{
             total:18,
-            icon:"https://cdn.discordapp.com/attachments/793415946738860072/797865571593093120/unknown.png",
+            icon:"https://waa.ai/JEVP.png",
             color:"pink",
-            fullname:"Usami Ichika",
+            fullname:"Ichika Usami",
             alter_ego:"Cure Whip"
         },
         hana:{
             total:16,
-            icon:"https://cdn.discordapp.com/attachments/793415946738860072/797865745811636284/unknown.png",
+            icon:"https://waa.ai/JEVp.png",
             color:"pink",
-            fullname: "Nono Hana",
+            fullname: "Hana Nono",
             alter_ego:"Cure Yell"
         },
         hikaru:{
             total:13,
-            icon:"https://cdn.discordapp.com/attachments/793415946738860072/797865902783725568/unknown.png",
+            icon:"https://waa.ai/JEV7.png",
             color:"pink",
-            fullname: "Hoshina Hikaru",
+            fullname: "Hikaru Hoshina",
             alter_ego:"Cure Star"
         },
         nodoka:{
             total:5,
-            icon:"https://cdn.discordapp.com/attachments/793415946738860072/797866132206911528/unknown.png",
+            icon:"https://waa.ai/JEVL.png",
             color:"pink",
-            fullname: "Hanadera Nodoka",
+            fullname: "Nodoka Hanadera",
             alter_ego:"Cure Grace"
         },
         karen:{
             total:12,
-            icon:"https://cdn.discordapp.com/attachments/793415946738860072/797866307264839690/unknown.png",
+            icon:"https://waa.ai/JEV5.png",
             color:"blue",
-            fullname: "Minazuki Karen",
+            fullname: "Karen Minazuki",
             alter_ego:"Cure Aqua"
         },
         miki:{
             total:10,
-            icon:"https://cdn.discordapp.com/attachments/793415946738860072/797866496171835432/unknown.png",
+            icon:"https://waa.ai/JEVn.png",
             color:"blue",
-            fullname: "Aono Miki",
+            fullname: "Miki Aono",
             alter_ego:"Cure Berry"
         },
         erika:{
             total:13,
-            icon:"https://cdn.discordapp.com/attachments/793415946738860072/797866948116348968/unknown.png",
+            icon:"https://waa.ai/JEwE.png",
             color:"blue",
-            fullname:"Kurumi Erika",
+            fullname:"Erika Kurumi",
             alter_ego:"Cure Marine"
         },
         ellen:{
             total:12,
-            icon:"https://cdn.discordapp.com/attachments/793415946738860072/797867854866939905/unknown.png",
+            icon:"https://waa.ai/JEw4.png",
             color:"blue",
-            fullname:"Kurokawa Ellen",
+            fullname:"Ellen Kurokawa",
             alter_ego:"Cure Beat"
         },
         reika:{
             total:12,
-            icon:"https://cdn.discordapp.com/attachments/793415946738860072/797868039810973796/unknown.png",
+            icon:"https://waa.ai/JEwk.png",
             color:"blue",
-            fullname: "Aoki Reika",
+            fullname: "Reika Aoki",
             alter_ego:"Cure Beauty"
         },
         rikka:{
             total:11,
-            icon:"https://cdn.discordapp.com/attachments/793415946738860072/797868236036767804/unknown.png",
+            icon:"https://waa.ai/JEwz.png",
             color:"blue",
-            fullname:"Hishikawa Rikka",
+            fullname:"Rikka Hishikawa",
             alter_ego:"Cure Diamond"
         },
         hime:{
             total:11,
-            icon:"https://cdn.discordapp.com/attachments/793415946738860072/797868477422895144/unknown.png",
+            icon:"https://waa.ai/JEwo.png",
             color:"blue",
-            fullname:"Shirayuki Hime",
+            fullname:"Hime Shirayuki",
             alter_ego:"Cure Princess"
         },
         minami:{
             total:14,
-            icon:"https://cdn.discordapp.com/attachments/793415946738860072/797868678141050880/unknown.png",
+            icon:"https://waa.ai/JEwX.png",
             color:"blue",
-            fullname:"Kaido Minami",
+            fullname:"Minami Kaidou",
             alter_ego:"Cure Mermaid"
         },
         aoi:{
             total:14,
-            icon:"https://cdn.discordapp.com/attachments/793415946738860072/797868885595783178/unknown.png",
+            icon:"https://waa.ai/JEw3.png",
             color:"blue",
-            fullname:"Tategami Aoi",
+            fullname:"Aoi Tategami",
             alter_ego:"Cure Gelato"
         },
         saaya:{
             total:14,
-            icon:"https://cdn.discordapp.com/attachments/793415946738860072/797869049916031016/unknown.png",
+            icon:"https://waa.ai/JEwO.png",
             color:"blue",
-            fullname: "Yakushiji Saaya",
+            fullname: "Saaya Yakushiji",
             alter_ego:"Cure Ange"
         },
         yuni:{
             total:8,
-            icon:"https://cdn.discordapp.com/attachments/793415946738860072/797869194690953226/unknown.png",
+            icon:"https://waa.ai/JEwT.png",
             color:"blue",
             fullname:"Yuni",
             alter_ego:"Cure Cosmo"
         },
         chiyu:{
             total:5,
-            icon:"https://cdn.discordapp.com/attachments/793415946738860072/797869330799919205/unknown.png",
+            icon:"https://waa.ai/JEwe.png",
             color:"blue",
-            fullname:"Sawaizumi Chiyu",
+            fullname:"Chiyu Sawaizumi",
             alter_ego:"Cure Fontaine"
         },
         hikari:{
             total:14,
-            icon:"https://cdn.discordapp.com/attachments/793415946738860072/797869947023130634/unknown.png",
+            icon:"https://waa.ai/JEwu.png",
             color:"yellow",
-            fullname:"Kujou Hikari",
+            fullname:"Hikari Kujou",
             alter_ego:"Shiny Luminous"
         },
         urara:{
             total:11,
-            icon:"https://cdn.discordapp.com/attachments/793415946738860072/797870146756542494/unknown.png",
+            icon:"https://waa.ai/JEwt.png",
             color:"yellow",
-            fullname:"Kasugano Urara",
+            fullname:"Urara Kasugano",
             alter_ego:"Cure Lemonade"
         },
         inori:{
             total:10,
-            icon:"https://cdn.discordapp.com/attachments/793415946738860072/797870295964450846/unknown.png",
+            icon:"https://waa.ai/JEwJ.png",
             color:"yellow",
-            fullname:"Yamabuki Inori",
+            fullname:"Inori Yamabuki",
             alter_ego:"Cure Pine"
         },
         itsuki:{
             total:12,
-            icon:"https://cdn.discordapp.com/attachments/793415946738860072/797870479209267230/unknown.png",
+            icon:"https://waa.ai/JEwm.png",
             color:"yellow",
-            fullname:"Myoudouin Itsuki",
+            fullname:"Itsuki Myoudouin",
             alter_ego:"Cure Sunshine"
         },
         ako:{
             total:11,
-            icon:"https://cdn.discordapp.com/attachments/793415946738860072/797873360632807455/unknown.png",
+            icon:"https://waa.ai/JEwx.png",
             color:"yellow",
-            fullname:"Shirabe Ako",
+            fullname:"Ako Shirabe",
             alter_ego:"Cure Muse"
         },
         yayoi:{
             total:11,
-            icon:"https://cdn.discordapp.com/attachments/793415946738860072/797873533002317844/unknown.png",
+            icon:"https://waa.ai/JEwq.png",
             color:"yellow",
-            fullname:"Kise Yayoi",
+            fullname:"Yayoi Kise",
             alter_ego:"Cure Peace"
         },
         alice:{
             total:10,
-            icon:"https://cdn.discordapp.com/attachments/793415946738860072/797873685800681492/unknown.png",
+            icon:"https://waa.ai/JEwl.png",
             color:"yellow",
-            fullname:"Yotsuba Alice",
+            fullname:"Alice Yotsuba",
             alter_ego:"Cure Rosetta"
         },
         yuko:{
             total:12,
-            icon:"https://cdn.discordapp.com/attachments/793415946738860072/797873891359719434/unknown.png",
+            icon:"https://waa.ai/JEwF.png",
             color:"yellow",
-            fullname:"Omori Yuko",
+            fullname:"Yuuko Omori",
             alter_ego:"Cure Honey"
         },
         kirara:{
             total:16,
-            icon:"https://cdn.discordapp.com/attachments/793415946738860072/797874089334276156/unknown.png",
+            icon:"https://waa.ai/JEw0.png",
             color:"yellow",
-            fullname:"Amanogawa Kirara",
+            fullname:"Kirara Amanogawa",
             alter_ego:"Cure Twinkle"
         },
         himari:{
             total:15,
-            icon:"https://cdn.discordapp.com/attachments/793415946738860072/797875600341598228/unknown.png",
+            icon:"https://waa.ai/JEw9.png",
             color:"yellow",
-            fullname:"Arisugawa Himari",
+            fullname:"Himari Arisugawa",
             alter_ego:"Cure Custard"
         },
         homare:{
             total:14,
-            icon:"https://cdn.discordapp.com/attachments/793415946738860072/797875742750146570/unknown.png",
+            icon:"https://waa.ai/JEwS.png",
             color:"yellow",
-            fullname:"Kagayaki Homare",
+            fullname:"Homare Kagayaki",
             alter_ego:"Cure Etoile"
         },
         elena:{
             total:11,
-            icon:"https://cdn.discordapp.com/attachments/793415946738860072/797875900107456512/unknown.png",
+            icon:"https://waa.ai/JEws.png",
             color:"yellow",
-            fullname:"Amamiya Elena",
+            fullname:"Elena Amamiya",
             alter_ego:"Cure Soleil"
         },
         hinata:{
             total:5,
-            icon:"https://cdn.discordapp.com/attachments/793415946738860072/797876042042834994/unknown.png",
+            icon:"https://waa.ai/JEwC.png",
             color:"yellow",
-            fullname:"Hiramitsu Hinata",
+            fullname:"Hinata Hiramitsu",
             alter_ego:"Cure Sparkle"
         },
         yuri:{
             total:13,
-            icon:"https://cdn.discordapp.com/attachments/793415946738860072/797876212591493150/unknown.png",
+            icon:"https://waa.ai/JEwf",
             color:"purple",
-            fullname:"Tsukikage Yuri",
+            fullname:"Yuri Tsukikage",
             alter_ego:"Cure Moonlight"
         },
         makoto:{
             total:11,
-            icon:"https://cdn.discordapp.com/attachments/793415946738860072/797877332043628646/unknown.png",
+            icon:"https://waa.ai/JEwc.png",
             color:"purple",
-            fullname:"Kenzaki Makoto",
+            fullname:"Makoto Kenzaki",
             alter_ego:"Cure Sword"
         },
         iona:{
             total:12,
-            icon:"https://cdn.discordapp.com/attachments/793415946738860072/797877449017786418/unknown.png",
+            icon:"https://waa.ai/JEwV.png",
             color:"purple",
-            fullname:"Hikawa Iona",
+            fullname:"Iona Hikawa",
             alter_ego:"Cure Fortune"
         },
         riko:{
             total:15,
-            icon:"https://cdn.discordapp.com/attachments/793415946738860072/797877629469982750/unknown.png",
+            icon:"https://waa.ai/JEww.png",
             color:"purple",
-            fullname:"Izayoi Riko",
+            fullname:"Riko Izayoi",
             alter_ego:"Cure Magical"
         },
         yukari:{
             total:16,
-            icon:"https://cdn.discordapp.com/attachments/793415946738860072/797877841105518602/unknown.png",
+            icon:"https://waa.ai/JEwy.png",
             color:"purple",
-            fullname:"Kotozume Yukari",
+            fullname:"Yukari Kotozume",
             alter_ego:"Cure Macaron"
         },
         amour:{
             total:11,
-            icon:"https://cdn.discordapp.com/attachments/793415946738860072/797878877800235028/unknown.png",
+            icon:"https://waa.ai/JEwH.png",
             color:"purple",
             fullname:"Ruru Amour",
             alter_ego:"Cure Amour"
         },
         madoka:{
             total:12,
-            icon:"https://cdn.discordapp.com/attachments/793415946738860072/797879016802746388/unknown.png",
+            icon:"https://waa.ai/JEwU.png",
             color:"purple",
-            fullname:"Kaguya Madoka",
+            fullname:"Madoka Kaguya",
             alter_ego:"Cure Selene"
         },
         kurumi:{
             total:12,
-            icon:"https://cdn.discordapp.com/attachments/793415946738860072/797879140811931649/unknown.png",
+            icon:"https://waa.ai/JEwK.png",
             color:"purple",
-            fullname:"Mimino Kurumi",
+            fullname:"Kurumi Mimino",
             alter_ego:"Milky Rose"
         },
         rin:{
             total:11,
-            icon:"https://cdn.discordapp.com/attachments/793415946738860072/797879268372774912/unknown.png",
+            icon:"https://waa.ai/JEwR.png",
             color:"red",
-            fullname:"Natsuki Rin",
+            fullname:"Rin Natsuki",
             alter_ego:"Cure Rouge"
         },
         setsuna:{
             total:11,
-            icon:"https://cdn.discordapp.com/attachments/793415946738860072/797879404536660018/unknown.png",
+            icon:"https://waa.ai/JEwQ.png",
             color:"red",
-            fullname:"Higashi Setsuna",
+            fullname:"Setsuna Higashi",
             alter_ego:"Cure Passion"
         },
         akane:{
             total:11,
-            icon:"https://cdn.discordapp.com/attachments/793415946738860072/797879955207880714/unknown.png",
+            icon:"https://waa.ai/JEw2.png",
             color:"red",
-            fullname:"Hino Akane",
+            fullname:"Akane Hino",
             alter_ego:"Cure Sunny"
         },
         aguri:{
             total:12,
-            icon:"https://cdn.discordapp.com/attachments/793415946738860072/797883836549038110/unknown.png",
+            icon:"https://waa.ai/JEwB.png",
             color:"red",
-            fullname:"Madoka Aguri",
+            fullname:"Aguri Madoka",
             alter_ego:"Cure Ace"
         },
         towa:{
             total:15,
-            icon:"https://cdn.discordapp.com/attachments/793415946738860072/797884007189708860/unknown.png",
+            icon:"https://waa.ai/JEwI.png",
             color:"red",
-            fullname:"Akagi Towa",
+            fullname:"Towa Akagi",
             alter_ego:"Cure Scarlet"
         },
         akira:{
             total:16,
-            icon:"https://cdn.discordapp.com/attachments/793415946738860072/797884127768477706/unknown.png",
+            icon:"https://waa.ai/JEw8.png",
             color:"red",
-            fullname:"Kenjou Akira",
+            fullname:"Akira Kenjou",
             alter_ego:"Cure Chocolat"
         },
         emiru:{
             total:11,
-            icon:"https://cdn.discordapp.com/attachments/793415946738860072/797884885314437130/unknown.png",
+            icon:"https://waa.ai/JEwW.png",
             color:"red",
-            fullname:"Aisaki Emiru",
+            fullname:"Emiru Aisaki",
             alter_ego:"Cure Macherie"
         },
         komachi:{
             total:13,
-            icon:"https://cdn.discordapp.com/attachments/793415946738860072/797885787202125874/unknown.png",
+            icon:"https://waa.ai/JEwi.png",
             color:"green",
-            fullname:"Akimoto Komachi",
+            fullname:"Komachi Akimoto",
             alter_ego:"Cure Mint"
         },
         nao:{
             total:11,
-            icon:"https://cdn.discordapp.com/attachments/793415946738860072/797886213264244786/unknown.png",
+            icon:"https://waa.ai/JEwD.png",
             color:"green",
-            fullname:"Midorikawa Nao",
+            fullname:"Nao Midorikawa",
             alter_ego:"Cure March"
         },
         kotoha:{
             total:15,
-            icon:"https://cdn.discordapp.com/attachments/793415946738860072/797887526987497502/unknown.png",
+            icon:"https://waa.ai/JEwd.png",
             color:"green",
-            fullname:"Hanami Kotoha",
+            fullname:"Kotoha Hanami",
             alter_ego:"Cure Felice"
         },
         ciel:{
             total:12,
-            icon:"https://cdn.discordapp.com/attachments/793415946738860072/797887665428365322/unknown.png",
+            icon:"https://waa.ai/JEwM.png",
             color:"green",
-            fullname:"Kirahoshi Ciel",
+            fullname:"Ciel Kirahoshi",
             alter_ego:"Cure Parfait"
         },
         lala:{
             total:11,
-            icon:"https://cdn.discordapp.com/attachments/793415946738860072/797887830377889852/unknown.png",
+            icon:"https://waa.ai/JEw6.png",
             color:"green",
-            fullname:"Hagoromo Lala",
+            fullname:"Lala Hagoromo",
             alter_ego:"Cure Milky"
         },
         honoka:{
             total:17,
-            icon:"https://cdn.discordapp.com/attachments/793415946738860072/797887960003510282/unknown.png",
+            icon:"https://waa.ai/JEwL.png",
             color:"white",
-            fullname:"Yukishiro Honoka",
+            fullname:"Honoka Yukishiro",
             alter_ego:"Cure White"
         },
         mai:{
             total:10,
-            icon:"https://cdn.discordapp.com/attachments/793415946738860072/797888139992891432/unknown.png",
+            icon:"https://waa.ai/JEwb.png",
             color:"white",
-            fullname:"Mishou Mai",
+            fullname:"Mai Mishou",
             alter_ego:"Cure Egret"
         },
         kanade:{
             total:12,
-            icon:"https://cdn.discordapp.com/attachments/793415946738860072/797888264202747965/unknown.png",
+            icon:"https://waa.ai/JEwA.png",
             color:"white",
-            fullname:"Minamino Kanade",
+            fullname:"Kanade Minamino",
             alter_ego:"Cure Rhythm"
         }
     };
@@ -551,9 +554,9 @@ class Properties{
         "smile":"fairy tales",
         "doki doki!":"emotions and selflessness",
         "happiness":"mirrors, fashion, dancing and romance",
-        "go! princess":"princesses and personal goals and dreams",
-        "mahou tsukai":"sorcery, gemstones, and centrally friendship",
-        "kirakira":"sweets, animals and creativity and the Cures manage a patissierie",
+        "go! princess":"princesses, personal goals and dreams",
+        "mahou tsukai":"sorcery, gemstones and friendship",
+        "kirakira":"sweets, animals and creativity",
         "hugtto":"destiny, future, heroism, parenting, and jobs",
         "star twinkle":" space, astrology and imagination",
         "healin' good":"health, nature, and animals"
@@ -576,8 +579,6 @@ async function getCardData(id_card) {
     parameterWhere.set(DBM_Card_Data.columns.id_card,id_card);
     var result = await DB.selectAll(DBM_Card_Data.TABLENAME,parameterWhere);
     return result[0][0];
-    
-    //return callback(DB.selectAll(DBM_Card_Data.TABLENAME,parameterWhere));
 }
 
 function embedCardCapture(embedColor,id_card,packName,
@@ -885,7 +886,7 @@ function getNextColorPoint(level){
 function getBonusCatchAttempt(level){
     //starting from level 2: every level get 5% catch bonus
     if(level>=2){
-        return level*5;
+        return (level*5)-5;
     } else {
         return 0;
     }
@@ -1076,21 +1077,32 @@ async function removeCardGuildSpawn(id_guild){
     await DB.update(DBM_Card_Guild.TABLENAME,parameterSet,parameterWhere);
 }
 
+async function updateMessageIdSpawn(id_guild,id_message){
+    //update the message id on card spawn
+    var parameterSet = new Map();
+    parameterSet.set(DBM_Card_Guild.columns.id_last_message_spawn,id_message);
+    var parameterWhere = new Map();
+    parameterWhere.set(DBM_Card_Guild.columns.id_guild,id_guild);
+    await DB.update(DBM_Card_Guild.TABLENAME,parameterSet,parameterWhere);
+}
+
 async function generateCardSpawn(id_guild,specificType=null,overwriteToken = true){
+    //reset guild timer information
+
     //update & erase last spawn information if overwriteToken param is provided
     if(overwriteToken){
         await removeCardGuildSpawn(id_guild);
     }
     
     //start randomize
-    var rndIndex = Math.floor(Math.random() * Properties.spawnType.length); 
+    var rndIndex = GlobalFunctions.randomNumber(0,Properties.spawnType.length-1); 
     var cardSpawnType = Properties.spawnType[rndIndex].toLowerCase();
     if(specificType!=null){
         cardSpawnType = specificType;
     }
 
     //for debugging purpose:
-    // cardSpawnType = "quiz";
+    // cardSpawnType = "color";
 
     var query = "";
     //prepare the embed object
@@ -1108,13 +1120,13 @@ async function generateCardSpawn(id_guild,specificType=null,overwriteToken = tru
     var parameterSet = new Map();
     parameterSet.set(DBM_Card_Guild.columns.spawn_type,cardSpawnType); //set the spawn type
     if(overwriteToken){
-        parameterSet.set(DBM_Card_Guild.columns.spawn_token,Math.floor(Math.random() * 1000)+10); //set & randomize the spawn token
+        parameterSet.set(DBM_Card_Guild.columns.spawn_token,GlobalFunctions.randomNumber(0,100000)); //set & randomize the spawn token
     }
     switch(cardSpawnType) {
         case "color": // color spawn type
             query = `select (select ${DBM_Card_Data.columns.id_card}  
                 from ${DBM_Card_Data.TABLENAME} 
-                where ${DBM_Card_Data.columns.color}=?  
+                where ${DBM_Card_Data.columns.color}=? 
                 order by rand() 
                 limit 1) as id_card_pink,
                 (select ${DBM_Card_Data.columns.id_card}  
@@ -1151,20 +1163,20 @@ async function generateCardSpawn(id_guild,specificType=null,overwriteToken = tru
             //save to table
             // parameterSet.set(DBM_Card_Guild.columns.spawn_color,`{"pink":"${resultData[0][0]["id_card_pink"]}","purple":"${resultData[0][0]["id_card_purple"]}","green":"${resultData[0][0]["id_card_green"]}","yellow":"${resultData[0][0]["id_card_yellow"]}","white":"${resultData[0][0]["id_card_white"]}","blue":"${resultData[0][0]["id_card_blue"]}","red":"${resultData[0][0]["id_card_red"]}"}`); //set spawn color
 
-            parameterSet.set(DBM_Card_Guild.columns.spawn_data,`{"${Properties.spawnData.color.pink}":"${resultData[0][0]["id_card_pink"]}","${Properties.spawnData.color.purple}":"${resultData[0][0]["id_card_purple"]}","${Properties.spawnData.color.green}":"${resultData[0][0]["id_card_green"]}","${Properties.spawnData.color.yellow}":"${resultData[0][0]["id_card_yellow"]}","${Properties.spawnData.color.white}":"${resultData[0][0]["id_card_white"]}","${Properties.spawnData.color.blue}":"${resultData[0][0]["id_card_blue"]}","${Properties.spawnData.color.red}":"${resultData[0][0]["id_card_red"]}"}`);
+            // parameterSet.set(DBM_Card_Guild.columns.spawn_data,`{"${Properties.spawnData.color.pink}":"${resultData[0][0]["id_card_pink"]}","${Properties.spawnData.color.purple}":"${resultData[0][0]["id_card_purple"]}","${Properties.spawnData.color.green}":"${resultData[0][0]["id_card_green"]}","${Properties.spawnData.color.yellow}":"${resultData[0][0]["id_card_yellow"]}","${Properties.spawnData.color.white}":"${resultData[0][0]["id_card_white"]}","${Properties.spawnData.color.blue}":"${resultData[0][0]["id_card_blue"]}","${Properties.spawnData.color.red}":"${resultData[0][0]["id_card_red"]}"}`);
             objEmbed.image = {
                 url:Properties.spawnData.color.embed_img
             }
             objEmbed.title = "Color Card";
             objEmbed.description = `A **color** card has appeared! Use: **p!card catch** to capture the card based from your assigned color.`;
             objEmbed.footer = {
-                text:`ID: ???(variant) | Base Catch Rate+10%`
+                text:`⭐ Rarity: 1-7 | ⬆️ Bonus Catch Rate+10%`
             }
             break;
-        case "number": //gambling spawn type
+        case "number": //number spawn type
             //get color total:
-            var rndNumber = Math.floor(Math.random()*10)+2;
-            var rndIndexColor = Math.floor(Math.random()*Properties.arrColor.length);
+            var rndNumber = GlobalFunctions.randomNumber(2,10);
+            var rndIndexColor = GlobalFunctions.randomNumber(0,Properties.arrColor.length-1);
             var selectedColor = Properties.arrColor[rndIndexColor];
             parameterSet.set(DBM_Card_Guild.columns.spawn_color,selectedColor);
             parameterSet.set(DBM_Card_Guild.columns.spawn_number,rndNumber);
@@ -1173,21 +1185,34 @@ async function generateCardSpawn(id_guild,specificType=null,overwriteToken = tru
             query = `SELECT * 
             FROM ${DBM_Card_Data.TABLENAME} 
             WHERE ${DBM_Card_Data.columns.rarity}<=? AND 
-            ${DBM_Card_Data.columns.color}=?
+            ${DBM_Card_Data.columns.color}=? AND 
+            ${DBM_Card_Data.columns.series}<>? AND 
+            ${DBM_Card_Data.columns.series}<>? 
             ORDER BY RAND() LIMIT 1`;
-            var resultData = await DBConn.conn.promise().query(query,[4,selectedColor]);
+            var resultData = await DBConn.conn.promise().query(query,[4,selectedColor,"yes! precure 5 gogo!","healin' good"]);
             parameterSet.set(DBM_Card_Guild.columns.spawn_id,resultData[0][0][DBM_Card_Data.columns.id_card]);
-
-            objEmbed.author = {
-                name:`Number Card: ${selectedColor.charAt(0).toUpperCase()+selectedColor.slice(1)} Edition`
+            if(cardSpawnType=="number"){
+                objEmbed.author = {
+                    name:`Number Card: ${GlobalFunctions.capitalize(selectedColor)} Edition`
+                }
+                objEmbed.title = ":game_die: It's Lucky Numbers Time!";
+                objEmbed.description = `Guess whether the next hidden number**(1-12)** will be **lower** or **higher** than the current number: **${rndNumber}** with: **p!card guess <lower/higher>**`;
+                objEmbed.image = {
+                    url:Properties.dataColorCore[selectedColor].imgMysteryUrl
+                }
+            } else {
+                objEmbed.author = {
+                    name:`Invert Number Card: ${GlobalFunctions.capitalize(selectedColor)} Edition`
+                }
+                objEmbed.title = "↕️ It's Invert Numbers Time!";
+                objEmbed.description = `Guess whether the next current number**(1-12)** will be the inverted results of **lower** or **higher** than the next hidden number: **${rndNumber}** with: **p!card guess <lower/higher>**`;
+                objEmbed.image ={
+                    url:Properties.dataColorCore[selectedColor].imgMysteryUrl
+                }
             }
-            objEmbed.title = ":game_die: It's Lucky Numbers Time!";
-            objEmbed.description = `Guess whether the next hidden number will be **lower** or **higher** than the current number: **${rndNumber}** or not with: **p!card guess <lower/higher>**.`;
-            objEmbed.image ={
-                url:Properties.dataColorCore[selectedColor].imgMysteryUrl
-            }
+            
             objEmbed.footer = {
-                text:`ID: ???(variant) | Catch Rate: 100%`
+                text:`⭐ Rarity: 1-4 | ⏫ Catch Rate: 100%`
             }
             
             break;
@@ -1195,9 +1220,12 @@ async function generateCardSpawn(id_guild,specificType=null,overwriteToken = tru
         case "quiz":
             var query = `SELECT * 
             FROM ${DBM_Card_Data.TABLENAME} 
+            WHERE ${DBM_Card_Data.columns.rarity}<=? AND 
+            ${DBM_Card_Data.columns.series}<>? AND 
+            ${DBM_Card_Data.columns.series}<>? 
             ORDER BY rand() 
             LIMIT 1`;
-            var resultData = await DBConn.conn.promise().query(query);
+            var resultData = await DBConn.conn.promise().query(query,[4,"yes! precure 5 gogo!","healin' good"]);
             var cardSpawnId = resultData[0][0][DBM_Card_Data.columns.id_card];
             var cardSpawnColor = resultData[0][0][DBM_Card_Data.columns.color];
             var cardSpawnSeries = resultData[0][0][DBM_Card_Data.columns.series];
@@ -1208,12 +1236,11 @@ async function generateCardSpawn(id_guild,specificType=null,overwriteToken = tru
             //get the other pack answer
             var queryAnotherQuestion = `SELECT ${DBM_Card_Data.columns.pack} 
             FROM ${DBM_Card_Data.TABLENAME} 
-            WHERE ${DBM_Card_Data.columns.pack}<>? AND 
-            ${DBM_Card_Data.columns.rarity}>=? 
+            WHERE ${DBM_Card_Data.columns.pack}<>? 
             GROUP BY ${DBM_Card_Data.columns.pack} 
             ORDER BY rand() 
             LIMIT 2`;
-            var resultDataAnotherAnswer = await DBConn.conn.promise().query(queryAnotherQuestion,[cardSpawnPack,5]);
+            var resultDataAnotherAnswer = await DBConn.conn.promise().query(queryAnotherQuestion,[cardSpawnPack]);
             resultDataAnotherAnswer[0].forEach(function(entry){
                 arrAnswerList.push(entry[DBM_Card_Data.columns.pack]);
             })
@@ -1251,15 +1278,17 @@ async function generateCardSpawn(id_guild,specificType=null,overwriteToken = tru
                 url:Properties.spawnData.quiz.embed_img
             }
             objEmbed.footer = {
-                text:`Catch Rate: 100%`
+                text:`⭐ Rarity: 1-4 | ⏫ Catch Rate: 100%`
             }
             break;
         default: // normal spawn type
             //get the card id
             query = `SELECT * 
             FROM ${DBM_Card_Data.TABLENAME} 
+            WHERE ${DBM_Card_Data.columns.series}<>? AND 
+            ${DBM_Card_Data.columns.series}<>? 
             ORDER BY RAND() LIMIT 1`;
-            var resultData = await DBConn.conn.promise().query(query);
+            var resultData = await DBConn.conn.promise().query(query,["yes! precure 5 gogo!","healin' good"]);
             var cardSpawnId = resultData[0][0][DBM_Card_Data.columns.id_card];
             var cardSpawnSeries = resultData[0][0][DBM_Card_Data.columns.series];
             var cardSpawnPack = resultData[0][0][DBM_Card_Data.columns.pack];
@@ -1278,12 +1307,16 @@ async function generateCardSpawn(id_guild,specificType=null,overwriteToken = tru
                 url:resultData[0][0][DBM_Card_Data.columns.img_url]
             }
             objEmbed.footer = {
-                text:`ID: ${cardSpawnId} | Base Catch Rate: ${captureChance}%`
+                text:`ID: ${cardSpawnId} | ✔️ Catch Rate: ${captureChance}%`
             }
             break;
     }
     
     await DB.update(DBM_Card_Guild.TABLENAME,parameterSet,parameterWhere);
+
+    //update the time remaining information:
+    await CardGuildModules.updateTimerRemaining(id_guild);
+
     // console.log(objEmbed);
     return objEmbed;
 }
@@ -1295,8 +1328,8 @@ async function addNewCardInventory(id_user,id_card){
     await DB.insert(DBM_Card_Inventory.TABLENAME,parameterSet);
 }
 
-module.exports = {Properties,getCardData,getAllCardDataByPack,
+module.exports = {latestVersion,Properties,getCardData,getAllCardDataByPack,
     getCardUserStatusData,getCardPack,checkUserHaveCard,getUserTotalCard,
     updateCatchAttempt,updateColorPoint,removeCardGuildSpawn,generateCardSpawn,addNewCardInventory,
     embedCardCapture,embedCardDetail,embedCardPackList,getBonusCatchAttempt,getNextColorPoint,
-    checkCardCompletion,leaderboardAddNew,getAverageLevel};
+    checkCardCompletion,leaderboardAddNew,getAverageLevel,updateMessageIdSpawn};
