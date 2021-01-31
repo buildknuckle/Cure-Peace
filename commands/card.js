@@ -40,13 +40,18 @@ module.exports = {
                     var parameterUsername = args[1];
                     await message.guild.members.fetch({query:`${parameterUsername}`,limit:1})
                     .then(
-                        members=> {
+                        async members=> {
                             if(members.size>=1){
-                                userId = members.first().user.id;
-                                objEmbed.author = {
-                                    name:members.first().user.username,
-                                    icon_url:members.first().user.avatarURL()
+                                if(parameterUsername.toLowerCase()!=members.first().user.username.toLowerCase()){
+                                    memberExists = false;
+                                } else {
+                                    userId = members.first().user.id;
+                                    objEmbed.author = {
+                                        name:members.first().user.username,
+                                        icon_url:members.first().user.avatarURL()
+                                    }
                                 }
+                                
                             } else {
                                 memberExists = false;
                             }
@@ -320,10 +325,12 @@ module.exports = {
 
                         var query = `SELECT * 
                         FROM ${DBM_Card_Data.TABLENAME} 
-                        WHERE ${DBM_Card_Data.columns.color}=? 
+                        WHERE ${DBM_Card_Data.columns.color}=? AND 
+                        ${DBM_Card_Data.columns.series}<>? AND 
+                        ${DBM_Card_Data.columns.series}<>? 
                         ORDER BY rand() 
                         LIMIT 1`;
-                        var resultData = await DBConn.conn.promise().query(query,[userData.color]);
+                        var resultData = await DBConn.conn.promise().query(query,[userData.color,"yes! precure 5 gogo!","healin' good"]);
                         spawnedCardData.id = resultData[0][0][DBM_Card_Data.columns.id_card];
                         spawnedCardData.color = userData.color;
                         break;
@@ -1146,8 +1153,7 @@ module.exports = {
                     "color": CardModule.Properties.embedColor,
                     "title": `Card Catcher Updates ${CardModule.latestVersion}`,
                     "fields":[
-                        { "name": "Update List:","value": "-**[Bug fix] - Number Card**: fixed the double point reward if it's guessed correctly." },
-                        { "name": "Announcement:","value": "Due to the known color point bug, the color point rewards will be updated shortly and  this process will takes a while to be completed." }
+                        { "name": "Update List:","value": "**[Bug fix] - daily** : fixed the issues where color points got resetted after executing the **p!daily <color>** command.\n**[Bug fix] - card status** : fixed the issues where card status are not displayed correctly. As the other note: you need to put the username instead the nickname.\n-Added cooldown system to prevent the bot from being called at the same time. **Note: Starting from this update if the bot are not giving any reply that mean the command are still on cooldown.**" },
                     ]
                 }})
                   
@@ -1157,6 +1163,46 @@ module.exports = {
             //     var cardSpawnData = await CardModule.generateCardSpawn(guildId);
             //     var msgObject = await message.channel.send({embed:cardSpawnData});
             //     await CardModule.updateMessageIdSpawn(guildId,msgObject.id);
+            //     break;
+            // case "test":
+            //     var objEmbed = {
+            //         color: CardModule.Properties.embedColor
+            //     };
+            //     var userCardData = await CardModule.getCardUserStatusData(userId);
+            //     var guildSpawnData = await CardGuildModule.getCardGuildData(guildId);
+            //     //get the spawn token & prepare the card color
+            //     var userData = {
+            //         token:userCardData[DBM_Card_User_Data.columns.spawn_token],
+            //         color:userCardData[DBM_Card_User_Data.columns.color]
+            //     }
+            //     var spawnedCardData = {
+            //         token:guildSpawnData[DBM_Card_Guild.columns.spawn_token],
+            //         type:guildSpawnData[DBM_Card_Guild.columns.spawn_type],
+            //         id:guildSpawnData[DBM_Card_Guild.columns.spawn_id],
+            //         color:guildSpawnData[DBM_Card_Guild.columns.spawn_color],
+            //         data:guildSpawnData[DBM_Card_Guild.columns.spawn_data]
+            //     }
+
+            //     //card catcher validator, check if card is still spawning/not
+            //     if(spawnedCardData.type==null||
+            //     spawnedCardData.token==null){
+            //         objEmbed.thumbnail = {
+            //             url: CardModule.Properties.imgResponse.imgError
+            //         }
+            //         objEmbed.description = ":x: Sorry, there are no Precure cards spawning right now. Please wait until the next card spawn.";
+            //         return message.channel.send({embed:objEmbed});
+            //     } else if(userData.token==spawnedCardData.token) {
+            //         //user already capture the card on this turn
+            //         objEmbed.thumbnail = {
+            //             url: CardModule.Properties.imgResponse.imgError
+            //         }
+            //         objEmbed.description = ":x: Sorry, you've already used the capture command. Please wait until the next card spawn.";
+            //         return message.channel.send({embed:objEmbed});
+            //     }
+            //     await message.channel.send(`${userUsername} ok!`);
+
+            //     await CardModule.removeCardGuildSpawn(guildId); //remove the card spawn
+
             //     break;
             case "spawn":
                 //get card spawn information

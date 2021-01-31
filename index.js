@@ -9,6 +9,7 @@ const client = new Discord.Client();
 client.commands = new Discord.Collection();
 
 const cooldowns = new Discord.Collection();
+var cooldown = false;
 
 const commandFiles = fs.readdirSync('./commands').filter(file => file.endsWith('.js'));
 var peacestats = JSON.parse(fs.readFileSync('storage/peacestats.json', 'utf8'));
@@ -89,7 +90,7 @@ client.once('ready', () => {
     console.log('Cure Peace Ready!');
 });
 
-client.on('message', message => {
+client.on('message', async message => {
     if (!message.content.startsWith(prefix) || message.author.bot) return;
 
     const args = message.content.slice(prefix.length).trim().split(/ +/);
@@ -103,7 +104,11 @@ client.on('message', message => {
     }
 
     try {
-        command.execute(message, args);
+        if(!cooldown){
+            cooldown = true;
+            await command.execute(message, args);
+            cooldown = false
+        }
     } catch (error) {
         console.error(error);
         message.reply("I'm having trouble doing what you're asking me to do, help!");
