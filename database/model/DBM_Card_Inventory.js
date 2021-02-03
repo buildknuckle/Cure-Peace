@@ -5,6 +5,9 @@ class DBM_Card_Inventory {
         id: "id",
         id_user: "id_user",
         id_card: "id_card",
+        level: "level",
+        level_special: "level_special",
+        stock: "stock",
         created_at: "created_at"
     };
 }

@@ -7,7 +7,17 @@ module.exports = {
       }
       return separateWord.join(' ');
    },
+   getCurrentDateTime(){
+      var today = new Date();
+      var dd = String(today.getDate()).padStart(2, '0');
+      var mm = String(today.getMonth() + 1).padStart(2, '0'); //January is 0!
+      var yyyy = today.getFullYear();
 
+      var hh = ("0" + today.getHours()).slice(-2);
+      var min = ("0" + today.getMinutes()).slice(-2);
+      var ss = ("0" + today.getSeconds()).slice(-2);
+      return `${yyyy}-${mm}-${dd} ${hh}:${min}:${ss}`;
+   },
    convertDateTime(dateTime){
       var dt = new Date(dateTime);
       return `${("0" + dt.getDate()).slice(-2)}/${("0" + (dt.getMonth() + 1)).slice(-2)}/${dt.getFullYear()}`;
