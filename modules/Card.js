@@ -1927,7 +1927,7 @@ async function generateCardSpawn(id_guild,specificType=null,overwriteToken = tru
             enemyData = enemyData[0][0];
             var randLevel = GlobalFunctions.randomNumber(3,10);
             var randBaseAtk = GlobalFunctions.randomNumber(50,70);
-            var randBaseHp = GlobalFunctions.randomNumber(5,15);
+            var randBaseHp = GlobalFunctions.randomNumber(20,30);
             var randRarityMin = GlobalFunctions.randomNumber(4,5);
 
             //start randomize status
