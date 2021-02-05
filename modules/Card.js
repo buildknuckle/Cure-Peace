@@ -10,18 +10,22 @@ const DBM_Card_Leaderboard = require('../database/model/DBM_Card_Leaderboard');
 const DBM_Card_Enemies = require('../database/model/DBM_Card_Enemies');
 const DBM_Card_Tradeboard = require('../database/model/DBM_Card_Tradeboard');
 
-const latestVersion = "1.08";
+const latestVersion = "1.09";
 
 class Properties{
     static embedColor = '#efcc2c';
     static maximumCard = 10;
 
-    static spawnType = [
-        "number",
-        "normal",
-        "color",
-        "quiz",
-        "combat"
+    //any other spawn type that is not listed will put as normal spawn
+    static objSpawnType = {
+        number:15,
+        quiz:20,
+        battle:20,
+        color:5,
+    }
+    
+
+    static spawnType = ["normal","battle","number","quiz","color"
         //golden_week
         //virus
     ];
@@ -56,8 +60,21 @@ class Properties{
             //for the embed image
             embed_img:"https://waa.ai/JEyE.png"
         },
-        combat:{
-            id_enemy:"id_enemy"
+        battle:{
+            type:"type",//value will be: raid/
+            level:"level",//the level of the enemy
+            color:"color",
+            rarity:"rarity",
+            id_enemy:"id_enemy",
+            id_card_reward:"id_card_reward",
+            special_allow:"special_allow",//true: special can be used
+            //hp will reduce the chance and stored into 3 key
+            hp1:"hp1",
+            hp2:"hp2",
+            hp3:"hp3",
+            //atk will increase the chance and stored into 2 key
+            atk1:"atk1",
+            atk2:"atk2",
         }
     }
 
@@ -810,22 +827,41 @@ class Properties{
 
 }
 
+class Battle{
+    //contain the values of battle type
+    static type = {
+        normal:"normal",//tsunagarus
+        raid:"raid"//not implemented yet but for upcoming updates
+    }
+
+    static async getEnemyData(id_enemy){
+        var parameterWhere = new Map();
+        parameterWhere.set(DBM_Card_Enemies.columns.id,id_enemy);
+        var result = await DB.select(DBM_Card_Enemies.TABLENAME,parameterWhere);
+        return result[0][0];
+    }
+
+}
+
 class Leveling {
     // 1 star was Lv.20, 2 star was Lv.25, 3 star was Lv.35, 4 star and Cure Cards was Lv.40 and 5 star and Premium Cure Cards was Lv.50
     static getMaxLevel(rarity){
         switch(rarity){
             case 1:
                 return 20;
+                break;
             case 2:
                 return 25;
+                break;
             case 3:
                 return 35;
+                break;
             case 4:
                 return 40;
-            case 5:
-                return 50;
+                break;
             default:
                 return 50;
+                break;
         }
     }
 
@@ -865,7 +901,7 @@ class Status {
     }
 
     static getSpecialActivationChance(level,level_special){
-        return level+(level_special*5);
+        return level+(level_special*2);
     }
 
 }
@@ -902,6 +938,69 @@ class TradeBoard {
         parameterWhere.set(DBM_Card_Tradeboard.columns.id_guild,id_guild);
         parameterWhere.set(DBM_Card_Tradeboard.columns.id_user,id_user);
         await DB.update(DBM_Card_Tradeboard.TABLENAME,parameterSet,parameterWhere);
+    }
+}
+
+class Embeds{
+    static precureAvatarView(embedColor,userUsername,userAvatarUrl,packName,
+        level,hp,atk,level_special,thumbnail,cardId,rarity){
+        //embedColor in string and will be readed on Properties class: object variable
+        return {
+            color: Properties.dataColorCore[embedColor].color,
+            author: {
+                name: userUsername,
+                icon_url: userAvatarUrl
+            },
+            title: Properties.dataCardCore[packName].henshin_phrase,
+            description: Properties.dataCardCore[packName].transform_quotes,
+            fields:[
+                {
+                    name:`${rarity}⭐ ${Properties.dataCardCore[packName].alter_ego} Lv.${level}`,
+                    value:`**HP: **${Status.getHp(level,hp)}\n**Atk:** ${Status.getAtk(level,atk)}\n**Special**: ${Properties.dataCardCore[packName].special_attack} Lv.${level_special}`,
+                    inline:true
+                }
+            ],
+            thumbnail:{
+                url:thumbnail
+            },
+            image:{
+                url:Properties.dataCardCore[packName].icon
+            },
+            footer:{
+                text:`Card ID: ${cardId}`
+            }
+        }
+    }
+
+    static battleSpecialActivated(embedColor,userUsername,userAvatarUrl,packName,
+        level_special){
+        return {
+            color: Properties.dataColorCore[embedColor].color,
+            author: {
+                name: userUsername,
+                icon_url: userAvatarUrl
+            },
+            title: `**${Properties.dataCardCore[packName].special_attack}** Level ${level_special} Special Activated!`,
+            description: `With enough energy, **${Properties.dataCardCore[packName].alter_ego}** used her special attack and defeat the tsunagarus instantly!`,
+            image:{
+                url:Properties.dataCardCore[packName].icon
+            }
+        }
+    }
+
+    static battleWin(embedColor,userUsername,userAvatarUrl,packName){
+        return {
+            color: Properties.dataColorCore[embedColor].color,
+            author: {
+                name: userUsername,
+                icon_url: userAvatarUrl
+            },
+            title: `Tsunagarus Defeated!`,
+            description: `With the help of precure power from **${Properties.dataCardCore[packName].alter_ego}**, **${userUsername}** has won the battle against tsunagarus!`,
+            image:{
+                url:Properties.dataCardCore[packName].icon
+            }
+        }
     }
 }
 
@@ -969,12 +1068,12 @@ function embedCardLevelUp(embedColor,id_card,packName,
                 inline:true
             },
             {
-                name:hpHeader,
-                value:`${max_hp}${modifiedHp}`,
+                name:"HP:",
+                value:Status.getHp(level,max_hp),
                 inline:true
             },
             {
-                name:"Max Atk:",
+                name:"Atk:",
                 value:`${Status.getAtk(level,max_atk)}`,
                 inline:true
             },
@@ -986,7 +1085,7 @@ function embedCardLevelUp(embedColor,id_card,packName,
         ],
         footer:{
             iconURL:avatarImgUrl,
-            text:`${username}`
+            text:`Captured By: ${username}`
         }
     }
 
@@ -1031,7 +1130,7 @@ function embedCardCapture(embedColor,id_card,packName,
                 inline:true
             },
             {
-                name:"Max Atk:",
+                name:"Atk:",
                 value:`${Status.getAtk(1,max_atk)}`,
                 inline:true
             },
@@ -1094,9 +1193,12 @@ function embedCardDetail(embedColor,id_card,packName,
                 inline:true
             },
             {//reserved for hp
+                name:`HP:`,
+                value:`${Status.getHp(level,max_hp)}`,
+                inline:true
             },
             {
-                name:"Max Atk:",
+                name:"Atk:",
                 value:`${Status.getAtk(level,max_atk)}`,
                 inline:true
             },
@@ -1113,19 +1215,19 @@ function embedCardDetail(embedColor,id_card,packName,
     }
 
     
-    if(Status.getModifiedHp(level,max_hp)>0){
-        objEmbed.fields[3] = {
-            name:`HP: ${Status.getHp(level,max_hp)}`,
-            value:`${max_hp}(+${Status.getModifiedHp(level,max_hp)})`,
-            inline:true
-        }
-    } else {
-        objEmbed.fields[3] = {
-            name:`HP:`,
-            value:`${max_hp}`,
-            inline:true
-        }
-    }
+    // if(Status.getModifiedHp(level,max_hp)>0){
+    //     objEmbed.fields[3] = {
+    //         name:`HP: ${Status.getHp(level,max_hp)}`,
+    //         value:`${max_hp}(+${Status.getModifiedHp(level,max_hp)})`,
+    //         inline:true
+    //     }
+    // } else {
+    //     objEmbed.fields[3] = {
+    //         name:`HP:`,
+    //         value:`${max_hp}`,
+    //         inline:true
+    //     }
+    // }
 
     if(stock>=1){
         objEmbed.footer.text+= ` | Dup:${stock}`;
@@ -1203,6 +1305,19 @@ async function checkUserHaveCard(id_user,id_card){
         return await true;
     } else {
         return await false;
+    }
+}
+
+async function getUserCardInventoryData(id_user,id_card){
+    //return the stock if existed
+    var parameterWhere = new Map();
+    parameterWhere.set(DBM_Card_Inventory.columns.id_user,id_user);
+    parameterWhere.set(DBM_Card_Inventory.columns.id_card,id_card);
+    var result = await DB.select(DBM_Card_Inventory.TABLENAME,parameterWhere);
+    if(result[0][0]!=null){
+        return result[0][0];
+    } else {
+        return null;
     }
 }
 
@@ -1579,22 +1694,37 @@ async function updateMessageIdSpawn(id_guild,id_message){
 }
 
 async function generateCardSpawn(id_guild,specificType=null,overwriteToken = true){
+    var cardGuildData = await CardGuildModules.getCardGuildData(id_guild);
     //reset guild timer information
-
     //update & erase last spawn information if overwriteToken param is provided
     if(overwriteToken){
         await removeCardGuildSpawn(id_guild);
     }
     
-    //start randomize
-    var rndIndex = GlobalFunctions.randomNumber(0,Properties.spawnType.length-1); 
-    var cardSpawnType = Properties.spawnType[rndIndex].toLowerCase();
-    if(specificType!=null){
-        cardSpawnType = specificType;
+    // var rndIndex = GlobalFunctions.randomNumber(0,Properties.spawnType.length-1); 
+    // // var cardSpawnType = Properties.spawnType[rndIndex].toLowerCase();
+    // // if(specificType!=null){
+    // //     cardSpawnType = specificType;
+    // // }
+
+    //start randomize the spawn
+    var cardSpawnType = "";
+    for (const key in Properties.objSpawnType) {
+        if(cardSpawnType==""){
+            var rnd = GlobalFunctions.randomNumber(0,100);
+            var minRnd = 100-Properties.objSpawnType[key];//get the minimum random number
+            if(rnd>=minRnd){
+                cardSpawnType = key;
+            }
+        }
+    }
+    //if card spawn is empty set to default:normal
+    if(cardSpawnType==""){
+        cardSpawnType = "normal";
     }
 
     //for debugging purpose:
-    cardSpawnType = "combat";
+    // cardSpawnType = "battle";
 
     var query = "";
     //prepare the embed object
@@ -1603,8 +1733,8 @@ async function generateCardSpawn(id_guild,specificType=null,overwriteToken = tru
     }
 
     //get color total
-    var colorTotal = 0; 
-    for ( var {} in Properties.dataColorCore ) { colorTotal++; }
+    // var colorTotal = 0; 
+    // for ( var {} in Properties.dataColorCore ) { colorTotal++; }
 
     var parameterWhere = new Map();
     parameterWhere.set(DBM_Card_Guild.columns.id_guild,id_guild);
@@ -1616,42 +1746,42 @@ async function generateCardSpawn(id_guild,specificType=null,overwriteToken = tru
     }
     switch(cardSpawnType) {
         case "color": // color spawn type
-            query = `select (select ${DBM_Card_Data.columns.id_card}  
-                from ${DBM_Card_Data.TABLENAME} 
-                where ${DBM_Card_Data.columns.color}=? 
-                order by rand() 
-                limit 1) as id_card_pink,
-                (select ${DBM_Card_Data.columns.id_card}  
-                from ${DBM_Card_Data.TABLENAME} 
-                where ${DBM_Card_Data.columns.color}=? 
-                order by rand() 
-                limit 1) as id_card_purple,
-                (select ${DBM_Card_Data.columns.id_card}  
-                from ${DBM_Card_Data.TABLENAME} 
-                where ${DBM_Card_Data.columns.color}=? 
-                order by rand() 
-                limit 1) as id_card_green,
-                (select ${DBM_Card_Data.columns.id_card}  
-                from ${DBM_Card_Data.TABLENAME} 
-                where ${DBM_Card_Data.columns.color}=? 
-                order by rand() 
-                limit 1) as id_card_yellow,
-                (select ${DBM_Card_Data.columns.id_card}  
-                from ${DBM_Card_Data.TABLENAME} 
-                where ${DBM_Card_Data.columns.color}=? 
-                order by rand() 
-                limit 1) as id_card_white,
-                (select ${DBM_Card_Data.columns.id_card}  
-                from ${DBM_Card_Data.TABLENAME} 
-                where ${DBM_Card_Data.columns.color}=? 
-                order by rand() 
-                limit 1) as id_card_blue,
-                (select ${DBM_Card_Data.columns.id_card}  
-                from ${DBM_Card_Data.TABLENAME} 
-                where ${DBM_Card_Data.columns.color}=? 
-                order by rand() 
-                limit 1) as id_card_red`;
-            var resultData = await DBConn.conn.promise().query(query, Properties.arrColor);
+            // query = `select (select ${DBM_Card_Data.columns.id_card}  
+            //     from ${DBM_Card_Data.TABLENAME} 
+            //     where ${DBM_Card_Data.columns.color}=? 
+            //     order by rand() 
+            //     limit 1) as id_card_pink,
+            //     (select ${DBM_Card_Data.columns.id_card}  
+            //     from ${DBM_Card_Data.TABLENAME} 
+            //     where ${DBM_Card_Data.columns.color}=? 
+            //     order by rand() 
+            //     limit 1) as id_card_purple,
+            //     (select ${DBM_Card_Data.columns.id_card}  
+            //     from ${DBM_Card_Data.TABLENAME} 
+            //     where ${DBM_Card_Data.columns.color}=? 
+            //     order by rand() 
+            //     limit 1) as id_card_green,
+            //     (select ${DBM_Card_Data.columns.id_card}  
+            //     from ${DBM_Card_Data.TABLENAME} 
+            //     where ${DBM_Card_Data.columns.color}=? 
+            //     order by rand() 
+            //     limit 1) as id_card_yellow,
+            //     (select ${DBM_Card_Data.columns.id_card}  
+            //     from ${DBM_Card_Data.TABLENAME} 
+            //     where ${DBM_Card_Data.columns.color}=? 
+            //     order by rand() 
+            //     limit 1) as id_card_white,
+            //     (select ${DBM_Card_Data.columns.id_card}  
+            //     from ${DBM_Card_Data.TABLENAME} 
+            //     where ${DBM_Card_Data.columns.color}=? 
+            //     order by rand() 
+            //     limit 1) as id_card_blue,
+            //     (select ${DBM_Card_Data.columns.id_card}  
+            //     from ${DBM_Card_Data.TABLENAME} 
+            //     where ${DBM_Card_Data.columns.color}=? 
+            //     order by rand() 
+            //     limit 1) as id_card_red`;
+            // var resultData = await DBConn.conn.promise().query(query, Properties.arrColor);
             //save to table
             // parameterSet.set(DBM_Card_Guild.columns.spawn_color,`{"pink":"${resultData[0][0]["id_card_pink"]}","purple":"${resultData[0][0]["id_card_purple"]}","green":"${resultData[0][0]["id_card_green"]}","yellow":"${resultData[0][0]["id_card_yellow"]}","white":"${resultData[0][0]["id_card_white"]}","blue":"${resultData[0][0]["id_card_blue"]}","red":"${resultData[0][0]["id_card_red"]}"}`); //set spawn color
 
@@ -1662,7 +1792,7 @@ async function generateCardSpawn(id_guild,specificType=null,overwriteToken = tru
             objEmbed.title = "Color Card";
             objEmbed.description = `A **color** card has appeared! Use: **p!card catch** to capture the card based from your assigned color.`;
             objEmbed.footer = {
-                text:`⭐ Rarity: 1-7 | ⬆️ Bonus Catch Rate+10%`
+                text:`⭐ Rarity: 1-3 | ⬆️ Bonus Catch Rate+10%`
             }
             break;
         case "number": //number spawn type
@@ -1679,7 +1809,7 @@ async function generateCardSpawn(id_guild,specificType=null,overwriteToken = tru
             WHERE ${DBM_Card_Data.columns.rarity}<=? AND 
             ${DBM_Card_Data.columns.color}=? 
             ORDER BY RAND() LIMIT 1`;
-            var resultData = await DBConn.conn.promise().query(query,[3,selectedColor]);
+            var resultData = await DBConn.conn.promise().query(query,[4,selectedColor]);
             parameterSet.set(DBM_Card_Guild.columns.spawn_id,resultData[0][0][DBM_Card_Data.columns.id_card]);
             if(cardSpawnType=="number"){
                 objEmbed.author = {
@@ -1693,7 +1823,7 @@ async function generateCardSpawn(id_guild,specificType=null,overwriteToken = tru
             }
             
             objEmbed.footer = {
-                text:`⭐ Rarity: 1-3 | ⏫ Catch Rate: 100%`
+                text:`⭐ Rarity: 1-4 | ⏫ Catch Rate: 100%`
             }
             
             break;
@@ -1701,10 +1831,11 @@ async function generateCardSpawn(id_guild,specificType=null,overwriteToken = tru
         case "quiz":
             var query = `SELECT * 
             FROM ${DBM_Card_Data.TABLENAME} 
-            WHERE ${DBM_Card_Data.columns.rarity}=? 
+            WHERE ${DBM_Card_Data.columns.rarity}>=? AND 
+            ${DBM_Card_Data.columns.rarity}<=? 
             ORDER BY rand() 
             LIMIT 1`;
-            var resultData = await DBConn.conn.promise().query(query,[4]);
+            var resultData = await DBConn.conn.promise().query(query,[4,5]);
             var cardSpawnId = resultData[0][0][DBM_Card_Data.columns.id_card];
             var cardSpawnColor = resultData[0][0][DBM_Card_Data.columns.color];
             var cardSpawnSeries = resultData[0][0][DBM_Card_Data.columns.series];
@@ -1760,37 +1891,155 @@ async function generateCardSpawn(id_guild,specificType=null,overwriteToken = tru
                 url:Properties.spawnData.quiz.embed_img
             }
             objEmbed.footer = {
-                text:`⭐ Rarity: 4 | ⏫ Catch Rate: 100%`
+                text:`⭐ Rarity: 4-5 | ⏫ Catch Rate: 100%`
             }
             break;
-        case "combat":
-            var randomLevel = GlobalFunctions.randomNumber(1,10);
+        case "battle":
+
+            //type:"type",//value will be: raid/
+            // level:"level",//the level of the enemy
+            // color:"color",
+            // rarity:"rarity",
+            // id_enemy:"id_enemy",
+            // id_card_reward:"id_card_reward",
+            // //hp will reduce the chance and stored into 3 key
+            // hp1:"hp1",
+            // hp2:"hp2",
+            // hp3:"hp3",
+            // special_allow:"special_allow",//true: special can be used
+            // //atk will increase the chance and stored into 2 key
+            // atk1:"atk1",
+            // atk2:"atk2",
+
+            //get 1 random card reward
+            var query = `SELECT * 
+            FROM ${DBM_Card_Data.TABLENAME} 
+            WHERE ${DBM_Card_Data.columns.rarity}>=? 
+            ORDER BY rand() LIMIT 1`;
+            var cardRewardData = await DBConn.conn.promise().query(query,[6]);
+            cardRewardData = cardRewardData[0][0];
+
+            //get the random enemy
             var query = `SELECT * 
             FROM ${DBM_Card_Enemies.TABLENAME} 
-            ORDER BY rand() 
-            LIMIT 1`;
-            var resultData = await DBConn.conn.promise().query(query,[3]);
-            var randomHp = 100;
-            var spawnData = `{"id_enemy":"${resultData[0][0][DBM_Card_Enemies.columns.id]}","hp":350,}`;
-            objEmbed.image = {
-                url:Properties.spawnData.quiz.embed_img
-            }
-            objEmbed.description = "";
-            // var cardSpawnId = resultData[0][0][DBM_Card_Data.columns.id_card];
-            // var cardSpawnColor = resultData[0][0][DBM_Card_Data.columns.color];
-            // var cardSpawnSeries = resultData[0][0][DBM_Card_Data.columns.series];
-            // var cardSpawnPack = resultData[0][0][DBM_Card_Data.columns.pack];
+            ORDER BY rand() LIMIT 1`;
+            var enemyData = await DBConn.conn.promise().query(query);
+            enemyData = enemyData[0][0];
+            var randLevel = GlobalFunctions.randomNumber(3,10);
+            var randBaseAtk = GlobalFunctions.randomNumber(50,70);
+            var randBaseHp = GlobalFunctions.randomNumber(5,15);
+            var randRarityMin = GlobalFunctions.randomNumber(4,5);
 
+            //start randomize status
+            //randomize attack group
+            var rndAtk1 = GlobalFunctions.randomNumber(20,(randBaseAtk*randLevel));
+            var rndAtk2 = GlobalFunctions.randomNumber(rndAtk1+2,rndAtk1+3+(randBaseAtk*randLevel));
+            var rndAtk3 = GlobalFunctions.randomNumber(rndAtk2+2,rndAtk2+3+(randBaseAtk*randLevel));
+            var dtAtk = `"${Properties.spawnData.battle.atk1}":${rndAtk1},"${Properties.spawnData.battle.atk2}":${rndAtk2},`;
+
+            //a-b,b-c,>c
+            //randomize hp group
+            var rndHp1 = GlobalFunctions.randomNumber(20,21+(randBaseHp*randLevel));
+            var rndHp2 = GlobalFunctions.randomNumber(rndHp1+2,randBaseHp+(rndHp1+2)*randLevel);
+            if(rndHp2>=125){rndHp2=125;}
+            var rndHp3 = GlobalFunctions.randomNumber(rndHp2+2,randBaseHp+(rndHp2+2)*randLevel);
+            if(rndHp3>=175){rndHp3=175;}//cap the hp penalty
+            var dtHp = `"${Properties.spawnData.battle.hp1}":${rndHp1},"${Properties.spawnData.battle.hp2}":${rndHp2},"${Properties.spawnData.battle.hp3}":${rndHp3},`;
+            dtHp = dtHp.replace(/,\s*$/, "");//remove last comma
+
+            // console.log("=============hp==================");
+            // console.log(`<${rndHp1}`);
+            // console.log(`${rndHp1+1}-${rndHp2}`);
+            // console.log(`${rndHp2+1}-${rndHp3}`);
+            // console.log("=============atk============");
+            // console.log(`<${rndAtk1}`);
+            // console.log(`${rndAtk1+1}-${rndAtk2}`);
+            // console.log(`>${rndAtk2+1}`);
+
+            //get the card color weakness
+            var query = `select color 
+            from ${DBM_Card_Data.TABLENAME} 
+            where ${DBM_Card_Data.columns.series}=?
+            group by ${DBM_Card_Data.columns.color}
+            order by rand() 
+            limit 1`;
+            var cardDataColorWeakness = await DBConn.conn.promise().query(query,[enemyData[DBM_Card_Enemies.columns.series]]);
+            cardDataColorWeakness = cardDataColorWeakness[0];
+            var dtColorWeakness = "[";
+            for(i=0;i<cardDataColorWeakness.length;i++){
+                dtColorWeakness+=`"${cardDataColorWeakness[i][DBM_Card_Data.columns.color]}",`;
+            }
+            dtColorWeakness = dtColorWeakness.replace(/,\s*$/, "");//remove last comma
+            dtColorWeakness += "]";
+
+            var spawnSeries = enemyData[DBM_Card_Enemies.columns.series];
+
+            //embed
+            objEmbed.image = {
+                url:Properties.enemySpawnData.tsunagarus.image.chokkins
+            }
+            objEmbed.title = `Tsunagarus Lv.${randLevel} has appeared!`;
+            objEmbed.description = `Chokkins has hold the ${cardRewardData[DBM_Card_Data.columns.rarity]}⭐ cure card and possess **${Properties.enemySpawnData[spawnSeries].term}** power! Use **p!card battle** to participate in battle and defeat it!`;
+            objEmbed.color = "#D9A4FE";
+            objEmbed.fields = [
+                {
+                    name:`⬆️ Series: +5%`,
+                    value:`${spawnSeries}`,
+                    inline:true
+                },
+                {
+                    name:`⬆️ Color: +5%`,
+                    value:`${dtColorWeakness.replace("[","").replace("]","").replace(/"/g, "")}`,
+                    inline:true
+                },
+                {
+                    name:`⬆️ Min. Rarity: +10%`,
+                    value:`${randRarityMin}`,
+                    inline:true
+                },
+                {
+                    name:`⬆️ Level/each:`,
+                    value:`+1%`,
+                    inline:true
+                },
+                {
+                    name:`⬆️ Atk:`,
+                    value:`<**${rndAtk1}**: +5%\n**${rndAtk1+1}-${rndAtk2}**: +10%\n>=**${rndAtk2+1}**: +15%`,
+                    inline:true
+                },
+                {
+                    name:`⬇️ Hp:`,
+                    value:`**<${rndHp1}**: -10%\n**${rndHp1+1}-${rndHp2}**: -5%\n**${rndHp2+1}-${rndHp3}**: -3%`,
+                    inline:true
+                }
+            ]
+
+            //randomize the special allowance
+            var randAllowSpecial = GlobalFunctions.randomNumber(0,10);
+            var dtAllowSpecial = `"${Properties.spawnData.battle.special_allow}":`;
+            if(randAllowSpecial>=9){
+                dtAllowSpecial+="true";
+                objEmbed.footer = {
+                    text:`Base Chance: 20% | Special Protection: ❌`
+                }
+            } else {
+                dtAllowSpecial+="false";
+                objEmbed.footer = {
+                    text:`Base Chance: 20% | Special Protection: ✅`
+                }
+            }
+
+            var spawnData = `{"${Properties.spawnData.battle.id_enemy}":"${enemyData[DBM_Card_Enemies.columns.id]}","${Properties.spawnData.battle.level}":${randLevel},"${Properties.spawnData.battle.color}":${dtColorWeakness},"${Properties.spawnData.battle.id_card_reward}":"${cardRewardData[DBM_Card_Data.columns.id_card]}","${Properties.spawnData.battle.rarity}":${randRarityMin},${dtAllowSpecial},${dtAtk}${dtHp}}`;
+            parameterSet.set(DBM_Card_Guild.columns.spawn_data,spawnData);
 
             break;
         default: // normal spawn type
-            //get the card id
+            //get the 1card id
             query = `SELECT * 
             FROM ${DBM_Card_Data.TABLENAME} 
-            WHERE ${DBM_Card_Data.columns.series}<>? AND 
-            ${DBM_Card_Data.columns.series}<>? 
+            WHERE ${DBM_Card_Data.columns.rarity}<=? 
             ORDER BY RAND() LIMIT 1`;
-            var resultData = await DBConn.conn.promise().query(query,["yes! precure 5 gogo!","healin' good"]);
+            var resultData = await DBConn.conn.promise().query(query,[3]);
             var cardSpawnId = resultData[0][0][DBM_Card_Data.columns.id_card];
             var cardSpawnSeries = resultData[0][0][DBM_Card_Data.columns.series];
             var cardSpawnPack = resultData[0][0][DBM_Card_Data.columns.pack];
@@ -1804,7 +2053,7 @@ async function generateCardSpawn(id_guild,specificType=null,overwriteToken = tru
                 iconURL:Properties.dataCardCore[cardSpawnPack].icon,
             }
             objEmbed.title = resultData[0][0][DBM_Card_Data.columns.name];
-            objEmbed.description = `${cardRarity} :star: **${GlobalFunctions.capitalize(cardSpawnPack)}** card has appeared! Use: **p!card catch** to capture the card.`;
+            objEmbed.description = `Use: **p!card catch** to capture the card.`;
             objEmbed.image ={
                 url:resultData[0][0][DBM_Card_Data.columns.img_url]
             }
@@ -1825,12 +2074,13 @@ async function generateCardSpawn(id_guild,specificType=null,overwriteToken = tru
 
 async function addNewCardInventory(id_user,id_card,addStock = false){
     if(!addStock){
+        //check if card rarity is 6/7 to determine if it's cure card/not
+        var cardData = await getCardData(id_card);
+
         var parameterSet = new Map();
         parameterSet.set(DBM_Card_Inventory.columns.id_user,id_user);
         parameterSet.set(DBM_Card_Inventory.columns.id_card,id_card);
 
-        //check if card rarity is 6/7 to determine if it's cure card/not
-        var cardData = await getCardData(id_card);
         if(cardData[DBM_Card_Data.columns.rarity]>=6){
             parameterSet.set(DBM_Card_Inventory.columns.level_special,10);
         }
@@ -1847,8 +2097,8 @@ async function addNewCardInventory(id_user,id_card,addStock = false){
     
 }
 
-module.exports = {latestVersion,Properties,Leveling,Status,TradeBoard,getCardData,getCardInventoryUserData,getAllCardDataByPack,
-    getCardUserStatusData,getCardPack,checkUserHaveCard,getUserCardStock,getUserTotalCard,
+module.exports = {latestVersion,Properties,Battle,Leveling,Status,TradeBoard,Embeds,getCardData,getCardInventoryUserData,getAllCardDataByPack,
+    getCardUserStatusData,getCardPack,checkUserHaveCard,getUserCardInventoryData,getUserCardStock,getUserTotalCard,
     updateCatchAttempt,updateColorPoint,removeCardGuildSpawn,generateCardSpawn,addNewCardInventory,
     embedCardLevelUp,embedCardCapture,embedCardDetail,embedCardPackList,getBonusCatchAttempt,getNextColorPoint,
     checkCardCompletion,leaderboardAddNew,getAverageLevel,updateMessageIdSpawn};
