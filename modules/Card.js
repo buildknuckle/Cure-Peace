@@ -1816,7 +1816,7 @@ async function generateCardSpawn(id_guild,specificType=null,overwriteToken = tru
                     name:`Number Card: ${GlobalFunctions.capitalize(selectedColor)} Edition`
                 }
                 objEmbed.title = ":game_die: It's Lucky Numbers Time!";
-                objEmbed.description = `Guess whether the next hidden number**(1-12)** will be **lower** or **higher** than the current number: **${rndNumber}** with: **p!card guess <lower/higher>**`;
+                objEmbed.description = `Guess whether the hidden number**(1-12)** will be **lower** or **higher** than the current number: **${rndNumber}** with: **p!card guess <lower/higher>**`;
                 objEmbed.image = {
                     url:Properties.dataColorCore[selectedColor].imgMysteryUrl
                 }
@@ -1884,7 +1884,7 @@ async function generateCardSpawn(id_guild,specificType=null,overwriteToken = tru
             objEmbed.title = `:grey_question: It's Quiz Time!`;
             objEmbed.description = `The series theme/motif was about: **${Properties.spawnHintSeries[cardSpawnSeries]}** and I'm known as **${alterEgo}**. Who am I?`;
             objEmbed.fields = [{
-                name:`Answer it with: p!card answer <a/b/c>`,
+                name:`Answer it with: p!card answer <a/b/c/d>`,
                 value:`**A. ${Properties.dataCardCore[arrAnswerList[0]].fullname}\nB. ${Properties.dataCardCore[arrAnswerList[1]].fullname}\nC. ${Properties.dataCardCore[arrAnswerList[2]].fullname}\nD. ${Properties.dataCardCore[arrAnswerList[3]].fullname}**`
             }]
             objEmbed.image ={
@@ -1979,7 +1979,7 @@ async function generateCardSpawn(id_guild,specificType=null,overwriteToken = tru
                 url:Properties.enemySpawnData.tsunagarus.image.chokkins
             }
             objEmbed.title = `Tsunagarus Lv.${randLevel} has appeared!`;
-            objEmbed.description = `Chokkins has hold the ${cardRewardData[DBM_Card_Data.columns.rarity]}⭐ cure card and possess **${Properties.enemySpawnData[spawnSeries].term}** power! Use **p!card battle** to participate in battle and defeat it!`;
+            objEmbed.description = `Chokkins has the ${cardRewardData[DBM_Card_Data.columns.rarity]}⭐ cure card and possesses **${Properties.enemySpawnData[spawnSeries].term}** powers! Use **p!card battle** to participate in battle and defeat it!`;
             objEmbed.color = "#D9A4FE";
             objEmbed.fields = [
                 {
