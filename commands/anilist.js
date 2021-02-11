@@ -78,7 +78,7 @@ module.exports = {
                     }
                 })
                 .catch(function handleError(error) {
-                    return message.channel.send(`Sorry, I can't find that **title**. Try to put more specific title/keyword.`);
+                    return message.channel.send(`Sorry, I can't find that **title**. Try to put a more specific title/keyword.`);
                 });
 
                 //send pagination too if exists
@@ -150,7 +150,7 @@ module.exports = {
                     }
                 })
                 .catch(function handleError(error) {
-                    return message.channel.send(`Sorry, I can't find that **title**. Try to put more specific title/keyword.`);
+                    return message.channel.send(`Sorry, I can't find that **title**. Try to put a more specific title/keyword.`);
                 });
             
                 break;
@@ -268,7 +268,7 @@ module.exports = {
                     }
                 })
                 .catch(function handleError(error) {
-                    return message.channel.send(`Sorry, I can't find that **character**. Try to put more specific title/keyword.`);
+                    return message.channel.send(`Sorry, I can't find that **character**. Try to put a more specific title/keyword.`);
                 });
 
                 break;
