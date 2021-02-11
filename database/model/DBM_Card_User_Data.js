@@ -8,6 +8,7 @@ class DBM_Card_User_Data {
         daily_last: "daily_last",
         spawn_token: "spawn_token",
         card_id_selected: "card_id_selected",
+        card_set_token: "card_set_token",
         color: "color",
         color_level_pink: "color_level_pink",
         color_point_pink: "color_point_pink",
