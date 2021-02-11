@@ -405,7 +405,7 @@ module.exports = {
                     //insert new card
                     if(userCardStock<=-1){//non duplicate
                         await CardModule.addNewCardInventory(userId,spawnedCardData.id);
-                        msgContent = `Nice catch! **${userUsername}** has captured: **${cardSpawnData[DBM_Card_Data.columns.name]}** & received **${pointReward} ${spawnedCardData.color}** color points.`;
+                        msgContent = `Nice catch! **${userUsername}** has captured: **${cardSpawnData[DBM_Card_Data.columns.name]}** & has received **${pointReward} ${spawnedCardData.color}** color points.`;
                     } else {//duplicate
                         pointReward = cardSpawnData[DBM_Card_Data.columns.rarity];
                         if(userCardStock<CardModule.Properties.maximumCard){//add new stock card
@@ -621,7 +621,7 @@ module.exports = {
                         iconURL:userAvatarUrl,
                         name:userUsername
                     }
-                    objEmbed.description = `:x: Current number was: **${currentNumber}** and the next hidden number was **${nextNumber}**. Neither number is lower or higher. As a bonus you received **${pointReward} ${spawnedCardData.color}** color points, also you have another chance to guess the next hidden number.`;
+                    objEmbed.description = `:x: The current number was: **${currentNumber}** and the hidden number was **${nextNumber}**. Neither number is lower or higher. As a bonus you received **${pointReward} ${spawnedCardData.color}** color points, also you have another chance to guess the next hidden number.`;
                     
                     var objColor = new Map();
                     objColor.set(`color_point_${spawnedCardData.color}`,pointReward);
@@ -656,7 +656,7 @@ module.exports = {
                         //insert new card
                         await CardModule.addNewCardInventory(userId,spawnedCardData.id);
 
-                        msgContent = `:white_check_mark: Current number was: **${currentNumber}** and the next hidden number was **${nextNumber}**. Your guess was: **${guess}** and you guessed it correctly! **${userUsername}** has received: **${cardSpawnData[DBM_Card_Data.columns.name]}** & ${pointReward} **${spawnedCardData.color}** color points.`;
+                        msgContent = `:white_check_mark: Current number was: **${currentNumber}** and the hidden number was **${nextNumber}**. Your guess was: **${guess}** and you guessed it correctly! **${userUsername}** has received: **${cardSpawnData[DBM_Card_Data.columns.name]}** & ${pointReward} **${spawnedCardData.color}** color points.`;
                     } else { //duplicate
                         pointReward = cardSpawnData[DBM_Card_Data.columns.rarity];
                         if(userCardStock<CardModule.Properties.maximumCard){//add new stock card
@@ -1812,7 +1812,7 @@ module.exports = {
                     parameterWhere.set(DBM_Card_User_Data.columns.id_user,userId);
                     await DB.update(DBM_Card_User_Data.TABLENAME,parameterSet,parameterWhere);
 
-                    objEmbed.description = `:x: Oh no! <@${userId}> has lost from the battle and lost the precure avatar power! You have received **${pointReward} ${cardData[DBM_Card_Data.columns.color]}** color points from the battle.`;
+                    objEmbed.description = `:x: Oh no! <@${userId}> has lost the battle and lost the precure avatar power! You have received **${pointReward} ${cardData[DBM_Card_Data.columns.color]}** color points from the battle.`;
 
                     return message.channel.send({embed:objEmbed});
                 }
@@ -2131,7 +2131,7 @@ module.exports = {
                         //confirm the trade process
                         var tradeId = args[2];
                         if(tradeId==null){
-                            return message.channel.send("Confirm the trade process with: **p!card tradeboard trade <trade id>**. Please note that this process will be done in one time and cannot be cancelled!");
+                            return message.channel.send("Confirm the trade process with: **p!card tradeboard trade <trade id>**. Just remember that you can't change your mind after you've done this!");
                         }
 
                         //search the top 10 listing

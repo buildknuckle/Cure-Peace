@@ -12,7 +12,7 @@ const DBM_Card_Guild = require('../database/model/DBM_Card_Guild');
 module.exports = {
 	name: 'daily',
     cooldown: 5,
-    description: 'Command to get daily color point. Can only be used within 24 hours server time.',
+    description: 'Command to get daily color points. Can only be used every 24 hours.',
 	async execute(message, args) {
 		const guildId = message.guild.id;
         var userId = message.author.id;
@@ -53,7 +53,7 @@ module.exports = {
                 thumbnail : {
                     url: CardModule.Properties.imgResponse.imgError
                 },
-                description : `:x: Sorry, you have receive the daily point today. Please wait for **${timeRemaining}** until the next daily reset time.`
+                description : `:x: Sorry, you have already received your daily color points today. Please wait for **${timeRemaining}** until you can get more color points.`
             };
 
             return message.channel.send({embed:objEmbed});
@@ -76,7 +76,7 @@ module.exports = {
             SET ${DBM_Card_User_Data.columns.daily_last} = ?, color_point_${optionalColor} = color_point_${optionalColor} + ?
             WHERE ${DBM_Card_User_Data.columns.id_user}=?`;
             arrParameterized = [dateToken,colorPoint,userId];
-            objEmbed.description = `<@${userId}> have received ** ${colorPoint} ${optionalColor} color point ** from the daily command.`;
+            objEmbed.description = `<@${userId}> has received ** ${colorPoint} ${optionalColor} color points ** from the daily command.`;
         } else {
             query = `UPDATE ${DBM_Card_User_Data.TABLENAME} 
             SET ${DBM_Card_User_Data.columns.daily_last} = ?, 
@@ -89,7 +89,7 @@ module.exports = {
             ${DBM_Card_User_Data.columns.color_point_yellow} = ${DBM_Card_User_Data.columns.color_point_yellow}+${colorPoint} 
             WHERE ${DBM_Card_User_Data.columns.id_user}=?`;
             arrParameterized = [dateToken,userId];
-            objEmbed.description = `<@${userId}> have received **${colorPoint} overall color point** from the daily command.`;
+            objEmbed.description = `<@${userId}> has received **${colorPoint} overall color points** from the daily command.`;
         }
 
         //update the token & color point data
