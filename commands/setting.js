@@ -31,7 +31,7 @@ module.exports = {
                     parameterSet.set(DBM_Card_Guild.columns.spawn_interval,null);
                     var parameterWhere = new Map();
                     parameterWhere.set(DBM_Card_Guild.columns.id_guild,guildId);
-                    DB.update(DBM_Card_Guild.TABLENAME,parameterSet,parameterWhere);
+                    await DB.update(DBM_Card_Guild.TABLENAME,parameterSet,parameterWhere);
                     return message.channel.send(`Card spawn settings has been removed.`);
                 }
 

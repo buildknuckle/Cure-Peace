@@ -15,7 +15,7 @@ module.exports = {
               },
               {
                 "name": "Card",
-                "value": "`catch`,`detail`,`guide`,`status [username]`,`inventory [pack][username]`,`guess [lower/higher]`,`color set [color]`,`color up [color]`,`answer [a/b/c]`,`spawn`"
+                "value": "`catch/capture`,`detail`,`guide`,`status [username]`,`inventory [pack][username]`,`guess [lower/higher]`,`color set [color]`,`answer [a/b/c]`,`spawn`,`battle`,`avatar`,`set <card id>`,`up color <color>`,`up level <card id>`,`up special <card id>`,`leaderboard <pack/color>`,`tradeboard search <card id>`,`tradeboard post <card id that you want> <card id>`,`tradeboard trade <trade id>`,`tradeboard remove`"
               },
               {
                 "name": "Setting [Moderator]",
