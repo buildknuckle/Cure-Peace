@@ -78,7 +78,7 @@ module.exports = {
                     }
                 })
                 .catch(function handleError(error) {
-                    return message.channel.send(`Sorry, I can't find that **title**. Try to put more specific title/keyword.`);
+                    return message.channel.send(`Sorry, I can't find that **title**. Try to put a more specific title/keyword.`);
                 });
 
                 //send pagination too if exists
@@ -150,7 +150,7 @@ module.exports = {
                     }
                 })
                 .catch(function handleError(error) {
-                    return message.channel.send(`Sorry, I can't find that **title**. Try to put more specific title/keyword.`);
+                    return message.channel.send(`Sorry, I can't find that **title**. Try to put a more specific title/keyword.`);
                 });
             
                 break;
@@ -218,7 +218,7 @@ module.exports = {
                             name: `${dt.data.Character.name.full} (${dt.data.Character.name.native})`,
                             url: dt.data.Character.siteUrl
                         }
-                        objEmbed.image = {
+                        objEmbed.thumbnail = {
                             url: dt.data.Character.image.large
                         }
                         var appearances = "";
@@ -268,7 +268,7 @@ module.exports = {
                     }
                 })
                 .catch(function handleError(error) {
-                    return message.channel.send(`Sorry, I can't find that **character**. Try to put more specific title/keyword.`);
+                    return message.channel.send(`Sorry, I can't find that **character**. Try to put a more specific title/keyword.`);
                 });
 
                 break;
