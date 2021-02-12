@@ -107,10 +107,11 @@ client.on('message', async message => {
         if(!cooldown){
             cooldown = true;
             await command.execute(message, args);
-            cooldown = false
+            cooldown = false;
         }
     } catch (error) {
         console.error(error);
+        cooldown = false;
         message.reply("I'm having trouble doing what you're asking me to do, help!");
     }
 
