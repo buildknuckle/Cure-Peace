@@ -61,7 +61,7 @@ class Properties{
             embed_img:"https://waa.ai/JEyE.png"
         },
         battle:{
-            type:"type",//value will be: raid/
+            type:"type",//value will be: raid
             level:"level",//the level of the enemy
             color:"color",
             rarity:"rarity",
@@ -1085,7 +1085,7 @@ function embedCardLevelUp(embedColor,id_card,packName,
         ],
         footer:{
             iconURL:avatarImgUrl,
-            text:`Captured By: ${username}`
+            text:`${username}`
         }
     }
 
@@ -1230,7 +1230,7 @@ function embedCardDetail(embedColor,id_card,packName,
     // }
 
     if(stock>=1){
-        objEmbed.footer.text+= ` | Dup:${stock}`;
+        objEmbed.footer.text+= ` | Stock:${stock}`;
     }
 
     return objEmbed;
@@ -1397,6 +1397,7 @@ async function updateCatchAttempt(id_user,spawn_token,objColor=null){
 }
 
 async function checkCardCompletion(id_user,category,value){
+    
     //category parameter: color/pack
     //check if user founded on leaderboard/not
     var queryColorCompletion = `select count(*) as total 
@@ -1406,7 +1407,7 @@ async function checkCardCompletion(id_user,category,value){
         ${DBM_Card_Leaderboard.columns.completion}=?`;
     var arrParameterized = [id_user,category,value];
     var checkLeaderboardExists = await DBConn.conn.promise().query(queryColorCompletion, arrParameterized);
-    if(checkLeaderboardExists[0]["total"]>=1){
+    if(checkLeaderboardExists[0][0]["total"]>=1){
         return false;
     }
 

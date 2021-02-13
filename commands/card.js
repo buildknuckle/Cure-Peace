@@ -397,6 +397,7 @@ module.exports = {
                         break;
                 }
 
+                var duplicate = true;
                 //get & put card data into embed
                 if(captured){
                     //check for duplicates
@@ -406,6 +407,8 @@ module.exports = {
                     if(userCardStock<=-1){//non duplicate
                         await CardModule.addNewCardInventory(userId,spawnedCardData.id);
                         msgContent = `Nice catch! **${userUsername}** has captured: **${cardSpawnData[DBM_Card_Data.columns.name]}** & has received **${pointReward} ${spawnedCardData.color}** color points.`;
+
+                        duplicate = false;
                     } else {//duplicate
                         pointReward = cardSpawnData[DBM_Card_Data.columns.rarity];
                         if(userCardStock<CardModule.Properties.maximumCard){//add new stock card
@@ -443,36 +446,29 @@ module.exports = {
                         objColor
                     );
 
-                    //update the guild spawn data
-                    switch(spawnedCardData.type){
-                        case "color":
-                            //erase the color spawn key on guild
-                            // var tempObjGuild = guildSpawnData[DBM_Card_Guild.columns.spawn_data];
-                            // var newColor = JSON.parse(tempObjGuild);
-                            
-                            // delete newColor[spawnedCardData.color];
-                            // newColor = JSON.stringify(newColor);
-                            
-                            // var query = `UPDATE ${DBM_Card_Guild.TABLENAME}
-                            // SET ${DBM_Card_Guild.columns.spawn_data} = ? 
-                            // WHERE ${DBM_Card_Guild.columns.id_guild} = ?`;
-                            // var arrParameterized = [newColor,guildId];
-                            // await DBConn.conn.promise().query(query, arrParameterized);
-                            
-                            break;
-                        default://normal card spawn, erase the card guild spawn
-                            await CardModule.removeCardGuildSpawn(guildId);
-                            break;
-                    }
-
                     //get the current card total
                     var currentTotalCard = await CardModule.getUserTotalCard(userId,cardSpawnData[DBM_Card_Data.columns.pack]);
 
-                    await message.channel.send({
-                        content:msgContent,
-                        embed:CardModule.embedCardCapture(cardSpawnData[DBM_Card_Data.columns.color],cardSpawnData[DBM_Card_Data.columns.id_card],cardSpawnData[DBM_Card_Data.columns.pack],cardSpawnData[DBM_Card_Data.columns.name],cardSpawnData[DBM_Card_Data.columns.img_url],cardSpawnData[DBM_Card_Data.columns.series],cardSpawnData[DBM_Card_Data.columns.rarity],userAvatarUrl,userUsername,currentTotalCard,cardSpawnData[DBM_Card_Data.columns.max_hp],cardSpawnData[DBM_Card_Data.columns.max_atk],userCardStock)
-                    });
-
+                    if(duplicate){
+                        await message.channel.send({
+                            content:msgContent
+                        });
+                    } else {
+                        //update the guild spawn data/token
+                        switch(spawnedCardData.type){
+                            case "color":
+                                break;
+                            default://normal card spawn, erase the card guild spawn
+                                await CardModule.removeCardGuildSpawn(guildId);
+                                break;
+                        }
+                        
+                        await message.channel.send({
+                            content:msgContent,
+                            embed:CardModule.embedCardCapture(cardSpawnData[DBM_Card_Data.columns.color],cardSpawnData[DBM_Card_Data.columns.id_card],cardSpawnData[DBM_Card_Data.columns.pack],cardSpawnData[DBM_Card_Data.columns.name],cardSpawnData[DBM_Card_Data.columns.img_url],cardSpawnData[DBM_Card_Data.columns.series],cardSpawnData[DBM_Card_Data.columns.rarity],userAvatarUrl,userUsername,currentTotalCard,cardSpawnData[DBM_Card_Data.columns.max_hp],cardSpawnData[DBM_Card_Data.columns.max_atk],userCardStock)
+                        });
+                    }
+                    
                     //check card pack completion:
                     var embedCompletion = null;
                     var checkCardCompletionPack = await CardModule.checkCardCompletion(userId,"pack",cardSpawnData[DBM_Card_Data.columns.pack]);
@@ -650,13 +646,15 @@ module.exports = {
                     var pointReward = 5;//default point reward
                     var msgContent = "";
                     var userCardStock = await CardModule.getUserCardStock(userId,spawnedCardData.id);
-                    var duplicateCard = await CardModule.checkUserHaveCard(userId,spawnedCardData.id);
+                    var duplicate = true;
+                    //var duplicateCard = await CardModule.checkUserHaveCard(userId,spawnedCardData.id);
 
                     if(userCardStock<=-1){//card is not duplicate
                         //insert new card
                         await CardModule.addNewCardInventory(userId,spawnedCardData.id);
-
                         msgContent = `:white_check_mark: Current number was: **${currentNumber}** and the hidden number was **${nextNumber}**. Your guess was: **${guess}** and you guessed it correctly! **${userUsername}** has received: **${cardSpawnData[DBM_Card_Data.columns.name]}** & ${pointReward} **${spawnedCardData.color}** color points.`;
+
+                        duplicate = false;
                     } else { //duplicate
                         pointReward = cardSpawnData[DBM_Card_Data.columns.rarity];
                         if(userCardStock<CardModule.Properties.maximumCard){//add new stock card
@@ -701,10 +699,6 @@ module.exports = {
                         message.channel.send({embed:embedCompletion});
                     }
 
-                    
-                    //remove the guild spawn token
-                    await CardModule.removeCardGuildSpawn(guildId);
-
                     //update the token & color points
                     var objColor = new Map();
                     objColor.set(`color_point_${spawnedCardData.color}`,pointReward);
@@ -715,10 +709,17 @@ module.exports = {
 
                     //get the current card total
                     var currentTotalCard = await CardModule.getUserTotalCard(userId,cardSpawnData[DBM_Card_Data.columns.pack]);
+                    
+                    if(duplicate){
+                        return message.channel.send({content:msgContent});
+                    } else {
+                        //remove the guild spawn token
+                        await CardModule.removeCardGuildSpawn(guildId);
 
-                    return message.channel.send({content:msgContent,embed:CardModule.embedCardCapture(spawnedCardData.color,spawnedCardData.id,
-                        cardSpawnData[DBM_Card_Data.columns.pack],cardSpawnData[DBM_Card_Data.columns.name],cardSpawnData[DBM_Card_Data.columns.img_url],cardSpawnData[DBM_Card_Data.columns.series],cardSpawnData[DBM_Card_Data.columns.rarity],userAvatarUrl,userUsername,currentTotalCard,cardSpawnData[DBM_Card_Data.columns.max_hp],cardSpawnData[DBM_Card_Data.columns.max_atk],userCardStock)});
-
+                        return message.channel.send({content:msgContent,embed:CardModule.embedCardCapture(spawnedCardData.color,spawnedCardData.id,
+                            cardSpawnData[DBM_Card_Data.columns.pack],cardSpawnData[DBM_Card_Data.columns.name],cardSpawnData[DBM_Card_Data.columns.img_url],cardSpawnData[DBM_Card_Data.columns.series],cardSpawnData[DBM_Card_Data.columns.rarity],userAvatarUrl,userUsername,currentTotalCard,cardSpawnData[DBM_Card_Data.columns.max_hp],cardSpawnData[DBM_Card_Data.columns.max_atk],userCardStock)});
+                    }
+                    
                 } else { //guessed the wrong hidden number
                     objEmbed.thumbnail = {
                         url: CardModule.Properties.imgResponse.imgFailed
@@ -1186,13 +1187,14 @@ module.exports = {
                 }
 
                 //correct answer
-                // var duplicateCard = await CardModule.checkUserHaveCard(userId,spawnedCardData.id);
+                var duplicate = true;
                 var msgContent = "";
                 var pointReward = 5;
                 var userCardStock = await CardModule.getUserCardStock(userId,spawnedCardData.id);
                 if(userCardStock<=-1){//non duplicate
                     await CardModule.addNewCardInventory(userId,spawnedCardData.id);
                     msgContent = `Nice catch! **${userUsername}** has captured: **${cardSpawnData[DBM_Card_Data.columns.name]}** & received **${pointReward} ${spawnedCardData.color}** color points.`;
+                    duplicate = false;
                 } else {//duplicate
                     pointReward = cardSpawnData[DBM_Card_Data.columns.rarity];
                     if(userCardStock<CardModule.Properties.maximumCard){//add new stock card
@@ -1221,39 +1223,9 @@ module.exports = {
 
                     }
                 }
-                
-                // if(duplicateCard){ //duplicates
-                //     pointReward = GlobalFunctions.randomNumber(3,5);//for received random color points
-
-                //     objEmbed.thumbnail = {
-                //         url: CardModule.Properties.imgResponse.imgFailed
-                //     }
-                //     objEmbed.author = {
-                //         iconURL: userAvatarUrl,
-                //         name: userUsername
-                //     }
-                //     objEmbed.description = `:x: The answer was correct! But you already have this card: **${spawnedCardData.id} - ${cardSpawnData[DBM_Card_Data.columns.name]}**. As a bonus you have received **${pointReward} ${spawnedCardData.color}** color points.`;
-                //     //update the catch token & color points
-                //     await message.channel.send({embed:objEmbed});
-                // } else { //not duplicates
-                //     pointReward = 10;
-                //     var msgSend = `:white_check_mark: The answer was correct! **${userUsername}** have received: **${cardSpawnData[DBM_Card_Data.columns.name]}** & **${pointReward} ${spawnedCardData.color}** color points.`;
-
-                //     //insert new card
-                //     await CardModule.addNewCardInventory(userId,spawnedCardData.id);
-                //     var currentTotalCard = await CardModule.getUserTotalCard(userId,spawnedCardData.pack);//get the current card total
-                    
-                //     var objEmbed = CardModule.embedCardCapture(spawnedCardData.color,spawnedCardData.id,
-                //         spawnedCardData.pack,cardSpawnData[DBM_Card_Data.columns.name],cardSpawnData[DBM_Card_Data.columns.img_url],cardSpawnData[DBM_Card_Data.columns.series],cardSpawnData[DBM_Card_Data.columns.rarity],userAvatarUrl,userUsername,currentTotalCard);
-                    
-                //     await message.channel.send({content:msgSend,embed:objEmbed});
-                //     await CardModule.removeCardGuildSpawn(guildId); //remove the card spawn
-                // }
 
                 //get the current card total
                 var currentTotalCard = await CardModule.getUserTotalCard(userId,cardSpawnData[DBM_Card_Data.columns.pack]);
-
-                message.channel.send({content:msgContent,embed:CardModule.embedCardCapture(spawnedCardData.color,spawnedCardData.id,spawnedCardData.pack,cardSpawnData[DBM_Card_Data.columns.name],cardSpawnData[DBM_Card_Data.columns.img_url],cardSpawnData[DBM_Card_Data.columns.series],cardSpawnData[DBM_Card_Data.columns.rarity],userAvatarUrl,userUsername,currentTotalCard,cardSpawnData[DBM_Card_Data.columns.max_hp],cardSpawnData[DBM_Card_Data.columns.max_hp],userCardStock)});
 
                 //update token & color points
                 var objColor = new Map();
@@ -1262,10 +1234,16 @@ module.exports = {
                     spawnedCardData.token,
                     objColor
                 );
-                
-                //remove the spawn
-                await CardModule.removeCardGuildSpawn(guildId); //remove the card spawn
 
+                if(duplicate){
+                    await message.channel.send({content:msgContent});
+                } else {
+                    //remove the spawn
+                    await CardModule.removeCardGuildSpawn(guildId);
+
+                    await message.channel.send({content:msgContent,embed:CardModule.embedCardCapture(spawnedCardData.color,spawnedCardData.id,spawnedCardData.pack,cardSpawnData[DBM_Card_Data.columns.name],cardSpawnData[DBM_Card_Data.columns.img_url],cardSpawnData[DBM_Card_Data.columns.series],cardSpawnData[DBM_Card_Data.columns.rarity],userAvatarUrl,userUsername,currentTotalCard,cardSpawnData[DBM_Card_Data.columns.max_hp],cardSpawnData[DBM_Card_Data.columns.max_hp],userCardStock)});
+                }
+                
                 //check card pack completion:
                 var embedCompletion = null;
                 var checkCardCompletionPack = await CardModule.checkCardCompletion(userId,"pack",cardSpawnData[DBM_Card_Data.columns.pack]);
@@ -1409,6 +1387,7 @@ module.exports = {
                 var price = cardData[DBM_Card_Data.columns.rarity]*10;
                 var selectedColor = cardData[DBM_Card_Data.columns.color];
                 var currentColorPoint = cardUserData[`color_point_${selectedColor}`];
+                var msgContent = "";
 
                 if(cardGuildData[DBM_Card_Guild.columns.spawn_type]=="battle" && 
                 cardUserData[DBM_Card_User_Data.columns.card_set_token]==cardGuildData[DBM_Card_Guild.columns.spawn_token]){
@@ -1442,6 +1421,9 @@ module.exports = {
                     var objColor = new Map();
                     objColor.set(`color_point_${selectedColor}`,-price);
                     await CardModule.updateColorPoint(userId,objColor);
+                    msgContent = `${userUsername} has set **${cardData[DBM_Card_Data.columns.id_card]} - ${cardData[DBM_Card_Data.columns.name]}** as the cure avatar & use **${price} ${selectedColor}** color points!`
+                } else {
+                    msgContent = `${userUsername} has set **${cardData[DBM_Card_Data.columns.id_card]} - ${cardData[DBM_Card_Data.columns.name]}** as the cure avatar`;
                 }
 
                 //update the cure card avatar & card id set token
@@ -1455,7 +1437,7 @@ module.exports = {
                 parameterWhere.set(DBM_Card_User_Data.columns.id_user,userId);
                 await DB.update(DBM_Card_User_Data.TABLENAME,parameterSet,parameterWhere);
 
-                return message.channel.send({content:`${userUsername} has set **${cardData[DBM_Card_Data.columns.id_card]} - ${cardData[DBM_Card_Data.columns.name]}** as the cure avatar!`,embed:CardModule.Embeds.precureAvatarView(cardData[DBM_Card_Data.columns.color],userUsername,userAvatarUrl,cardData[DBM_Card_Data.columns.pack],cardInventoryData[DBM_Card_Inventory.columns.level],cardData[DBM_Card_Data.columns.max_hp],cardData[DBM_Card_Data.columns.max_atk],cardInventoryData[DBM_Card_Inventory.columns.level_special],cardData[DBM_Card_Data.columns.img_url],cardData[DBM_Card_Data.columns.id_card],cardData[DBM_Card_Data.columns.rarity])});
+                return message.channel.send({content:msgContent,embed:CardModule.Embeds.precureAvatarView(cardData[DBM_Card_Data.columns.color],userUsername,userAvatarUrl,cardData[DBM_Card_Data.columns.pack],cardInventoryData[DBM_Card_Inventory.columns.level],cardData[DBM_Card_Data.columns.max_hp],cardData[DBM_Card_Data.columns.max_atk],cardInventoryData[DBM_Card_Inventory.columns.level_special],cardData[DBM_Card_Data.columns.img_url],cardData[DBM_Card_Data.columns.id_card],cardData[DBM_Card_Data.columns.rarity])});
                
                 break;
             case "avatar":
@@ -1480,27 +1462,6 @@ module.exports = {
                 return message.channel.send({embed:CardModule.Embeds.precureAvatarView(cardData[DBM_Card_Data.columns.color],userUsername,userAvatarUrl,cardData[DBM_Card_Data.columns.pack],cardUserInventory[DBM_Card_Inventory.columns.level],cardData[DBM_Card_Data.columns.max_hp],cardData[DBM_Card_Data.columns.max_atk],cardUserInventory[DBM_Card_Inventory.columns.level_special],cardData[DBM_Card_Data.columns.img_url],cardData[DBM_Card_Data.columns.id_card],cardData[DBM_Card_Data.columns.rarity])})
 
                 break;
-                // case "timer":
-            //     var minutes = GlobalFunctions.str_pad_left(Math.floor(CardGuildModule.arrTimerGuildInformation[guildId].remaining / 60),'0',2);
-            //     var seconds = GlobalFunctions.str_pad_left(CardGuildModule.arrTimerGuildInformation[guildId].remaining - minutes * 60,'0',2);
-            //     var objEmbed = {
-            //         color: CardModule.Properties.embedColor,
-            //         title: `⏱️ Card Spawn Timer`,
-            //         description:`Countdown until the next card spawn: **${minutes}:${seconds}**`
-            //     };
-            //     return message.channel.send({embed:objEmbed});
-            //     break;
-            // case "update":
-            //     return message.channel.send({embed:
-            //         {
-            //         "color": CardModule.Properties.embedColor,
-            //         "title": `Card Catcher Updates ${CardModule.latestVersion}`,
-            //         "fields":[
-            //             { "name": "Update List:","value": "**[Bug fix] - daily** : fixed the issues where color points got resetted after executing the **p!daily <color>** command.\n**[Bug fix] - card status** : fixed the issues where card status are not displayed correctly. As the other note: you need to put the username instead the nickname.\n-Added cooldown system to prevent the bot from being called at the same time. **Note: Starting from this update if the bot are not giving any reply that mean the command are still on cooldown.**" },
-            //         ]
-            //     }})
-                  
-            //     break;
             // case "debug":
             //     //for card spawn debug purpose
             //     var cardSpawnData = await CardModule.generateCardSpawn(guildId);
@@ -1577,6 +1538,8 @@ module.exports = {
                 var msgContent = "";
                 //default point reward
                 var pointReward = 10*cardDataReward[DBM_Card_Data.columns.rarity];
+                
+                var duplicate = true;
 
                 //calculate special activation requirement:
                 if(jsonParsedSpawnData[CardModule.Properties.spawnData.battle.special_allow]){
@@ -1591,6 +1554,7 @@ module.exports = {
                             msgContent = `**${userUsername}** has received: **${cardDataReward[DBM_Card_Data.columns.id_card]} - ${cardDataReward[DBM_Card_Data.columns.name]}** & **${pointReward} ${cardData[DBM_Card_Data.columns.color]}** color points!`;
                             //add new card:
                             await CardModule.addNewCardInventory(userId,cardDataReward[DBM_Card_Data.columns.id_card]);
+                            duplicate = false;
                         } else {
                             if(userCardRewardStock<CardModule.Properties.maximumCard){
                                 msgContent = `**${userUsername}** has received another copy of: **${cardDataReward[DBM_Card_Data.columns.id_card]} - ${cardDataReward[DBM_Card_Data.columns.name]}** & **${pointReward} ${cardData[DBM_Card_Data.columns.color]}** color points!`;
@@ -1625,15 +1589,19 @@ module.exports = {
                             spawnedCardData.token,
                             objColor
                         );
-
+                        
                         //get the current card total
                         var currentTotalCard = await CardModule.getUserTotalCard(userId,cardDataReward[DBM_Card_Data.columns.pack]);
+                        
+                        if(duplicate){
+                            await message.channel.send({content:msgContent});
+                        } else {
+                            //erase the card guild spawn
+                            await CardModule.removeCardGuildSpawn(guildId);
 
-                        //erase the card guild spawn
-                        await CardModule.removeCardGuildSpawn(guildId);
-
-                        message.channel.send({content:msgContent,
-                        embed:CardModule.embedCardCapture(cardDataReward[DBM_Card_Data.columns.color],cardDataReward[DBM_Card_Data.columns.id_card],cardDataReward[DBM_Card_Data.columns.pack],cardDataReward[DBM_Card_Data.columns.name],cardDataReward[DBM_Card_Data.columns.img_url],cardDataReward[DBM_Card_Data.columns.series],cardDataReward[DBM_Card_Data.columns.rarity],userAvatarUrl,userUsername,currentTotalCard,cardDataReward[DBM_Card_Data.columns.max_hp],cardDataReward[DBM_Card_Data.columns.max_atk],userCardRewardStock)});
+                            await message.channel.send({content:msgContent,
+                            embed:CardModule.embedCardCapture(cardDataReward[DBM_Card_Data.columns.color],cardDataReward[DBM_Card_Data.columns.id_card],cardDataReward[DBM_Card_Data.columns.pack],cardDataReward[DBM_Card_Data.columns.name],cardDataReward[DBM_Card_Data.columns.img_url],cardDataReward[DBM_Card_Data.columns.series],cardDataReward[DBM_Card_Data.columns.rarity],userAvatarUrl,userUsername,currentTotalCard,cardDataReward[DBM_Card_Data.columns.max_hp],cardDataReward[DBM_Card_Data.columns.max_atk],userCardRewardStock)});
+                        }
 
                         //check card pack completion:
                         var embedCompletion = null;
@@ -1726,6 +1694,7 @@ module.exports = {
                         msgContent = `**${userUsername}** has received: **${cardDataReward[DBM_Card_Data.columns.id_card]} - ${cardDataReward[DBM_Card_Data.columns.name]}** & **${pointReward} ${cardData[DBM_Card_Data.columns.color]}** color points!`;
                         //add new card:
                         await CardModule.addNewCardInventory(userId,cardDataReward[DBM_Card_Data.columns.id_card]);
+                        duplicate = false;
                     } else {
                         if(userCardRewardStock<CardModule.Properties.maximumCard){
                             msgContent = `**${userUsername}** has received another copy of: **${cardDataReward[DBM_Card_Data.columns.id_card]} - ${cardDataReward[DBM_Card_Data.columns.name]}** & **${pointReward} ${cardData[DBM_Card_Data.columns.color]}** color points!`;
@@ -1763,12 +1732,17 @@ module.exports = {
 
                     //get the current card total
                     var currentTotalCard = await CardModule.getUserTotalCard(userId,cardDataReward[DBM_Card_Data.columns.pack]);
+                    
+                    if(duplicate){
+                        await message.channel.send({content:msgContent});
+                    } else {
+                        //erase the card guild spawn
+                        await CardModule.removeCardGuildSpawn(guildId);
 
-                    //erase the card guild spawn
-                    await CardModule.removeCardGuildSpawn(guildId);
-
-                    message.channel.send({content:msgContent,
-                    embed:CardModule.embedCardCapture(cardDataReward[DBM_Card_Data.columns.color],cardDataReward[DBM_Card_Data.columns.id_card],cardDataReward[DBM_Card_Data.columns.pack],cardDataReward[DBM_Card_Data.columns.name],cardDataReward[DBM_Card_Data.columns.img_url],cardDataReward[DBM_Card_Data.columns.series],cardDataReward[DBM_Card_Data.columns.rarity],userAvatarUrl,userUsername,currentTotalCard,cardDataReward[DBM_Card_Data.columns.max_hp],cardDataReward[DBM_Card_Data.columns.max_atk],userCardRewardStock)});
+                        await message.channel.send({content:msgContent,
+                        embed:CardModule.embedCardCapture(cardDataReward[DBM_Card_Data.columns.color],cardDataReward[DBM_Card_Data.columns.id_card],cardDataReward[DBM_Card_Data.columns.pack],cardDataReward[DBM_Card_Data.columns.name],cardDataReward[DBM_Card_Data.columns.img_url],cardDataReward[DBM_Card_Data.columns.series],cardDataReward[DBM_Card_Data.columns.rarity],userAvatarUrl,userUsername,currentTotalCard,cardDataReward[DBM_Card_Data.columns.max_hp],cardDataReward[DBM_Card_Data.columns.max_atk],userCardRewardStock)});
+                    }
+                    
 
                     //check card pack completion:
                     var embedCompletion = null;
@@ -1811,6 +1785,7 @@ module.exports = {
                     var parameterWhere = new Map();
                     parameterWhere.set(DBM_Card_User_Data.columns.id_user,userId);
                     await DB.update(DBM_Card_User_Data.TABLENAME,parameterSet,parameterWhere);
+                    objEmbed.title = "Battle Lost";
 
                     objEmbed.description = `:x: Oh no! <@${userId}> has lost the battle and lost the precure avatar power! You have received **${pointReward} ${cardData[DBM_Card_Data.columns.color]}** color points from the battle.`;
 
