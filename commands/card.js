@@ -652,7 +652,6 @@ module.exports = {
                     if(userCardStock<=-1){//card is not duplicate
                         //insert new card
                         await CardModule.addNewCardInventory(userId,spawnedCardData.id);
-
                         msgContent = `:white_check_mark: Current number was: **${currentNumber}** and the hidden number was **${nextNumber}**. Your guess was: **${guess}** and you guessed it correctly! **${userUsername}** has received: **${cardSpawnData[DBM_Card_Data.columns.name]}** & ${pointReward} **${spawnedCardData.color}** color points.`;
 
                         duplicate = false;
@@ -1787,6 +1786,7 @@ module.exports = {
                     parameterWhere.set(DBM_Card_User_Data.columns.id_user,userId);
                     await DB.update(DBM_Card_User_Data.TABLENAME,parameterSet,parameterWhere);
                     objEmbed.title = "Battle Lost";
+
                     objEmbed.description = `:x: Oh no! <@${userId}> has lost the battle and lost the precure avatar power! You have received **${pointReward} ${cardData[DBM_Card_Data.columns.color]}** color points from the battle.`;
 
                     return message.channel.send({embed:objEmbed});
