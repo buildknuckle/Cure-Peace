@@ -232,7 +232,7 @@ module.exports = {
                     var query = `query ($title: String) {
                         Media (search: $title, sort: SEARCH_MATCH, type: ANIME, isAdult:false) {
                             id
-                            characters(sort: SEARCH_MATCH){
+                            characters(sort: FAVOURITES_DESC){
                                 nodes{
                                     id
                                     name{
