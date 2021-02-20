@@ -349,13 +349,23 @@ module.exports = {
                             siteUrl
                             favourites
                             media(type: ANIME, sort: START_DATE){
-                                nodes{
-                                    id
-                                    title{
-                                        romaji
+                                edges{
+                                    node{
+                                        id
+                                        title{
+                                            romaji
+                                        }
+                                        siteUrl
+                                        seasonYear
                                     }
-                                    siteUrl
-                                    seasonYear
+                                    voiceActors{
+                                        id
+                                        name{
+                                            full
+                                            native
+                                        }
+                                        language
+                                    }
                                 }
                             }
                         }
@@ -476,6 +486,7 @@ module.exports = {
                     }
                 })
                 .catch(function handleError(error) {
+                    console.log(error);
                     return message.channel.send(`Sorry, I can't find that **character**. Try to put a more specific keyword.`);
                 });
 
