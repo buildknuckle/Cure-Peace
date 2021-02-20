@@ -146,6 +146,9 @@ module.exports = {
                 break;
             case "inventory":
                 var pack = args[1];
+                if(pack!=null){
+                    pack = pack.toLowerCase();
+                }
                 //get the first mentionable user:
                 //console.log(message.mentions.users.first());
 
@@ -162,9 +165,7 @@ module.exports = {
                     }
                     objEmbed.description = ":x: Please enter the card pack that you want to see.";
                     return message.channel.send({embed:objEmbed});
-                } else if(!CardModule.Properties.dataCardCore.hasOwnProperty(pack)){
-                    var cardUserStatusData = await CardModule.getCardUserStatusData(userId);
-                    
+                } else if(!CardModule.Properties.dataCardCore.hasOwnProperty(pack.toLowerCase())){
                     return message.channel.send({
                         content:"Sorry, I cannot find that card pack. Here are the list of all available card pack:",
                         embed:CardModule.embedCardPackList});
@@ -745,7 +746,7 @@ module.exports = {
                 var newColor = args[2];
                 //validator is parameter format is not correct
 
-                if(args[1]==null||
+                if(args[1]==null|| args[1].toLowerCase()!="set" || 
                     (args[1].toLowerCase()!="set" && newColor == null)||
                     (args[1].toLowerCase()=="set" && !CardModule.Properties.arrColor.includes(newColor))){
                     var objEmbed = {
@@ -1100,13 +1101,6 @@ module.exports = {
                 }
 
                 return;
-                
-                var selectedColor = args[2];
-                //validator is parameter format is not correct
-                //card up color/card up special/card up level
-                
-                
-
                 
                 break;
             case "answer":

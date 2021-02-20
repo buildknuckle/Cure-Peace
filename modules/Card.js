@@ -183,7 +183,8 @@ class Properties{
             alter_ego:"Cure Black",
             henshin_phrase:"Dual Aurora Wave!",
             transform_quotes:"Emissary of light, Cure Black!",
-            special_attack:"Marble Screw"
+            special_attack:"Marble Screw",
+            team_attack:"Team Attack"
         },
         saki:{
             total:12,
@@ -193,7 +194,8 @@ class Properties{
             alter_ego:"Cure Bloom",
             henshin_phrase:"Dual Spiritual Wave!",
             transform_quotes:"The shining golden flower, Cure Bloom!",
-            special_attack:"Spiral Star Splash"
+            special_attack:"Spiral Star Splash",
+            team_attack:"Team Attack"
         },
         nozomi:{
             total:11,
@@ -203,7 +205,8 @@ class Properties{
             alter_ego:"Cure Dream",
             henshin_phrase:"Pretty Cure Metamorphose!",
             transform_quotes:"The great power of hope, Cure Dream!",
-            special_attack:"Dream Attack"
+            special_attack:"Shooting Star",
+            team_attack:"Team Attack"
         },
         love:{
             total:11,
@@ -213,7 +216,7 @@ class Properties{
             alter_ego:"Cure Peach",
             henshin_phrase:"Change, Pretty Cure! Beat up!",
             transform_quotes:"The pink heart is the emblem of love. Freshly-picked, Cure Peach!",
-            special_attack:"Loving True Heart"
+            special_attack:"Love Sunshine"
         },
         tsubomi:{
             total:13,
@@ -233,7 +236,7 @@ class Properties{
             alter_ego:"Cure Melody",
             henshin_phrase:"Let's Play! Pretty Cure Modulation!",
             transform_quotes:"Strumming the wild tune, Cure Melody!",
-            special_attack:"Passionato Harmony"
+            special_attack:"Miracle Heart Arpeggio"
         },
         miyuki:{
             total:13,
@@ -243,7 +246,7 @@ class Properties{
             alter_ego:"Cure Happy",
             henshin_phrase:"Pretty Cure! Smile Charge!",
             transform_quotes:"Twinkling and shining, the light of the future! Cure Happy!",
-            special_attack:"Rainbow Healing"
+            special_attack:"Happy Shower"
         },
         mana:{
             total:12,
@@ -253,7 +256,7 @@ class Properties{
             alter_ego:"Cure Heart",
             henshin_phrase:"Pretty Cure, Love Link!",
             transform_quotes:"Overflowing Love! Cure Heart!",
-            special_attack:"Lovely Force Arrow"
+            special_attack:"Heart Dynamite"
         },
         megumi:{
             total:10,
@@ -313,7 +316,7 @@ class Properties{
             alter_ego:"Cure Star",
             henshin_phrase:"Color Charge!",
             transform_quotes:"The twinkling star that shines throughout the universe! Cure Star!",
-            special_attack:"Southern Cross Shot"
+            special_attack:"Star Punch"
         },
         nodoka:{
             total:5,
@@ -383,7 +386,7 @@ class Properties{
             alter_ego:"Cure Diamond",
             henshin_phrase: "Pretty Cure, Love Link!",
             transform_quotes:"The light of Wisdom! Cure Diamond!!",
-            special_attack:"Twinkle Diamond"
+            special_attack:"Diamond Swirkle"
         },
         hime:{
             total:11,
@@ -453,7 +456,7 @@ class Properties{
             alter_ego:"Shiny Luminous",
             henshin_phrase:"Color Charge!",
             transform_quotes:"Shining life, Shiny Luminous! The light's heart and the light's will, for the sake of uniting all as one!",
-            special_attack:"Extreme Luminario"
+            special_attack:"Heartiel Action"
         },
         urara:{
             total:11,
@@ -463,7 +466,7 @@ class Properties{
             alter_ego:"Cure Lemonade",
             henshin_phrase:"Pretty Cure Metamorphose!",
             transform_quotes:"The effervescence of bursting lemon, Cure Lemonade!",
-            special_attack:"Lemonade Flash"
+            special_attack:"Prism Chain"
         },
         inori:{
             total:10,
@@ -493,7 +496,7 @@ class Properties{
             alter_ego:"Cure Muse",
             henshin_phrase:"Let's Play! Pretty Cure Modulation!",
             transform_quotes:"Playing the Goddess' tune, Cure Muse!",
-            special_attack:"Shining Circle"
+            special_attack:"Sparkling Shower"
         },
         yayoi:{
             total:11,
@@ -533,7 +536,7 @@ class Properties{
             alter_ego:"Cure Twinkle",
             henshin_phrase:"Pretty Cure, Princess Engage!",
             transform_quotes:"Princess of the twinkling stars! Cure Twinkle!",
-            special_attack:"Meteor Humming"
+            special_attack:"Twinkle Humming"
         },
         himari:{
             total:15,
@@ -593,7 +596,7 @@ class Properties{
             alter_ego:"Cure Sword",
             henshin_phrase:"Pretty Cure, Love Link!",
             transform_quotes:"The courageous blade! Cure Sword!",
-            special_attack:"Sparkle Sword"
+            special_attack:"Sword Hurricane"
         },
         iona:{
             total:12,
@@ -663,7 +666,7 @@ class Properties{
             alter_ego:"Cure Rouge",
             henshin_phrase:"Pretty Cure Metamorphose!",
             transform_quotes:"The red flame of passion, Cure Rouge!",
-            special_attack:"Rouge Fire"
+            special_attack:"Fire Strike"
         },
         setsuna:{
             total:11,
@@ -803,7 +806,7 @@ class Properties{
             alter_ego:"Cure Rhythm",
             henshin_phrase:"Let's Play! Pretty Cure Modulation!",
             transform_quotes:"Playing the graceful tune, Cure Rhythm!",
-            special_attack:"Passionato Harmony"
+            special_attack:"Fantastic Piacere"
         }
     };
 

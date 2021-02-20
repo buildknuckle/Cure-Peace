@@ -1,3 +1,5 @@
+const fs = require('fs');
+
 module.exports = {
    capitalize(words) {
       var separateWord = words.toLowerCase().split(' ');
@@ -44,6 +46,22 @@ module.exports = {
    },
    discordMessageLinkFormat(id_guild,id_channel,id_messsage){
       return `https://discord.com/channels/${id_guild}/${id_channel}/${id_messsage}`;
+   },
+   markupCleaner(text){
+      text = text.replace(/<br>/g,"");
+      text = text.replace(/<i>/g,"*");
+      text = text.replace(/<\/i>/g,"*");
+      text = text.replace(/<b>/g,"**");
+      text = text.replace(/<\/b>/g,"**");
+      text = text.replace(/&#039;/g,"'");
+      text = text.replace(/&quot;/g,"\"");
+      return text;
+   },
+   errorLogger(error){
+      error = `${this.getCurrentDateTime()}: ${error.toString()}\n`;
+      fs.appendFile('error.txt', error, function (err) {
+         if (err) throw err;
+       });
    }
 
 }

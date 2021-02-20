@@ -1,6 +1,7 @@
 const fs = require('fs');
 const Discord = require('discord.js');
 const DBM_Card_Guild = require('./database/model/DBM_Card_Guild');
+const GlobalFunctions = require('./modules/GlobalFunctions');
 const CardModules = require('./modules/Card');
 const CardGuildModules = require('./modules/CardGuild');
 const { prefix, token } = require('./storage/config.json');
@@ -112,6 +113,7 @@ client.on('message', async message => {
     } catch (error) {
         console.error(error);
         cooldown = false;
+        GlobalFunctions.errorLogger(error);
         message.reply("I'm having trouble doing what you're asking me to do, help!");
     }
 
