@@ -3,6 +3,7 @@ const paginationEmbed = require('discord.js-pagination');
 const DB = require('../database/DatabaseCore');
 const DBConn = require('../storage/dbconn');
 const CardModule = require('../modules/Card');
+const ItemModule = require('../modules/Item');
 const CardGuildModule = require('../modules/CardGuild');
 const GlobalFunctions = require('../modules/GlobalFunctions.js');
 const DBM_Card_User_Data = require('../database/model/DBM_Card_User_Data');
@@ -12,6 +13,8 @@ const DBM_Card_Guild = require('../database/model/DBM_Card_Guild');
 const DBM_Card_Leaderboard = require('../database/model/DBM_Card_Leaderboard');
 const DBM_Card_Tradeboard = require('../database/model/DBM_Card_Tradeboard');
 const DBM_Card_Enemies = require('../database/model/DBM_Card_Enemies');
+const DBM_Item_Inventory = require('../database/model/DBM_Item_Inventory');
+const DBM_Item_Data = require('../database/model/DBM_Item_Data');
 
 module.exports = {
     name: 'card',
@@ -103,7 +106,15 @@ module.exports = {
                     avatarId = cardUserStatusData[DBM_Card_User_Data.columns.card_id_selected];
                 }
 
-                objEmbed.title = `Card Status | cLvl: ${clvl} | Color: ${cardUserStatusData[DBM_Card_User_Data.columns.color]} | Avatar: ${avatarId}`;
+                // objEmbed.title = `Card Status | cLvl: ${clvl} | Color: ${cardUserStatusData[DBM_Card_User_Data.columns.color]} | Avatar: ${avatarId} `;
+                objEmbed.title = `cLvl:${clvl} | MofuCoin: ${cardUserStatusData[DBM_Card_User_Data.columns.mofucoin]} | Color: ${cardUserStatusData[DBM_Card_User_Data.columns.color]} | Avatar: ${avatarId} `;
+                var currentSE = "-";
+                if(cardUserStatusData[DBM_Card_User_Data.columns.status_effect] in CardModule.StatusEffect.buffData){
+                    currentSE = `${CardModule.StatusEffect.buffData[cardUserStatusData[DBM_Card_User_Data.columns.status_effect]].name}\n${CardModule.StatusEffect.buffData[cardUserStatusData[DBM_Card_User_Data.columns.status_effect]].description}`;
+                }
+                
+                objEmbed.description = `**Status Effect:** ${currentSE}`;
+
                 objEmbed.fields = [{
                         name: `Pink(CL: ${cardUserStatusData[DBM_Card_User_Data.columns.color_level_pink]}/ CP: ${cardUserStatusData[DBM_Card_User_Data.columns.color_point_pink]}):`,
                         value: `${arrCardIconCompletion.nagisa}Nagisa: ${arrCardTotal.nagisa}/${CardModule.Properties.dataCardCore.nagisa.total}\n${arrCardIconCompletion.saki}Saki: ${arrCardTotal.saki}/${CardModule.Properties.dataCardCore.saki.total}\n${arrCardIconCompletion.nozomi}Nozomi: ${arrCardTotal.nozomi}/${CardModule.Properties.dataCardCore.nozomi.total}\n${arrCardIconCompletion.love}Love: ${arrCardTotal.love}/${CardModule.Properties.dataCardCore.love.total}\n${arrCardIconCompletion.tsubomi}Tsubomi: ${arrCardTotal.tsubomi}/${CardModule.Properties.dataCardCore.tsubomi.total}\n${arrCardIconCompletion.hibiki}Hibiki: ${arrCardTotal.hibiki}/${CardModule.Properties.dataCardCore.hibiki.total}\n${arrCardIconCompletion.miyuki}Miyuki: ${arrCardTotal.miyuki}/${CardModule.Properties.dataCardCore.miyuki.total}\n${arrCardIconCompletion.mana}Mana: ${arrCardTotal.mana}/${CardModule.Properties.dataCardCore.mana.total}\n${arrCardIconCompletion.megumi}Megumi: ${arrCardTotal.megumi}/${CardModule.Properties.dataCardCore.megumi.total}\n${arrCardIconCompletion.haruka}Haruka: ${arrCardTotal.haruka}/${CardModule.Properties.dataCardCore.haruka.total}\n${arrCardIconCompletion.mirai}Mirai: ${arrCardTotal.mirai}/${CardModule.Properties.dataCardCore.mirai.total}\n${arrCardIconCompletion.ichika}Ichika: ${arrCardTotal.ichika}/${CardModule.Properties.dataCardCore.ichika.total}\n${arrCardIconCompletion.hana}Hana: ${arrCardTotal.hana}/${CardModule.Properties.dataCardCore.hana.total}\n${arrCardIconCompletion.hikaru}Hikaru: ${arrCardTotal.hikaru}/${CardModule.Properties.dataCardCore.hikaru.total}\n${arrCardIconCompletion.nodoka}Nodoka: ${arrCardTotal.nodoka}/${CardModule.Properties.dataCardCore.nodoka.total}`,
@@ -258,12 +269,111 @@ module.exports = {
                 pages = arrPages;
 
                 paginationEmbed(message,pages);
+                break;        
+            case "duplicate":
+                var pack = args[1];
+                if(pack!=null){
+                    pack = pack.toLowerCase();
+                }
                 
-                //console.log(new Discord.MessageMentions(args[1]));
-                // var options =  args[1].mention;
-                // console.log(options);
-            
-                //console.log(guild);
+                var objEmbed ={
+                    color: CardModule.Properties.embedColor
+                };
+
+                //card pack validator
+                if(pack==null){
+                    objEmbed.thumbnail = {
+                        url:CardModule.Properties.imgResponse.imgError
+                    }
+                    objEmbed.description = ":x: Please enter the card pack that you want to see.";
+                    return message.channel.send({embed:objEmbed});
+                } else if(!CardModule.Properties.dataCardCore.hasOwnProperty(pack.toLowerCase())){
+                    return message.channel.send({
+                        content:"Sorry, I cannot find that card pack. Here are the list of all available card pack:",
+                        embed:CardModule.embedCardPackList});
+                }
+
+                //user parameter validator
+                var memberExists = true;
+                if(args[2]!=null){
+                    var parameterUsername = args.slice(2).join(' ');
+                    await message.guild.members.fetch({query:`${parameterUsername}`,limit:1,count:false})
+                    .then(
+                        members=> {
+                            if(members.size>=1){
+                                userId = members.first().user.id;
+                                userUsername = members.first().user.username;
+                                userAvatarUrl = members.first().user.avatarURL();
+                            } else {
+                                memberExists = false;
+                            }
+                        }
+                    );
+                }
+
+                if(!memberExists){
+                    return message.channel.send("Sorry, I can't find that username.");
+                }
+
+                //end user parameter validator
+                objEmbed.title = `${GlobalFunctions.capitalize(pack)} Card Pack:`;
+                objEmbed.author = {
+                    name: userUsername,
+                    icon_url: userAvatarUrl
+                }
+
+                var cardList = "";
+                var query = `select cd.${DBM_Card_Data.columns.id_card},cd.${DBM_Card_Data.columns.color}, 
+                cd.${DBM_Card_Data.columns.series},cd.${DBM_Card_Data.columns.pack},cd.${DBM_Card_Data.columns.name}, 
+                cd.${DBM_Card_Data.columns.img_url},inv.${DBM_Card_Inventory.columns.id_user}, inv.${DBM_Card_Inventory.columns.level}, 
+                inv.${DBM_Card_Inventory.columns.stock} 
+                from ${DBM_Card_Data.TABLENAME} cd 
+                left join ${DBM_Card_Inventory.TABLENAME} inv 
+                on cd.${DBM_Card_Data.columns.id_card}=inv.${DBM_Card_Inventory.columns.id_card} and 
+                inv.${DBM_Card_Inventory.columns.id_user}=? and 
+                inv.${DBM_Card_Inventory.columns.stock}>=1 
+                where cd.pack = ? and 
+                inv.${DBM_Card_Inventory.columns.stock}>=1`;
+                var arrParameterized = [userId,pack];
+                
+                var arrPages = [];
+                var cardDataInventory = await DBConn.conn.promise().query(query, arrParameterized);
+                var ctr = 0; var maxCtr = 3; var pointerMaxData = cardDataInventory[0].length;
+                cardDataInventory[0].forEach(function(entry){
+                    cardList+=`[${entry[DBM_Card_Data.columns.id_card]} - ${entry[DBM_Card_Data.columns.name]}](${entry[DBM_Card_Data.columns.img_url]})`;
+                    if(entry[DBM_Card_Inventory.columns.stock]>=1){
+                        cardList+=` x${entry[DBM_Card_Inventory.columns.stock]}`;
+                    }
+                    if(entry[DBM_Card_Inventory.columns.id_user]!=null){
+                        cardList+=` Lv.${entry[DBM_Card_Inventory.columns.level]}`;
+                    }
+                    cardList+="\n";
+
+                    objEmbed.thumbnail = {
+                        url:CardModule.Properties.dataCardCore[pack].icon
+                    };
+                    
+                    //create pagination
+                    if(pointerMaxData-1<=0||ctr>maxCtr){
+                        objEmbed.fields = [{
+                            value: cardList,
+                        }];
+                        var msgEmbed = new Discord.MessageEmbed(objEmbed);
+                        arrPages.push(msgEmbed);
+                        cardList = ""; ctr = 0;
+                    } else {
+                        ctr++;
+                    }
+                    pointerMaxData--;
+                });
+
+                for(var i=0;i<arrPages.length;i++){
+                    arrPages[i].fields[0]['name'] = `Duplicate card list:`;
+                }
+                
+                pages = arrPages;
+
+                paginationEmbed(message,pages);
                 break;
             case "catch":
             case "capture":
@@ -383,6 +493,19 @@ module.exports = {
                 var rngCatch = GlobalFunctions.randomNumber(0,100);//rng point
                 var bonusCatch = 
                 CardModule.getBonusCatchAttempt(parseInt(userCardData[`color_level_${spawnedCardData.color}`]));
+
+                var currentStatusEffect = userCardData[DBM_Card_User_Data.columns.status_effect];
+
+                //check for user buff capture boost from status effect
+                if(currentStatusEffect in CardModule.StatusEffect.buffData){
+                    if(currentStatusEffect.includes(`${spawnedCardData.color}_coloraura`)){
+                        if("value_capture_boost" in CardModule.StatusEffect.buffData[currentStatusEffect]){
+                            rngCatch+=CardModule.StatusEffect.buffData[currentStatusEffect].value_capture_boost;
+                            var embedStatusActivated = await CardModule.StatusEffect.embedStatusEffectActivated(userUsername,userAvatarUrl,currentStatusEffect);
+                            await message.channel.send({embed:embedStatusActivated});
+                        }
+                    }
+                }
                 
                 switch(spawnedCardData.type){
                     case "color":
@@ -487,21 +610,37 @@ module.exports = {
                         return message.channel.send({embed:embedCompletion});
                     }
                 } else {
-                    //update the catch token & color points
-                    var cpReward = cardSpawnData[DBM_Card_Data.columns.rarity];
-                    var objColor = new Map();
-                    objColor.set(`color_point_${spawnedCardData.color}`,cpReward);
-                    await CardModule.updateCatchAttempt(userId,
-                        spawnedCardData.token,
-                        objColor
-                    );
-
                     objEmbed.thumbnail = {
                         url: CardModule.Properties.imgResponse.imgFailed
                     }
+
+                    var cpReward = cardSpawnData[DBM_Card_Data.columns.rarity];
+
+                    //update the color point
+                    var objColor = new Map();
+                    objColor.set(`color_point_${cardSpawnData[DBM_Card_Data.columns.color]}`,cpReward);
+                    CardModule.updateColorPoint(userId,objColor);
+
                     objEmbed.description = `:x: Sorry <@${userId}>, you failed to catch the card this time. As a bonus you have received **${cpReward} ${cardSpawnData[DBM_Card_Data.columns.color]}** color points.`;
 
-                    return message.channel.send({embed:objEmbed});
+                    await message.channel.send({embed:objEmbed});
+
+                    //get status effect
+                    switch(currentStatusEffect){
+                        case "second_chance":
+                            //check if second chance/not
+                            await CardModule.StatusEffect.updateStatusEffect(userId,null);
+                            var embedStatusActivated = await CardModule.StatusEffect.embedStatusEffectActivated(userUsername,userAvatarUrl,currentStatusEffect);
+                            await message.channel.send({embed:embedStatusActivated});
+                            break;
+                        default:
+                            //update the catch token
+                            await CardModule.updateCatchAttempt(userId,
+                                spawnedCardData.token
+                            );
+                            break;
+                    }
+
                 }
                 
                 break;
@@ -608,6 +747,19 @@ module.exports = {
                 var success = false; var msgSend = "";
                 var currentNumber = parseInt(guildSpawnData[DBM_Card_Guild.columns.spawn_number]);
                 var nextNumber = GlobalFunctions.randomNumber(1,12);
+                var currentStatusEffect = userCardData[DBM_Card_User_Data.columns.status_effect];
+
+                //get status effect
+                switch(currentStatusEffect){
+                    case "lucky_number":
+                        nextNumber = CardModule.StatusEffect.buffData.lucky_number.value_number
+                        //erase the status effect
+                        await CardModule.StatusEffect.updateStatusEffect(userId,null);
+                        var embedStatusActivated = await CardModule.StatusEffect.embedStatusEffectActivated(userUsername,userAvatarUrl,currentStatusEffect);
+                        await message.channel.send({embed:embedStatusActivated});
+                        break;
+                }
+
                 if(nextNumber==currentNumber){
                     //number was same
                     pointReward = 10;
@@ -731,10 +883,25 @@ module.exports = {
                     }
                     
                     objEmbed.description = `:x: Current number was: **${currentNumber}** and the next hidden number was **${nextNumber}**. Your guess was: **${guess}**. Sorry, you guessed it wrong this time.`;
-                    await CardModule.updateCatchAttempt(userId,
-                        spawnedCardData.token
-                    );
-                    return message.channel.send({embed:objEmbed});
+
+                    await message.channel.send({embed:objEmbed});
+
+                    //get status effect
+                    switch(currentStatusEffect){
+                        case "second_chance":
+                            //check if second chance/not
+                            //erase the status effect
+                            await CardModule.StatusEffect.updateStatusEffect(userId,null);
+                            var embedStatusActivated = await CardModule.StatusEffect.embedStatusEffectActivated(userUsername,userAvatarUrl,currentStatusEffect);
+                            await message.channel.send({embed:embedStatusActivated});
+                            break;
+                        default:
+                            await CardModule.updateCatchAttempt(userId,
+                                spawnedCardData.token
+                            );
+                            break;
+                    }
+
                 }
 
                 //generate new card:
@@ -1096,8 +1263,6 @@ module.exports = {
                         return message.channel.send({content:`**${userUsername}** - **${cardData[DBM_Card_Data.columns.name]}** special attack is now level **${cardInventoryData[DBM_Card_Inventory.columns.level_special]}**!`, embed:objEmbed});
 
                         break;
-                    
-                
                 }
 
                 return;
@@ -1165,19 +1330,50 @@ module.exports = {
                 var cardSpawnData = await CardModule.getCardData(spawnedCardData.id);
                 spawnedCardData.color = cardSpawnData[DBM_Card_Data.columns.color];
                 spawnedCardData.pack = cardSpawnData[DBM_Card_Data.columns.pack];
+                
+                var currentStatusEffect = userCardData[DBM_Card_User_Data.columns.status_effect];
 
                 answer = answer.toLowerCase();
                 if(answer!=spawnedCardData.answer){
-                    //wrong answer - update the token
-                    await CardModule.updateCatchAttempt(userId,
-                        spawnedCardData.token
-                    );
-                    objEmbed.thumbnail = {
-                        url: CardModule.Properties.imgResponse.imgFailed
-                    }
-                    objEmbed.description = `:x: Sorry, but that's not the answer.`;
+                    //check for status effect:
+                    if(currentStatusEffect=="quiz_master"){
+                        var embedStatusActivated = await CardModule.StatusEffect.embedStatusEffectActivated(userUsername,userAvatarUrl,currentStatusEffect);
+                        await message.channel.send({embed:embedStatusActivated});
 
-                    return await message.channel.send({embed:objEmbed});
+                        objEmbed.thumbnail = {
+                            url: CardModule.Properties.imgResponse.imgFailed
+                        }
+                        objEmbed.description = `:x: The correct answer was: **${spawnedCardData.answer}**`;
+
+                        await message.channel.send({embed:objEmbed});
+                        
+                        //erase the status effect
+                        CardModule.StatusEffect.updateStatusEffect(userId,null);
+                    } else {
+                        objEmbed.thumbnail = {
+                            url: CardModule.Properties.imgResponse.imgFailed
+                        }
+                        objEmbed.description = `:x: Sorry, but that's not the answer.`;
+
+                        await message.channel.send({embed:objEmbed});
+
+                        if(currentStatusEffect=="second_chance"){
+                            //second chance status effect
+                            var embedStatusActivated = await CardModule.StatusEffect.embedStatusEffectActivated(userUsername,userAvatarUrl,currentStatusEffect);
+                            await message.channel.send({embed:embedStatusActivated});
+
+                            //erase the status effect
+                            CardModule.StatusEffect.updateStatusEffect(userId,null);
+
+                        } else {
+                            //wrong answer - update the token
+                            await CardModule.updateCatchAttempt(userId,
+                                spawnedCardData.token
+                            );
+                        }
+
+                        return;
+                    }
                 }
 
                 //correct answer
@@ -1214,7 +1410,6 @@ module.exports = {
                         );
 
                         return message.channel.send({embed:objEmbed});
-
                     }
                 }
 
@@ -1335,6 +1530,8 @@ module.exports = {
                 
                 break;
             case "set":
+            case "transform":
+            case "precure":
                 //set the card id/cure avatar
                 var cardId = args[1];
                 if(cardId==null){
@@ -1496,7 +1693,7 @@ module.exports = {
                     objEmbed.thumbnail = {
                         url: CardModule.Properties.imgResponse.imgError
                     }
-                    objEmbed.description = ":x: I didn't sense any tsunagarus nearby.";
+                    objEmbed.description = ":x: I didn't sense any tsunagarus right now.";
                     return message.channel.send({embed:objEmbed});
                 } else if(userData.token==spawnedCardData.token) {
                     //user already capture the card on this turn
@@ -1619,6 +1816,9 @@ module.exports = {
 
                 }
 
+                //get status effect
+                var currentStatusEffect = userCardData[DBM_Card_User_Data.columns.status_effect];
+
                 var hp = cardData[DBM_Card_Data.columns.max_hp];
                 hp = CardModule.Status.getHp(level,hp);
                 var atk = cardData[DBM_Card_Data.columns.max_atk];
@@ -1634,10 +1834,25 @@ module.exports = {
                     //calculate color buff: +5%
                     minChance-=5;
                 }
+
+                //check for rarity boost
+                if(currentStatusEffect in CardModule.StatusEffect.buffData){
+                    if(currentStatusEffect.includes(`rarity_up_`)){
+                        //check for rarity boost
+                        if("value_rarity_boost" in CardModule.StatusEffect.buffData[currentStatusEffect]){
+                            cardData[DBM_Card_Data.columns.rarity]+=CardModule.StatusEffect.buffData[currentStatusEffect].value_rarity_boost;
+
+                            var embedStatusActivated = await CardModule.StatusEffect.embedStatusEffectActivated(userUsername,userAvatarUrl,currentStatusEffect);
+                            await message.channel.send({embed:embedStatusActivated});
+                        }
+                    }
+                }
+
                 if(cardData[DBM_Card_Data.columns.rarity]>=enemyRarity){
                     //calculate rarity buff: +10%
                     minChance-=10;
                 }
+
                 //calculate level buff: +1%/each level
                 minChance-=(1*level);
 
@@ -1659,6 +1874,21 @@ module.exports = {
                 var hp1 = jsonParsedSpawnData[CardModule.Properties.spawnData.battle.hp1];
                 var hp2 = jsonParsedSpawnData[CardModule.Properties.spawnData.battle.hp2];
                 var hp3 = jsonParsedSpawnData[CardModule.Properties.spawnData.battle.hp3];
+
+
+                //check for hp boost
+                if(currentStatusEffect in CardModule.StatusEffect.buffData){
+                    if(currentStatusEffect.includes(`hp_up_`)){
+                        //check for rarity boost
+                        if("value_hp_boost" in CardModule.StatusEffect.buffData[currentStatusEffect]){
+                            hp+=CardModule.StatusEffect.buffData[currentStatusEffect].value_hp_boost;
+
+                            var embedStatusActivated = await CardModule.StatusEffect.embedStatusEffectActivated(userUsername,userAvatarUrl,currentStatusEffect);
+                            await message.channel.send({embed:embedStatusActivated});
+                        }
+                    }
+                }
+
                 // console.log(`<${rndHp1}`);
                 // console.log(`${rndHp1+1}-${rndHp2}`);
                 // console.log(`${rndHp2+1}-${rndHp3}`);
@@ -1788,46 +2018,6 @@ module.exports = {
 
                 break;
             
-                // case "test":
-            //     var objEmbed = {
-            //         color: CardModule.Properties.embedColor
-            //     };
-            //     var userCardData = await CardModule.getCardUserStatusData(userId);
-            //     var guildSpawnData = await CardGuildModule.getCardGuildData(guildId);
-            //     //get the spawn token & prepare the card color
-            //     var userData = {
-            //         token:userCardData[DBM_Card_User_Data.columns.spawn_token],
-            //         color:userCardData[DBM_Card_User_Data.columns.color]
-            //     }
-            //     var spawnedCardData = {
-            //         token:guildSpawnData[DBM_Card_Guild.columns.spawn_token],
-            //         type:guildSpawnData[DBM_Card_Guild.columns.spawn_type],
-            //         id:guildSpawnData[DBM_Card_Guild.columns.spawn_id],
-            //         color:guildSpawnData[DBM_Card_Guild.columns.spawn_color],
-            //         data:guildSpawnData[DBM_Card_Guild.columns.spawn_data]
-            //     }
-
-            //     //card catcher validator, check if card is still spawning/not
-            //     if(spawnedCardData.type==null||
-            //     spawnedCardData.token==null){
-            //         objEmbed.thumbnail = {
-            //             url: CardModule.Properties.imgResponse.imgError
-            //         }
-            //         objEmbed.description = ":x: Sorry, there are no Precure cards spawning right now. Please wait until the next card spawn.";
-            //         return message.channel.send({embed:objEmbed});
-            //     } else if(userData.token==spawnedCardData.token) {
-            //         //user already capture the card on this turn
-            //         objEmbed.thumbnail = {
-            //             url: CardModule.Properties.imgResponse.imgError
-            //         }
-            //         objEmbed.description = ":x: Sorry, you've already used the capture command. Please wait until the next card spawn.";
-            //         return message.channel.send({embed:objEmbed});
-            //     }
-            //     await message.channel.send(`${userUsername} ok!`);
-
-            //     await CardModule.removeCardGuildSpawn(guildId); //remove the card spawn
-
-            //     break;
             case "spawn":
                 //get card spawn information
                 var guildSpawnData = await CardGuildModule.getCardGuildData(guildId);
@@ -2224,6 +2414,215 @@ module.exports = {
                         break;
                 }
 
+            case "convert":
+                //get/view the card detail
+                var convertOptions = args[1];
+
+                var cardId = args[2];
+                var convertAll = false;
+                objEmbed = {
+                    color:CardModule.Properties.embedColor,
+                    author : {
+                        name: userUsername,
+                        icon_url: userAvatarUrl
+                    }
+                }
+
+                if(convertOptions==null){
+                    objEmbed.description = "-Use **p!card convert point <cardid> [all]** to convert the chosen card id into points.\n-Use **p!card convert mofucoin <cardid> [all]** to convert the chosen card id into mofucoin.";
+                    return message.channel.send({embed:objEmbed});
+                } else if(convertOptions.toLowerCase()!="point" && convertOptions.toLowerCase()!="mofucoin"){
+                    objEmbed.description = "-Use **p!card convert point <cardid> [all]** to convert the chosen card id into points.\n-Use **p!card convert mofucoin <cardid> [all]** to convert the chosen card id into mofucoin.";
+                    return message.channel.send({embed:objEmbed});
+                }
+
+                convertOptions = convertOptions.toLowerCase();
+
+                if(cardId==null){
+                    objEmbed.thumbnail = {
+                        url:CardModule.Properties.imgResponse.imgError
+                    }
+                    objEmbed.description = ":x: Please enter the card ID.";
+                    return message.channel.send({embed:objEmbed});
+                } else if(args[3]!=null){
+                    //check if convert all/not
+                    if(args[3].toLowerCase()=="all"){
+                        convertAll = true;
+                    } else {
+                        objEmbed.thumbnail = {
+                            url:CardModule.Properties.imgResponse.imgError
+                        }
+                        objEmbed.description = ":x: Use: **p!card convert <cardid> all** to convert all chosen card id into points.";
+                        return message.channel.send({embed:objEmbed});
+                    }
+                }
+
+                //check if card ID exists/not
+                var cardData = await CardModule.getCardData(cardId);
+
+                if(cardData==null){
+                    objEmbed.thumbnail = {
+                        url:CardModule.Properties.imgResponse.imgError
+                    }
+                    objEmbed.description = ":x: Sorry, I can't find that card ID.";
+
+                    return message.channel.send({embed:objEmbed});
+                }
+
+                //check if user have card/not
+                var userCardStock = await CardModule.getUserCardStock(userId,cardId);
+
+                if(userCardStock<=-1){
+                    objEmbed.thumbnail = {
+                        url:CardModule.Properties.imgResponse.imgError
+                    }
+                    objEmbed.description = `:x: Sorry, you don't have: **${cardData[DBM_Card_Data.columns.name]}** yet. Please capture this card first.`;
+                    
+                } else if(userCardStock<=0){
+                    objEmbed.thumbnail = {
+                        url:CardModule.Properties.imgResponse.imgError
+                    }
+                    objEmbed.description = `:x: Sorry, you need another duplicate of: **${cardData[DBM_Card_Data.columns.id_card]} - ${cardData[DBM_Card_Data.columns.name]}** to convert this card.`;
+                } else if(userCardStock>=1){
+                    var convertValue = cardData[DBM_Card_Data.columns.rarity]*2;
+                    var color = cardData[DBM_Card_Data.columns.color];
+
+                    if(convertAll){
+                        convertValue*=userCardStock;
+
+                        objEmbed.thumbnail = {
+                            url:CardModule.Properties.imgResponse.imgOk
+                        }
+
+                        //update the card stock
+                        var query = `UPDATE ${DBM_Card_Inventory.TABLENAME}
+                        SET ${DBM_Card_Inventory.columns.stock}=? 
+                        WHERE ${DBM_Card_Inventory.columns.id_user}=? AND 
+                        ${DBM_Card_Inventory.columns.id_card}=?`;
+                        await DBConn.conn.promise().query(query,[0,userId,cardId]);
+
+                        objEmbed.description = `<@${userId}> has converted ${userCardStock}x **${cardData[DBM_Card_Data.columns.id_card]} - ${cardData[DBM_Card_Data.columns.name]}** into `;
+                    } else {
+                        objEmbed.thumbnail = {
+                            url:CardModule.Properties.imgResponse.imgOk
+                        }
+
+                        //update the card stock
+                        var query = `UPDATE ${DBM_Card_Inventory.TABLENAME}
+                        SET ${DBM_Card_Inventory.columns.stock}=${DBM_Card_Inventory.columns.stock}-1  
+                        WHERE ${DBM_Card_Inventory.columns.id_user}=? AND 
+                        ${DBM_Card_Inventory.columns.id_card}=?`;
+                        await DBConn.conn.promise().query(query,[userId,cardId]);
+
+                        objEmbed.description = `<@${userId}> has converted 1x **${cardData[DBM_Card_Data.columns.id_card]} - ${cardData[DBM_Card_Data.columns.name]}** into `;
+                    }
+
+                    if(convertOptions=="point"){
+                        //update the color point
+                        var objColor = new Map();
+                        objColor.set(`color_point_${color}`,convertValue);
+                        objEmbed.description += `**${convertValue} ${color} points**.`;
+                        await CardModule.updateColorPoint(userId,objColor);
+                    } else if(convertOptions=="mofucoin"){
+                        //update the mofucoin
+                        await CardModule.updateMofucoin(userId,convertValue);
+    
+                        objEmbed.description += `**${convertValue} mofucoin**.`;
+                    }
+                }
+
+                return message.channel.send({embed:objEmbed});
+                
+                break;
+            
+            case "shop":
+                if(args[1]==null){
+                    var shopEmbed = await CardModule.Shop.embedShopList();
+                    return message.channel.send({embed:shopEmbed});
+                } else if(args[1]!=null){
+                    if(args[1].toLowerCase()!="buy"){
+                        return message.channel.send({embed:{
+                            color: CardModule.Properties.embedColor,
+                            description:`Use **p!item shop buy <item id>** to buy the item.`
+                        }})
+                    }
+                } else if(args[2]==null){
+                    return message.channel.send({embed:{
+                        color: CardModule.Properties.embedColor,
+                        description:`Use **p!item shop buy <item id>** to buy the item.`
+                    }})
+                }
+
+                objEmbed = {
+                    color:CardModule.Properties.embedColor,
+                    author : {
+                        name: userUsername,
+                        icon_url: userAvatarUrl
+                    }
+                }
+
+                var itemId = args[2];
+                var qty = args[3];
+                if(qty!=null&&isNaN(qty)){
+                    objEmbed.description = `:x: Please enter quantity between 1-99`;
+                    return message.channel.send({embed:objEmbed});
+                } else if(qty<=0||qty>=99){
+                    objEmbed.description = `:x: Please enter quantity between 1-99`;
+                    return message.channel.send({embed:objEmbed});
+                } 
+                
+                if(qty==null){
+                    qty = 1;
+                }
+
+                //get current user stock
+                var currentStock = await ItemModule.getUserItemStock(userId,itemId);
+                var userCardData = await CardModule.getCardUserStatusData(userId);
+                var itemData = await ItemModule.getItemData(itemId);
+                
+                if(itemData==null){
+                    objEmbed.thumbnail = {
+                        url:CardModule.Properties.imgResponse.imgFailed
+                    }
+                    objEmbed.description = `:x: Sorry, I can't find that item id.`;
+                    return message.channel.send({embed:objEmbed});
+                }
+
+                var mofucoin = userCardData[DBM_Card_User_Data.columns.mofucoin];
+
+
+                var itemDataPrice = itemData[DBM_Item_Data.columns.price_mofucoin]*qty;
+                var itemDataId = itemData[DBM_Item_Data.columns.id];
+                var itemDataName = itemData[DBM_Item_Data.columns.name];
+
+                if(currentStock+qty>=ItemModule.Properties.maxItem){
+                    objEmbed.thumbnail = {
+                        url:CardModule.Properties.imgResponse.imgFailed
+                    }
+                    objEmbed.description = `:x: Sorry, you cannot purchase **${itemDataId} - ${itemDataName}** anymore.`;
+                    return message.channel.send({embed:objEmbed});
+                } else if(mofucoin<itemDataPrice){
+                    objEmbed.thumbnail = {
+                        url:CardModule.Properties.imgResponse.imgFailed
+                    }
+                    objEmbed.description = `:x: Sorry, you need **${itemDataPrice} mofucoin** to purchase ${qty}x: **${itemDataId} - ${itemDataName}**`;
+                    return message.channel.send({embed:objEmbed});
+                }
+
+                objEmbed.thumbnail = {
+                    url:CardModule.Properties.imgResponse.imgOk
+                }
+                objEmbed.description = `You have purchased ${qty}x: **${itemDataId} - ${itemDataName}** with **${itemDataPrice} mofucoin**.`;
+                
+                //update the mofucoin
+                await CardModule.updateMofucoin(userId,-itemDataPrice);
+
+                // //add the item inventory
+                await ItemModule.addNewItemInventory(userId,itemId,qty);
+
+                return message.channel.send({embed:objEmbed});
+
+                break;
             default:
                 break;
         }

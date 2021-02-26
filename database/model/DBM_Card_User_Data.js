@@ -9,6 +9,8 @@ class DBM_Card_User_Data {
         spawn_token: "spawn_token",
         card_id_selected: "card_id_selected",
         card_set_token: "card_set_token",
+        status_effect: "status_effect",
+        mofucoin: "mofucoin",
         color: "color",
         color_level_pink: "color_level_pink",
         color_point_pink: "color_point_pink",

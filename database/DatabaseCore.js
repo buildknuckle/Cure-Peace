@@ -14,15 +14,19 @@ async function select(tableName,parameterWhere){
     return await DB.conn.promise().query(query, arrParameterized);
 }
 
-async function selectAll(tableName,parameterWhere,parameterOrderBy=null){
+async function selectAll(tableName,parameterWhere=null,parameterOrderBy=null){
     var arrParameterized = [];
-    var query = `SELECT * FROM ${tableName} WHERE `;
-    //WHERE
-    for (const [key, value] of parameterWhere.entries()) {
-        query += ` ${key}=? AND `;
-        arrParameterized.push(value);
+    var query = `SELECT * FROM ${tableName} `;
+    if(parameterWhere!=null){
+        query+=" WHERE ";
+        //WHERE
+        for (const [key, value] of parameterWhere.entries()) {
+            query += ` ${key}=? AND `;
+            arrParameterized.push(value);
+        }
+        query = query.replace(/AND\s*$/, "");//remove the last AND and any whitespace
     }
-    query = query.replace(/AND\s*$/, "");//remove the last AND and any whitespace
+    
     if(parameterOrderBy!=null){
         query+=" ORDER BY ";
         for (const [key, value] of parameterOrderBy.entries()) {

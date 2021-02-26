@@ -15,7 +15,11 @@ module.exports = {
               },
               {
                 "name": "Card",
-                "value": "`catch/capture`,`detail`,`guide`,`status [username]`,`inventory [pack][username]`,`guess [lower/higher]`,`color set [color]`,`answer [a/b/c]`,`spawn`,`battle`,`avatar`,`set <card id>`,`up color <color>`,`up level <card id>`,`up special <card id>`,`leaderboard <pack/color>`,`tradeboard search <card id>`,`tradeboard post <card id that you want> <card id>`,`tradeboard trade <trade id>`,`tradeboard remove`"
+                "value": "`catch/capture`,`detail <card id>`,`guide`,`status [username]`,`inventory [pack][username]`,`duplicate [pack][username]`,`guess [lower/higher]`,`color set [color]`,`answer [a/b/c/d]`,`convert point/mofucoin <card id> [all]`,`set/transform/precure <card id>`,`spawn`,`battle`,`avatar`,`up color <color>`,`up level <card id>`,`up special <card id>`,`leaderboard <pack/color>`,`tradeboard search <card id>`,`tradeboard post <card id that you search/want> <your card id offer>`,`tradeboard trade <trade id>`,`tradeboard remove`,`shop/shop buy <item id> [qty]`"
+              },
+              {
+                "name": "Item",
+                "value": "`inventory`,`use <item id>`,`detail <item id>`"
               },
               {
                 "name": "Setting [Moderator]",
@@ -27,7 +31,7 @@ module.exports = {
               },
               {
                 "name": "Anilist",
-                "value": "`search <anime title>`, `whois/profile <character name>`" 
+                "value": "`search <anime title>`, `whois/profile <character name> [from] [anime title]`, `staff <staff name>`" 
               },
             ]
           }

@@ -16,5 +16,6 @@
     "mysql2": "^2.2.5",
     "node-fetch": "^2.6.1",
     "util": "^0.12.3"
-  }
+  },
+  "devDependencies": {}
 }

@@ -2,6 +2,7 @@ const DB = require('../database/DatabaseCore');
 const DBConn = require('../storage/dbconn');
 const GlobalFunctions = require('../modules/GlobalFunctions.js');
 const CardGuildModules = require('../modules/CardGuild');
+const ItemModules = require('../modules/Item');
 const DBM_Card_Data = require('../database/model/DBM_Card_Data');
 const DBM_Card_User_Data = require('../database/model/DBM_Card_User_Data');
 const DBM_Card_Inventory = require('../database/model/DBM_Card_Inventory');
@@ -9,8 +10,9 @@ const DBM_Card_Guild = require('../database/model/DBM_Card_Guild');
 const DBM_Card_Leaderboard = require('../database/model/DBM_Card_Leaderboard');
 const DBM_Card_Enemies = require('../database/model/DBM_Card_Enemies');
 const DBM_Card_Tradeboard = require('../database/model/DBM_Card_Tradeboard');
+const DBM_Item_Data = require('../database/model/DBM_Item_Data');
 
-const latestVersion = "1.09";
+const latestVersion = "1.11";
 
 class Properties{
     static embedColor = '#efcc2c';
@@ -226,6 +228,7 @@ class Properties{
             alter_ego:"Cure Blossom",
             henshin_phrase:"Pretty Cure, Open My Heart!",
             transform_quotes:"The flowers spreading throughout the land, Cure Blossom!",
+            transform_super_quotes:"The flowers shining all over the world, Heartcatch Pretty Cure! Super Silhouette!",
             special_attack:"Pink Forte Wave"
         },
         hibiki:{
@@ -246,6 +249,7 @@ class Properties{
             alter_ego:"Cure Happy",
             henshin_phrase:"Pretty Cure! Smile Charge!",
             transform_quotes:"Twinkling and shining, the light of the future! Cure Happy!",
+            transform_super_quotes:"Pegasus, Grant Us The Power! Princess Happy!",
             special_attack:"Happy Shower"
         },
         mana:{
@@ -356,6 +360,7 @@ class Properties{
             alter_ego:"Cure Marine",
             henshin_phrase:"Pretty Cure! Open My Heart!",
             transform_quotes:"The flower that flutters in the ocean winds, Cure Marine!",
+            transform_super_quotes:"The flowers shining around the world, Heartcatch Pretty Cure, Super Silhouette!",
             special_attack:"Blue Forte Wave"
         },
         ellen:{
@@ -376,6 +381,7 @@ class Properties{
             alter_ego:"Cure Beauty",
             henshin_phrase:"Pretty Cure! Smile Charge!",
             transform_quotes:"Snowing, falling and gathering, a noble heart! Cure Beauty!",
+            transform_super_quotes:"Pegasus, Grant Us The Power! Princess Beauty",
             special_attack:"Beauty Blizzard"
         },
         rikka:{
@@ -486,6 +492,7 @@ class Properties{
             alter_ego:"Cure Sunshine",
             henshin_phrase:"Pretty Cure! Open My Heart!",
             trasnform_quotes:"The flower that bathes in the sunlight, Cure Sunshine!",
+            transform_super_quotes:"The flowers shining around the world, Heartcatch Pretty Cure, Super Silhouette!",
             special_attack:"Gold Forte Burst"
         },
         ako:{
@@ -506,6 +513,7 @@ class Properties{
             alter_ego:"Cure Peace",
             henshin_phrase:"Pretty Cure! Smile Charge!",
             trasnform_quotes:"Sparkling, glittering, rock-paper-scissors! Cure Peace!",
+            transform_super_quotes:"Pegasus, Grant Us The Power! Princess Peace!",
             special_attack:"Peace Thunder"
         },
         alice:{
@@ -586,6 +594,7 @@ class Properties{
             alter_ego:"Cure Moonlight",
             henshin_phrase:"Pretty Cure! Open My Heart!",
             transform_quotes:"The flower that shines in the moon's light, Cure Moonlight!",
+            transform_super_quotes:"The flowers shining around the world, Heartcatch Pretty Cure, Super Silhouette!",
             special_attack:"Silver Forte Wave"
         },
         makoto:{
@@ -686,6 +695,7 @@ class Properties{
             alter_ego:"Cure Sunny",
             henshin_phrase:"Pretty Cure! Smile Charge!",
             transform_quotes:"he brilliant sun, hot-blooded power! Cure Sunny!",
+            transform_super_quotes:"Pegasus, Grant Us The Power! Princess Sunny!",
             special_attack:"Sunny Fire"
         },
         aguri:{
@@ -746,6 +756,7 @@ class Properties{
             alter_ego:"Cure March",
             henshin_phrase:"Pretty Cure! Smile Charge!",
             transform_quotes:"Intense courage, a straight-up bout! Cure March!",
+            transform_super_quotes:"Pegasus, Grant Us The Power! Princess March!",
             special_attack:"March Shoot"
         },
         kotoha:{
@@ -886,6 +897,45 @@ class Leveling {
     
 }
 
+class Shop {
+    static async embedShopList() {
+        var itemList = ""; var itemList2 = ""; var itemList3 = "";
+        var result = await DB.selectAll(DBM_Item_Data.TABLENAME);
+        result[0].forEach(item => {
+            itemList += `**${item[DBM_Item_Data.columns.id]}** - ${item[DBM_Item_Data.columns.name]}\n`
+            itemList2 += `${item[DBM_Item_Data.columns.price_mofucoin]}\n`;
+            itemList3 += `${item[DBM_Item_Data.columns.description]}\n`;
+        });
+
+        return {
+            color: Properties.embedColor,
+            author: {
+                name: "Mofu shop",
+                icon_url: "https://waa.ai/JEwn.png"
+            },
+            title: `Item Shop List:`,
+            description: `Welcome to Mofushop! Here are the available item list that you can purchase:\nUse **p!card shop buy <item id> [qty]** to purchase the item.`,
+            fields:[
+                {
+                    name:`ID - Name:`,
+                    value:itemList,
+                    inline:true
+                },
+                {
+                    name:`Price (MC):`,
+                    value:itemList2,
+                    inline:true
+                },
+                {
+                    name:`Description`,
+                    value:itemList3,
+                    inline:true
+                }
+            ],
+        }
+    }
+}
+
 class Status {
     static getHp(level,base_hp){
         return level*base_hp;
@@ -905,6 +955,171 @@ class Status {
 
     static getSpecialActivationChance(level,level_special){
         return level+(level_special*2);
+    }
+
+}
+
+class StatusEffect{
+    static buffData = {
+        second_chance:{
+            name:"Second Chance",
+            description:"You'll be given another chance to use the: **capture/answer/guess** command.",
+        },
+        lucky_number:{
+            name:"Lucky Number",
+            permanent:false,
+            description:"Provide number 7 as the next hidden number.",
+            value_number:7
+        },
+        pink_coloraura_1:{
+            name:"Pink Aura 1",
+            permanent:true,
+            description:"10% capture boost for **pink** card.",
+            value_color:"pink",
+            value_capture_boost:10
+        },
+        blue_coloraura_1:{
+            name:"Blue Aura 1",
+            permanent:true,
+            description:"10% capture boost for **blue** card.",
+            value_color:"blue",
+            value_capture_boost:10
+        },
+        yellow_coloraura_1:{
+            name:"Yellow Aura 1",
+            permanent:true,
+            description:"10% capture boost for **yellow** card.",
+            value_color:"yellow",
+            value_capture_boost:10
+        },
+        red_coloraura_1:{
+            name:"Red Aura 1",
+            permanent:true,
+            description:"10% capture boost for **red** card.",
+            value_color:"red",
+            value_capture_boost:10
+        },
+        purple_coloraura_1:{
+            name:"Purple Aura 1",
+            permanent:true,
+            description:"10% capture boost for **purple** card.",
+            value_color:"purple",
+            value_capture_boost:10
+        },
+        white_coloraura_1:{
+            name:"White Aura 1",
+            permanent:true,
+            description:"10% capture boost for **white** card.",
+            value_color:"white",
+            value_capture_boost:10
+        },
+        green_coloraura_1:{
+            name:"Green Aura 1",
+            permanent:true,
+            description:"10% capture boost for **green** card.",
+            value_color:"green",
+            value_capture_boost:10
+        },
+        pink_coloraura_2:{
+            name:"Pink Aura 2",
+            permanent:true,
+            description:"15% capture boost for **pink** card.",
+            value_color:"pink",
+            value_capture_boost:15
+        },
+        blue_coloraura_2:{
+            name:"Blue Aura 2",
+            permanent:true,
+            description:"15% capture boost for **blue** card.",
+            value_color:"blue",
+            value_capture_boost:15
+        },
+        yellow_coloraura_2:{
+            name:"Yellow Aura 2",
+            permanent:true,
+            description:"15% capture boost for **yellow** card.",
+            value_color:"yellow",
+            value_capture_boost:15
+        },
+        red_coloraura_2:{
+            name:"Red Aura 2",
+            permanent:true,
+            description:"15% capture boost for **red** card.",
+            value_color:"red",
+            value_capture_boost:15
+        },
+        purple_coloraura_2:{
+            name:"Purple Aura 2",
+            permanent:true,
+            description:"15% capture boost for **purple** card.",
+            value_color:"purple",
+            value_capture_boost:15
+        },
+        white_coloraura_2:{
+            name:"White Aura 2",
+            permanent:true,
+            description:"15% capture boost for **white** card.",
+            value_color:"white",
+            value_capture_boost:15
+        },
+        green_coloraura_2:{
+            name:"Green Aura 2",
+            permanent:true,
+            description:"15% capture boost for **green** card.",
+            value_color:"green",
+            value_capture_boost:15
+        },
+        clear_status_all:{
+            name:"Status Removal",
+            description:"Clear the Status Effect."
+        },
+        quiz_master:{
+            name:"Quiz Master",
+            permanent:false,
+            description:"Instantly give the correct answer if the answer is wrong."
+        },
+        hp_up_1:{
+            name:"Hp Up 1",
+            description:"+50 hp boost during battle.",
+            value_hp_boost:50
+        },
+        hp_up_2:{
+            name:"Hp Up 2",
+            description:"+100 hp boost during battle.",
+            value_hp_boost:100
+        },
+        rarity_up_1:{
+            name:"Rarity Up 1",
+            description:"+1 :star: rarity during battle.",
+            value_rarity_boost:1
+        },
+        rarity_up_2:{
+            name:"Rarity Up 2",
+            description:"+2 :star: rarity during battle.",
+            value_rarity_boost:2
+        },
+    }
+
+    static async updateStatusEffect(id_user,status_effect){
+        var parameterSet = new Map();
+        parameterSet.set(DBM_Card_User_Data.columns.status_effect,status_effect);
+        
+        var parameterWhere = new Map();
+        parameterWhere.set(DBM_Card_User_Data.columns.id_user,id_user);
+
+        await DB.update(DBM_Card_User_Data.TABLENAME,parameterSet,parameterWhere);
+    }
+
+    static async embedStatusEffectActivated(userUsername,userAvatarUrl,status_effect){
+        return {
+            color: Properties.embedColor,
+            author: {
+                name: userUsername,
+                icon_url: userAvatarUrl
+            },
+            title: "Status Effect Activated!",
+            description: `**${this.buffData[status_effect].name}**:\n${this.buffData[status_effect].description}`,
+        }
     }
 
 }
@@ -948,6 +1163,11 @@ class Embeds{
     static precureAvatarView(embedColor,userUsername,userAvatarUrl,packName,
         level,hp,atk,level_special,thumbnail,cardId,rarity){
         //embedColor in string and will be readed on Properties class: object variable
+        var transformQuotes = Properties.dataCardCore[packName].transform_quotes;
+        if("transform_super_quotes" in Properties.dataCardCore[packName]){
+            transformQuotes = Properties.dataCardCore[packName].transform_super_quotes;
+        }
+        
         return {
             color: Properties.dataColorCore[embedColor].color,
             author: {
@@ -955,7 +1175,7 @@ class Embeds{
                 icon_url: userAvatarUrl
             },
             title: Properties.dataCardCore[packName].henshin_phrase,
-            description: Properties.dataCardCore[packName].transform_quotes,
+            description: transformQuotes,
             fields:[
                 {
                     name:`${rarity}⭐ ${Properties.dataCardCore[packName].alter_ego} Lv.${level}`,
@@ -985,7 +1205,7 @@ class Embeds{
             },
             title: `**${Properties.dataCardCore[packName].special_attack}** Level ${level_special} Special Activated!`,
             description: `With enough energy, **${Properties.dataCardCore[packName].alter_ego}** used her special attack and defeat the tsunagarus instantly!`,
-            image:{
+            thumbnail:{
                 url:Properties.dataCardCore[packName].icon
             }
         }
@@ -999,8 +1219,8 @@ class Embeds{
                 icon_url: userAvatarUrl
             },
             title: `Tsunagarus Defeated!`,
-            description: `With the help of precure power from **${Properties.dataCardCore[packName].alter_ego}**, **${userUsername}** has won the battle against tsunagarus!`,
-            image:{
+            description: `With the help of **${Properties.dataCardCore[packName].alter_ego}**, **${userUsername}** has won the battle against tsunagarus!`,
+            thumbnail:{
                 url:Properties.dataCardCore[packName].icon
             }
         }
@@ -1051,7 +1271,7 @@ function embedCardLevelUp(embedColor,id_card,packName,
             name:`Level ${level}/${Leveling.getMaxLevel(rarity)}`
         },
         title:cardName,
-        image:{
+        thumbnail:{
             url:imgUrl
         },
         fields:[
@@ -1508,7 +1728,6 @@ async function updateColorPoint(id_user,objColor){
     var maxColorPoint = 1000;
     var cardUserStatusData = await getCardUserStatusData(id_user);
 
-    var arrParameterized = [];
     var queryColor = "";
     for (const [key, value] of objColor.entries()) {
         //get current color point
@@ -1537,10 +1756,39 @@ async function updateColorPoint(id_user,objColor){
     var query = `UPDATE ${DBM_Card_User_Data.TABLENAME} 
     SET ${queryColor}
     WHERE ${DBM_Card_User_Data.columns.id_user}=?`;
-    arrParameterized.push(id_user);
 
-    await DBConn.conn.promise().query(query, arrParameterized);
+    await DBConn.conn.promise().query(query, [id_user]);
 }
+
+async function updateMofucoin(id_user,value){
+    var maxCoin = 1000;
+    var cardUserStatusData = await getCardUserStatusData(id_user);
+
+    var queryCoin = "";
+
+    if(value>=1){
+        //addition
+        if(cardUserStatusData[DBM_Card_User_Data.columns.mofucoin]+value>=maxCoin){
+            queryCoin += ` ${DBM_Card_User_Data.columns.mofucoin} = ${maxCoin} `;
+        } else {
+            queryCoin += ` ${DBM_Card_User_Data.columns.mofucoin} = ${DBM_Card_User_Data.columns.mofucoin}+${value} `;
+        }
+    } else {
+        //substract
+        if(cardUserStatusData[DBM_Card_User_Data.columns.mofucoin]-value<=0){
+            queryCoin += ` ${DBM_Card_User_Data.columns.mofucoin} = 0 `;
+        } else {
+            queryCoin += ` ${DBM_Card_User_Data.columns.mofucoin} = ${DBM_Card_User_Data.columns.mofucoin}${value} `;
+        }
+    }
+
+    var query = `UPDATE ${DBM_Card_User_Data.TABLENAME} 
+    SET ${queryCoin}
+    WHERE ${DBM_Card_User_Data.columns.id_user}=?`;
+
+    await DBConn.conn.promise().query(query, [id_user]);
+}
+
 
 function getCardPack(id_card){
     id_card = id_card.toLowerCase();
@@ -1728,7 +1976,7 @@ async function generateCardSpawn(id_guild,specificType=null,overwriteToken = tru
     }
 
     //for debugging purpose:
-    // cardSpawnType = "battle";
+    // cardSpawnType = "quiz";
 
     var query = "";
     //prepare the embed object
@@ -2101,8 +2349,8 @@ async function addNewCardInventory(id_user,id_card,addStock = false){
     
 }
 
-module.exports = {latestVersion,Properties,Battle,Leveling,Status,TradeBoard,Embeds,getCardData,getCardInventoryUserData,getAllCardDataByPack,
+module.exports = {latestVersion,Properties,Battle,Leveling,Shop,Status,StatusEffect,TradeBoard,Embeds,getCardData,getCardInventoryUserData,getAllCardDataByPack,
     getCardUserStatusData,getCardPack,checkUserHaveCard,getUserCardInventoryData,getUserCardStock,getUserTotalCard,
-    updateCatchAttempt,updateColorPoint,removeCardGuildSpawn,generateCardSpawn,addNewCardInventory,
+    updateCatchAttempt,updateColorPoint,updateMofucoin,removeCardGuildSpawn,generateCardSpawn,addNewCardInventory,
     embedCardLevelUp,embedCardCapture,embedCardDetail,embedCardPackList,getBonusCatchAttempt,getNextColorPoint,
     checkCardCompletion,leaderboardAddNew,getAverageLevel,updateMessageIdSpawn};
