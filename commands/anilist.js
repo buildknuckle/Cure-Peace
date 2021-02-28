@@ -486,7 +486,7 @@ module.exports = {
                     }
                 })
                 .catch(function handleError(error) {
-                    console.log(error);
+                    // console.log(error);
                     return message.channel.send(`Sorry, I can't find that **character**. Try to put a more specific keyword.`);
                 });
 
@@ -587,7 +587,14 @@ module.exports = {
                             desc = "There are no description available for this staff.";
                         }
 
+                        if(desc!=null){
+                            if(desc.length>=1100){
+                                desc = desc.substring(0, 1100) + " ...";
+                            }
+                        }
+
                         objEmbed.description = GlobalFunctions.markupCleaner(desc);
+                        
 
                         //MAIN STAFF DATA
                         var txtTitle = ""; var txtCharacter = ""; var arrPages = [];
