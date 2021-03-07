@@ -11,6 +11,8 @@ class DBM_Card_User_Data {
         card_set_token: "card_set_token",
         status_effect: "status_effect",
         mofucoin: "mofucoin",
+        daily_quest: "daily_quest",
+        special_point: "special_point",
         color: "color",
         color_level_pink: "color_level_pink",
         color_point_pink: "color_point_pink",

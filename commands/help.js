@@ -11,15 +11,23 @@ module.exports = {
             "fields": [
               {
                 "name": "General",
-                "value": "`daily <color>`,`hello`,`leaderboard`,`myscore`,`peacescore`,`view`"
+                "value": "`daily [[quest] [submit] [card id]]/[color]`,`hello`,`leaderboard`,`myscore`,`peacescore`,`view`"
               },
               {
                 "name": "Card",
-                "value": "`catch/capture`,`detail <card id>`,`guide`,`status [username]`,`inventory [pack][username]`,`duplicate [pack][username]`,`guess [lower/higher]`,`color set [color]`,`answer [a/b/c/d]`,`convert point/mofucoin <card id> [all]`,`set/transform/precure <card id>`,`spawn`,`battle`,`avatar`,`up color <color>`,`up level <card id>`,`up special <card id>`,`leaderboard <pack/color>`,`tradeboard search <card id>`,`tradeboard post <card id that you search/want> <your card id offer>`,`tradeboard trade <trade id>`,`tradeboard remove`,`shop/shop buy <item id> [qty]`"
+                "value": "`catch/capture`,`detail <card id>`,`guide`,`status [username]`,`inventory [pack][username]`,`duplicate [pack][username]`,`guess [lower/higher]`,`color set [color]`,`answer [a/b/c/d]`,`convert point/mofucoin <card id> [all]`,`set/transform/precure <card id>`,`spawn`,`battle [special]`,`avatar`,`up color <color>`,`up level <card id> [level qty]`,`up special <card id>`,`leaderboard <pack/color>`,`tradeboard search <card id>`,`tradeboard post <card id that you search/want> <your card id offer>`,`tradeboard trade <trade id>`,`tradeboard remove`"
               },
               {
                 "name": "Item",
-                "value": "`inventory`,`use <item id>`,`detail <item id>`"
+                "value": "`inventory`,`use <item id>`,`detail <item id>`,`shop/shop buy <item id> [qty]`"
+              },
+              {
+                "name": "Pinky",
+                "value": "`collet/inventory`,`catch`,`detail <pinky id>`"
+              },
+              {
+                "name": "Kirakira",
+                "value": "`recipe`,`create/craft/synthesize <recipe id>`,`detail <recipe id>`"
               },
               {
                 "name": "Setting [Moderator]",

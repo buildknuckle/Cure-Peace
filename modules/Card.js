@@ -11,12 +11,14 @@ const DBM_Card_Leaderboard = require('../database/model/DBM_Card_Leaderboard');
 const DBM_Card_Enemies = require('../database/model/DBM_Card_Enemies');
 const DBM_Card_Tradeboard = require('../database/model/DBM_Card_Tradeboard');
 const DBM_Item_Data = require('../database/model/DBM_Item_Data');
+const DBM_Pinky_Data = require('../database/model/DBM_Pinky_Data');
+const DBM_Pinky_Inventory = require('../database/model/DBM_Pinky_Inventory');
 
-const latestVersion = "1.11";
+const latestVersion = "1.12";
 
 class Properties{
     static embedColor = '#efcc2c';
-    static maximumCard = 10;
+    static maximumCard = 20;
 
     //any other spawn type that is not listed will put as normal spawn
     static objSpawnType = {
@@ -63,18 +65,18 @@ class Properties{
             embed_img:"https://waa.ai/JEyE.png"
         },
         battle:{
-            type:"type",//value will be: raid
+            type:"type",//enemy type
             level:"level",//the level of the enemy
             color:"color",
             rarity:"rarity",
             id_enemy:"id_enemy",
             id_card_reward:"id_card_reward",
             special_allow:"special_allow",//true: special can be used
-            //hp will reduce the chance and stored into 3 key
+            //hp will reduce the chance and stored upto 3 key
             hp1:"hp1",
             hp2:"hp2",
             hp3:"hp3",
-            //atk will increase the chance and stored into 2 key
+            //atk will increase the chance and stored upto 2 key
             atk1:"atk1",
             atk2:"atk2",
         }
@@ -82,10 +84,17 @@ class Properties{
 
     static enemySpawnData = {
         tsunagarus : {
+            term:{
+                chokkins:"chokkins",
+                dibosu:"dibosu",
+                gizzagizza:"gizzagizza",
+                buttagiru:"buttagiru"
+            },
             image:{
-                "chokkins":"https://static.wikia.nocookie.net/prettycure/images/b/b9/Chokkin.png",
-                "dibosu":"https://static.wikia.nocookie.net/prettycure/images/8/8e/Dibosufinal.png",
-                "gizzagizza":"https://static.wikia.nocookie.net/prettycure/images/0/0c/Gizzagizza.png",
+                "chokkins":"https://cdn.discordapp.com/attachments/793415946738860072/817018351846293554/Chokkin.png",
+                "dibosu":"https://cdn.discordapp.com/attachments/793415946738860072/817018421795487764/Dibosufinal.png",
+                "gizzagizza":"https://cdn.discordapp.com/attachments/793415946738860072/817018549146484746/Gizzagizza.png",
+                "buttagiru":"https://cdn.discordapp.com/attachments/793415946738860072/817018566057918484/Buttagiru.png"
             }
         },
         "max heart":{
@@ -186,7 +195,8 @@ class Properties{
             henshin_phrase:"Dual Aurora Wave!",
             transform_quotes:"Emissary of light, Cure Black!",
             special_attack:"Marble Screw",
-            team_attack:"Team Attack"
+            team_attack:"Team Attack",
+            img_special_attack:"https://cdn.discordapp.com/attachments/793374640839458837/817775242729881660/unknown.png"
         },
         saki:{
             total:12,
@@ -197,7 +207,8 @@ class Properties{
             henshin_phrase:"Dual Spiritual Wave!",
             transform_quotes:"The shining golden flower, Cure Bloom!",
             special_attack:"Spiral Star Splash",
-            team_attack:"Team Attack"
+            team_attack:"Team Attack",
+            img_special_attack:"https://cdn.discordapp.com/attachments/793378822976045096/817775703444684820/unknown.png"
         },
         nozomi:{
             total:11,
@@ -208,7 +219,8 @@ class Properties{
             henshin_phrase:"Pretty Cure Metamorphose!",
             transform_quotes:"The great power of hope, Cure Dream!",
             special_attack:"Shooting Star",
-            team_attack:"Team Attack"
+            team_attack:"Team Attack",
+            img_special_attack:"https://cdn.discordapp.com/attachments/793379464753971220/817775920550248498/unknown.png"
         },
         love:{
             total:11,
@@ -218,7 +230,8 @@ class Properties{
             alter_ego:"Cure Peach",
             henshin_phrase:"Change, Pretty Cure! Beat up!",
             transform_quotes:"The pink heart is the emblem of love. Freshly-picked, Cure Peach!",
-            special_attack:"Love Sunshine"
+            special_attack:"Love Sunshine",
+            img_special_attack:"https://cdn.discordapp.com/attachments/793381447062913064/817776599390486558/unknown.png"
         },
         tsubomi:{
             total:13,
@@ -229,7 +242,8 @@ class Properties{
             henshin_phrase:"Pretty Cure, Open My Heart!",
             transform_quotes:"The flowers spreading throughout the land, Cure Blossom!",
             transform_super_quotes:"The flowers shining all over the world, Heartcatch Pretty Cure! Super Silhouette!",
-            special_attack:"Pink Forte Wave"
+            special_attack:"Pink Forte Wave",
+            img_special_attack:"https://cdn.discordapp.com/attachments/793382427551727636/817777422723973190/unknown.png"
         },
         hibiki:{
             total:12,
@@ -239,7 +253,8 @@ class Properties{
             alter_ego:"Cure Melody",
             henshin_phrase:"Let's Play! Pretty Cure Modulation!",
             transform_quotes:"Strumming the wild tune, Cure Melody!",
-            special_attack:"Miracle Heart Arpeggio"
+            special_attack:"Miracle Heart Arpeggio",
+            img_special_attack:"https://cdn.discordapp.com/attachments/793383641119850556/817782344819408966/unknown.png"
         },
         miyuki:{
             total:13,
@@ -250,7 +265,8 @@ class Properties{
             henshin_phrase:"Pretty Cure! Smile Charge!",
             transform_quotes:"Twinkling and shining, the light of the future! Cure Happy!",
             transform_super_quotes:"Pegasus, Grant Us The Power! Princess Happy!",
-            special_attack:"Happy Shower"
+            special_attack:"Happy Shower",
+            img_special_attack:"https://cdn.discordapp.com/attachments/793384875465506816/817783520935673856/unknown.png"
         },
         mana:{
             total:12,
@@ -260,7 +276,8 @@ class Properties{
             alter_ego:"Cure Heart",
             henshin_phrase:"Pretty Cure, Love Link!",
             transform_quotes:"Overflowing Love! Cure Heart!",
-            special_attack:"Heart Dynamite"
+            special_attack:"Heart Dynamite",
+            img_special_attack:"https://cdn.discordapp.com/attachments/793387637527805973/817784809380118528/unknown.png"
         },
         megumi:{
             total:10,
@@ -270,7 +287,8 @@ class Properties{
             alter_ego:"Cure Lovely",
             henshin_phrase:"Pretty Cure Kururin Mirror Change!",
             transform_quotes:"The big love spreading throughout the world! Cure Lovely!!",
-            special_attack:"Pinky Love Shoot"
+            special_attack:"Pinky Love Shoot",
+            img_special_attack:"https://cdn.discordapp.com/attachments/793388697474564157/817786157650673674/unknown.png"
         },
         haruka:{
             total:16,
@@ -280,7 +298,8 @@ class Properties{
             alter_ego:"Cure Flora",
             henshin_phrase:"Pretty Cure, Princess Engage!",
             transform_quotes:"Princess of the Flourishing Flowers! Cure Flora!",
-            special_attack:"Floral Tourbillon"
+            special_attack:"Floral Tourbillon",
+            img_special_attack:"https://cdn.discordapp.com/attachments/793389561606045737/817786541179011072/unknown.png"
         },
         mirai:{
             total:16,
@@ -290,7 +309,8 @@ class Properties{
             alter_ego:"Cure Miracle",
             henshin_phrase:"Miracle, Magical, Jewelryle!",
             transform_quotes:"Our Miracle! Cure Miracle!",
-            special_attack:"Diamond Eternal"
+            special_attack:"Diamond Eternal",
+            img_special_attack:"https://cdn.discordapp.com/attachments/793390659046080512/817787063726243880/unknown.png"
         },
         ichika:{
             total:18,
@@ -300,7 +320,8 @@ class Properties{
             alter_ego:"Cure Whip",
             henshin_phrase:"Cure La Mode, Decoration!",
             transform_quotes:"With Liveliness and Smiles! Let's La Mix It All Up! Cure Whip! Ready To Serve!",
-            special_attack:"Whip Decoration"
+            special_attack:"Whip Decoration",
+            img_special_attack:"https://cdn.discordapp.com/attachments/793391968322322462/817792783754330142/unknown.png"
         },
         hana:{
             total:16,
@@ -310,7 +331,8 @@ class Properties{
             alter_ego:"Cure Yell",
             henshin_phrase:"Heart Kiratto!",
             transform_quotes:"Cheering on everyone! The Pretty Cure of High Spirits! Cure Yell!",
-            special_attack:"Heart For You"
+            special_attack:"Heart For You",
+            img_special_attack:"https://cdn.discordapp.com/attachments/793393652348354600/817793676813533214/unknown.png"
         },
         hikaru:{
             total:13,
@@ -320,7 +342,8 @@ class Properties{
             alter_ego:"Cure Star",
             henshin_phrase:"Color Charge!",
             transform_quotes:"The twinkling star that shines throughout the universe! Cure Star!",
-            special_attack:"Star Punch"
+            special_attack:"Star Punch",
+            img_special_attack:"https://cdn.discordapp.com/attachments/793395639512989727/817794726728171561/unknown.png"
         },
         nodoka:{
             total:5,
@@ -330,7 +353,8 @@ class Properties{
             alter_ego:"Cure Grace",
             henshin_phrase:"Start! Pretty Cure Operation!",
             transform_quotes:"The two overlapping flowers! Cure Grace!",
-            special_attack:"Healing Flower"
+            special_attack:"Healing Flower",
+            img_special_attack:"https://cdn.discordapp.com/attachments/793396698117701632/817795329105592350/unknown.png"
         },
         karen:{
             total:12,
@@ -340,7 +364,8 @@ class Properties{
             alter_ego:"Cure Aqua",
             henshin_phrase:"Pretty Cure Metamorphose!",
             transform_quotes:"The blue spring of intelligence, Cure Aqua!",
-            special_attack:"Sapphire Arrow"
+            special_attack:"Sapphire Arrow",
+            img_special_attack:"https://cdn.discordapp.com/attachments/793380588223856651/817776251489747020/unknown.png"
         },
         miki:{
             total:10,
@@ -350,7 +375,8 @@ class Properties{
             alter_ego:"Cure Berry",
             henshin_phrase:"Change, Pretty Cure! Beat up!",
             transform_quotes:"The blue heart is the emblem of hope. Freshly-gathered, Cure Berry!",
-            special_attack:"Espoir Shower"
+            special_attack:"Espoir Shower",
+            img_special_attack:"https://cdn.discordapp.com/attachments/793381635424387073/817776807679623178/unknown.png"
         },
         erika:{
             total:13,
@@ -361,7 +387,8 @@ class Properties{
             henshin_phrase:"Pretty Cure! Open My Heart!",
             transform_quotes:"The flower that flutters in the ocean winds, Cure Marine!",
             transform_super_quotes:"The flowers shining around the world, Heartcatch Pretty Cure, Super Silhouette!",
-            special_attack:"Blue Forte Wave"
+            special_attack:"Blue Forte Wave",
+            img_special_attack:"https://cdn.discordapp.com/attachments/793382673749377075/817778139501559888/unknown.png"
         },
         ellen:{
             total:12,
@@ -371,7 +398,8 @@ class Properties{
             alter_ego:"Cure Beat",
             henshin_phrase:"Let's Play! Pretty Cure Modulation!",
             transform_quotes:"Strumming the soul's tune, Cure Beat!",
-            special_attack:"Heartful Beat Rock"
+            special_attack:"Heartful Beat Rock",
+            img_special_attack:"https://cdn.discordapp.com/attachments/793384071107575838/817783058949603368/unknown.png"
         },
         reika:{
             total:12,
@@ -382,7 +410,8 @@ class Properties{
             henshin_phrase:"Pretty Cure! Smile Charge!",
             transform_quotes:"Snowing, falling and gathering, a noble heart! Cure Beauty!",
             transform_super_quotes:"Pegasus, Grant Us The Power! Princess Beauty",
-            special_attack:"Beauty Blizzard"
+            special_attack:"Beauty Blizzard",
+            img_special_attack:"https://cdn.discordapp.com/attachments/793387120341155850/817784652236062750/unknown.png"
         },
         rikka:{
             total:11,
@@ -392,7 +421,8 @@ class Properties{
             alter_ego:"Cure Diamond",
             henshin_phrase: "Pretty Cure, Love Link!",
             transform_quotes:"The light of Wisdom! Cure Diamond!!",
-            special_attack:"Diamond Swirkle"
+            special_attack:"Diamond Swirkle",
+            img_special_attack:"https://cdn.discordapp.com/attachments/793387811922903040/817785362213765141/unknown.png"
         },
         hime:{
             total:11,
@@ -402,7 +432,8 @@ class Properties{
             alter_ego:"Cure Princess",
             henshin_phrase:"Pretty Cure Kururin Mirror Change!",
             trasnform_quotes:"The blue wind dancing in the sky! Cure Princess!",
-            special_attack:"Blue Happy Shoot"
+            special_attack:"Blue Happy Shoot",
+            img_special_attack:"https://cdn.discordapp.com/attachments/793388907429232650/817786226895618068/unknown.png"
         },
         minami:{
             total:14,
@@ -412,7 +443,8 @@ class Properties{
             alter_ego:"Cure Mermaid",
             henshin_phrase:"Pretty Cure, Princess Engage!",
             transform_quotes:"Princess of the crystal clear seas! Cure Mermaid!",
-            special_attack:"Mermaid Ripple"
+            special_attack:"Mermaid Ripple",
+            img_special_attack:"https://cdn.discordapp.com/attachments/793389777361174549/817786645037711390/unknown.png"
         },
         aoi:{
             total:14,
@@ -422,7 +454,8 @@ class Properties{
             alter_ego:"Cure Gelato",
             henshin_phrase:"Cure La Mode, Decoration!",
             transform_quotes:"With Freedom and Passion! Let's La Mix It All Up! Cure Gelato! Ready To Serve!",
-            special_attack:"Gelato Shake"
+            special_attack:"Gelato Shake",
+            img_special_attack:"https://cdn.discordapp.com/attachments/793392456019345418/817793196901400576/unknown.png"
         },
         saaya:{
             total:14,
@@ -432,7 +465,8 @@ class Properties{
             alter_ego:"Cure Ange",
             henshin_phrase:"Heart Kiratto!",
             transform_quotes:"Healing everyone! The Pretty Cure of Wisdom! Cure Ange!",
-            special_attack:"Heart Feather"
+            special_attack:"Heart Feather",
+            img_special_attack:"https://cdn.discordapp.com/attachments/793394491431714838/817793766152470528/unknown.png"
         },
         yuni:{
             total:8,
@@ -442,7 +476,8 @@ class Properties{
             alter_ego:"Cure Cosmo",
             henshin_phrase:"Color Charge!",
             transform_quotes:"The rainbow spectrum lighting up the galaxy! Cure Cosmo!",
-            special_attack:"Cosmo Shining"
+            special_attack:"Cosmo Shining",
+            img_special_attack:"https://cdn.discordapp.com/attachments/793396381406199809/817795242929422406/unknown.png"
         },
         chiyu:{
             total:5,
@@ -452,7 +487,8 @@ class Properties{
             alter_ego:"Cure Fontaine",
             henshin_phrase:"Start! Pretty Cure Operation!",
             transform_quotes:"The two intersecting streams! Cure Fontaine!",
-            special_attack:"Healing Stream"
+            special_attack:"Healing Stream",
+            img_special_attack:"https://cdn.discordapp.com/attachments/793396832717111347/817795407714189332/unknown.png"
         },
         hikari:{
             total:14,
@@ -462,7 +498,8 @@ class Properties{
             alter_ego:"Shiny Luminous",
             henshin_phrase:"Color Charge!",
             transform_quotes:"Shining life, Shiny Luminous! The light's heart and the light's will, for the sake of uniting all as one!",
-            special_attack:"Heartiel Action"
+            special_attack:"Heartiel Action",
+            img_special_attack:"https://cdn.discordapp.com/attachments/793378136871010364/817775581458464808/unknown.png"
         },
         urara:{
             total:11,
@@ -472,7 +509,8 @@ class Properties{
             alter_ego:"Cure Lemonade",
             henshin_phrase:"Pretty Cure Metamorphose!",
             transform_quotes:"The effervescence of bursting lemon, Cure Lemonade!",
-            special_attack:"Prism Chain"
+            special_attack:"Prism Chain",
+            img_special_attack:"https://cdn.discordapp.com/attachments/793380077173735424/817776088595300452/unknown.png"
         },
         inori:{
             total:10,
@@ -482,7 +520,8 @@ class Properties{
             alter_ego:"Cure Pine",
             henshin_phrase:"Change, Pretty Cure! Beat up!",
             transform_quotes:"The yellow heart is the emblem of faith! Freshly-harvested, Cure Pine!",
-            special_attack:"Healing Prayer"
+            special_attack:"Healing Prayer",
+            img_special_attack:"https://cdn.discordapp.com/attachments/793381839938519040/817776874607607808/unknown.png"
         },
         itsuki:{
             total:12,
@@ -493,7 +532,8 @@ class Properties{
             henshin_phrase:"Pretty Cure! Open My Heart!",
             trasnform_quotes:"The flower that bathes in the sunlight, Cure Sunshine!",
             transform_super_quotes:"The flowers shining around the world, Heartcatch Pretty Cure, Super Silhouette!",
-            special_attack:"Gold Forte Burst"
+            special_attack:"Gold Forte Burst",
+            img_special_attack:"https://cdn.discordapp.com/attachments/793383020336906259/817781911929225236/unknown.png"
         },
         ako:{
             total:11,
@@ -503,7 +543,8 @@ class Properties{
             alter_ego:"Cure Muse",
             henshin_phrase:"Let's Play! Pretty Cure Modulation!",
             transform_quotes:"Playing the Goddess' tune, Cure Muse!",
-            special_attack:"Sparkling Shower"
+            special_attack:"Sparkling Shower",
+            img_special_attack:"https://cdn.discordapp.com/attachments/793384267753193482/817783205075353620/unknown.png"
         },
         yayoi:{
             total:11,
@@ -514,7 +555,8 @@ class Properties{
             henshin_phrase:"Pretty Cure! Smile Charge!",
             trasnform_quotes:"Sparkling, glittering, rock-paper-scissors! Cure Peace!",
             transform_super_quotes:"Pegasus, Grant Us The Power! Princess Peace!",
-            special_attack:"Peace Thunder"
+            special_attack:"Peace Thunder",
+            img_special_attack:"https://cdn.discordapp.com/attachments/793386748356067349/817784272323608626/unknown.png"
         },
         alice:{
             total:10,
@@ -524,7 +566,8 @@ class Properties{
             alter_ego:"Cure Rosetta",
             henshin_phrase:"Pretty Cure, Love Link!",
             transform_quotes:"The Sunny warmth! Cure Rosetta!",
-            special_attack:"Rosetta Balloon"
+            special_attack:"Rosetta Balloon",
+            img_special_attack:"https://cdn.discordapp.com/attachments/793388055583129601/817785467805499402/unknown.png"
         },
         yuko:{
             total:12,
@@ -534,7 +577,8 @@ class Properties{
             alter_ego:"Cure Honey",
             henshin_phrase:"Pretty Cure Kururin Mirror Change!",
             transform_quotes:"The light of life flourishing on the Earth, Cure Honey!",
-            special_attack:"Sparkling Baton Attack"
+            special_attack:"Sparkling Baton Attack",
+            img_special_attack:"https://cdn.discordapp.com/attachments/793389083162050581/817786309334663188/unknown.png"
         },
         kirara:{
             total:16,
@@ -544,7 +588,8 @@ class Properties{
             alter_ego:"Cure Twinkle",
             henshin_phrase:"Pretty Cure, Princess Engage!",
             transform_quotes:"Princess of the twinkling stars! Cure Twinkle!",
-            special_attack:"Twinkle Humming"
+            special_attack:"Twinkle Humming",
+            img_special_attack:"https://cdn.discordapp.com/attachments/793389968457859093/817786728202502204/unknown.png"
         },
         himari:{
             total:15,
@@ -554,7 +599,8 @@ class Properties{
             alter_ego:"Cure Custard",
             henshin_phrase:"Cure La Mode, Decoration!",
             transform_quotes:"With Intelligence and Courage! Let's La Mix It All Up! Cure Custard! Ready To Serve!",
-            special_attack:"Custard Illusion"
+            special_attack:"Custard Illusion",
+            img_special_attack:"https://cdn.discordapp.com/attachments/793392228168237086/817793084657631262/unknown.png"
         },
         homare:{
             total:14,
@@ -564,7 +610,8 @@ class Properties{
             alter_ego:"Cure Etoile",
             henshin_phrase:"Heart Kiratto!",
             transform_quotes:"Making everyone shine! The Pretty Cure of Strength! Cure Étoile!",
-            special_attack:"Heart Star"
+            special_attack:"Heart Star",
+            img_special_attack:"https://cdn.discordapp.com/attachments/793394718305419265/817794207732727858/unknown.png"
         },
         elena:{
             total:11,
@@ -574,7 +621,8 @@ class Properties{
             alter_ego:"Cure Soleil",
             henshin_phrase:"Color Charge!",
             transform_quotes:"Light up the sky! With sparkling heat! Cure Soleil!",
-            special_attack:"Soleil Shoot"
+            special_attack:"Soleil Shoot",
+            img_special_attack:"https://cdn.discordapp.com/attachments/793396010227204117/817794841130827786/unknown.png"
         },
         hinata:{
             total:5,
@@ -584,7 +632,8 @@ class Properties{
             alter_ego:"Cure Sparkle",
             henshin_phrase:"Start! Pretty Cure Operation!",
             transform_quotes:"The two lights that come together! Cure Sparkle!",
-            special_attack:"Healing Flash"
+            special_attack:"Healing Flash",
+            img_special_attack:"https://cdn.discordapp.com/attachments/793396923054686219/817795470641332244/unknown.png"
         },
         yuri:{
             total:13,
@@ -595,7 +644,8 @@ class Properties{
             henshin_phrase:"Pretty Cure! Open My Heart!",
             transform_quotes:"The flower that shines in the moon's light, Cure Moonlight!",
             transform_super_quotes:"The flowers shining around the world, Heartcatch Pretty Cure, Super Silhouette!",
-            special_attack:"Silver Forte Wave"
+            special_attack:"Silver Forte Wave",
+            img_special_attack:"https://cdn.discordapp.com/attachments/793383243750703144/817782029147832360/unknown.png"
         },
         makoto:{
             total:11,
@@ -605,7 +655,8 @@ class Properties{
             alter_ego:"Cure Sword",
             henshin_phrase:"Pretty Cure, Love Link!",
             transform_quotes:"The courageous blade! Cure Sword!",
-            special_attack:"Sword Hurricane"
+            special_attack:"Sword Hurricane",
+            img_special_attack:"https://cdn.discordapp.com/attachments/793388248139300864/817785553084219402/unknown.png"
         },
         iona:{
             total:12,
@@ -615,7 +666,8 @@ class Properties{
             alter_ego:"Cure Fortune",
             henshin_phrase:"Pretty Cure! Kirarin Star Symphony",
             transform_quotes:"The star of hope that glitters in the night sky! Cure Fortune!",
-            special_attack:"Stardust Shoot"
+            special_attack:"Stardust Shoot",
+            img_special_attack:"https://cdn.discordapp.com/attachments/793389261570965504/817786376220835840/unknown.png"
         },
         riko:{
             total:15,
@@ -625,7 +677,8 @@ class Properties{
             alter_ego:"Cure Magical",
             henshin_phrase:"Miracle, Magical, Jewelryle!",
             transform_quotes:"Our Magic! Cure Magical!",
-            special_attack:"Diamond Eternal"
+            special_attack:"Diamond Eternal",
+            img_special_attack:"https://cdn.discordapp.com/attachments/793391024067837972/817792621912129536/unknown.png"
         },
         yukari:{
             total:16,
@@ -635,7 +688,8 @@ class Properties{
             alter_ego:"Cure Macaron",
             henshin_phrase:"Cure La Mode, Decoration!",
             transform_quotes:"With Beauty and Excitement! Let's La Mix It All Up! Cure Macaron! Is Ready To Serve!",
-            special_attack:"Macaron Julienne"
+            special_attack:"Macaron Julienne",
+            img_special_attack:"https://cdn.discordapp.com/attachments/793392786367316038/817793379797696512/unknown.png"
         },
         amour:{
             total:11,
@@ -645,7 +699,8 @@ class Properties{
             alter_ego:"Cure Amour",
             henshin_phrase:"Heart Kiratto!",
             transform_quotes:"Loving everyone! The Pretty Cure of Love! Cure Amour!",
-            special_attack:"Heart Dance"
+            special_attack:"Heart Dance",
+            img_special_attack:"https://cdn.discordapp.com/attachments/793395175695187980/817794367410143262/unknown.png"
         },
         madoka:{
             total:12,
@@ -655,7 +710,8 @@ class Properties{
             alter_ego:"Cure Selene",
             henshin_phrase:"Color Charge!",
             transform_quotes:"Light up the night sky! With the secretive moonlight! Cure Selene!",
-            special_attack:"Selene Arrow"
+            special_attack:"Selene Arrow",
+            img_special_attack:"https://cdn.discordapp.com/attachments/793396194697019412/817794901722005554/unknown.png"
         },
         kurumi:{
             total:12,
@@ -665,7 +721,8 @@ class Properties{
             alter_ego:"Milky Rose",
             henshin_phrase:"Skyrose Translate!",
             transform_quotes:"The blue rose is my secret emblem! Milky Rose!",
-            special_attack:"Metal Blizzard"
+            special_attack:"Metal Blizzard",
+            img_special_attack:"https://cdn.discordapp.com/attachments/793380840255389716/817776335572172880/unknown.png"
         },
         rin:{
             total:11,
@@ -675,7 +732,8 @@ class Properties{
             alter_ego:"Cure Rouge",
             henshin_phrase:"Pretty Cure Metamorphose!",
             transform_quotes:"The red flame of passion, Cure Rouge!",
-            special_attack:"Fire Strike"
+            special_attack:"Fire Strike",
+            img_special_attack:"https://cdn.discordapp.com/attachments/793379843483631626/817776006181945374/unknown.png"
         },
         setsuna:{
             total:11,
@@ -685,7 +743,8 @@ class Properties{
             alter_ego:"Cure Passion",
             henshin_phrase:"Change, Pretty Cure! Beat up!",
             transform_quotes:"The scarlet heart is the proof of happiness! Freshly-ripened, Cure Passion!",
-            special_attack:"Happiness Hurricane"
+            special_attack:"Happiness Hurricane",
+            img_special_attack:"https://cdn.discordapp.com/attachments/793382021044371507/817776964298866688/unknown.png"
         },
         akane:{
             total:11,
@@ -696,7 +755,8 @@ class Properties{
             henshin_phrase:"Pretty Cure! Smile Charge!",
             transform_quotes:"he brilliant sun, hot-blooded power! Cure Sunny!",
             transform_super_quotes:"Pegasus, Grant Us The Power! Princess Sunny!",
-            special_attack:"Sunny Fire"
+            special_attack:"Sunny Fire",
+            img_special_attack:"https://cdn.discordapp.com/attachments/793386538045276171/817783836435021824/unknown.png"
         },
         aguri:{
             total:12,
@@ -706,7 +766,8 @@ class Properties{
             alter_ego:"Cure Ace",
             henshin_phrase:"Pretty Cure, Dress Up!",
             transform_quotes:"The Trump Card of Love! Cure Ace!",
-            special_attack:"Ace Shot"
+            special_attack:"Ace Shot",
+            img_special_attack:"https://cdn.discordapp.com/attachments/793396194697019412/817794901722005554/unknown.png"
         },
         towa:{
             total:15,
@@ -716,7 +777,8 @@ class Properties{
             alter_ego:"Cure Scarlet",
             henshin_phrase:"Pretty Cure, Princess Engage!",
             transform_quotes:"Princess of crimson flames! Cure Scarlet!",
-            special_attack:"Phoenix Blaze"
+            special_attack:"Phoenix Blaze",
+            img_special_attack:"https://cdn.discordapp.com/attachments/793390200070864908/817786809270403114/unknown.png"
         },
         akira:{
             total:16,
@@ -726,7 +788,8 @@ class Properties{
             alter_ego:"Cure Chocolat",
             henshin_phrase:"Cure La Mode, Decoration!",
             transform_quotes:"With Strength and Love! Let's La Mix It All Up! Cure Chocolat! Is Ready To Serve!",
-            special_attack:"Chocolat Aromase"
+            special_attack:"Chocolat Aromase",
+            img_special_attack:"https://cdn.discordapp.com/attachments/793393018614841355/817793497238601738/unknown.png"
         },
         emiru:{
             total:11,
@@ -736,7 +799,8 @@ class Properties{
             alter_ego:"Cure Macherie",
             henshin_phrase:"Heart Kiratto!",
             transform_quotes:"Loving everyone! The Pretty Cure of Love! Cure Machérie!",
-            special_attack:"Heart Song"
+            special_attack:"Heart Song",
+            img_special_attack:"https://cdn.discordapp.com/attachments/793394965690318898/817794295641407548/unknown.png"
         },
         komachi:{
             total:13,
@@ -746,7 +810,8 @@ class Properties{
             alter_ego:"Cure Mint",
             henshin_phrase:"Pretty Cure Metamorphose!",
             transform_quotes:"The green earth of tranquility, Cure Mint!",
-            special_attack:"Emerald Saucer"
+            special_attack:"Emerald Saucer",
+            img_special_attack:"https://cdn.discordapp.com/attachments/793380333194051614/817776166597034014/unknown.png"
         },
         nao:{
             total:11,
@@ -757,7 +822,8 @@ class Properties{
             henshin_phrase:"Pretty Cure! Smile Charge!",
             transform_quotes:"Intense courage, a straight-up bout! Cure March!",
             transform_super_quotes:"Pegasus, Grant Us The Power! Princess March!",
-            special_attack:"March Shoot"
+            special_attack:"March Shoot",
+            img_special_attack:"https://cdn.discordapp.com/attachments/793386892137332756/817784444546449468/unknown.png"
         },
         kotoha:{
             total:15,
@@ -767,7 +833,8 @@ class Properties{
             alter_ego:"Cure Felice",
             henshin_phrase:"Felice, Fun Fun, Flowerle!",
             transform_quotes:"Spreading blessings to lives far and wide! Cure Felice!",
-            special_attack:"Emerald Reincarnation"
+            special_attack:"Emerald Reincarnation",
+            img_special_attack:"https://cdn.discordapp.com/attachments/793391246495449088/817786930174885898/unknown.png"
         },
         ciel:{
             total:12,
@@ -777,7 +844,8 @@ class Properties{
             alter_ego:"Cure Parfait",
             henshin_phrase:"Cure La Mode・Decoration!",
             transform_quotes:"With Dreams and Hope! Let's La Mix It All Up! Cure Parfait! Is Ready To Serve",
-            special_attack:"Parfait Étoile"
+            special_attack:"Parfait Étoile",
+            img_special_attack:"https://cdn.discordapp.com/attachments/793393296957243403/817793570161295390/unknown.png"
         },
         lala:{
             total:11,
@@ -787,7 +855,8 @@ class Properties{
             alter_ego:"Cure Milky",
             henshin_phrase:"Color Charge!",
             transform_quotes:"The milky way stretching across the heavens! Cure Milky!",
-            special_attack:"Milky Shock"
+            special_attack:"Milky Shock",
+            img_special_attack:"https://cdn.discordapp.com/attachments/793395855654518814/817794616949997588/unknown.png"
         },
         honoka:{
             total:17,
@@ -797,7 +866,8 @@ class Properties{
             alter_ego:"Cure White",
             henshin_phrase:"Dual Aurora Wave!",
             transform_quotes:"Emissary of light, Cure White!",
-            special_attack:"Marble Screw"
+            special_attack:"Marble Screw",
+            img_special_attack:"https://cdn.discordapp.com/attachments/793377043646775297/817775439320842320/unknown.png"
         },
         mai:{
             total:10,
@@ -807,7 +877,8 @@ class Properties{
             alter_ego:"Cure Egret",
             henshin_phrase:"Dual Spiritual Power!",
             transform_quotes:"The sparkling silver wing, Cure Egret!",
-            special_attack:"Twin Stream Splash"
+            special_attack:"Twin Stream Splash",
+            img_special_attack:"https://cdn.discordapp.com/attachments/793379085069844520/817775792875372554/unknown.png"
         },
         kanade:{
             total:12,
@@ -817,7 +888,8 @@ class Properties{
             alter_ego:"Cure Rhythm",
             henshin_phrase:"Let's Play! Pretty Cure Modulation!",
             transform_quotes:"Playing the graceful tune, Cure Rhythm!",
-            special_attack:"Fantastic Piacere"
+            special_attack:"Fantastic Piacere",
+            img_special_attack:"https://cdn.discordapp.com/attachments/793383859348701195/817782937667895306/unknown.png"
         }
     };
 
@@ -879,8 +951,19 @@ class Leveling {
         }
     }
 
-    static getNextCardExp(level){
-        return (level+1)*10;
+    static getNextCardExp(level,qty=1){
+        var tempExp = 0;
+        if(qty<=1){
+            tempExp+=(level+1)*10;
+        } else {
+            //parameter:3: level 1->4
+            for(var i=0;i<qty;i++){
+                tempExp+=(level+1)*10;
+                level+=1;
+            }
+        }
+        
+        return tempExp;
     }
 
     static getNextCardSpecialTotal(level){
@@ -957,21 +1040,60 @@ class Status {
         return level+(level_special*2);
     }
 
+    static getSpecialPointProgress(level,level_special,enemyLevel=1){
+        return level+(level_special*2)+enemyLevel;
+    }
+
+    static async updateSpecialPoint(id_user,value){
+        var specialCharged = false;
+        var maxPoint = 100;
+        var cardUserStatusData = await getCardUserStatusData(id_user);
+    
+        var querySpecialPoint = "";
+    
+        if(value>=1){
+            //addition
+            if(cardUserStatusData[DBM_Card_User_Data.columns.special_point]+value>=maxPoint){
+                querySpecialPoint += ` ${DBM_Card_User_Data.columns.special_point} = ${maxPoint} `;
+                specialCharged = true;
+            } else {
+                querySpecialPoint += ` ${DBM_Card_User_Data.columns.special_point} = ${DBM_Card_User_Data.columns.special_point}+${value} `;
+            }
+        } else {
+            //substract
+            if(cardUserStatusData[DBM_Card_User_Data.columns.special_point]-value<=0){
+                querySpecialPoint += ` ${DBM_Card_User_Data.columns.special_point} = 0 `;
+            } else {
+                querySpecialPoint += ` ${DBM_Card_User_Data.columns.special_point} = ${DBM_Card_User_Data.columns.special_point}${value} `;
+            }
+        }
+    
+        var query = `UPDATE ${DBM_Card_User_Data.TABLENAME} 
+        SET ${querySpecialPoint} 
+        WHERE ${DBM_Card_User_Data.columns.id_user}=?`;
+    
+        await DBConn.conn.promise().query(query, [id_user]);
+        return specialCharged;
+    }
+
 }
 
 class StatusEffect{
     static buffData = {
         second_chance:{
+            value:"second_chance",
             name:"Second Chance",
             description:"You'll be given another chance to use the: **capture/answer/guess** command.",
         },
         lucky_number:{
+            value:"lucky_number",
             name:"Lucky Number",
             permanent:false,
             description:"Provide number 7 as the next hidden number.",
             value_number:7
         },
         pink_coloraura_1:{
+            value:"pink_coloraura_1",
             name:"Pink Aura 1",
             permanent:true,
             description:"10% capture boost for **pink** card.",
@@ -979,6 +1101,7 @@ class StatusEffect{
             value_capture_boost:10
         },
         blue_coloraura_1:{
+            value:"blue_coloraura_1",
             name:"Blue Aura 1",
             permanent:true,
             description:"10% capture boost for **blue** card.",
@@ -986,6 +1109,7 @@ class StatusEffect{
             value_capture_boost:10
         },
         yellow_coloraura_1:{
+            value:"yellow_coloraura_1",
             name:"Yellow Aura 1",
             permanent:true,
             description:"10% capture boost for **yellow** card.",
@@ -993,6 +1117,7 @@ class StatusEffect{
             value_capture_boost:10
         },
         red_coloraura_1:{
+            value:"red_coloraura_1",
             name:"Red Aura 1",
             permanent:true,
             description:"10% capture boost for **red** card.",
@@ -1000,6 +1125,7 @@ class StatusEffect{
             value_capture_boost:10
         },
         purple_coloraura_1:{
+            value:"purple_coloraura_1",
             name:"Purple Aura 1",
             permanent:true,
             description:"10% capture boost for **purple** card.",
@@ -1007,6 +1133,7 @@ class StatusEffect{
             value_capture_boost:10
         },
         white_coloraura_1:{
+            value:"white_coloraura_1",
             name:"White Aura 1",
             permanent:true,
             description:"10% capture boost for **white** card.",
@@ -1014,6 +1141,7 @@ class StatusEffect{
             value_capture_boost:10
         },
         green_coloraura_1:{
+            value:"green_coloraura_1",
             name:"Green Aura 1",
             permanent:true,
             description:"10% capture boost for **green** card.",
@@ -1021,6 +1149,7 @@ class StatusEffect{
             value_capture_boost:10
         },
         pink_coloraura_2:{
+            value:"pink_coloraura_2",
             name:"Pink Aura 2",
             permanent:true,
             description:"15% capture boost for **pink** card.",
@@ -1028,6 +1157,7 @@ class StatusEffect{
             value_capture_boost:15
         },
         blue_coloraura_2:{
+            value:"blue_coloraura_2",
             name:"Blue Aura 2",
             permanent:true,
             description:"15% capture boost for **blue** card.",
@@ -1035,6 +1165,7 @@ class StatusEffect{
             value_capture_boost:15
         },
         yellow_coloraura_2:{
+            value:"yellow_coloraura_2",
             name:"Yellow Aura 2",
             permanent:true,
             description:"15% capture boost for **yellow** card.",
@@ -1042,6 +1173,7 @@ class StatusEffect{
             value_capture_boost:15
         },
         red_coloraura_2:{
+            value:"red_coloraura_2",
             name:"Red Aura 2",
             permanent:true,
             description:"15% capture boost for **red** card.",
@@ -1049,6 +1181,7 @@ class StatusEffect{
             value_capture_boost:15
         },
         purple_coloraura_2:{
+            value:"purple_coloraura_2",
             name:"Purple Aura 2",
             permanent:true,
             description:"15% capture boost for **purple** card.",
@@ -1056,6 +1189,7 @@ class StatusEffect{
             value_capture_boost:15
         },
         white_coloraura_2:{
+            value:"white_coloraura_2",
             name:"White Aura 2",
             permanent:true,
             description:"15% capture boost for **white** card.",
@@ -1063,6 +1197,7 @@ class StatusEffect{
             value_capture_boost:15
         },
         green_coloraura_2:{
+            value:"green_coloraura_2",
             name:"Green Aura 2",
             permanent:true,
             description:"15% capture boost for **green** card.",
@@ -1070,34 +1205,356 @@ class StatusEffect{
             value_capture_boost:15
         },
         clear_status_all:{
+            value:"clear_status_all",
             name:"Status Removal",
-            description:"Clear the Status Effect."
+            description:"Remove the Debuff & Clear Status Effect."
         },
         quiz_master:{
+            value:"quiz_master",
             name:"Quiz Master",
             permanent:false,
             description:"Instantly give the correct answer if the answer is wrong."
         },
+
         hp_up_1:{
+            value:"hp_up_1",
             name:"Hp Up 1",
             description:"+50 hp boost during battle.",
-            value_hp_boost:50
+            value_hp_boost:50,
+            permanent:true
         },
         hp_up_2:{
+            value:"hp_up_2",
             name:"Hp Up 2",
             description:"+100 hp boost during battle.",
-            value_hp_boost:100
+            value_hp_boost:100,
+            permanent:true
         },
+        hp_up_3:{
+            value:"hp_up_3",
+            name:"Hp Up 3",
+            description:"+150 hp boost during battle.",
+            value_hp_boost:150,
+            permanent:true
+        },
+        hp_up_4:{
+            value:"hp_up_4",
+            name:"Hp Up 4",
+            description:"+300 hp boost during battle.",
+            value_hp_boost:300,
+            permanent:false
+        },
+
         rarity_up_1:{
+            value:"rarity_up_1",
             name:"Rarity Up 1",
             description:"+1 :star: rarity during battle.",
-            value_rarity_boost:1
+            value_rarity_boost:1,
+            permanent:true
         },
         rarity_up_2:{
+            value:"rarity_up_2",
             name:"Rarity Up 2",
             description:"+2 :star: rarity during battle.",
-            value_rarity_boost:2
+            value_rarity_boost:2,
+            permanent:true
         },
+        rarity_up_3:{
+            value:"rarity_up_3",
+            name:"Rarity Up 3",
+            description:"+3 :star: rarity during battle.",
+            value_rarity_boost:3,
+            permanent:true
+        },
+        rarity_up_4:{
+            value:"rarity_up_4",
+            name:"Rarity Up 4",
+            description:"+4 :star: rarity during battle.",
+            value_rarity_boost:4,
+            permanent:false
+        },
+
+        atk_up_1:{
+            value:"atk_up_1",
+            name:"Atk Up 1",
+            description:"+50 atk boost during battle.",
+            value_atk_boost:50,
+            permanent:true
+        },
+        atk_up_2:{
+            value:"atk_up_2",
+            name:"Atk Up 2",
+            description:"+80 atk boost during battle.",
+            value_atk_boost:80,
+            permanent:true
+        },
+        atk_up_3:{
+            value:"atk_up_3",
+            name:"Atk Up 3",
+            description:"+150 atk boost during battle.",
+            value_atk_boost:150,
+            permanent:true
+        },
+        atk_up_4:{
+            value:"atk_up_4",
+            name:"Atk Up 4",
+            description:"+300 atk boost during battle.",
+            value_atk_boost:300,
+            permanent:false
+        },
+
+        battle_protection:{
+            value:"battle_protection",
+            name:"Battle Protection",
+            description:"You'll be given another chance to use the **set** & **battle** command again if you lost from the battle. And you're also protected from receiving debuff.",
+            permanent:false
+        },
+        precure_protection:{
+            value:"precure_protection",
+            name:"Precure Protection",
+            description:"**Protect** yourself from losing the precure avatar and allow you to use the **battle** command again if you lost from the battle.",
+            permanent:false
+        },
+        debuff_protection_1:{
+            value:"debuff_protection_1",
+            name:"Debuff Protection 1",
+            description:"**Protect** yourself from receiving debuff.",
+            permanent:false
+        },
+        debuff_protection_2:{
+            value:"debuff_protection_2",
+            name:"Debuff Protection 2",
+            description:"**Permanently protect** yourself from receiving debuff.",
+            permanent:true
+        },
+        rainbow_coloraura_1:{
+            value:"rainbow_coloraura_1",
+            name:"Rainbow Aura 1",
+            description:"5% capture boost for all card.",
+            value_capture_boost:5,
+            permanent:true
+        },
+        rainbow_coloraura_2:{
+            value:"rainbow_coloraura_2",
+            name:"Rainbow Aura 2",
+            description:"10% capture boost for all card.",
+            value_capture_boost:10,
+            permanent:true
+        },
+        rainbow_coloraura_3:{
+            value:"rainbow_coloraura_3",
+            name:"Rainbow Aura 3",
+            description:"15% capture boost for all card.",
+            value_capture_boost:15,
+            permanent:true
+        },
+        remove_debuff:{
+            value:"remove_debuff",
+            name:"Debuff Removal",
+            description:"Remove the chosen debuff.",
+            usable:false,
+        },
+        remove_debuff_cardcaplock:{
+            value:"remove_debuff_cardcaplock",
+            name:"Cardcaplock Removed",
+            description:"Remove **cardcaplock** debuff.",
+            usable:false,
+        },
+        remove_debuff_fear:{
+            value:"remove_debuff_fear",
+            name:"Fear  Removed",
+            description:"Remove **fear** debuff.",
+            usable:false,
+        },
+        remove_debuff_amnesia:{
+            value:"remove_debuff_amnesia",
+            name:"Amnesia Removed",
+            description:"Remove **amnesia** debuff.",
+            usable:false,
+        },
+        remove_debuff_specialock:{
+            value:"remove_debuff_specialock",
+            name:"Specialock Removed",
+            description:"Remove **specialock** debuff.",
+            usable:false,
+        }
+    }
+
+    static debuffData = {
+        item_curse:{
+            value:"item_curse",
+            name:"Item Curse",
+            description:"Unable to use any item except with the item that has **Debuff Removal**.",
+            permanent:true,
+            recovery_item:["ca017"]
+        },
+        capture_debuff_1:{
+            value:"capture_debuff_1",
+            name:"Capture Debuff 1",
+            description:"-30% capture rate when using **capture** command.",
+            value_capture_down:30,
+            recovery_item:["ca003","ca004","ca005","ca006","ca007","ca008",
+            "ca009","ca010","ca011","ca012","ca013","ca014","ca015","ca016","ca017",
+            "fo004","fo005","fo009"],
+            permanent:true
+        },
+        capture_debuff_2:{
+            value:"capture_debuff_2",
+            name:"Capture Debuff 2",
+            description:"-50% capture rate when using **capture** command.",
+            value_capture_down:50,
+            recovery_item:["ca003","ca004","ca005","ca006","ca007","ca008",
+            "ca009","ca010","ca011","ca012","ca013","ca014","ca015","ca016","ca017",
+            "fo004","fo005","fo009"],
+            permanent:true
+        },
+        capture_debuff_3:{
+            value:"capture_debuff_3",
+            name:"Capture Debuff 3",
+            description:"-70% capture rate when using **capture** command.",
+            value_capture_down:70,
+            recovery_item:["ca003","ca004","ca005","ca006","ca007","ca008",
+            "ca009","ca010","ca011","ca012","ca013","ca014","ca015","ca016","ca017",
+            "fo004","fo005","fo009"],
+            permanent:true
+        },
+        capture_debuff_4:{
+            value:"capture_debuff_4",
+            name:"Capture Debuff 4",
+            description:"-100% capture rate when using **capture** command.",
+            value_capture_down:100,
+            recovery_item:["ca003","ca004","ca005","ca006","ca007","ca008",
+            "ca009","ca010","ca011","ca012","ca013","ca014","ca015","ca016","ca017",
+            "fo004","fo005","fo009"],
+            permanent:true
+        },
+
+        hp_down_1:{
+            value:"hp_down_1",
+            name:"Hp Down 1",
+            description:"-100 hp during battle.",
+            value_hp_down:100,
+            recovery_item:["ca017","ca019","ca020","ca023","fo001","fo009"],
+            permanent:true
+        },
+        hp_down_2:{
+            value:"hp_down_2",
+            name:"Hp Down 2",
+            description:"-150 hp during battle.",
+            value_hp_down:150,
+            recovery_item:["ca017","ca019","ca020","ca023","fo001","fo009"],
+            permanent:true
+        },
+        hp_down_3:{
+            value:"hp_down_3",
+            name:"Hp Down 3",
+            description:"-200 hp during battle.",
+            value_hp_down:200,
+            recovery_item:["ca017","ca019","ca020","ca023","fo001","fo009"],
+            permanent:true
+        },
+        hp_down_4:{
+            value:"hp_down_4",
+            name:"Hp Up 4",
+            description:"-300 hp during battle.",
+            value_hp_down:300,
+            recovery_item:["ca017","ca019","ca020","ca023","fo001","fo009"],
+            permanent:true
+        },
+
+        rarity_down_1:{
+            value:"rarity_down_1",
+            name:"Rarity Down 1",
+            description:"-1 :star: rarity during battle.",
+            value_rarity_down:1,
+            recovery_item:["ca017","ca021","ca022","ca024","fo002","fo009"],
+            permanent:true
+        },
+        rarity_down_2:{
+            value:"rarity_down_2",
+            name:"Rarity Down 2",
+            description:"-2 :star: rarity during battle.",
+            value_rarity_down:2,
+            recovery_item:["ca017","ca021","ca022","ca024","fo002","fo009"],
+            permanent:true
+        },
+        rarity_down_3:{
+            value:"rarity_down_3",
+            name:"Rarity Down 3",
+            description:"-3 :star: rarity during battle.",
+            value_rarity_down:3,
+            recovery_item:["ca017","ca021","ca022","ca024","fo002","fo009"],
+            permanent:true
+        },
+        rarity_down_4:{
+            value:"rarity_down_4",
+            name:"Rarity Down 4",
+            description:"-4 :star: rarity during battle.",
+            value_rarity_down:4,
+            recovery_item:["ca017","ca021","ca022","ca024","fo002","fo009"],
+            permanent:true
+        },
+
+        atk_down_1:{
+            value:"atk_down_1",
+            name:"Atk Down 1",
+            description:"-100 atk during battle.",
+            value_atk_down:100,
+            recovery_item:["ca017","ca025","ca026","ca027","fo003","fo009"],
+            permanent:true
+        },
+        atk_down_2:{
+            value:"atk_down_2",
+            name:"Atk Down 2",
+            description:"-150 atk during battle.",
+            value_atk_down:150,
+            recovery_item:["ca017","ca025","ca026","ca027","fo003","fo009"],
+            permanent:true
+        },
+        atk_down_3:{
+            value:"atk_down_3",
+            name:"Atk Down 3",
+            description:"-180 atk during battle.",
+            value_atk_down:180,
+            recovery_item:["ca017","ca025","ca026","ca027","fo003","fo009"],
+            permanent:true
+        },
+        atk_down_4:{
+            value:"atk_down_4",
+            name:"Atk Down 4",
+            description:"-200 atk during battle.",
+            value_atk_down:200,
+            recovery_item:["ca017","ca025","ca026","ca027","fo003","fo009"],
+            permanent:true
+        },
+        fear:{
+            value:"fear",
+            name:"Fear",
+            description:"Unable to participate in **battle**.",
+            permanent:true,
+            recovery_item:["ca029","ca017"]
+        },
+        cardcaplock:{
+            value:"cardcaplock",
+            name:"Cardcaplock",
+            description:"Unable to use the **capture** command.",
+            permanent:true,
+            recovery_item:["ca028","ca017"]
+        },
+        amnesia:{
+            value:"amnesia",
+            name:"Amnesia",
+            description:"Unable to use the **guess/answer** command.",
+            permanent:true,
+            recovery_item:["ca030","ca017"]
+        },
+        specialock:{
+            value:"specialock",
+            name:"Specialock",
+            description:"Unable to use special attack during battle.",
+            permanent:true,
+            recovery_item:["ca031","ca017"]
+        }
     }
 
     static async updateStatusEffect(id_user,status_effect){
@@ -1110,15 +1567,33 @@ class StatusEffect{
         await DB.update(DBM_Card_User_Data.TABLENAME,parameterSet,parameterWhere);
     }
 
-    static async embedStatusEffectActivated(userUsername,userAvatarUrl,status_effect){
+    static async embedStatusEffectActivated(userUsername,userAvatarUrl,status_effect,statusType="buff"){
+        var icon = "⬆️";//default icon
+        var SEDescription = ""; var parTitle = "";
+        var imgThumbnail = Properties.imgResponse.imgOk;
+        switch(statusType){
+            case "debuff":
+                icon = "⬇️";
+                parTitle = `${icon} Debuff inflicted!`;
+                SEDescription = `**${this.debuffData[status_effect].name}**:\n${this.debuffData[status_effect].description}`;
+                imgThumbnail = Properties.imgResponse.imgFailed;
+                break;
+            case "buff":
+                parTitle = `${icon} Status Effect Activated!`;
+                SEDescription = `**${this.buffData[status_effect].name}**:\n${this.buffData[status_effect].description}`
+                break;
+        }
         return {
             color: Properties.embedColor,
             author: {
                 name: userUsername,
                 icon_url: userAvatarUrl
             },
-            title: "Status Effect Activated!",
-            description: `**${this.buffData[status_effect].name}**:\n${this.buffData[status_effect].description}`,
+            thumbnail:{
+                url:imgThumbnail
+            },
+            title: parTitle,
+            description: SEDescription,
         }
     }
 
@@ -1159,14 +1634,35 @@ class TradeBoard {
     }
 }
 
+class Quest {
+    static questData = {
+        last_daily_quest:"last_daily_quest",
+        dataQuest:"dataQuest"
+    }
+
+    static async setQuestData(idUser,objReward){
+        var todayDate = new Date().getDate();
+        var questData = `{"${this.questData.last_daily_quest}":${todayDate},"${this.questData.dataQuest}":${objReward}}`;
+        var parameterSet = new Map();
+        parameterSet.set(DBM_Card_User_Data.columns.daily_quest,questData);
+        var parameterWhere = new Map();
+        parameterWhere.set(DBM_Card_User_Data.columns.id_user,idUser);
+        await DB.update(DBM_Card_User_Data.TABLENAME,parameterSet,parameterWhere);
+    }
+
+    static getQuestReward(cardRarity){
+        return cardRarity*5;
+    }
+}
+
 class Embeds{
     static precureAvatarView(embedColor,userUsername,userAvatarUrl,packName,
         level,hp,atk,level_special,thumbnail,cardId,rarity){
         //embedColor in string and will be readed on Properties class: object variable
         var transformQuotes = Properties.dataCardCore[packName].transform_quotes;
-        if("transform_super_quotes" in Properties.dataCardCore[packName]){
-            transformQuotes = Properties.dataCardCore[packName].transform_super_quotes;
-        }
+        // if("transform_super_quotes" in Properties.dataCardCore[packName]){
+        //     transformQuotes = Properties.dataCardCore[packName].transform_super_quotes;
+        // }
         
         return {
             color: Properties.dataColorCore[embedColor].color,
@@ -1203,10 +1699,28 @@ class Embeds{
                 name: userUsername,
                 icon_url: userAvatarUrl
             },
-            title: `**${Properties.dataCardCore[packName].special_attack}** Level ${level_special} Special Activated!`,
-            description: `With enough energy, **${Properties.dataCardCore[packName].alter_ego}** used her special attack and defeat the tsunagarus instantly!`,
+            title: `**${Properties.dataCardCore[packName].special_attack}**!`,
+            description: `**${Properties.dataCardCore[packName].alter_ego}** has used the **Level ${level_special}** special attack and defeat the tsunagarus instantly!`,
             thumbnail:{
                 url:Properties.dataCardCore[packName].icon
+            },
+            image:{
+                url:Properties.dataCardCore[packName].img_special_attack
+            },
+        }
+    }
+
+    static battleSpecialReady(userUsername,userAvatarUrl){
+        return {
+            color: Properties.embedColor,
+            author: {
+                name: userUsername,
+                icon_url: userAvatarUrl
+            },
+            title: `Special Point Fully Charged!`,
+            description: `Your special point is ready now! You can use **p!card battle special** on the next battle.`,
+            thumbnail:{
+                url:Properties.imgResponse.imgOk
             }
         }
     }
@@ -1219,9 +1733,12 @@ class Embeds{
                 icon_url: userAvatarUrl
             },
             title: `Tsunagarus Defeated!`,
-            description: `With the help of **${Properties.dataCardCore[packName].alter_ego}**, **${userUsername}** has won the battle against tsunagarus!`,
             thumbnail:{
                 url:Properties.dataCardCore[packName].icon
+            },
+            description: `With the help of **${Properties.dataCardCore[packName].alter_ego}**, **${userUsername}** has won the battle against tsunagarus!`,
+            image:{
+                url:Properties.dataCardCore[packName].img_special_attack
             }
         }
     }
@@ -1393,7 +1910,7 @@ function embedCardDetail(embedColor,id_card,packName,
         color:Properties.dataColorCore[embedColor].color,
         author:{
             iconURL:Properties.dataCardCore[packName].icon,
-            name:`Level ${level}/${Leveling.getMaxLevel(rarity)}`
+            name:`Level ${level}/${Leveling.getMaxLevel(rarity)} | Next CP: ${Leveling.getNextCardExp(level)}`
         },
         title:cardName,
         image:{
@@ -1923,14 +2440,23 @@ function getCardPack(id_card){
     }
 }
 
-async function removeCardGuildSpawn(id_guild){
+async function removeCardGuildSpawn(id_guild,removeSpawnType=true,removeSpawnId=true,removeSpawnData=true){
     //erase all card spawn information
     var parameterSet = new Map();
-    parameterSet.set(DBM_Card_Guild.columns.spawn_type,null);
-    parameterSet.set(DBM_Card_Guild.columns.spawn_id,null);
+    if(removeSpawnType){
+        parameterSet.set(DBM_Card_Guild.columns.spawn_type,null);
+    }
+    if(removeSpawnId){
+        parameterSet.set(DBM_Card_Guild.columns.spawn_id,null);
+    }
+    
     parameterSet.set(DBM_Card_Guild.columns.spawn_color,null);
     parameterSet.set(DBM_Card_Guild.columns.spawn_number,null);
-    parameterSet.set(DBM_Card_Guild.columns.spawn_data,null);
+
+    if(removeSpawnData){
+        parameterSet.set(DBM_Card_Guild.columns.spawn_data,null);
+    }
+    
     var parameterWhere = new Map();
     parameterWhere.set(DBM_Card_Guild.columns.id_guild,id_guild);
     await DB.update(DBM_Card_Guild.TABLENAME,parameterSet,parameterWhere);
@@ -1970,13 +2496,14 @@ async function generateCardSpawn(id_guild,specificType=null,overwriteToken = tru
             }
         }
     }
+
     //if card spawn is empty set to default:normal
     if(cardSpawnType==""){
         cardSpawnType = "normal";
     }
 
     //for debugging purpose:
-    // cardSpawnType = "quiz";
+    // cardSpawnType = "battle";
 
     var query = "";
     //prepare the embed object
@@ -2163,6 +2690,20 @@ async function generateCardSpawn(id_guild,specificType=null,overwriteToken = tru
             // atk1:"atk1",
             // atk2:"atk2",
 
+            //randomize the enemy type:
+            var enemyType = GlobalFunctions.capitalize(Properties.enemySpawnData.tsunagarus.term.chokkins);//default enemy type
+            var randomType = GlobalFunctions.randomNumber(0,2);
+
+            // randomType = 2;//for debug purpose only
+
+            //get the random enemy
+            var query = `SELECT * 
+            FROM ${DBM_Card_Enemies.TABLENAME} 
+            ORDER BY rand() LIMIT 1`;
+            var enemyData = await DBConn.conn.promise().query(query);
+            enemyData = enemyData[0][0];
+            var spawnSeries = enemyData[DBM_Card_Enemies.columns.series];
+
             //get 1 random card reward
             var query = `SELECT * 
             FROM ${DBM_Card_Data.TABLENAME} 
@@ -2171,119 +2712,171 @@ async function generateCardSpawn(id_guild,specificType=null,overwriteToken = tru
             var cardRewardData = await DBConn.conn.promise().query(query,[6]);
             cardRewardData = cardRewardData[0][0];
 
-            //get the random enemy
-            var query = `SELECT * 
-            FROM ${DBM_Card_Enemies.TABLENAME} 
-            ORDER BY rand() LIMIT 1`;
-            var enemyData = await DBConn.conn.promise().query(query);
-            enemyData = enemyData[0][0];
-            var randLevel = GlobalFunctions.randomNumber(3,10);
-            var randBaseAtk = GlobalFunctions.randomNumber(50,70);
-            var randBaseHp = GlobalFunctions.randomNumber(20,30);
-            var randRarityMin = GlobalFunctions.randomNumber(4,5);
+            var spawnData = "";
+            if(randomType>=2) {
+                //gizzagizza
+                enemyType = Properties.enemySpawnData.tsunagarus.term.gizzagizza;
+                var randRarityMin = GlobalFunctions.randomNumber(3,5);
 
-            //start randomize status
-            //randomize attack group
-            var rndAtk1 = GlobalFunctions.randomNumber(20,(randBaseAtk*randLevel));
-            var rndAtk2 = GlobalFunctions.randomNumber(rndAtk1+2,rndAtk1+3+(randBaseAtk*randLevel));
-            var rndAtk3 = GlobalFunctions.randomNumber(rndAtk2+2,rndAtk2+3+(randBaseAtk*randLevel));
-            var dtAtk = `"${Properties.spawnData.battle.atk1}":${rndAtk1},"${Properties.spawnData.battle.atk2}":${rndAtk2},`;
-
-            //a-b,b-c,>c
-            //randomize hp group
-            var rndHp1 = GlobalFunctions.randomNumber(20,21+(randBaseHp*randLevel));
-            var rndHp2 = GlobalFunctions.randomNumber(rndHp1+2,randBaseHp+(rndHp1+2)*randLevel);
-            if(rndHp2>=125){rndHp2=125;}
-            var rndHp3 = GlobalFunctions.randomNumber(rndHp2+2,randBaseHp+(rndHp2+2)*randLevel);
-            if(rndHp3>=175){rndHp3=175;}//cap the hp penalty
-            var dtHp = `"${Properties.spawnData.battle.hp1}":${rndHp1},"${Properties.spawnData.battle.hp2}":${rndHp2},"${Properties.spawnData.battle.hp3}":${rndHp3},`;
-            dtHp = dtHp.replace(/,\s*$/, "");//remove last comma
-
-            // console.log("=============hp==================");
-            // console.log(`<${rndHp1}`);
-            // console.log(`${rndHp1+1}-${rndHp2}`);
-            // console.log(`${rndHp2+1}-${rndHp3}`);
-            // console.log("=============atk============");
-            // console.log(`<${rndAtk1}`);
-            // console.log(`${rndAtk1+1}-${rndAtk2}`);
-            // console.log(`>${rndAtk2+1}`);
-
-            //get the card color weakness
-            var query = `select color 
-            from ${DBM_Card_Data.TABLENAME} 
-            where ${DBM_Card_Data.columns.series}=?
-            group by ${DBM_Card_Data.columns.color}
-            order by rand() 
-            limit 1`;
-            var cardDataColorWeakness = await DBConn.conn.promise().query(query,[enemyData[DBM_Card_Enemies.columns.series]]);
-            cardDataColorWeakness = cardDataColorWeakness[0];
-            var dtColorWeakness = "[";
-            for(i=0;i<cardDataColorWeakness.length;i++){
-                dtColorWeakness+=`"${cardDataColorWeakness[i][DBM_Card_Data.columns.color]}",`;
-            }
-            dtColorWeakness = dtColorWeakness.replace(/,\s*$/, "");//remove last comma
-            dtColorWeakness += "]";
-
-            var spawnSeries = enemyData[DBM_Card_Enemies.columns.series];
-
-            //embed
-            objEmbed.image = {
-                url:Properties.enemySpawnData.tsunagarus.image.chokkins
-            }
-            objEmbed.title = `Tsunagarus Lv.${randLevel} has appeared!`;
-            objEmbed.description = `Chokkins has the ${cardRewardData[DBM_Card_Data.columns.rarity]}⭐ cure card and possesses **${Properties.enemySpawnData[spawnSeries].term}** powers! Use **p!card battle** to participate in battle and defeat it!`;
-            objEmbed.color = "#D9A4FE";
-            objEmbed.fields = [
-                {
-                    name:`⬆️ Series: +5%`,
-                    value:`${spawnSeries}`,
-                    inline:true
-                },
-                {
-                    name:`⬆️ Color: +5%`,
-                    value:`${dtColorWeakness.replace("[","").replace("]","").replace(/"/g, "")}`,
-                    inline:true
-                },
-                {
-                    name:`⬆️ Min. Rarity: +10%`,
-                    value:`${randRarityMin}`,
-                    inline:true
-                },
-                {
-                    name:`⬆️ Level/each:`,
-                    value:`+1%`,
-                    inline:true
-                },
-                {
-                    name:`⬆️ Atk:`,
-                    value:`<**${rndAtk1}**: +5%\n**${rndAtk1+1}-${rndAtk2}**: +10%\n>=**${rndAtk2+1}**: +15%`,
-                    inline:true
-                },
-                {
-                    name:`⬇️ Hp:`,
-                    value:`**<${rndHp1}**: -10%\n**${rndHp1+1}-${rndHp2}**: -5%\n**${rndHp2+1}-${rndHp3}**: -3%`,
-                    inline:true
+                //get the random series information
+                var query = `select ${DBM_Card_Data.columns.series} 
+                from ${DBM_Card_Data.TABLENAME} 
+                order by rand() 
+                limit 1`;
+                var cardDataSeriesWeakness = await DBConn.conn.promise().query(query,[enemyData[DBM_Card_Enemies.columns.series]]);
+                cardDataSeriesWeakness = cardDataSeriesWeakness[0][0];
+                
+                //get the card color weakness
+                var query = `select color 
+                from ${DBM_Card_Data.TABLENAME} 
+                where ${DBM_Card_Data.columns.series}=? 
+                group by ${DBM_Card_Data.columns.color} 
+                order by rand() 
+                limit 1`;
+                var cardDataColorWeakness = await DBConn.conn.promise().query(query,[enemyData[DBM_Card_Enemies.columns.series]]);
+                cardDataColorWeakness = cardDataColorWeakness[0];
+                var dtColorWeakness = "[";
+                for(i=0;i<cardDataColorWeakness.length;i++){
+                    dtColorWeakness+=`"${cardDataColorWeakness[i][DBM_Card_Data.columns.color]}",`;
                 }
-            ]
+                dtColorWeakness = dtColorWeakness.replace(/,\s*$/, "");//remove last comma
+                dtColorWeakness += "]";
 
-            //randomize the special allowance
-            var randAllowSpecial = GlobalFunctions.randomNumber(0,10);
-            var dtAllowSpecial = `"${Properties.spawnData.battle.special_allow}":`;
-            if(randAllowSpecial>=9){
-                dtAllowSpecial+="true";
+                //embed
+                objEmbed.image = {
+                    url:Properties.enemySpawnData.tsunagarus.image.gizzagizza
+                }
+                objEmbed.title = `Tsunagarus Level 1 has appeared!`;
+                objEmbed.description = `${GlobalFunctions.capitalize(enemyType)} has the ${cardRewardData[DBM_Card_Data.columns.rarity]}⭐ cure card and possesses **${Properties.enemySpawnData[spawnSeries].term}** powers! Use **p!card battle** to participate in battle and defeat it!`;
+                objEmbed.color = "#ED873C";
+                objEmbed.fields = [
+                    {
+                        name:`Color Requirement:`,
+                        value:`${dtColorWeakness.replace("[","").replace("]","").replace(/"/g, "")}`,
+                        inline:true
+                    },
+                    {
+                        name:`Min. Rarity:`,
+                        value:`${randRarityMin}`,
+                        inline:true
+                    }
+                ]
+                
                 objEmbed.footer = {
-                    text:`Base Chance: 20% | Special Protection: ❌`
+                    text:`Special Protection: ❌`
                 }
+
+                spawnData = `{"${Properties.spawnData.battle.type}":"${enemyType}","${Properties.spawnData.battle.id_enemy}":"${enemyData[DBM_Card_Enemies.columns.id]}","${Properties.spawnData.battle.color}":${dtColorWeakness},"${Properties.spawnData.battle.id_card_reward}":"${cardRewardData[DBM_Card_Data.columns.id_card]}","${Properties.spawnData.battle.rarity}":${randRarityMin}}`;
+
             } else {
-                dtAllowSpecial+="false";
-                objEmbed.footer = {
-                    text:`Base Chance: 20% | Special Protection: ✅`
+                //default: chokkins
+                //get the random enemy
+                var randLevel = GlobalFunctions.randomNumber(3,10);
+                var randBaseAtk = GlobalFunctions.randomNumber(50,70);
+                var randBaseHp = GlobalFunctions.randomNumber(20,30);
+                var randRarityMin = GlobalFunctions.randomNumber(4,5);
+
+                //start randomize status
+                //randomize attack group
+                var rndAtk1 = GlobalFunctions.randomNumber(20,(randBaseAtk*randLevel));
+                var rndAtk2 = GlobalFunctions.randomNumber(rndAtk1+2,rndAtk1+3+(randBaseAtk*randLevel));
+                var rndAtk3 = GlobalFunctions.randomNumber(rndAtk2+2,rndAtk2+3+(randBaseAtk*randLevel));
+                var dtAtk = `"${Properties.spawnData.battle.atk1}":${rndAtk1},"${Properties.spawnData.battle.atk2}":${rndAtk2},`;
+
+                //a-b,b-c,>c
+                //randomize hp group
+                var rndHp1 = GlobalFunctions.randomNumber(20,21+(randBaseHp*randLevel));
+                var rndHp2 = GlobalFunctions.randomNumber(rndHp1+2,randBaseHp+(rndHp1+2)*randLevel);
+                if(rndHp2>=125){rndHp2=125;}
+                var rndHp3 = GlobalFunctions.randomNumber(rndHp2+2,randBaseHp+(rndHp2+2)*randLevel);
+                if(rndHp3>=175){rndHp3=175;}//cap the hp penalty
+                var dtHp = `"${Properties.spawnData.battle.hp1}":${rndHp1},"${Properties.spawnData.battle.hp2}":${rndHp2},"${Properties.spawnData.battle.hp3}":${rndHp3},`;
+                dtHp = dtHp.replace(/,\s*$/, "");//remove last comma
+
+                // console.log("=============hp==================");
+                // console.log(`<${rndHp1}`);
+                // console.log(`${rndHp1+1}-${rndHp2}`);
+                // console.log(`${rndHp2+1}-${rndHp3}`);
+                // console.log("=============atk============");
+                // console.log(`<${rndAtk1}`);
+                // console.log(`${rndAtk1+1}-${rndAtk2}`);
+                // console.log(`>${rndAtk2+1}`);
+
+                //get the card color weakness
+                var query = `select ${DBM_Card_Data.columns.color}  
+                from ${DBM_Card_Data.TABLENAME} 
+                where ${DBM_Card_Data.columns.series}=?
+                group by ${DBM_Card_Data.columns.color}
+                order by rand() 
+                limit 1`;
+                var cardDataColorWeakness = await DBConn.conn.promise().query(query,[enemyData[DBM_Card_Enemies.columns.series]]);
+                cardDataColorWeakness = cardDataColorWeakness[0];
+                var dtColorWeakness = "[";
+                for(i=0;i<cardDataColorWeakness.length;i++){
+                    dtColorWeakness+=`"${cardDataColorWeakness[i][DBM_Card_Data.columns.color]}",`;
                 }
+                dtColorWeakness = dtColorWeakness.replace(/,\s*$/, "");//remove last comma
+                dtColorWeakness += "]";
+
+                //embed
+                objEmbed.image = {
+                    url:Properties.enemySpawnData.tsunagarus.image.chokkins
+                }
+                objEmbed.title = `Tsunagarus Lv.${randLevel} has appeared!`;
+                objEmbed.description = `${GlobalFunctions.capitalize(enemyType)} has the ${cardRewardData[DBM_Card_Data.columns.rarity]}⭐ cure card and possesses **${Properties.enemySpawnData[spawnSeries].term}** powers! Use **p!card battle** to participate in battle and defeat it!`;
+                objEmbed.color = "#D9A4FE";
+                objEmbed.fields = [
+                    {
+                        name:`⬆️ Series:`,
+                        value:`${spawnSeries}: +5%`,
+                        inline:true
+                    },
+                    {
+                        name:`⬆️ Color:`,
+                        value:`${dtColorWeakness.replace("[","").replace("]","").replace(/"/g, "")}: +5%`,
+                        inline:true
+                    },
+                    {
+                        name:`⬆️ Min. Rarity:`,
+                        value:`${randRarityMin}: +10%`,
+                        inline:true
+                    },
+                    {
+                        name:`⬆️ Level/each:`,
+                        value:`+1%`,
+                        inline:true
+                    },
+                    {
+                        name:`⬆️ Atk:`,
+                        value:`<**${rndAtk1}**: +5%\n**${rndAtk1+1}-${rndAtk2}**: +10%\n>=**${rndAtk2+1}**: +15%`,
+                        inline:true
+                    },
+                    {
+                        name:`⬇️ Hp:`,
+                        value:`**<${rndHp1}**: -10%\n**${rndHp1+1}-${rndHp2}**: -5%\n**${rndHp2+1}-${rndHp3}**: -3%`,
+                        inline:true
+                    }
+                ]
+
+                //randomize the special allowance
+                var randAllowSpecial = GlobalFunctions.randomNumber(0,10);
+                var dtAllowSpecial = `"${Properties.spawnData.battle.special_allow}":`;
+                if(randAllowSpecial>=9){
+                    dtAllowSpecial+="true";
+                    objEmbed.footer = {
+                        text:`Base Chance: 20% | Special Protection: ❌`
+                    }
+                } else {
+                    dtAllowSpecial+="false";
+                    objEmbed.footer = {
+                        text:`Base Chance: 20% | Special Protection: ✅`
+                    }
+                }
+
+                spawnData = `{"${Properties.spawnData.battle.type}":"${enemyType}","${Properties.spawnData.battle.id_enemy}":"${enemyData[DBM_Card_Enemies.columns.id]}","${Properties.spawnData.battle.level}":${randLevel},"${Properties.spawnData.battle.color}":${dtColorWeakness},"${Properties.spawnData.battle.id_card_reward}":"${cardRewardData[DBM_Card_Data.columns.id_card]}","${Properties.spawnData.battle.rarity}":${randRarityMin},${dtAllowSpecial},${dtAtk}${dtHp}}`;
             }
-
-            var spawnData = `{"${Properties.spawnData.battle.id_enemy}":"${enemyData[DBM_Card_Enemies.columns.id]}","${Properties.spawnData.battle.level}":${randLevel},"${Properties.spawnData.battle.color}":${dtColorWeakness},"${Properties.spawnData.battle.id_card_reward}":"${cardRewardData[DBM_Card_Data.columns.id_card]}","${Properties.spawnData.battle.rarity}":${randRarityMin},${dtAllowSpecial},${dtAtk}${dtHp}}`;
+            
             parameterSet.set(DBM_Card_Guild.columns.spawn_data,spawnData);
-
             break;
         default: // normal spawn type
             //get the 1card id
@@ -2291,7 +2884,7 @@ async function generateCardSpawn(id_guild,specificType=null,overwriteToken = tru
             FROM ${DBM_Card_Data.TABLENAME} 
             WHERE ${DBM_Card_Data.columns.rarity}<=? 
             ORDER BY RAND() LIMIT 1`;
-            var resultData = await DBConn.conn.promise().query(query,[3]);
+            var resultData = await DBConn.conn.promise().query(query,[3]); //for testing only
             var cardSpawnId = resultData[0][0][DBM_Card_Data.columns.id_card];
             var cardSpawnSeries = resultData[0][0][DBM_Card_Data.columns.series];
             var cardSpawnPack = resultData[0][0][DBM_Card_Data.columns.pack];
@@ -2305,7 +2898,46 @@ async function generateCardSpawn(id_guild,specificType=null,overwriteToken = tru
                 iconURL:Properties.dataCardCore[cardSpawnPack].icon,
             }
             objEmbed.title = resultData[0][0][DBM_Card_Data.columns.name];
-            objEmbed.description = `Use: **p!card catch** to capture the card.`;
+
+            objEmbed.fields = [
+                {
+                    name:"Capture Command:",
+                    value:`Use: **p!card catch** to capture the card.`,
+                    inline:false
+                }
+            ];
+            
+            // objEmbed.description = `Use: **p!card catch** to capture the card.`;
+
+            var randomPinky = GlobalFunctions.randomNumber(0,100);
+            if(randomPinky<=20 && cardSpawnSeries=="yes! precure 5 gogo!"){
+                //randomize pinky
+                var queryPinky = `select pd.${DBM_Pinky_Data.columns.id_pinky},pd.${DBM_Pinky_Data.columns.name},pd.${DBM_Pinky_Data.columns.img_url}  
+                from ${DBM_Pinky_Data.TABLENAME} pd 
+                where pd.${DBM_Pinky_Data.columns.id_pinky} not in(
+                select pi.${DBM_Pinky_Inventory.columns.id_pinky}  
+                from ${DBM_Pinky_Inventory.TABLENAME} pi 
+                where pi.${DBM_Pinky_Inventory.columns.id_guild}=?) 
+                order by rand() 
+                limit 1`;
+                var resultDataPinky = await DBConn.conn.promise().query(queryPinky,[id_guild]);
+                if(resultDataPinky[0][0]!=null){
+                    objEmbed.fields[1] = [
+                        {
+                            name:"🦋 Special Capture Command:",
+                            value:`Use: **p!pinky catch** to capture the pinky.`,
+                            inline:false
+                        }
+                    ];
+                    objEmbed.thumbnail = {
+                        url:resultDataPinky[0][0][DBM_Pinky_Data.columns.img_url]
+                    }
+                    parameterSet.set(DBM_Card_Guild.columns.spawn_data,
+                        `{"id_pinky":"${resultDataPinky[0][0][DBM_Pinky_Data.columns.id_pinky]}","id_card":"${cardSpawnId}"}`
+                    );
+                }
+            }
+
             objEmbed.image ={
                 url:resultData[0][0][DBM_Card_Data.columns.img_url]
             }
@@ -2349,7 +2981,7 @@ async function addNewCardInventory(id_user,id_card,addStock = false){
     
 }
 
-module.exports = {latestVersion,Properties,Battle,Leveling,Shop,Status,StatusEffect,TradeBoard,Embeds,getCardData,getCardInventoryUserData,getAllCardDataByPack,
+module.exports = {latestVersion,Properties,Battle,Leveling,Quest,Shop,Status,StatusEffect,TradeBoard,Embeds,getCardData,getCardInventoryUserData,getAllCardDataByPack,
     getCardUserStatusData,getCardPack,checkUserHaveCard,getUserCardInventoryData,getUserCardStock,getUserTotalCard,
     updateCatchAttempt,updateColorPoint,updateMofucoin,removeCardGuildSpawn,generateCardSpawn,addNewCardInventory,
     embedCardLevelUp,embedCardCapture,embedCardDetail,embedCardPackList,getBonusCatchAttempt,getNextColorPoint,

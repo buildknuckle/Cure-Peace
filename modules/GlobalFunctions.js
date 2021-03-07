@@ -62,6 +62,18 @@ module.exports = {
       fs.appendFile('error.txt', error, function (err) {
          if (err) throw err;
        });
+   },
+   randomProperty(obj) {
+      var keys = Object.keys(obj);
+      return obj[keys[ keys.length * Math.random() << 0]];
+   },
+   cutText(text,maxLength){
+      //give ... from the given length
+      if(text.length>=maxLength){
+         return text.substring(0, maxLength) + '...';
+      } else {
+         return text;
+      }
+      
    }
-
 }

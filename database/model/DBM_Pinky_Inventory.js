@@ -3,8 +3,9 @@ class DBM_Pinky_Inventory {
 
     static columns = {
         id: "id",
+        id_guild: "id_guild",
+        id_pinky: "id_pinky",
         id_user: "id_user",
-        id_pinkies: "id_pinky",
         created_at: "created_at",
     };
 }

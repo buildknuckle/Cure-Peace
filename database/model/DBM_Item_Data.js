@@ -9,6 +9,7 @@ class DBM_Item_Data {
         img_url: "img_url",
         description: "description",
         effect_data: "effect_data",
+        drop_rate: "drop_rate",
         created_at: "created_at"
     };
 }
