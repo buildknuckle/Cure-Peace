@@ -13,6 +13,37 @@ class Properties{
         imgError: "https://waa.ai/JEw5.png",
         imgFailed: "https://waa.ai/JEwr.png"
     }
+
+    static categoryTerm = {
+        card:"card",
+        food:"food",
+        ingredient:"Ingredient",
+        ingredient_rare:"Rare Ingredient",
+    }
+}
+
+class Embeds{
+    static ItemDropReward(userUsername,userAvatarUrl,idItem,name,_description){
+        return {
+            color: Properties.embedColor,
+            author: {
+                name: userUsername,
+                icon_url: userAvatarUrl
+            },
+            thumbnail: {
+                url:Properties.imgResponse.imgOk
+            },
+            title: "Item Drop Reward:",
+            description: `You have received: **${idItem} - ${name}**`,
+            fields:[
+                {
+                    name:`Description:`,
+                    value:_description,
+                    inline:true
+                }
+            ]
+        }
+    }
 }
 
 async function getItemData(id_item) {
@@ -92,4 +123,4 @@ async function updateItemStock(id_user,id_item,value){
     await DBConn.conn.promise().query(query, [id_user,id_item]);
 }
 
-module.exports = {Properties,getItemData,getUserItemStock,addNewItemInventory,updateItemStock}
+module.exports = {Properties,Embeds,getItemData,getUserItemStock,addNewItemInventory,updateItemStock}

@@ -53,12 +53,6 @@ module.exports = {
                                     name:members.first().user.username,
                                     icon_url:members.first().user.avatarURL()
                                 }
-
-                                // if(parameterUsername.toLowerCase()!=members.first().user.username.toLowerCase()){
-                                //     memberExists = false;
-                                // } else {
-                                    
-                                // }
                                 
                             } else {
                                 memberExists = false;
@@ -72,7 +66,7 @@ module.exports = {
                 }
 
                 var query = `select cd.${DBM_Card_Data.columns.pack},count(inv.${DBM_Card_Inventory.columns.id_user}) as total
-                from card_data cd
+                from ${DBM_Card_Data.TABLENAME} cd
                 left join ${DBM_Card_Inventory.TABLENAME} inv
                 on cd.${DBM_Card_Data.columns.id_card}=inv.${DBM_Card_Inventory.columns.id_card} and 
                 inv.${DBM_Card_Inventory.columns.id_user}=?
@@ -110,10 +104,12 @@ module.exports = {
                 objEmbed.title = `cLvl:${clvl} | MofuCoin: ${cardUserStatusData[DBM_Card_User_Data.columns.mofucoin]} | Color: ${cardUserStatusData[DBM_Card_User_Data.columns.color]} | Avatar: ${avatarId} `;
                 var currentSE = "-";
                 if(cardUserStatusData[DBM_Card_User_Data.columns.status_effect] in CardModule.StatusEffect.buffData){
-                    currentSE = `${CardModule.StatusEffect.buffData[cardUserStatusData[DBM_Card_User_Data.columns.status_effect]].name}\n${CardModule.StatusEffect.buffData[cardUserStatusData[DBM_Card_User_Data.columns.status_effect]].description}`;
+                    currentSE = `⬆️${CardModule.StatusEffect.buffData[cardUserStatusData[DBM_Card_User_Data.columns.status_effect]].name}\n${CardModule.StatusEffect.buffData[cardUserStatusData[DBM_Card_User_Data.columns.status_effect]].description}`;
+                } else if(cardUserStatusData[DBM_Card_User_Data.columns.status_effect] in CardModule.StatusEffect.debuffData){
+                    currentSE = `⬇️${CardModule.StatusEffect.debuffData[cardUserStatusData[DBM_Card_User_Data.columns.status_effect]].name}\n${CardModule.StatusEffect.debuffData[cardUserStatusData[DBM_Card_User_Data.columns.status_effect]].description}`;
                 }
                 
-                objEmbed.description = `**Status Effect:** ${currentSE}`;
+                objEmbed.description = `**Special Point:** ${cardUserStatusData[DBM_Card_User_Data.columns.special_point]}%\n**Status Effect:** ${currentSE}`;
 
                 objEmbed.fields = [{
                         name: `Pink(CL: ${cardUserStatusData[DBM_Card_User_Data.columns.color_level_pink]}/ CP: ${cardUserStatusData[DBM_Card_User_Data.columns.color_point_pink]}):`,
@@ -269,7 +265,7 @@ module.exports = {
                 pages = arrPages;
 
                 paginationEmbed(message,pages);
-                break;        
+                break;
             case "duplicate":
                 var pack = args[1];
                 if(pack!=null){
@@ -367,8 +363,20 @@ module.exports = {
                     pointerMaxData--;
                 });
 
-                for(var i=0;i<arrPages.length;i++){
-                    arrPages[i].fields[0]['name'] = `Duplicate card list:`;
+                if(arrPages.length<=0){
+                    objEmbed.thumbnail = {
+                        url:CardModule.Properties.dataCardCore[pack].icon
+                    };
+                    objEmbed.fields = [{
+                        name: "Duplicate card list:",
+                        value: "No duplicate cards available.",
+                    }];
+                    var msgEmbed = new Discord.MessageEmbed(objEmbed);
+                    arrPages.push(msgEmbed);
+                } else {
+                    for(var i=0;i<arrPages.length;i++){
+                        arrPages[i].fields[0]['name'] = `Duplicate card list:`;
+                    }
                 }
                 
                 pages = arrPages;
@@ -397,9 +405,17 @@ module.exports = {
                     data:guildSpawnData[DBM_Card_Guild.columns.spawn_data]
                 }
 
+                var currentStatusEffect = userCardData[DBM_Card_User_Data.columns.status_effect];
+                if(currentStatusEffect==CardModule.StatusEffect.debuffData.cardcaplock.value){
+                    var embedStatusEffectActivated = await CardModule.StatusEffect.embedStatusEffectActivated(
+                        userUsername,userAvatarUrl,currentStatusEffect,"debuff");
+                    return message.channel.send({embed:embedStatusEffectActivated})
+                }
+
                 //card catcher validator, check if card is still spawning/not
                 if(spawnedCardData.type==null||
-                spawnedCardData.token==null){
+                spawnedCardData.token==null||
+                (spawnedCardData.type=="normal"&&spawnedCardData.id==null)){
                     objEmbed.thumbnail = {
                         url: CardModule.Properties.imgResponse.imgError
                     }
@@ -421,7 +437,7 @@ module.exports = {
                         objEmbed.thumbnail = {
                             url: CardModule.Properties.imgResponse.imgError
                         }
-                        objEmbed.description = ":x: Current card spawn type is **quiz**. You need to use: **p!card answer <a/b/c>** to guess the answer and capture the card.";
+                        objEmbed.description = ":x: Current card spawn type is **quiz**. You need to use: **p!card answer <a/b/c/d>** to guess the answer and capture the card.";
                         return message.channel.send({embed:objEmbed});
                     case "number":
                         //check if card spawn is number
@@ -438,32 +454,6 @@ module.exports = {
                             objEmbed.description = ":x: Tsunagarus are still wandering around! You need to use: **p!card battle** to participate in battle!";
                             return message.channel.send({embed:objEmbed});
                     case "color": //color card spawn
-                        // spawnedCardData.color = guildSpawnData[DBM_Card_Guild.columns.spawn_data];
-                        // var objColor = JSON.parse(spawnedCardData.color);
-                        // //card color validator
-                        // if(Object.keys(objColor).length<=0){
-                        //     objEmbed.thumbnail = {
-                        //         url: CardModule.Properties.imgResponse.imgError
-                        //     }
-                        //     objEmbed.description = ":x: Sorry, there are no available colours that can be captured right now. Please wait until the next card spawn.";
-                        //     return message.channel.send({embed:objEmbed});
-                        // } else if(!objColor.hasOwnProperty(userData.color)){
-                        //     //check color lefted card
-                        //     var availableColor = "";
-                        //     for (const [key, value] of Object.entries(objColor)) {
-                        //         availableColor+=`${key}/ `;
-                        //     }
-                        //     availableColor = availableColor.replace(/\/\s*$/, "");//remove the last comma and any whitespace
-                        //     objEmbed.thumbnail = {
-                        //         url: CardModule.Properties.imgResponse.imgError
-                        //     }
-                        //     objEmbed.description = `:x: You are not assigned to the color: **${availableColor}** at the moment. Please assign your color with: **p!card color set <color>**`;
-                        //     return message.channel.send({embed:objEmbed});
-                        // }
-
-                        // spawnedCardData.id = objColor[userData.color];
-                        // spawnedCardData.color = userData.color;
-
                         var query = `SELECT * 
                         FROM ${DBM_Card_Data.TABLENAME} 
                         WHERE ${DBM_Card_Data.columns.color}=? AND 
@@ -496,13 +486,39 @@ module.exports = {
 
                 var currentStatusEffect = userCardData[DBM_Card_User_Data.columns.status_effect];
 
-                //check for user buff capture boost from status effect
                 if(currentStatusEffect in CardModule.StatusEffect.buffData){
+                    //check for user buff capture boost from status effect
                     if(currentStatusEffect.includes(`${spawnedCardData.color}_coloraura`)){
                         if("value_capture_boost" in CardModule.StatusEffect.buffData[currentStatusEffect]){
                             rngCatch+=CardModule.StatusEffect.buffData[currentStatusEffect].value_capture_boost;
                             var embedStatusActivated = await CardModule.StatusEffect.embedStatusEffectActivated(userUsername,userAvatarUrl,currentStatusEffect);
                             await message.channel.send({embed:embedStatusActivated});
+                        }
+                    } else if(currentStatusEffect.includes('rainbow_coloraura')){
+                        if("value_capture_boost" in CardModule.StatusEffect.buffData[currentStatusEffect]){
+                            rngCatch+=CardModule.StatusEffect.buffData[currentStatusEffect].value_capture_boost;
+                            var embedStatusActivated = await CardModule.StatusEffect.embedStatusEffectActivated(userUsername,userAvatarUrl,currentStatusEffect);
+                            await message.channel.send({embed:embedStatusActivated});
+                        }
+                    }
+
+                    if("permanent" in CardModule.StatusEffect.buffData[currentStatusEffect]){
+                        if(!CardModule.StatusEffect.buffData[currentStatusEffect].permanent){
+                            await CardModule.StatusEffect.updateStatusEffect(userId,null);
+                        }
+                    }
+                } else if(currentStatusEffect in CardModule.StatusEffect.debuffData){
+                    //check for user capture rate debuff from status effect
+                    if("value_capture_down" in CardModule.StatusEffect.debuffData[currentStatusEffect]){
+                        rngCatch-=CardModule.StatusEffect.debuffData[currentStatusEffect].value_capture_down;
+                        var embedStatusActivated = await CardModule.StatusEffect.embedStatusEffectActivated(userUsername,userAvatarUrl,currentStatusEffect,"debuff");
+
+                        await message.channel.send({embed:embedStatusActivated});
+                    }
+
+                    if("permanent" in CardModule.StatusEffect.debuffData[currentStatusEffect]){
+                        if(!CardModule.StatusEffect.debuffData[currentStatusEffect].permanent){
+                            await CardModule.StatusEffect.updateStatusEffect(userId,null);
                         }
                     }
                 }
@@ -583,7 +599,11 @@ module.exports = {
                             case "color":
                                 break;
                             default://normal card spawn, erase the card guild spawn
-                                await CardModule.removeCardGuildSpawn(guildId);
+                                if(spawnedCardData.data==null){
+                                    await CardModule.removeCardGuildSpawn(guildId);
+                                } else {
+                                    await CardModule.removeCardGuildSpawn(guildId,false,true,false);
+                                }
                                 break;
                         }
                         
@@ -627,7 +647,7 @@ module.exports = {
 
                     //get status effect
                     switch(currentStatusEffect){
-                        case "second_chance":
+                        case CardModule.StatusEffect.buffData.second_chance.value:
                             //check if second chance/not
                             await CardModule.StatusEffect.updateStatusEffect(userId,null);
                             var embedStatusActivated = await CardModule.StatusEffect.embedStatusEffectActivated(userUsername,userAvatarUrl,currentStatusEffect);
@@ -712,6 +732,13 @@ module.exports = {
                     type:guildSpawnData[DBM_Card_Guild.columns.spawn_type],
                     id:guildSpawnData[DBM_Card_Guild.columns.spawn_id],
                     color:guildSpawnData[DBM_Card_Guild.columns.spawn_color],
+                }
+
+                var currentStatusEffect = userCardData[DBM_Card_User_Data.columns.status_effect];
+                if(currentStatusEffect==CardModule.StatusEffect.debuffData.amnesia.value){
+                    var embedStatusEffectActivated = await CardModule.StatusEffect.embedStatusEffectActivated(
+                        userUsername,userAvatarUrl,currentStatusEffect,"debuff");
+                    return message.channel.send({embed:embedStatusEffectActivated})
                 }
 
                 //card catcher validator, check if card is still spawning/not
@@ -1150,28 +1177,55 @@ module.exports = {
                             return message.channel.send({embed:objEmbed});
                         }
 
+                        //card up with quantity
+                        var qty = args[3];
+                        if(qty!=null&&isNaN(qty)){
+                            objEmbed.description = `:x: Please enter the valid level quantity between 1-${CardModule.Leveling.getMaxLevel(rarity)}`;
+                            return message.channel.send({embed:objEmbed});
+                        } else if(qty<=0||qty>=99){
+                            objEmbed.description = `:x: Please enter the valid level quantity between 1-${CardModule.Leveling.getMaxLevel(rarity)}`;
+                            return message.channel.send({embed:objEmbed});
+                        } 
+                        
+                        if(qty==null){
+                            qty = 0;
+                        }
+                        qty = parseInt(qty);//convert to int
+
                         var cardLevel = cardInventoryData[DBM_Card_Inventory.columns.level];
                         var rarity = cardData[DBM_Card_Data.columns.rarity];
                         var selectedColor = cardData[DBM_Card_Data.columns.color];
 
-                        if(cardLevel>=CardModule.Leveling.getMaxLevel(rarity)){
+                        if(qty>=1&&cardLevel+qty>CardModule.Leveling.getMaxLevel(rarity)){
                             //max level validation
                             var objEmbed = {
                                 color: CardModule.Properties.embedColor,
                                 thumbnail : {
                                     url: CardModule.Properties.imgResponse.imgError
                                 },
+                                title:`Limited Card Level`,
+                                description : `:x: Sorry, that card level parameter are more than the maximum level cap!`
+                            };
+                            return message.channel.send({embed:objEmbed});
+                        } else if(cardLevel>=CardModule.Leveling.getMaxLevel(rarity)){
+                            //max level validation
+                            var objEmbed = {
+                                color: CardModule.Properties.embedColor,
+                                thumbnail : {
+                                    url: CardModule.Properties.imgResponse.imgError
+                                },
+                                title:`Maximum Card Level!`,
                                 description : `:x: **${cardData[DBM_Card_Data.columns.name]}** has reached the maximum card level and cannot be increased anymore.`
                             };
                             return message.channel.send({embed:objEmbed});
                         }
                         
                         //color point validation
-                        var nextExp = CardModule.Leveling.getNextCardExp(cardInventoryData[DBM_Card_Inventory.columns.level]);
+                        var nextExp = CardModule.Leveling.getNextCardExp(cardLevel,qty);
                         if(cardUserData[`color_point_${cardData[DBM_Card_Data.columns.color]}`]<nextExp){
                             var objEmbed = {
                                 color: CardModule.Properties.embedColor,
-                                description : `:x: Sorry, you need **${nextExp} ${cardData[DBM_Card_Data.columns.color]}** color points to level up the **${cardData[DBM_Card_Data.columns.id_card]} - ${cardData[DBM_Card_Data.columns.name]}** into level **${cardInventoryData[DBM_Card_Inventory.columns.level]+1}**.`,
+                                description : `:x: Sorry, you need **${nextExp} ${cardData[DBM_Card_Data.columns.color]}** color points to level up the **${cardData[DBM_Card_Data.columns.id_card]} - ${cardData[DBM_Card_Data.columns.name]}** into level **${cardLevel+qty}**.`,
                                 thumbnail : {
                                     url: CardModule.Properties.imgResponse.imgError
                                 },
@@ -1179,10 +1233,13 @@ module.exports = {
                             return message.channel.send({embed:objEmbed});
                         }
 
+                        if(qty<=0){
+                            qty = 1;
+                        }
 
                         //update the card level & color points 
                         var query = `UPDATE ${DBM_Card_Inventory.TABLENAME} inv, ${DBM_Card_User_Data.TABLENAME} cud 
-                        SET inv.${DBM_Card_Inventory.columns.level}=inv.${DBM_Card_Inventory.columns.level}+1, 
+                        SET inv.${DBM_Card_Inventory.columns.level}=inv.${DBM_Card_Inventory.columns.level}+${qty}, 
                         cud.color_point_${selectedColor}=cud.color_point_${selectedColor}-${nextExp} 
                         WHERE cud.${DBM_Card_User_Data.columns.id_user}=? AND 
                         inv.${DBM_Card_Inventory.columns.id_user}=? AND 
@@ -1193,7 +1250,7 @@ module.exports = {
                         var cardInventoryData = await CardModule.getCardInventoryUserData(userId,selectedIdCard);
 
                         var objEmbed = CardModule.embedCardLevelUp(cardData[DBM_Card_Data.columns.color],cardData[DBM_Card_Data.columns.id_card],cardData[DBM_Card_Data.columns.pack],cardData[DBM_Card_Data.columns.name],cardData[DBM_Card_Data.columns.img_url],cardData[DBM_Card_Data.columns.series],cardData[DBM_Card_Data.columns.rarity],userAvatarUrl,userUsername,cardInventoryData[DBM_Card_Inventory.columns.level],cardData[DBM_Card_Data.columns.max_hp],cardData[DBM_Card_Data.columns.max_atk],cardInventoryData[DBM_Card_Inventory.columns.level_special]);
-                        return message.channel.send({content:`**${userUsername}** - **${cardData[DBM_Card_Data.columns.name]}** is now level **${cardInventoryData[DBM_Card_Inventory.columns.level]}**!`, embed:objEmbed});
+                        return message.channel.send({content:`**${userUsername}** has used **${nextExp} ${cardData[DBM_Card_Data.columns.color]}** color points & **${cardData[DBM_Card_Data.columns.name]}** is now level **${cardInventoryData[DBM_Card_Inventory.columns.level]}**!`, embed:objEmbed});
 
                         break;
                     
@@ -1288,6 +1345,13 @@ module.exports = {
                     token:guildSpawnData[DBM_Card_Guild.columns.spawn_token],
                     type:guildSpawnData[DBM_Card_Guild.columns.spawn_type],
                     spawn_data:guildSpawnData[DBM_Card_Guild.columns.spawn_data]
+                }
+
+                var currentStatusEffect = userCardData[DBM_Card_User_Data.columns.status_effect];
+                if(currentStatusEffect==CardModule.StatusEffect.debuffData.amnesia.value){
+                    var embedStatusEffectActivated = await CardModule.StatusEffect.embedStatusEffectActivated(
+                        userUsername,userAvatarUrl,currentStatusEffect,"debuff");
+                    return message.channel.send({embed:embedStatusEffectActivated})
                 }
 
                 //card catcher validator, check if card is still spawning/not
@@ -1606,7 +1670,6 @@ module.exports = {
                     return message.channel.send({embed:objEmbed});
                 }
 
-
                 if(cardData[DBM_Card_Data.columns.rarity]>=3){
                     //update the color point
                     var objColor = new Map();
@@ -1653,12 +1716,12 @@ module.exports = {
                 return message.channel.send({embed:CardModule.Embeds.precureAvatarView(cardData[DBM_Card_Data.columns.color],userUsername,userAvatarUrl,cardData[DBM_Card_Data.columns.pack],cardUserInventory[DBM_Card_Inventory.columns.level],cardData[DBM_Card_Data.columns.max_hp],cardData[DBM_Card_Data.columns.max_atk],cardUserInventory[DBM_Card_Inventory.columns.level_special],cardData[DBM_Card_Data.columns.img_url],cardData[DBM_Card_Data.columns.id_card],cardData[DBM_Card_Data.columns.rarity])})
 
                 break;
-            // case "debug":
-            //     //for card spawn debug purpose
-            //     var cardSpawnData = await CardModule.generateCardSpawn(guildId);
-            //     var msgObject = await message.channel.send({embed:cardSpawnData});
-            //     await CardModule.updateMessageIdSpawn(guildId,msgObject.id);
-            //     break;
+            case "debug":
+                //for card spawn debug purpose
+                var cardSpawnData = await CardModule.generateCardSpawn(guildId);
+                var msgObject = await message.channel.send({embed:cardSpawnData});
+                await CardModule.updateMessageIdSpawn(guildId,msgObject.id);
+                break;
             case "battle":
                 //get card spawn information
                 var userCardData = await CardModule.getCardUserStatusData(userId);
@@ -1678,6 +1741,14 @@ module.exports = {
                     token:guildSpawnData[DBM_Card_Guild.columns.spawn_token],
                     type:guildSpawnData[DBM_Card_Guild.columns.spawn_type],
                     spawn_data:guildSpawnData[DBM_Card_Guild.columns.spawn_data]
+                }
+
+                //fear status effect
+                var currentStatusEffect = userCardData[DBM_Card_User_Data.columns.status_effect];
+                if(currentStatusEffect==CardModule.StatusEffect.debuffData.fear.value){
+                    var embedStatusEffectActivated = await CardModule.StatusEffect.embedStatusEffectActivated(
+                        userUsername,userAvatarUrl,currentStatusEffect,"debuff");
+                    return message.channel.send({embed:embedStatusEffectActivated})
                 }
 
                 //card catcher validator, check if card is still spawning/not
@@ -1707,221 +1778,514 @@ module.exports = {
                     objEmbed.thumbnail = {
                         url: CardModule.Properties.imgResponse.imgFailed
                     }
-                    objEmbed.description = ":x: I know you want to battle but you haven't set your precure battle avatar yet!";
+                    objEmbed.description = ":x: I know you want to battle but you need to set your precure avatar first!";
                     return message.channel.send({embed:objEmbed});
                 }
 
                 var jsonParsedSpawnData = JSON.parse(guildSpawnData[DBM_Card_Guild.columns.spawn_data]);
                 var userCardInventoryData = await CardModule.getCardInventoryUserData(userId,userData.cardIdSelected);
-                
-                var minChance = 100-20;//default chance
+
                 var cardData = await CardModule.getCardData(userData.cardIdSelected);
                 var cardDataReward = await CardModule.getCardData(jsonParsedSpawnData[CardModule.Properties.spawnData.battle.id_card_reward]);
                 //to check the stock
                 var userCardRewardStock = await CardModule.getUserCardStock(userId,cardDataReward[DBM_Card_Data.columns.id_card]);
 
                 var enemyData = await CardModule.Battle.getEnemyData(jsonParsedSpawnData[CardModule.Properties.spawnData.battle.id_enemy]);
+
                 var enemyRarity = jsonParsedSpawnData[CardModule.Properties.spawnData.battle.rarity];
+                var enemyType = jsonParsedSpawnData[CardModule.Properties.spawnData.battle.type];
                 var arrColor = jsonParsedSpawnData[CardModule.Properties.spawnData.battle.color];
-                var level = userCardInventoryData[DBM_Card_Inventory.columns.level];
-                var level_special = userCardInventoryData[DBM_Card_Inventory.columns.level_special];
 
-                var msgContent = "";
-                //default point reward
-                var pointReward = 10*cardDataReward[DBM_Card_Data.columns.rarity];
-                
-                var duplicate = true;
-
-                //calculate special activation requirement:
-                if(jsonParsedSpawnData[CardModule.Properties.spawnData.battle.special_allow]){
-                    var chance = GlobalFunctions.randomNumber(0,100);
-                    var minSpecialActivationChance = 100-CardModule.Status.getSpecialActivationChance(level,level_special);
-                    //for debugging purpose only!
-                    // chance = 0;
-                    if(chance>=minSpecialActivationChance){
-                        await message.channel.send({embed:CardModule.Embeds.battleSpecialActivated(cardData[DBM_Card_Data.columns.color],userUsername,userAvatarUrl,cardData[DBM_Card_Data.columns.pack],level_special)});
-                        //stock validation
-                        if(userCardRewardStock<=-1){
-                            msgContent = `**${userUsername}** has received: **${cardDataReward[DBM_Card_Data.columns.id_card]} - ${cardDataReward[DBM_Card_Data.columns.name]}** & **${pointReward} ${cardData[DBM_Card_Data.columns.color]}** color points!`;
-                            //add new card:
-                            await CardModule.addNewCardInventory(userId,cardDataReward[DBM_Card_Data.columns.id_card]);
-                            duplicate = false;
-                        } else {
-                            if(userCardRewardStock<CardModule.Properties.maximumCard){
-                                msgContent = `**${userUsername}** has received another copy of: **${cardDataReward[DBM_Card_Data.columns.id_card]} - ${cardDataReward[DBM_Card_Data.columns.name]}** & **${pointReward} ${cardData[DBM_Card_Data.columns.color]}** color points!`;
-                                userCardRewardStock+=1;
-                                //add new card:
-                                await CardModule.addNewCardInventory(userId,cardDataReward[DBM_Card_Data.columns.id_card],true);
-                            } else {
-                                //cannot add more card
-                                objEmbed.thumbnail = {
-                                    url: CardModule.Properties.imgResponse.imgError
-                                }
-                                objEmbed.author = {
-                                    name:userUsername,
-                                    iconURL:userAvatarUrl
-                                }
-                                objEmbed.description = `:x: Sorry **${userUsername}**, you cannot have another copy of **${cardDataReward[DBM_Card_Data.columns.id_card]} - ${cardDataReward[DBM_Card_Data.columns.name]}**. As a bonus you have received **${pointReward} ${cardData[DBM_Card_Data.columns.color]}** color points.`;
-                                //update the token & color point
-                                var objColor = new Map();
-                                objColor.set(`color_point_${cardData[DBM_Card_Data.columns.color]}`,pointReward);
-                                await CardModule.updateCatchAttempt(userId,
-                                    spawnedCardData.token,
-                                    objColor
-                                );
-                                return message.channel.send({embed:objEmbed});
-                            }
-                        }
-
-                        //update the token & color point
-                        var objColor = new Map();
-                        objColor.set(`color_point_${cardData[DBM_Card_Data.columns.color]}`,pointReward);
-                        await CardModule.updateCatchAttempt(userId,
-                            spawnedCardData.token,
-                            objColor
-                        );
-                        
-                        //get the current card total
-                        var currentTotalCard = await CardModule.getUserTotalCard(userId,cardDataReward[DBM_Card_Data.columns.pack]);
-                        
-                        if(duplicate){
-                            await message.channel.send({content:msgContent});
-                        } else {
-                            //erase the card guild spawn
-                            await CardModule.removeCardGuildSpawn(guildId);
-
-                            await message.channel.send({content:msgContent,
-                            embed:CardModule.embedCardCapture(cardDataReward[DBM_Card_Data.columns.color],cardDataReward[DBM_Card_Data.columns.id_card],cardDataReward[DBM_Card_Data.columns.pack],cardDataReward[DBM_Card_Data.columns.name],cardDataReward[DBM_Card_Data.columns.img_url],cardDataReward[DBM_Card_Data.columns.series],cardDataReward[DBM_Card_Data.columns.rarity],userAvatarUrl,userUsername,currentTotalCard,cardDataReward[DBM_Card_Data.columns.max_hp],cardDataReward[DBM_Card_Data.columns.max_atk],userCardRewardStock)});
-                        }
-
-                        //check card pack completion:
-                        var embedCompletion = null;
-                        var checkCardCompletionPack = await CardModule.checkCardCompletion(userId,"pack",cardDataReward[DBM_Card_Data.columns.pack]);
-                        var checkCardCompletionColor = await CardModule.checkCardCompletion(userId,"color",cardDataReward[DBM_Card_Data.columns.color]);
-
-                        if(checkCardCompletionPack){
-                            //card pack completion
-                            embedCompletion = await CardModule.leaderboardAddNew(guildId,userId,userAvatarUrl,CardModule.Properties.dataColorCore[cardDataReward[DBM_Card_Data.columns.color]].color,"pack",cardDataReward[DBM_Card_Data.columns.pack]);
-                        } else if(checkCardCompletionColor) {
-                            //color set completion
-                            embedCompletion = await CardModule.leaderboardAddNew(guildId,userId,userAvatarUrl,CardModule.Properties.dataColorCore[cardDataReward[DBM_Card_Data.columns.color]].color,"color",cardDataReward[DBM_Card_Data.columns.color]);
-                        }
-
-                        if(embedCompletion!=null){
-                            return message.channel.send({embed:embedCompletion});
-                        }
-
-                        return;
-                    }
-
-                }
-
+                //check for battle_protection status effect
                 //get status effect
                 var currentStatusEffect = userCardData[DBM_Card_User_Data.columns.status_effect];
 
-                var hp = cardData[DBM_Card_Data.columns.max_hp];
-                hp = CardModule.Status.getHp(level,hp);
-                var atk = cardData[DBM_Card_Data.columns.max_atk];
-                atk = CardModule.Status.getAtk(level,atk);
-                // console.log(`HP: ${hp}`);
-                // console.log(`ATK: ${atk}`);
-                // {"id_enemy":"SPC07","level":2,"color":["pink","blue"],"id_card_reward":"yuni701","rarity":3,"special_allow":false,"atk1":96,"atk2":139,"hp1":47,"hp2":98,"hp3":133}
-                if(cardData[DBM_Card_Data.columns.series].toLowerCase()==enemyData[DBM_Card_Enemies.columns.series].toLowerCase()){
-                    //calculate series buff: -5%
-                    minChance-=5;
-                }
-                if(arrColor.includes(cardData[DBM_Card_Data.columns.color])){
-                    //calculate color buff: +5%
-                    minChance-=5;
+                var captured = false; var specialActivated = false;
+
+                //default point reward
+                var pointReward = 10*cardDataReward[DBM_Card_Data.columns.rarity];
+
+                var debuffProtection = false; var removePrecure = true; var allowSecondBattle = false;
+                var allowSet = false;
+
+                var randDebuffChance = GlobalFunctions.randomNumber(0,10);
+                var randomDebuff = null; //return in object
+                randDebuffChance = 8; //for debug purpose only
+                if(randDebuffChance<=9){
+                    randomDebuff = GlobalFunctions.randomProperty(CardModule.StatusEffect.debuffData); //return in object
                 }
 
-                //check for rarity boost
+                //check if buff status effect is permanent/not
                 if(currentStatusEffect in CardModule.StatusEffect.buffData){
-                    if(currentStatusEffect.includes(`rarity_up_`)){
-                        //check for rarity boost
-                        if("value_rarity_boost" in CardModule.StatusEffect.buffData[currentStatusEffect]){
-                            cardData[DBM_Card_Data.columns.rarity]+=CardModule.StatusEffect.buffData[currentStatusEffect].value_rarity_boost;
-
-                            var embedStatusActivated = await CardModule.StatusEffect.embedStatusEffectActivated(userUsername,userAvatarUrl,currentStatusEffect);
-                            await message.channel.send({embed:embedStatusActivated});
+                    if("permanent" in CardModule.StatusEffect.buffData[currentStatusEffect]){
+                        if(!CardModule.StatusEffect.buffData[currentStatusEffect].permanent){
+                            await CardModule.StatusEffect.updateStatusEffect(userId,null); //remove the SE
                         }
                     }
                 }
 
-                if(cardData[DBM_Card_Data.columns.rarity]>=enemyRarity){
-                    //calculate rarity buff: +10%
-                    minChance-=10;
-                }
-
-                //calculate level buff: +1%/each level
-                minChance-=(1*level);
-
-                //calculate attack buff:
-                var atk1 = jsonParsedSpawnData[CardModule.Properties.spawnData.battle.atk1];
-                var atk2 = jsonParsedSpawnData[CardModule.Properties.spawnData.battle.atk2];
-                // console.log(`<${rndAtk1}`);
-                // console.log(`${rndAtk1+1}-${rndAtk2}`);
-                // console.log(`>${rndAtk2+1}`);
-                if(atk>=atk2+1){
-                    minChance-=15;
-                } else if(atk<=atk2&&atk>=atk1+1){
-                    minChance-=10;
-                } else {
-                    minChance-=5;
-                }
-
-                //calculate hp buff:
-                var hp1 = jsonParsedSpawnData[CardModule.Properties.spawnData.battle.hp1];
-                var hp2 = jsonParsedSpawnData[CardModule.Properties.spawnData.battle.hp2];
-                var hp3 = jsonParsedSpawnData[CardModule.Properties.spawnData.battle.hp3];
-
-
-                //check for hp boost
-                if(currentStatusEffect in CardModule.StatusEffect.buffData){
-                    if(currentStatusEffect.includes(`hp_up_`)){
-                        //check for rarity boost
-                        if("value_hp_boost" in CardModule.StatusEffect.buffData[currentStatusEffect]){
-                            hp+=CardModule.StatusEffect.buffData[currentStatusEffect].value_hp_boost;
-
-                            var embedStatusActivated = await CardModule.StatusEffect.embedStatusEffectActivated(userUsername,userAvatarUrl,currentStatusEffect);
-                            await message.channel.send({embed:embedStatusActivated});
+                //special attack validation
+                if(args[1]!=null){
+                    var specialAllow = true;
+                    //special validation
+                    if(CardModule.Properties.spawnData.battle.special_allow in jsonParsedSpawnData){
+                        if(!jsonParsedSpawnData[CardModule.Properties.spawnData.battle.special_allow]){
+                            specialAllow = false;
                         }
+                    }
+                    
+                    if(args[1].toLowerCase()!="special"){
+                        objEmbed.author = {
+                            name: userUsername,
+                            icon_url: userAvatarUrl
+                        };
+                        objEmbed.thumbnail = {
+                            url:CardModule.Properties.imgResponse.imgError
+                        };
+                        objEmbed.description = "Use **p!card battle special** to activate your special attack.";
+                        return message.channel.send({embed:objEmbed});
+                    } else if(currentStatusEffect==CardModule.StatusEffect.debuffData.specialock.value){
+                        //specialock debuff
+                        var embedStatusActivated = await CardModule.StatusEffect.embedStatusEffectActivated(userUsername,userAvatarUrl,currentStatusEffect,"debuff");
+                        return message.channel.send({embed:embedStatusActivated});
+                    } else if(userCardData[DBM_Card_User_Data.columns.special_point]<100){
+                        objEmbed.author = {
+                            name: userUsername,
+                            icon_url: userAvatarUrl
+                        };
+                        objEmbed.thumbnail = {
+                            url:CardModule.Properties.imgResponse.imgFailed
+                        };
+                        objEmbed.description = "Your special point is not fully charged yet!";
+                        return message.channel.send({embed:objEmbed});
+                    } else if(!specialAllow) {
+                        //remove the precure avatar
+                        var parameterSet = new Map();
+                        parameterSet.set(DBM_Card_User_Data.columns.card_id_selected,null);
+                        var parameterWhere = new Map();
+                        parameterWhere.set(DBM_Card_User_Data.columns.id_user,userId);
+                        await DB.update(DBM_Card_User_Data.TABLENAME,parameterSet,parameterWhere);
+
+                        //update the capture attempt
+                        await CardModule.updateCatchAttempt(userId,spawnedCardData.token);
+
+                        //reset the special point
+                        var parameterSet = new Map();
+                        parameterSet.set(DBM_Card_User_Data.columns.special_point,0);
+                        var parameterWhere = new Map();
+                        parameterWhere.set(DBM_Card_User_Data.columns.id_user,userId);
+                        await DB.update(DBM_Card_User_Data.TABLENAME,parameterSet,parameterWhere);
+
+                        objEmbed.author = {
+                            name: userUsername,
+                            icon_url: userAvatarUrl
+                        };
+                        objEmbed.thumbnail = {
+                            url:CardModule.Properties.imgResponse.imgFailed
+                        };
+                        objEmbed.title = "Battle Lost: Special Countered!";
+                        objEmbed.description = "Oh no, your special has been countered by the tsunagarus and you've instantly defeated! Your special point has dropped into 0%!";
+                        return message.channel.send({embed:objEmbed});
+                    } else {
+                        captured = true; specialActivated = true;
+                        var level_special = userCardInventoryData[DBM_Card_Inventory.columns.level_special];
+
+                        //reset the special point
+                        var parameterSet = new Map();
+                        parameterSet.set(DBM_Card_User_Data.columns.special_point,0);
+                        var parameterWhere = new Map();
+                        parameterWhere.set(DBM_Card_User_Data.columns.id_user,userId);
+                        await DB.update(DBM_Card_User_Data.TABLENAME,parameterSet,parameterWhere);
+
+                        //special attack embed
+                        await message.channel.send({embed:CardModule.Embeds.battleSpecialActivated(cardData[DBM_Card_Data.columns.color],userUsername,userAvatarUrl,cardData[DBM_Card_Data.columns.pack],level_special)});
                     }
                 }
 
-                // console.log(`<${rndHp1}`);
-                // console.log(`${rndHp1+1}-${rndHp2}`);
-                // console.log(`${rndHp2+1}-${rndHp3}`);
-                if(hp>=hp2+1&&hp<=hp3){
-                    minChance+=3;
-                } else if(hp>=hp1+1&&hp<=hp2){
-                    minChance+=5;
-                } else if(hp<hp1){
-                    minChance+=10;
+                var level = userCardInventoryData[DBM_Card_Inventory.columns.level];
+                var level_special = userCardInventoryData[DBM_Card_Inventory.columns.level_special];
+                var enemyLevel = 1; //default level for enemy
+                
+                switch(enemyType){
+                    case CardModule.Properties.enemySpawnData.tsunagarus.term.gizzagizza:
+                        if(specialActivated||(arrColor.includes(cardData[DBM_Card_Data.columns.color])&&
+                        cardData[DBM_Card_Data.columns.series].toLowerCase()==enemyData[DBM_Card_Enemies.columns.series].toLowerCase()&&
+                        cardData[DBM_Card_Data.columns.rarity]>=enemyRarity)){
+                            captured = true;
+                        } else {
+                            //defeated
+                            //check for buff
+                            switch(currentStatusEffect){
+                                case CardModule.StatusEffect.buffData.battle_protection.value:
+                                    allowSet = true;
+                                    allowSecondBattle = true;
+                                    debuffProtection = true;
+                                    var embedStatusActivated = await CardModule.StatusEffect.embedStatusEffectActivated(userUsername,userAvatarUrl,currentStatusEffect);
+                                    await message.channel.send({embed:embedStatusActivated});
+                                    break;
+                                case CardModule.StatusEffect.buffData.precure_protection.value:
+                                    allowSecondBattle = true;
+                                    removePrecure = false;
+                                    var embedStatusActivated = await CardModule.StatusEffect.embedStatusEffectActivated(userUsername,userAvatarUrl,currentStatusEffect);
+                                    await message.channel.send({embed:embedStatusActivated});
+                                    break;
+                                case CardModule.StatusEffect.buffData.debuff_protection_1.value:
+                                case CardModule.StatusEffect.buffData.debuff_protection_2.value:
+                                    debuffProtection = true;
+                                    var embedStatusActivated = await CardModule.StatusEffect.embedStatusEffectActivated(userUsername,userAvatarUrl,currentStatusEffect);
+                                    await message.channel.send({embed:embedStatusActivated});
+                                    break;
+                            }
+
+                            objEmbed.title = "Battle Lost";
+                            if(removePrecure){
+                                objEmbed.thumbnail = {
+                                    url:CardModule.Properties.imgResponse.imgFailed
+                                }
+                                objEmbed.description = `:x: Oh no! <@${userId}> has lost from the battle and lost the precure avatar power!`;
+                                //remove the precure avatar
+                                var parameterSet = new Map();
+                                parameterSet.set(DBM_Card_User_Data.columns.card_id_selected,null);
+                                var parameterWhere = new Map();
+                                parameterWhere.set(DBM_Card_User_Data.columns.id_user,userId);
+                                await DB.update(DBM_Card_User_Data.TABLENAME,parameterSet,parameterWhere);
+                            } else {
+                                objEmbed.thumbnail = {
+                                    url:CardModule.Properties.imgResponse.imgFailed
+                                }
+                                objEmbed.description = `:x: Oh no! <@${userId}> has lost from the battle!`;
+                            }
+
+                            //check for second battle allowance
+                            if(!allowSecondBattle){
+                                //update the spawn token
+                                await CardModule.updateCatchAttempt(userId,spawnedCardData.token);
+                            }
+
+                            if(allowSet){
+                                //erase the card set token
+                                var parameterSet = new Map();
+                                parameterSet.set(DBM_Card_User_Data.columns.card_set_token,null);
+                                var parameterWhere = new Map();
+                                parameterWhere.set(DBM_Card_User_Data.columns.id_user,userId);
+                                await DB.update(DBM_Card_User_Data.TABLENAME,parameterSet,parameterWhere);
+                            }
+
+                            await message.channel.send({embed:objEmbed});
+
+                            //activate the debuff if user doesn't have debuff protection
+                            if(!debuffProtection&&randomDebuff!=null){
+                                await CardModule.StatusEffect.updateStatusEffect(userId,randomDebuff.value);
+                                var embedStatusActivated = await CardModule.StatusEffect.embedStatusEffectActivated(userUsername,userAvatarUrl,randomDebuff.value,"debuff");
+                                await message.channel.send({embed:embedStatusActivated});
+                            }
+                        }
+                        break;
+                    default:
+                        //chokkins:
+                        var minChance = 100-20;//default chance
+        
+                        var msgContent = "";
+                        var duplicate = true;
+        
+                        var hp = cardData[DBM_Card_Data.columns.max_hp];
+                        hp = CardModule.Status.getHp(level,hp);
+                        var atk = cardData[DBM_Card_Data.columns.max_atk];
+                        atk = CardModule.Status.getAtk(level,atk);
+                        // console.log(`HP: ${hp}`);
+                        // console.log(`ATK: ${atk}`);
+                        // {"id_enemy":"SPC07","level":2,"color":["pink","blue"],"id_card_reward":"yuni701","rarity":3,"special_allow":false,"atk1":96,"atk2":139,"hp1":47,"hp2":98,"hp3":133}
+                        if(cardData[DBM_Card_Data.columns.series].toLowerCase()==enemyData[DBM_Card_Enemies.columns.series].toLowerCase()){
+                            //calculate series buff: -5%
+                            minChance-=5;
+                        }
+                        if(arrColor.includes(cardData[DBM_Card_Data.columns.color])){
+                            //calculate color buff: +5%
+                            minChance-=5;
+                        }
+        
+                        //check for rarity boost
+                        if(currentStatusEffect in CardModule.StatusEffect.buffData){
+                            if(currentStatusEffect.includes(`rarity_up_`)){
+                                //check for rarity boost
+                                if("value_rarity_boost" in CardModule.StatusEffect.buffData[currentStatusEffect]){
+                                    cardData[DBM_Card_Data.columns.rarity]+=CardModule.StatusEffect.buffData[currentStatusEffect].value_rarity_boost;
+        
+                                    var embedStatusActivated = await CardModule.StatusEffect.embedStatusEffectActivated(userUsername,userAvatarUrl,currentStatusEffect);
+                                    await message.channel.send({embed:embedStatusActivated});
+
+                                    //check if SE permanent/not
+                                    if("permanent" in CardModule.StatusEffect.buffData[currentStatusEffect]){
+                                        if(!CardModule.StatusEffect.buffData[currentStatusEffect].permanent){
+                                            await CardModule.StatusEffect.updateStatusEffect(userId,null);
+                                        }
+                                    }
+                                }
+                            }
+                        } else if(currentStatusEffect in CardModule.StatusEffect.debuffData){
+                            if(currentStatusEffect.includes(`rarity_down_`)){
+                                //check for rarity boost
+                                if("value_rarity_down" in CardModule.StatusEffect.debuffData[currentStatusEffect]){
+                                    cardData[DBM_Card_Data.columns.rarity]-=CardModule.StatusEffect.debuffData[currentStatusEffect].value_rarity_down;
+        
+                                    var embedStatusActivated = await CardModule.StatusEffect.embedStatusEffectActivated(userUsername,userAvatarUrl,currentStatusEffect,"debuff");
+                                    await message.channel.send({embed:embedStatusActivated});
+                                }
+
+                                //check if SE permanent/not
+                                if("permanent" in CardModule.StatusEffect.debuffData[currentStatusEffect]){
+                                    if(!CardModule.StatusEffect.debuffData[currentStatusEffect].permanent){
+                                        await CardModule.StatusEffect.updateStatusEffect(userId,null);
+                                    }
+                                }
+                            }
+                        }
+        
+                        if(cardData[DBM_Card_Data.columns.rarity]>=enemyRarity){
+                            //calculate rarity buff: +10%
+                            minChance-=10;
+                        }
+        
+                        //calculate level buff: +1%/each level
+                        minChance-=(1*level);
+                        enemyLevel = jsonParsedSpawnData[CardModule.Properties.spawnData.battle.level];
+        
+                        //calculate attack buff:
+                        var atk1 = jsonParsedSpawnData[CardModule.Properties.spawnData.battle.atk1];
+                        var atk2 = jsonParsedSpawnData[CardModule.Properties.spawnData.battle.atk2];
+                        // console.log(`<${rndAtk1}`);
+                        // console.log(`${rndAtk1+1}-${rndAtk2}`);
+                        // console.log(`>${rndAtk2+1}`);
+
+                        //check for atk boost
+                        if(currentStatusEffect in CardModule.StatusEffect.buffData){
+                            if(currentStatusEffect.includes(`atk_up_`)){
+                                //check for rarity boost
+                                if("value_atk_boost" in CardModule.StatusEffect.buffData[currentStatusEffect]){
+                                    atk+=CardModule.StatusEffect.buffData[currentStatusEffect].value_atk_boost;
+        
+                                    var embedStatusActivated = await CardModule.StatusEffect.embedStatusEffectActivated(userUsername,userAvatarUrl,currentStatusEffect);
+                                    await message.channel.send({embed:embedStatusActivated});
+                                }
+
+                                //check if SE permanent/not
+                                if("permanent" in CardModule.StatusEffect.buffData[currentStatusEffect]){
+                                    if(!CardModule.StatusEffect.buffData[currentStatusEffect].permanent){
+                                        await CardModule.StatusEffect.updateStatusEffect(userId,null);
+                                    }
+                                }
+                            }
+                        } else if(currentStatusEffect in CardModule.StatusEffect.debuffData){
+                            if(currentStatusEffect.includes(`atk_down_`)){
+                                //check for rarity boost
+                                if("value_atk_down" in CardModule.StatusEffect.debuffData[currentStatusEffect]){
+                                    atk-=CardModule.StatusEffect.debuffData[currentStatusEffect].value_atk_down;
+        
+                                    var embedStatusActivated = await CardModule.StatusEffect.embedStatusEffectActivated(userUsername,userAvatarUrl,currentStatusEffect,"debuff");
+                                    await message.channel.send({embed:embedStatusActivated});
+                                }
+
+                                //check if SE permanent/not 
+                                if("permanent" in CardModule.StatusEffect.debuffData[currentStatusEffect]){
+                                    if(!CardModule.StatusEffect.debuffData[currentStatusEffect].permanent){
+                                        await CardModule.StatusEffect.updateStatusEffect(userId,null);
+                                    }
+                                }
+                            }
+                        }
+
+                        if(atk>=atk2+1){
+                            minChance-=15;
+                        } else if(atk<=atk2&&atk>=atk1+1){
+                            minChance-=10;
+                        } else {
+                            minChance-=5;
+                        }
+        
+                        //calculate hp buff:
+                        var hp1 = jsonParsedSpawnData[CardModule.Properties.spawnData.battle.hp1];
+                        var hp2 = jsonParsedSpawnData[CardModule.Properties.spawnData.battle.hp2];
+                        var hp3 = jsonParsedSpawnData[CardModule.Properties.spawnData.battle.hp3];
+        
+                        //check for hp boost
+                        if(currentStatusEffect in CardModule.StatusEffect.buffData){
+                            if(currentStatusEffect.includes(`hp_up_`)){
+                                //check for rarity boost
+                                if("value_hp_boost" in CardModule.StatusEffect.buffData[currentStatusEffect]){
+                                    hp+=CardModule.StatusEffect.buffData[currentStatusEffect].value_hp_boost;
+        
+                                    var embedStatusActivated = await CardModule.StatusEffect.embedStatusEffectActivated(userUsername,userAvatarUrl,currentStatusEffect);
+                                    await message.channel.send({embed:embedStatusActivated});
+                                }
+
+                                //check if SE permanent/not
+                                if("permanent" in CardModule.StatusEffect.buffData[currentStatusEffect]){
+                                    if(!CardModule.StatusEffect.buffData[currentStatusEffect].permanent){
+                                        await CardModule.StatusEffect.updateStatusEffect(userId,null);
+                                    }
+                                }
+                            }
+                        } else if(currentStatusEffect in CardModule.StatusEffect.debuffData){
+                            if(currentStatusEffect.includes(`hp_down_`)){
+                                //check for rarity boost
+                                if("value_hp_down" in CardModule.StatusEffect.debuffData[currentStatusEffect]){
+                                    hp-=CardModule.StatusEffect.debuffData[currentStatusEffect].value_hp_down;
+        
+                                    var embedStatusActivated = await CardModule.StatusEffect.embedStatusEffectActivated(userUsername,userAvatarUrl,currentStatusEffect,"debuff");
+                                    await message.channel.send({embed:embedStatusActivated});
+                                }
+
+                                //check if SE permanent/not
+                                if("permanent" in CardModule.StatusEffect.debuffData[currentStatusEffect]){
+                                    if(!CardModule.StatusEffect.debuffData[currentStatusEffect].permanent){
+                                        await CardModule.StatusEffect.updateStatusEffect(userId,null);
+                                    }
+                                }
+                            }
+                        }
+        
+                        // console.log(`<${rndHp1}`);
+                        // console.log(`${rndHp1+1}-${rndHp2}`);
+                        // console.log(`${rndHp2+1}-${rndHp3}`);
+                        if(hp>=hp2+1&&hp<=hp3){
+                            minChance+=3;
+                        } else if(hp>=hp1+1&&hp<=hp2){
+                            minChance+=5;
+                        } else if(hp<hp1){
+                            minChance+=10;
+                        }
+        
+                        var chance = GlobalFunctions.randomNumber(0,100);
+                        if(chance>=minChance){
+                            captured = true;
+                        }
+        
+                        // captured = true; //for debugging purpose!
+        
+                        if(!captured){
+                            //failed to defeat the enemy
+                            //half the point reward
+                            pointReward = Math.round(pointReward/2)-10;
+                            if(pointReward>=0){
+                                pointReward = 20;
+                            }
+                            //update the catch token & color points
+                            var objColor = new Map();
+                            objColor.set(`color_point_${cardData[DBM_Card_Data.columns.color]}`,pointReward);
+                            await CardModule.updateColorPoint(userId,objColor);
+
+                            objEmbed.title = "Battle Lost";
+
+                            //check for buff
+                            switch(currentStatusEffect){
+                                case CardModule.StatusEffect.buffData.battle_protection.value:
+                                    allowSet = true;
+                                    allowSecondBattle = true;
+                                    debuffProtection = true;
+                                    var embedStatusActivated = await CardModule.StatusEffect.embedStatusEffectActivated(userUsername,userAvatarUrl,currentStatusEffect);
+                                    await message.channel.send({embed:embedStatusActivated});
+                                    break;
+                                case CardModule.StatusEffect.buffData.precure_protection.value:
+                                    allowSecondBattle = true;
+                                    removePrecure = false;
+                                    var embedStatusActivated = await CardModule.StatusEffect.embedStatusEffectActivated(userUsername,userAvatarUrl,currentStatusEffect);
+                                    await message.channel.send({embed:embedStatusActivated});
+                                    break;
+                                case CardModule.StatusEffect.buffData.debuff_protection_1.value:
+                                case CardModule.StatusEffect.buffData.debuff_protection_2.value:
+                                    debuffProtection = true;
+                                    var embedStatusActivated = await CardModule.StatusEffect.embedStatusEffectActivated(userUsername,userAvatarUrl,currentStatusEffect);
+                                    await message.channel.send({embed:embedStatusActivated});
+                                    break;
+                            }
+
+                            objEmbed.title = "Battle Lost";
+                            if(removePrecure){
+                                objEmbed.thumbnail = {
+                                    url:CardModule.Properties.imgResponse.imgFailed
+                                }
+                                objEmbed.description = `:x: Oh no! <@${userId}> has lost from the battle and lost the precure avatar power!`;
+                                //remove the precure avatar
+                                var parameterSet = new Map();
+                                parameterSet.set(DBM_Card_User_Data.columns.card_id_selected,null);
+                                var parameterWhere = new Map();
+                                parameterWhere.set(DBM_Card_User_Data.columns.id_user,userId);
+                                await DB.update(DBM_Card_User_Data.TABLENAME,parameterSet,parameterWhere);
+                            } else {
+                                objEmbed.thumbnail = {
+                                    url:CardModule.Properties.imgResponse.imgFailed
+                                }
+                                objEmbed.description = `:x: Oh no! <@${userId}> has lost from the battle!`;
+                            }
+
+                            if(allowSet){
+                                //erase the card set token
+                                var parameterSet = new Map();
+                                parameterSet.set(DBM_Card_User_Data.columns.card_set_token,null);
+                                var parameterWhere = new Map();
+                                parameterWhere.set(DBM_Card_User_Data.columns.id_user,userId);
+                                await DB.update(DBM_Card_User_Data.TABLENAME,parameterSet,parameterWhere);
+                            }
+
+                            //check for second battle allowance
+                            if(!allowSecondBattle){
+                                //update the spawn token
+                                await CardModule.updateCatchAttempt(userId,spawnedCardData.token);
+                            }
+
+                            objEmbed.description += `You have received some rewards from the battle.`;
+                            objEmbed.fields = [
+                                {
+                                    name:"Rewards Received:",
+                                    value:`>**${pointReward} ${cardData[DBM_Card_Data.columns.color]}** color points\n`,
+                                    inline:false
+                                }
+                            ]        
+
+                            await message.channel.send({embed:objEmbed});
+
+                            //activate the debuff if user doesn't have debuff protection
+                            if(!debuffProtection&&randomDebuff!=null){
+                                await CardModule.StatusEffect.updateStatusEffect(userId,randomDebuff.value);
+                                var embedStatusActivated = await CardModule.StatusEffect.embedStatusEffectActivated(userUsername,userAvatarUrl,randomDebuff.value,"debuff");
+                                await message.channel.send({embed:embedStatusActivated});
+                            }
+                            return;
+                        }
+
+                        break;
                 }
 
-                var captured = false;
-                var chance = GlobalFunctions.randomNumber(0,100);
-                if(chance>=minChance){
-                    captured = true;
-                }
-
-                //for debugging purpose!
-                // captured = true;
-
+                //add new card/update card stock & check for card completion
+                var duplicate = true;
                 if(captured){
-                    //battle win
-                    message.channel.send({embed:CardModule.Embeds.battleWin(cardData[DBM_Card_Data.columns.color],userUsername,userAvatarUrl,cardData[DBM_Card_Data.columns.pack])})
+                    if(!specialActivated){
+                        //battle win
+                        message.channel.send({embed:CardModule.Embeds.battleWin(cardData[DBM_Card_Data.columns.color],userUsername,userAvatarUrl,cardData[DBM_Card_Data.columns.pack])});
+                    }
+
+                    var rewardsReceived = "";
+                    objEmbed.fields = [
+                        {
+                            name:"Rewards Received:",
+                            value:`**${pointReward} ${cardData[DBM_Card_Data.columns.color]}** color points\n`,
+                            inline:false
+                        }
+                    ]
 
                     //stock validation
                     if(userCardRewardStock<=-1){
-                        msgContent = `**${userUsername}** has received: **${cardDataReward[DBM_Card_Data.columns.id_card]} - ${cardDataReward[DBM_Card_Data.columns.name]}** & **${pointReward} ${cardData[DBM_Card_Data.columns.color]}** color points!`;
+                        objEmbed.description = `<@${userId}> has received new card!`;
+                        rewardsReceived+=`>**${cardDataReward[DBM_Card_Data.columns.id_card]} - ${cardDataReward[DBM_Card_Data.columns.name]}**\n`;
+                        
                         //add new card:
                         await CardModule.addNewCardInventory(userId,cardDataReward[DBM_Card_Data.columns.id_card]);
                         duplicate = false;
                     } else {
                         if(userCardRewardStock<CardModule.Properties.maximumCard){
-                            msgContent = `**${userUsername}** has received another copy of: **${cardDataReward[DBM_Card_Data.columns.id_card]} - ${cardDataReward[DBM_Card_Data.columns.name]}** & **${pointReward} ${cardData[DBM_Card_Data.columns.color]}** color points!`;
+                            objEmbed.description = `<@${userId}> has received another duplicate card.`;
+                            rewardsReceived+=`>**${cardDataReward[DBM_Card_Data.columns.id_card]} - ${cardDataReward[DBM_Card_Data.columns.name]}**\n`;
+                            
                             userCardRewardStock+=1;
                             //add new card:
                             await CardModule.addNewCardInventory(userId,cardDataReward[DBM_Card_Data.columns.id_card],true);
@@ -1934,7 +2298,7 @@ module.exports = {
                                 name:userUsername,
                                 iconURL:userAvatarUrl
                             }
-                            objEmbed.description = `:x: Sorry **${userUsername}**, you cannot have another copy of **${cardDataReward[DBM_Card_Data.columns.id_card]} - ${cardDataReward[DBM_Card_Data.columns.name]}**. As a bonus you have received **${pointReward} ${cardData[DBM_Card_Data.columns.color]}** color points.`;
+                            objEmbed.description = `:x: Sorry <@${userId}>, you cannot received another duplicate card: **${cardDataReward[DBM_Card_Data.columns.id_card]} - ${cardDataReward[DBM_Card_Data.columns.name]}**.`;
                             //update the token & color point
                             var objColor = new Map();
                             objColor.set(`color_point_${cardData[DBM_Card_Data.columns.color]}`,pointReward);
@@ -1942,8 +2306,51 @@ module.exports = {
                                 spawnedCardData.token,
                                 objColor
                             );
-                            return message.channel.send({embed:objEmbed});
+                            // return message.channel.send({embed:objEmbed});
                         }
+                    }
+
+                    //check for item drop chance
+                    var itemDropChance = GlobalFunctions.randomNumber(0,7);
+                    // itemDropChance = 10; //for debug purpose only
+                    if(itemDropChance<=7){
+                        //check for rare item drop chance
+                        var itemDropRareChance = GlobalFunctions.randomNumber(0,100);
+                        // itemDropRareChance = 100;//for debug purpose only
+
+                        var query = `SELECT * 
+                        FROM ${DBM_Item_Data.TABLENAME} 
+                        WHERE (${DBM_Item_Data.columns.category}=? OR 
+                        ${DBM_Item_Data.columns.category}=?) AND 
+                        ${DBM_Item_Data.columns.drop_rate}<=? 
+                        ORDER BY rand() 
+                        LIMIT 1`;
+                        var itemDropData = await DBConn.conn.promise().query(query,["ingredient","ingredient_rare",itemDropRareChance]);
+                        if(itemDropData[0][0]!=null){
+                            // var embedItemReward = ItemModule.Embeds.ItemDropReward(userUsername,userAvatarUrl,itemDropData[0][0][DBM_Item_Data.columns.id],itemDropData[0][0][DBM_Item_Data.columns.name],itemDropData[0][0][DBM_Item_Data.columns.description]);
+                            // await message.channel.send({embed:embedItemReward});
+
+                            rewardsReceived+=`>Item: ${itemDropData[0][0][DBM_Item_Data.columns.name]} **(${itemDropData[0][0][DBM_Item_Data.columns.id]})**\n`;
+
+                            //check for item stock:
+                            var userItemStock = await ItemModule.getUserItemStock(userId,itemDropData[0][0][DBM_Item_Data.columns.id]);
+                            if(userItemStock<=-1){
+                                await ItemModule.addNewItemInventory(userId,itemDropData[0][0][DBM_Item_Data.columns.id]);
+                            } else {
+                                await ItemModule.updateItemStock(userId,itemDropData[0][0][DBM_Item_Data.columns.id],1);
+                            }
+                        }
+                    }
+
+                    //put all the rewards:
+                    rewardsReceived+=`>**${pointReward} ${cardData[DBM_Card_Data.columns.color]}** color points\n`;
+
+                    var specialCharged = false;
+                    if(!specialActivated){
+                        //update the special point reward
+                        var pointSpecial = CardModule.Status.getSpecialPointProgress(level,level_special,enemyLevel);
+                        specialCharged = await CardModule.Status.updateSpecialPoint(userId,pointSpecial);
+                        rewardsReceived+=`>**${pointSpecial}**% special points\n`;
                     }
 
                     //update the token & color point
@@ -1954,19 +2361,29 @@ module.exports = {
                         objColor
                     );
 
+                    objEmbed.title = "Battle Rewards";
+                    objEmbed.fields = [
+                        {
+                            name:"Rewards Received:",
+                            value:rewardsReceived,
+                            inline:false
+                        }
+                    ]
+
                     //get the current card total
                     var currentTotalCard = await CardModule.getUserTotalCard(userId,cardDataReward[DBM_Card_Data.columns.pack]);
-                    
-                    if(duplicate){
-                        await message.channel.send({content:msgContent});
-                    } else {
-                        //erase the card guild spawn
-                        await CardModule.removeCardGuildSpawn(guildId);
+                    await message.channel.send({embed:objEmbed}); //announce the reward
 
-                        await message.channel.send({content:msgContent,
-                        embed:CardModule.embedCardCapture(cardDataReward[DBM_Card_Data.columns.color],cardDataReward[DBM_Card_Data.columns.id_card],cardDataReward[DBM_Card_Data.columns.pack],cardDataReward[DBM_Card_Data.columns.name],cardDataReward[DBM_Card_Data.columns.img_url],cardDataReward[DBM_Card_Data.columns.series],cardDataReward[DBM_Card_Data.columns.rarity],userAvatarUrl,userUsername,currentTotalCard,cardDataReward[DBM_Card_Data.columns.max_hp],cardDataReward[DBM_Card_Data.columns.max_atk],userCardRewardStock)});
+                    if(specialCharged){
+                        await message.channel.send({embed:CardModule.Embeds.battleSpecialReady(userUsername,userAvatarUrl)}); //announce the special ready
                     }
-                    
+
+                    //erase the card guild spawn
+                    await CardModule.removeCardGuildSpawn(guildId);
+
+                    if(!duplicate){
+                        await message.channel.send({embed:CardModule.embedCardCapture(cardDataReward[DBM_Card_Data.columns.color],cardDataReward[DBM_Card_Data.columns.id_card],cardDataReward[DBM_Card_Data.columns.pack],cardDataReward[DBM_Card_Data.columns.name],cardDataReward[DBM_Card_Data.columns.img_url],cardDataReward[DBM_Card_Data.columns.series],cardDataReward[DBM_Card_Data.columns.rarity],userAvatarUrl,userUsername,currentTotalCard,cardDataReward[DBM_Card_Data.columns.max_hp],cardDataReward[DBM_Card_Data.columns.max_atk],userCardRewardStock)});
+                    }
 
                     //check card pack completion:
                     var embedCompletion = null;
@@ -1982,38 +2399,8 @@ module.exports = {
                     }
 
                     if(embedCompletion!=null){
-                        return message.channel.send({embed:embedCompletion});
+                        await message.channel.send({embed:embedCompletion});
                     }
-
-                } else {
-                    //failed to defeat the enemy
-                    //half the point reward
-                    pointReward = Math.round(pointReward/2)-10;
-                    if(pointReward>=0){
-                        pointReward = 20;
-                    }
-                    //update the catch token & color points
-                    var objColor = new Map();
-                    objColor.set(`color_point_${cardData[DBM_Card_Data.columns.color]}`,pointReward);
-                    await CardModule.updateCatchAttempt(userId,
-                        spawnedCardData.token,
-                        objColor
-                    );
-                    objEmbed.thumbnail = {
-                        url: CardModule.Properties.imgResponse.imgFailed
-                    }
-
-                    //remove the user precure avatar
-                    var parameterSet = new Map();
-                    parameterSet.set(DBM_Card_User_Data.columns.card_id_selected,null);
-                    var parameterWhere = new Map();
-                    parameterWhere.set(DBM_Card_User_Data.columns.id_user,userId);
-                    await DB.update(DBM_Card_User_Data.TABLENAME,parameterSet,parameterWhere);
-                    objEmbed.title = "Battle Lost";
-
-                    objEmbed.description = `:x: Oh no! <@${userId}> has lost the battle and lost the precure avatar power! You have received **${pointReward} ${cardData[DBM_Card_Data.columns.color]}** color points from the battle.`;
-
-                    return message.channel.send({embed:objEmbed});
                 }
 
                 break;
@@ -2533,95 +2920,6 @@ module.exports = {
 
                 return message.channel.send({embed:objEmbed});
                 
-                break;
-            
-            case "shop":
-                if(args[1]==null){
-                    var shopEmbed = await CardModule.Shop.embedShopList();
-                    return message.channel.send({embed:shopEmbed});
-                } else if(args[1]!=null){
-                    if(args[1].toLowerCase()!="buy"){
-                        return message.channel.send({embed:{
-                            color: CardModule.Properties.embedColor,
-                            description:`Use **p!item shop buy <item id>** to buy the item.`
-                        }})
-                    }
-                } else if(args[2]==null){
-                    return message.channel.send({embed:{
-                        color: CardModule.Properties.embedColor,
-                        description:`Use **p!item shop buy <item id>** to buy the item.`
-                    }})
-                }
-
-                objEmbed = {
-                    color:CardModule.Properties.embedColor,
-                    author : {
-                        name: userUsername,
-                        icon_url: userAvatarUrl
-                    }
-                }
-
-                var itemId = args[2];
-                var qty = args[3];
-                if(qty!=null&&isNaN(qty)){
-                    objEmbed.description = `:x: Please enter quantity between 1-99`;
-                    return message.channel.send({embed:objEmbed});
-                } else if(qty<=0||qty>=99){
-                    objEmbed.description = `:x: Please enter quantity between 1-99`;
-                    return message.channel.send({embed:objEmbed});
-                } 
-                
-                if(qty==null){
-                    qty = 1;
-                }
-
-                //get current user stock
-                var currentStock = await ItemModule.getUserItemStock(userId,itemId);
-                var userCardData = await CardModule.getCardUserStatusData(userId);
-                var itemData = await ItemModule.getItemData(itemId);
-                
-                if(itemData==null){
-                    objEmbed.thumbnail = {
-                        url:CardModule.Properties.imgResponse.imgFailed
-                    }
-                    objEmbed.description = `:x: Sorry, I can't find that item id.`;
-                    return message.channel.send({embed:objEmbed});
-                }
-
-                var mofucoin = userCardData[DBM_Card_User_Data.columns.mofucoin];
-
-
-                var itemDataPrice = itemData[DBM_Item_Data.columns.price_mofucoin]*qty;
-                var itemDataId = itemData[DBM_Item_Data.columns.id];
-                var itemDataName = itemData[DBM_Item_Data.columns.name];
-
-                if(currentStock+qty>=ItemModule.Properties.maxItem){
-                    objEmbed.thumbnail = {
-                        url:CardModule.Properties.imgResponse.imgFailed
-                    }
-                    objEmbed.description = `:x: Sorry, you cannot purchase **${itemDataId} - ${itemDataName}** anymore.`;
-                    return message.channel.send({embed:objEmbed});
-                } else if(mofucoin<itemDataPrice){
-                    objEmbed.thumbnail = {
-                        url:CardModule.Properties.imgResponse.imgFailed
-                    }
-                    objEmbed.description = `:x: Sorry, you need **${itemDataPrice} mofucoin** to purchase ${qty}x: **${itemDataId} - ${itemDataName}**`;
-                    return message.channel.send({embed:objEmbed});
-                }
-
-                objEmbed.thumbnail = {
-                    url:CardModule.Properties.imgResponse.imgOk
-                }
-                objEmbed.description = `You have purchased ${qty}x: **${itemDataId} - ${itemDataName}** with **${itemDataPrice} mofucoin**.`;
-                
-                //update the mofucoin
-                await CardModule.updateMofucoin(userId,-itemDataPrice);
-
-                // //add the item inventory
-                await ItemModule.addNewItemInventory(userId,itemId,qty);
-
-                return message.channel.send({embed:objEmbed});
-
                 break;
             default:
                 break;

@@ -5,7 +5,8 @@ class DBM_Item_Inventory {
         id: "id", 
         id_user: "id_user",
         id_item: "id_item", 
-        stock: "stock"
+        stock: "stock",
+        additional_effect: "additional_effect"
     };
 }
 
