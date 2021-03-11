@@ -15,7 +15,7 @@ module.exports = {
               },
               {
                 "name": "Card",
-                "value": "`catch/capture`,`detail <card id>`,`guide`,`status [username]`,`inventory [pack][username]`,`duplicate [pack][username]`,`guess [lower/higher]`,`color set [color]`,`answer [a/b/c/d]`,`convert point/mofucoin <card id> [all]`,`set/transform/precure <card id>`,`spawn`,`battle [special]`,`avatar`,`up color <color>`,`up level <card id> [level qty]`,`up special <card id>`,`leaderboard <pack/color>`,`tradeboard search <card id>`,`tradeboard post <card id that you search/want> <your card id offer>`,`tradeboard trade <trade id>`,`tradeboard remove`"
+                "value": "`catch/capture`,`detail <card id>`,`guide`,`status [username]`,`inventory [pack][username]`,`duplicate [pack][username]`,`guess [lower/higher]`,`color set [color]`,`answer [a/b/c/d]`,`convert point/mofucoin <card id> [all]`,`set/transform/precure <card id>`,`spawn`,`battle [special]`,`avatar`,`up color <color>`,`up level <card id> [level qty]`,`up special <card id>`,`leaderboard <pack/color>`,`tradeboard search <card id>`,`tradeboard post <card id that you search/want> <your card id offer>`,`tradeboard trade <trade id>`,`tradeboard remove`,`verify`"
               },
               {
                 "name": "Item",

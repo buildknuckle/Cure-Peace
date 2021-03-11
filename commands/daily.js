@@ -160,7 +160,7 @@ module.exports = {
                         objEmbed.fields = [
                             {
                                 name:"Rewards Received:",
-                                value:`>${itemRewardData[DBM_Item_Data.columns.name]} (**${itemRewardData[DBM_Item_Data.columns.id]}**)\n>${mofucoinReward} Mofucoin`
+                                value:`>**Item:** ${itemRewardData[DBM_Item_Data.columns.name]} (**${itemRewardData[DBM_Item_Data.columns.id]}**)\n>${mofucoinReward} Mofucoin`
                             }
                         ];
                         return message.channel.send({embed:objEmbed});
@@ -178,19 +178,19 @@ module.exports = {
                             SELECT cd.${DBM_Card_Data.columns.id_card},cd.${DBM_Card_Data.columns.name},cd.${DBM_Card_Data.columns.pack},cd.${DBM_Card_Data.columns.rarity},idat.${DBM_Item_Data.columns.id} as id_item,idat.${DBM_Item_Data.columns.name} as item_name 
                                 FROM ${DBM_Card_Data.TABLENAME} cd,${DBM_Item_Data.TABLENAME} idat 
                                 WHERE cd.${DBM_Card_Data.columns.rarity}<=? AND 
-                                idat.${DBM_Item_Data.columns.category}=? 
+                                idat.${DBM_Item_Data.columns.category} in ('card','ingredient') 
                                 GROUP BY cd.${DBM_Card_Data.columns.id_card},idat.${DBM_Item_Data.columns.id} 
                                 ORDER BY rand() LIMIT 3 
                         ) T1 
                         ORDER BY T1.rarity`;
-                        var randomizedCardData = await DBConn.conn.promise().query(query, [5,"ingredient"]);
+                        var randomizedCardData = await DBConn.conn.promise().query(query, [5]);
                         
                         randomizedCardData[0].forEach(entry => {
                             // idCard+=`${entry[DBM_Card_Data.columns.id_card]},`;
                             objQuestData+=`"${entry[DBM_Card_Data.columns.id_card]}":"${entry["id_item"]}",`;
                             //randomize the reward:
                             requestedCards+=`-**[${entry[DBM_Card_Data.columns.pack]}] ${entry[DBM_Card_Data.columns.id_card]}** - ${GlobalFunctions.cutText(entry[DBM_Card_Data.columns.name],20)}\n`;
-                            requestedRewards+=`**${entry["id_item"]}**: ${entry["item_name"]} & ${CardModule.Quest.getQuestReward(entry[DBM_Card_Data.columns.rarity])} MC\n`;
+                            requestedRewards+=`**${entry["id_item"]}**: ${GlobalFunctions.cutText(entry["item_name"],12)} & ${CardModule.Quest.getQuestReward(entry[DBM_Card_Data.columns.rarity])} MC\n`;
                         });
     
                         objQuestData = objQuestData.replace(/,\s*$/, "");
@@ -235,7 +235,7 @@ module.exports = {
     
                                 //get the item reward
                                 var itemData = await ItemModule.getItemData(arrItemReward[ctr]); ctr++;
-                                requestedRewards+=`**${itemData[DBM_Item_Data.columns.id]}**: ${itemData[DBM_Item_Data.columns.name]} & ${CardModule.Quest.getQuestReward(entry[DBM_Card_Data.columns.rarity])} MC\n`;
+                                requestedRewards+=`**${itemData[DBM_Item_Data.columns.id]}**: ${GlobalFunctions.cutText(itemData[DBM_Item_Data.columns.name],12)} & ${CardModule.Quest.getQuestReward(entry[DBM_Card_Data.columns.rarity])} MC\n`;
                             }
     
                             objEmbed.fields = [{
@@ -314,10 +314,17 @@ module.exports = {
             //double the color point
             colorPoint*=2;
             query = `UPDATE ${DBM_Card_User_Data.TABLENAME} 
-            SET ${DBM_Card_User_Data.columns.daily_last} = ?, color_point_${optionalColor} = color_point_${optionalColor} + ?
+            SET ${DBM_Card_User_Data.columns.daily_last} = ?, color_point_${optionalColor} = color_point_${optionalColor} + ?,
+            ${DBM_Card_User_Data.columns.mofucoin} = ${DBM_Card_User_Data.columns.mofucoin}+? 
             WHERE ${DBM_Card_User_Data.columns.id_user}=?`;
-            arrParameterized = [dateToken,colorPoint,userId];
-            objEmbed.description = `<@${userId}> has received ** ${colorPoint} ${optionalColor} color points ** from the daily command.`;
+            arrParameterized = [dateToken,colorPoint,colorPoint,userId];
+            objEmbed.description = `<@${userId}> has successfully checked in for the daily!`;
+            objEmbed.fields = [
+                {
+                    name:"Daily Rewards:",
+                    value:`>${colorPoint} ${optionalColor} color points (Double points!)\n>${colorPoint} mofucoin`
+                }
+            ]
         } else {
             query = `UPDATE ${DBM_Card_User_Data.TABLENAME} 
             SET ${DBM_Card_User_Data.columns.daily_last} = ?, 
@@ -327,10 +334,17 @@ module.exports = {
             ${DBM_Card_User_Data.columns.color_point_purple} = ${DBM_Card_User_Data.columns.color_point_purple}+${colorPoint}, 
             ${DBM_Card_User_Data.columns.color_point_red} = ${DBM_Card_User_Data.columns.color_point_red}+${colorPoint}, 
             ${DBM_Card_User_Data.columns.color_point_white} = ${DBM_Card_User_Data.columns.color_point_white}+${colorPoint}, 
-            ${DBM_Card_User_Data.columns.color_point_yellow} = ${DBM_Card_User_Data.columns.color_point_yellow}+${colorPoint} 
+            ${DBM_Card_User_Data.columns.color_point_yellow} = ${DBM_Card_User_Data.columns.color_point_yellow}+${colorPoint},
+            ${DBM_Card_User_Data.columns.mofucoin} = ${DBM_Card_User_Data.columns.mofucoin}+${colorPoint}  
             WHERE ${DBM_Card_User_Data.columns.id_user}=?`;
             arrParameterized = [dateToken,userId];
-            objEmbed.description = `<@${userId}> has received **${colorPoint} overall color points** from the daily command.`;
+            objEmbed.description = `<@${userId}> has successfully checked in for the daily!`;
+            objEmbed.fields = [
+                {
+                    name:"Daily Rewards:",
+                    value:`>${colorPoint} color points\n>${colorPoint} mofucoin`
+                }
+            ]
         }
 
         //update the token & color point data
