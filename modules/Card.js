@@ -767,7 +767,7 @@ class Properties{
             henshin_phrase:"Pretty Cure, Dress Up!",
             transform_quotes:"The Trump Card of Love! Cure Ace!",
             special_attack:"Ace Shot",
-            img_special_attack:"https://cdn.discordapp.com/attachments/793396194697019412/817794901722005554/unknown.png"
+            img_special_attack:"https://cdn.discordapp.com/attachments/793388428150046740/817786014482825226/unknown.png"
         },
         towa:{
             total:15,
