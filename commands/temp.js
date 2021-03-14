@@ -22,12 +22,12 @@ module.exports = {
                     tempbox.setTitle('The brilliant sun, hot-blooded power!')    
                     tempbox.setTitle("Converting Celcius to Fahrenheit!")
                     tempbox.setThumbnail("https://waa.ai/JEw2.png")
-                    tempbox.addField(temp, `C is `, tempresult, `F`)
+                    tempbox.setDescription(temp, `C is `, tempresult, `F`)
                     return message.channel.send(tempbox);
                 }
                 else {
                     tempbox.setColor('#F97E36')
-                    tempbox.addField(`You didn't enter anything!`)
+                    tempbox.setDescription(`You didn't enter anything!`)
                     return message.channel.send(tempbox);
                 }
             case "ftoc":
@@ -39,12 +39,12 @@ module.exports = {
                     tempbox.setTitle('The brilliant sun, hot-blooded power!')    
                     tempbox.setTitle("Converting Fahrenheit to Celcius!")
                     tempbox.setThumbnail("https://waa.ai/JEw2.png")
-                    tempbox.addField(temp, `F is `, tempresult, `C`)
+                    tempbox.setDescription(temp, `F is `, tempresult, `C`)
                     return message.channel.send(tempbox);
                 }
                 else {
                     tempbox.setColor('#F97E36')
-                    tempbox.addField(`You didn't enter anything!`)
+                    tempbox.setDescription(`You didn't enter anything!`)
                     return message.channel.send(tempbox);
                 }
             case "ktoc":
@@ -56,13 +56,13 @@ module.exports = {
                     tempbox.setTitle('The light of Wisdom!')    
                     tempbox.setTitle("Converting Kelvin to Celcius!")
                     tempbox.setThumbnail("https://waa.ai/JEwz.png")
-                    tempbox.addField(temp, `K is `, tempresult, `C`)
+                    tempbox.setDescription(temp, `K is `, tempresult, `C`)
                     return message.channel.send(tempbox);
                 }
                 else {
                     tempbox.setColor('#A59CFD')
                     tempbox.setThumbnail("https://waa.ai/JEwz.png")
-                    tempbox.addField(`You didn't enter anything!`)
+                    tempbox.setDescription(`You didn't enter anything!`)
                     return message.channel.send(tempbox);
                 }
             case "ktof":
@@ -74,13 +74,13 @@ module.exports = {
                     tempbox.setTitle('The light of Wisdom!')    
                     tempbox.setTitle("Converting Kelvin to Fahrenheit!")
                     tempbox.setThumbnail("https://waa.ai/JEwz.png")
-                    tempbox.addField(temp, `K is `, tempresult, `F`)
+                    tempbox.setDescription(temp, `K is `, tempresult, `F`)
                     return message.channel.send(tempbox);
                 }
                 else {
                     tempbox.setColor('#A59CFD')
                     tempbox.setThumbnail("https://waa.ai/JEwz.png")
-                    tempbox.addField(`You didn't enter anything!`)
+                    tempbox.setDescription(`You didn't enter anything!`)
                     return message.channel.send(tempbox);
                 }
             case "ctok":
@@ -90,15 +90,15 @@ module.exports = {
 
                     tempbox.setColor('#A59CFD')
                     tempbox.setTitle('The light of Wisdom!')    
-                    tempbox.setTitle("Converting Kelvin to Fahrenheit!")
+                    tempbox.setTitle("Converting Celcius to Kelvin!")
                     tempbox.setThumbnail("https://waa.ai/JEwz.png")
-                    tempbox.addField(temp, `C is `, tempresult, `K`)
+                    tempbox.setDescription(temp, `C is `, tempresult, `K`)
                     return message.channel.send(tempbox);
                 }
                 else {
                     tempbox.setColor('#A59CFD')
                     tempbox.setThumbnail("https://waa.ai/JEwz.png")
-                    tempbox.addField(`You didn't enter anything!`)
+                    tempbox.setDescription(`You didn't enter anything!`)
                     return message.channel.send(tempbox);
                 }
             case "ftok":
@@ -108,15 +108,15 @@ module.exports = {
 
                     tempbox.setColor('#A59CFD')
                     tempbox.setTitle('The light of Wisdom!')    
-                    tempbox.setTitle("Converting Kelvin to Fahrenheit!")
+                    tempbox.setTitle("Converting Fahrenheit to Kelvin!")
                     tempbox.setThumbnail("https://waa.ai/JEwz.png")
-                    tempbox.addField(temp, `F is `, tempresult, `K`)
+                    tempbox.setDescription(temp, `F is `, tempresult, `K`)
                     return message.channel.send(tempbox);
                 }
                 else {
                     tempbox.setColor('#A59CFD')
                     tempbox.setThumbnail("https://waa.ai/JEwz.png")
-                    tempbox.addField(`You didn't enter anything!`)
+                    tempbox.setDescription(`You didn't enter anything!`)
                     return message.channel.send(tempbox);
                 }
         }
