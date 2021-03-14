@@ -14,7 +14,7 @@ const DBM_Item_Data = require('../database/model/DBM_Item_Data');
 const DBM_Pinky_Data = require('../database/model/DBM_Pinky_Data');
 const DBM_Pinky_Inventory = require('../database/model/DBM_Pinky_Inventory');
 
-const latestVersion = "1.12";
+const latestVersion = "1.13";
 
 class Properties{
     static embedColor = '#efcc2c';
@@ -767,7 +767,7 @@ class Properties{
             henshin_phrase:"Pretty Cure, Dress Up!",
             transform_quotes:"The Trump Card of Love! Cure Ace!",
             special_attack:"Ace Shot",
-            img_special_attack:"https://cdn.discordapp.com/attachments/793396194697019412/817794901722005554/unknown.png"
+            img_special_attack:"https://cdn.discordapp.com/attachments/793388428150046740/817786014482825226/unknown.png"
         },
         towa:{
             total:15,
@@ -1041,7 +1041,8 @@ class Status {
     }
 
     static getSpecialPointProgress(level,level_special,enemyLevel=1){
-        return level+(level_special*2)+enemyLevel;
+        return (level*2)+(level_special*2)+(enemyLevel*2);
+        //+7
     }
 
     static async updateSpecialPoint(id_user,value){
@@ -1386,7 +1387,7 @@ class StatusEffect{
             name:"Item Curse",
             description:"Unable to use any item except with the item that has **Debuff Removal**.",
             permanent:true,
-            recovery_item:["ca017"]
+            recovery_item:["ca017","fo009"]
         },
         capture_debuff_1:{
             value:"capture_debuff_1",
@@ -1532,28 +1533,28 @@ class StatusEffect{
             name:"Fear",
             description:"Unable to participate in **battle**.",
             permanent:true,
-            recovery_item:["ca029","ca017"]
+            recovery_item:["ca029","ca017","fo009"]
         },
         cardcaplock:{
             value:"cardcaplock",
             name:"Cardcaplock",
             description:"Unable to use the **capture** command.",
             permanent:true,
-            recovery_item:["ca028","ca017"]
+            recovery_item:["ca028","ca017","fo009"]
         },
         amnesia:{
             value:"amnesia",
             name:"Amnesia",
             description:"Unable to use the **guess/answer** command.",
             permanent:true,
-            recovery_item:["ca030","ca017"]
+            recovery_item:["ca030","ca017","fo009"]
         },
         specialock:{
             value:"specialock",
             name:"Specialock",
             description:"Unable to use special attack during battle.",
             permanent:true,
-            recovery_item:["ca031","ca017"]
+            recovery_item:["ca031","ca017","fo009"]
         }
     }
 
@@ -1651,7 +1652,7 @@ class Quest {
     }
 
     static getQuestReward(cardRarity){
-        return cardRarity*5;
+        return cardRarity*10;
     }
 }
 
@@ -1718,7 +1719,7 @@ class Embeds{
                 icon_url: userAvatarUrl
             },
             title: `Special Point Fully Charged!`,
-            description: `Your special point is ready now! You can use **p!card battle special** on the next battle.`,
+            description: `Your special point is ready now! You can use the special attack on the next battle spawn.`,
             thumbnail:{
                 url:Properties.imgResponse.imgOk
             }
@@ -2136,17 +2137,17 @@ async function updateCatchAttempt(id_user,spawn_token,objColor=null){
     await DBConn.conn.promise().query(query, arrParameterized);
 }
 
-async function checkCardCompletion(id_user,category,value){
+async function checkCardCompletion(id_guild,id_user,category,value){
     
     //category parameter: color/pack
     //check if user founded on leaderboard/not
     var queryColorCompletion = `select count(*) as total 
         FROM ${DBM_Card_Leaderboard.TABLENAME} 
-        WHERE ${DBM_Card_Leaderboard.columns.id_user}=? AND 
+        WHERE ${DBM_Card_Leaderboard.columns.id_guild}=? AND 
+        ${DBM_Card_Leaderboard.columns.id_user}=? AND 
         ${DBM_Card_Leaderboard.columns.category}=? AND 
         ${DBM_Card_Leaderboard.columns.completion}=?`;
-    var arrParameterized = [id_user,category,value];
-    var checkLeaderboardExists = await DBConn.conn.promise().query(queryColorCompletion, arrParameterized);
+    var checkLeaderboardExists = await DBConn.conn.promise().query(queryColorCompletion, [id_guild,id_user,category,value]);
     if(checkLeaderboardExists[0][0]["total"]>=1){
         return false;
     }
@@ -2525,46 +2526,6 @@ async function generateCardSpawn(id_guild,specificType=null,overwriteToken = tru
     }
     switch(cardSpawnType) {
         case "color": // color spawn type
-            // query = `select (select ${DBM_Card_Data.columns.id_card}  
-            //     from ${DBM_Card_Data.TABLENAME} 
-            //     where ${DBM_Card_Data.columns.color}=? 
-            //     order by rand() 
-            //     limit 1) as id_card_pink,
-            //     (select ${DBM_Card_Data.columns.id_card}  
-            //     from ${DBM_Card_Data.TABLENAME} 
-            //     where ${DBM_Card_Data.columns.color}=? 
-            //     order by rand() 
-            //     limit 1) as id_card_purple,
-            //     (select ${DBM_Card_Data.columns.id_card}  
-            //     from ${DBM_Card_Data.TABLENAME} 
-            //     where ${DBM_Card_Data.columns.color}=? 
-            //     order by rand() 
-            //     limit 1) as id_card_green,
-            //     (select ${DBM_Card_Data.columns.id_card}  
-            //     from ${DBM_Card_Data.TABLENAME} 
-            //     where ${DBM_Card_Data.columns.color}=? 
-            //     order by rand() 
-            //     limit 1) as id_card_yellow,
-            //     (select ${DBM_Card_Data.columns.id_card}  
-            //     from ${DBM_Card_Data.TABLENAME} 
-            //     where ${DBM_Card_Data.columns.color}=? 
-            //     order by rand() 
-            //     limit 1) as id_card_white,
-            //     (select ${DBM_Card_Data.columns.id_card}  
-            //     from ${DBM_Card_Data.TABLENAME} 
-            //     where ${DBM_Card_Data.columns.color}=? 
-            //     order by rand() 
-            //     limit 1) as id_card_blue,
-            //     (select ${DBM_Card_Data.columns.id_card}  
-            //     from ${DBM_Card_Data.TABLENAME} 
-            //     where ${DBM_Card_Data.columns.color}=? 
-            //     order by rand() 
-            //     limit 1) as id_card_red`;
-            // var resultData = await DBConn.conn.promise().query(query, Properties.arrColor);
-            //save to table
-            // parameterSet.set(DBM_Card_Guild.columns.spawn_color,`{"pink":"${resultData[0][0]["id_card_pink"]}","purple":"${resultData[0][0]["id_card_purple"]}","green":"${resultData[0][0]["id_card_green"]}","yellow":"${resultData[0][0]["id_card_yellow"]}","white":"${resultData[0][0]["id_card_white"]}","blue":"${resultData[0][0]["id_card_blue"]}","red":"${resultData[0][0]["id_card_red"]}"}`); //set spawn color
-
-            // parameterSet.set(DBM_Card_Guild.columns.spawn_data,`{"${Properties.spawnData.color.pink}":"${resultData[0][0]["id_card_pink"]}","${Properties.spawnData.color.purple}":"${resultData[0][0]["id_card_purple"]}","${Properties.spawnData.color.green}":"${resultData[0][0]["id_card_green"]}","${Properties.spawnData.color.yellow}":"${resultData[0][0]["id_card_yellow"]}","${Properties.spawnData.color.white}":"${resultData[0][0]["id_card_white"]}","${Properties.spawnData.color.blue}":"${resultData[0][0]["id_card_blue"]}","${Properties.spawnData.color.red}":"${resultData[0][0]["id_card_red"]}"}`);
             objEmbed.image = {
                 url:Properties.spawnData.color.embed_img
             }
@@ -2747,9 +2708,14 @@ async function generateCardSpawn(id_guild,specificType=null,overwriteToken = tru
                     url:Properties.enemySpawnData.tsunagarus.image.gizzagizza
                 }
                 objEmbed.title = `Tsunagarus Level 1 has appeared!`;
-                objEmbed.description = `${GlobalFunctions.capitalize(enemyType)} has the ${cardRewardData[DBM_Card_Data.columns.rarity]}⭐ cure card and possesses **${Properties.enemySpawnData[spawnSeries].term}** powers! Use **p!card battle** to participate in battle and defeat it!`;
+                objEmbed.description = `${GlobalFunctions.capitalize(enemyType)} has the ${cardRewardData[DBM_Card_Data.columns.rarity]}⭐ cure card and possesses **${Properties.enemySpawnData[spawnSeries].term}** powers!\n\n**Available Command:**\n⚔️ **p!card battle**: Participate in battle.\n✨ **p!card battle special**: Use the special attack.\n⬆️ **p!card battle charge**: Charge up your special attack by 35%.`;
                 objEmbed.color = "#ED873C";
                 objEmbed.fields = [
+                    {
+                        name:`Monster Type:`,
+                        value:`${Properties.enemySpawnData[spawnSeries].term}`,
+                        inline:true
+                    },
                     {
                         name:`Color Requirement:`,
                         value:`${dtColorWeakness.replace("[","").replace("]","").replace(/"/g, "")}`,
@@ -2771,7 +2737,7 @@ async function generateCardSpawn(id_guild,specificType=null,overwriteToken = tru
             } else {
                 //default: chokkins
                 //get the random enemy
-                var randLevel = GlobalFunctions.randomNumber(3,10);
+                var randLevel = GlobalFunctions.randomNumber(3,8);
                 var randBaseAtk = GlobalFunctions.randomNumber(50,70);
                 var randBaseHp = GlobalFunctions.randomNumber(20,30);
                 var randRarityMin = GlobalFunctions.randomNumber(4,5);
@@ -2823,7 +2789,7 @@ async function generateCardSpawn(id_guild,specificType=null,overwriteToken = tru
                     url:Properties.enemySpawnData.tsunagarus.image.chokkins
                 }
                 objEmbed.title = `Tsunagarus Lv.${randLevel} has appeared!`;
-                objEmbed.description = `${GlobalFunctions.capitalize(enemyType)} has the ${cardRewardData[DBM_Card_Data.columns.rarity]}⭐ cure card and possesses **${Properties.enemySpawnData[spawnSeries].term}** powers! Use **p!card battle** to participate in battle and defeat it!`;
+                objEmbed.description = `${GlobalFunctions.capitalize(enemyType)} has the ${cardRewardData[DBM_Card_Data.columns.rarity]}⭐ cure card and possesses **${Properties.enemySpawnData[spawnSeries].term}** powers!\n\n**Available Command:**\n⚔️ **p!card battle**: Participate in battle.\n✨ **p!card battle special**: Use the special attack.\n⬆️ **p!card battle charge**: Charge up your special attack by 35%.`;
                 objEmbed.color = "#D9A4FE";
                 objEmbed.fields = [
                     {

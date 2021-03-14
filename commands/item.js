@@ -421,15 +421,22 @@ module.exports = {
                 }
                 qty = parseInt(qty);//convert to int
 
+                var allowedItem = "'card','ingredient'";
                 //get current user stock
                 var currentStock = await ItemModule.getUserItemStock(userId,itemId);
-                var itemData = await ItemModule.getItemData(itemId);
+                var query = `SELECT * 
+                FROM ${DBM_Item_Data.TABLENAME} 
+                WHERE ${DBM_Item_Data.columns.category} IN (${allowedItem}) AND 
+                ${DBM_Item_Data.columns.id}=? 
+                LIMIT 1`;
+                var itemData = await DBConn.conn.promise().query(query,[itemId]);
+                itemData = itemData[0][0];
                 
                 if(itemData==null){
                     objEmbed.thumbnail = {
                         url:CardModule.Properties.imgResponse.imgFailed
                     }
-                    objEmbed.description = `:x: Sorry, I can't find that item id.`;
+                    objEmbed.description = `:x: Sorry, that item is not purchasable on the shop.`;
                     return message.channel.send({embed:objEmbed});
                 }
 

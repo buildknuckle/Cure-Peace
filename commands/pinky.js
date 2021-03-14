@@ -6,12 +6,14 @@ const CardModule = require('../modules/Card');
 const GlobalFunctions = require('../modules/GlobalFunctions.js');
 const CardGuildModule = require('../modules/CardGuild');
 const PinkyModule = require('../modules/Pinky');
+const ItemModule = require('../modules/Item');
 
 const DBM_Card_User_Data = require('../database/model/DBM_Card_User_Data');
 const DBM_Card_Data = require('../database/model/DBM_Card_Data');
 const DBM_Card_Guild = require('../database/model/DBM_Card_Guild');
 const DBM_Pinky_Data = require('../database/model/DBM_Pinky_Data');
 const DBM_Pinky_Inventory = require('../database/model/DBM_Pinky_Inventory');
+const DBM_Item_Data = require('../database/model/DBM_Item_Data');
 
 module.exports = {
     name: 'pinky',
@@ -174,14 +176,36 @@ module.exports = {
                 var pinkyData = await PinkyModule.getPinkyData(idPinky);
                 var cardData = await CardModule.getCardData(jsonParsedSpawnData.id_card);
 
-                var mofuCoinReward = cardData[DBM_Card_Data.columns.rarity]*2;
+                
+                var colorPointReward = cardData[DBM_Card_Data.columns.rarity]*10;
+                var textReward = `>${colorPointReward} ${cardData[DBM_Card_Data.columns.color]} color point\n`;
+                var mofuCoinReward = cardData[DBM_Card_Data.columns.rarity]*10;
+                textReward += `>${mofuCoinReward} mofucoin\n`;
+
+                //update the item
+                var query = `SELECT * 
+                FROM ${DBM_Item_Data.TABLENAME} 
+                ORDER BY rand() 
+                LIMIT 1`;
+                var itemDropData = await DBConn.conn.promise().query(query);
+                if(itemDropData[0][0]!=null){
+                    textReward+=`>Item: ${itemDropData[0][0][DBM_Item_Data.columns.name]} **(${itemDropData[0][0][DBM_Item_Data.columns.id]})**\n`;
+                    await ItemModule.addNewItemInventory(userId,itemDropData[0][0][DBM_Item_Data.columns.id]);
+                }
                 
                 objEmbed.author = {
                     iconURL:userAvatarUrl,
                     name:userUsername
                 },
                 objEmbed.title = "Pinky Captured!";
-                objEmbed.description = `<@${userId}> has captured the pinky: **${pinkyData[DBM_Pinky_Data.columns.name]}** & received **${mofuCoinReward} mofucoin**!`;
+                objEmbed.description = `<@${userId}> has captured the pinky: **${pinkyData[DBM_Pinky_Data.columns.name]}**!`;
+                objEmbed.fields = [
+                    {
+                        name:"Rewards Received:",
+                        value:textReward,
+                        inline:true
+                    }
+                ]
                 objEmbed.thumbnail = {
                     url:pinkyData[DBM_Pinky_Data.columns.img_url]
                 }
@@ -194,6 +218,10 @@ module.exports = {
                 await CardModule.updateMofucoin(userId,mofuCoinReward);
                 //update user token
                 await CardModule.updateCatchAttempt(userId,spawnedCardData.token);
+                //update color point
+                var colorMap = new Map();
+                colorMap.set(`color_point_${cardData[DBM_Card_Data.columns.color]}`,colorPointReward);
+                await CardModule.updateColorPoint(userId,colorMap);
                 //erase pinky spawn data
                 if(spawnedCardData.id==null){
                     await CardModule.removeCardGuildSpawn(guildId);

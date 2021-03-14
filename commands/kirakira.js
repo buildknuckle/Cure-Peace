@@ -23,9 +23,9 @@ module.exports = {
 
         switch(args[0]) {
             case "recipe":
-                var textVal = "";
+                var textVal = ""; var textVal2 = "";
 
-                var query = `SELECT r.${DBM_Kirakira_Recipe.columns.id_item} as id_recipe,r.${DBM_Kirakira_Recipe.columns.difficulty}, idat.${DBM_Item_Data.columns.name}  
+                var query = `SELECT r.${DBM_Kirakira_Recipe.columns.id_item} as id_recipe,r.${DBM_Kirakira_Recipe.columns.difficulty}, idat.${DBM_Item_Data.columns.name},idat.${DBM_Item_Data.columns.description}    
                 FROM ${DBM_Kirakira_Recipe.TABLENAME} r 
                 LEFT JOIN ${DBM_Item_Data.TABLENAME} idat ON 
                 idat.${DBM_Item_Data.columns.id}=r.${DBM_Kirakira_Recipe.columns.id_item} 
@@ -33,6 +33,7 @@ module.exports = {
                 var dataRecipe = await DBConn.conn.promise().query(query);
                 dataRecipe[0].forEach(item => {
                     textVal+=`${item["id_recipe"]} - ${item[DBM_Item_Data.columns.name]}\n`;
+                    textVal2+=`${GlobalFunctions.cutText(item[DBM_Item_Data.columns.description],33)}\n`;
                 });
 
                 var objEmbed ={
@@ -48,8 +49,12 @@ module.exports = {
                     fields:[
                         {
                             name:"Recipe List:",
-                            value:textVal
-                        }
+                            value:textVal,inline:true
+                        },
+                        {
+                            name:"Description:",
+                            value:textVal2,inline:true
+                        },
                     ]
                 };
 
@@ -97,9 +102,10 @@ module.exports = {
                 FROM ${DBM_Item_Data.TABLENAME} idat 
                 LEFT JOIN ${DBM_Item_Inventory.TABLENAME} inv 
                 ON (inv.${DBM_Item_Inventory.columns.id_item}=idat.${DBM_Item_Data.columns.id} AND 
-                inv.${DBM_Item_Inventory.columns.stock}>=1) 
+                inv.${DBM_Item_Inventory.columns.stock}>=1 AND 
+                inv.${DBM_Item_Inventory.columns.id_user}=?) 
                 WHERE idat.${DBM_Item_Data.columns.id} in (${idIngredient})`;
-                var dataIngredient = await DBConn.conn.promise().query(query, idIngredient);
+                var dataIngredient = await DBConn.conn.promise().query(query, [userId]);
                 var textIngredient = "";
                 dataIngredient[0].forEach(item => {
                     var icon = "❌ ";
@@ -174,9 +180,10 @@ module.exports = {
                 FROM ${DBM_Item_Data.TABLENAME} idat 
                 LEFT JOIN ${DBM_Item_Inventory.TABLENAME} inv 
                 ON (inv.${DBM_Item_Inventory.columns.id_item}=idat.${DBM_Item_Data.columns.id} AND 
-                inv.${DBM_Item_Inventory.columns.stock}>=1) 
+                inv.${DBM_Item_Inventory.columns.stock}>=1 AND  
+                inv.${DBM_Item_Inventory.columns.id_user}=?) 
                 WHERE idat.${DBM_Item_Data.columns.id} in (${idIngredient})`;
-                var dataIngredient = await DBConn.conn.promise().query(query, idIngredient);
+                var dataIngredient = await DBConn.conn.promise().query(query, [userId]);
                 var textIngredient = ""; var createOk = true;
                 dataIngredient[0].forEach(item => {
                     if(item[DBM_Item_Inventory.columns.id_user]==null){
@@ -208,7 +215,7 @@ module.exports = {
                     return message.channel.send({embed:objEmbed});
                 }
 
-                //get current user stock
+                //get current food user stock
                 var currentStock = await ItemModule.getUserItemStock(userId,foodData[DBM_Item_Data.columns.id]);
                 if(currentStock+1>=ItemModule.Properties.maxItem){
                     objEmbed.thumbnail = {
@@ -221,8 +228,9 @@ module.exports = {
                 //remove the ingredient
                 var query = `UPDATE ${DBM_Item_Inventory.TABLENAME} 
                 SET ${DBM_Item_Inventory.columns.stock} = ${DBM_Item_Inventory.columns.stock}-1 
-                WHERE ${DBM_Item_Inventory.columns.id_item} in (${idIngredient})`;
-                var dataIngredient = await DBConn.conn.promise().query(query, idIngredient);
+                WHERE ${DBM_Item_Inventory.columns.id_item} in (${idIngredient}) AND 
+                ${DBM_Item_Inventory.columns.id_user}=?`;
+                var dataIngredient = await DBConn.conn.promise().query(query, [userId]);
 
                 // //add the food to inventory
                 await ItemModule.addNewItemInventory(userId,foodData[DBM_Item_Inventory.columns.id],1);
