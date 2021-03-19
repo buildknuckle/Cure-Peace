@@ -201,7 +201,7 @@ module.exports = {
                 }
 
                 //end user parameter validator
-                objEmbed.title = `${GlobalFunctions.capitalize(pack)} Card Pack:`;
+                objEmbed.title = `${GlobalFunctions.capitalize(pack)}/${CardModule.Properties.dataCardCore[pack].alter_ego} Pack:`;
                 objEmbed.author = {
                     name: userUsername,
                     icon_url: userAvatarUrl
@@ -312,7 +312,7 @@ module.exports = {
                 }
 
                 //end user parameter validator
-                objEmbed.title = `${GlobalFunctions.capitalize(pack)} Card Pack:`;
+                objEmbed.title = `${GlobalFunctions.capitalize(pack)}/${GlobalFunctions.capitalize(CardModule.Properties.dataCardCore[pack].alter_ego)} Card Pack:`;
                 objEmbed.author = {
                     name: userUsername,
                     icon_url: userAvatarUrl
@@ -1815,21 +1815,14 @@ module.exports = {
                     randomDebuff = GlobalFunctions.randomProperty(CardModule.StatusEffect.debuffData); //return in object
                 }
 
-                //check if buff status effect is permanent/not
-                if(currentStatusEffect in CardModule.StatusEffect.buffData){
-                    if("permanent" in CardModule.StatusEffect.buffData[currentStatusEffect]){
-                        if(!CardModule.StatusEffect.buffData[currentStatusEffect].permanent){
-                            await CardModule.StatusEffect.updateStatusEffect(userId,null); //remove the SE
-                        }
-                    }
-                }
-
                 //special attack validation
                 if(args[1]!=null){
                     var specialAllow = true;
+                    
                     //special validation
                     if(CardModule.Properties.spawnData.battle.special_allow in jsonParsedSpawnData){
-                        if(!jsonParsedSpawnData[CardModule.Properties.spawnData.battle.special_allow]){
+                        if(!jsonParsedSpawnData[CardModule.Properties.spawnData.battle.special_allow]&&
+                            currentStatusEffect!=CardModule.StatusEffect.buffData.special_break.value){
                             specialAllow = false;
                         }
                     }
@@ -1918,6 +1911,21 @@ module.exports = {
                         objEmbed.description = "Oh no, your special has been countered by the tsunagarus and you've instantly defeated! Your special point has dropped into 0%!";
                         return message.channel.send({embed:objEmbed});
                     } else {
+
+                        //special activation with special break on
+                        if(currentStatusEffect==CardModule.StatusEffect.buffData.special_break.value){
+                            var embedStatusActivated = await CardModule.StatusEffect.embedStatusEffectActivated(userUsername,userAvatarUrl,currentStatusEffect);
+                            await message.channel.send({embed:embedStatusActivated});
+    
+                            if(currentStatusEffect in CardModule.StatusEffect.buffData){
+                                if("permanent" in CardModule.StatusEffect.buffData[currentStatusEffect]){
+                                    if(!CardModule.StatusEffect.buffData[currentStatusEffect].permanent){
+                                        await CardModule.StatusEffect.updateStatusEffect(userId,null); //remove the SE
+                                    }
+                                }
+                            }
+                        }
+
                         captured = true; specialActivated = true;
                         var level_special = userCardInventoryData[DBM_Card_Inventory.columns.level_special];
 
@@ -1935,10 +1943,12 @@ module.exports = {
 
                 var level = userCardInventoryData[DBM_Card_Inventory.columns.level];
                 var level_special = userCardInventoryData[DBM_Card_Inventory.columns.level_special];
-                var enemyLevel = 1; //default level for enemy
+                var enemyLevel = jsonParsedSpawnData[CardModule.Properties.spawnData.battle.level];
                 
                 switch(enemyType){
+                    case CardModule.Properties.enemySpawnData.tsunagarus.term.chiguhaguu:
                     case CardModule.Properties.enemySpawnData.tsunagarus.term.gizzagizza:
+
                         if(specialActivated||(arrColor.includes(cardData[DBM_Card_Data.columns.color])&&
                         cardData[DBM_Card_Data.columns.series].toLowerCase()==enemyData[DBM_Card_Enemies.columns.series].toLowerCase()&&
                         cardData[DBM_Card_Data.columns.rarity]>=enemyRarity)){
@@ -2010,6 +2020,16 @@ module.exports = {
                                 var embedStatusActivated = await CardModule.StatusEffect.embedStatusEffectActivated(userUsername,userAvatarUrl,randomDebuff.value,"debuff");
                                 await message.channel.send({embed:embedStatusActivated});
                             }
+
+                            //check if buff status effect is permanent/not
+                            if(currentStatusEffect in CardModule.StatusEffect.buffData){
+                                if("permanent" in CardModule.StatusEffect.buffData[currentStatusEffect]){
+                                    if(!CardModule.StatusEffect.buffData[currentStatusEffect].permanent){
+                                        await CardModule.StatusEffect.updateStatusEffect(userId,null); //remove the SE
+                                    }
+                                }
+                            }
+
                         }
                         break;
                     default:
@@ -2281,6 +2301,16 @@ module.exports = {
                                 var embedStatusActivated = await CardModule.StatusEffect.embedStatusEffectActivated(userUsername,userAvatarUrl,randomDebuff.value,"debuff");
                                 await message.channel.send({embed:embedStatusActivated});
                             }
+
+                            //check if buff status effect is permanent/not
+                            if(currentStatusEffect in CardModule.StatusEffect.buffData){
+                                if("permanent" in CardModule.StatusEffect.buffData[currentStatusEffect]){
+                                    if(!CardModule.StatusEffect.buffData[currentStatusEffect].permanent){
+                                        await CardModule.StatusEffect.updateStatusEffect(userId,null); //remove the SE
+                                    }
+                                }
+                            }
+
                             return;
                         }
 
@@ -2862,106 +2892,298 @@ module.exports = {
                 }
 
                 if(convertOptions==null){
-                    objEmbed.description = "-Use **p!card convert point <cardid> [all]** to convert the chosen card id into points.\n-Use **p!card convert mofucoin <cardid> [all]** to convert the chosen card id into mofucoin.";
+                    objEmbed.description = "-Use **p!card convert point <cardid> [all]** to convert the chosen card id into points.\n-Use **p!card convert mofucoin <cardid> [all]** to convert the chosen card id into mofucoin.\n-Use **p!card convert item <cardid>** to convert the chosen card id into item.\n-Use **p!card convert level <cardid> <card id target>** to convert the chosen card id into level on <card id target>.";
                     return message.channel.send({embed:objEmbed});
-                } else if(convertOptions.toLowerCase()!="point" && convertOptions.toLowerCase()!="mofucoin"){
-                    objEmbed.description = "-Use **p!card convert point <cardid> [all]** to convert the chosen card id into points.\n-Use **p!card convert mofucoin <cardid> [all]** to convert the chosen card id into mofucoin.";
+                } else if(convertOptions.toLowerCase()!="point" && convertOptions.toLowerCase()!="mofucoin" && convertOptions.toLowerCase()!="item"&& convertOptions.toLowerCase()!="level"){
+                    objEmbed.description = "-Use **p!card convert point <cardid> [all]** to convert the chosen card id into points.\n-Use **p!card convert mofucoin <cardid> [all]** to convert the chosen card id into mofucoin.\n-Use **p!card convert item <cardid>** to convert the chosen card id into item.\n-Use **p!card convert level <cardid> <card id target>** to convert the chosen card id into level on <card id target>.";
                     return message.channel.send({embed:objEmbed});
                 }
 
                 convertOptions = convertOptions.toLowerCase();
 
+                //card id validation
                 if(cardId==null){
                     objEmbed.thumbnail = {
                         url:CardModule.Properties.imgResponse.imgError
                     }
                     objEmbed.description = ":x: Please enter the card ID.";
                     return message.channel.send({embed:objEmbed});
-                } else if(args[3]!=null){
-                    //check if convert all/not
-                    if(args[3].toLowerCase()=="all"){
-                        convertAll = true;
-                    } else {
-                        objEmbed.thumbnail = {
-                            url:CardModule.Properties.imgResponse.imgError
-                        }
-                        objEmbed.description = ":x: Use: **p!card convert <cardid> all** to convert all chosen card id into points.";
-                        return message.channel.send({embed:objEmbed});
-                    }
                 }
 
-                //check if card ID exists/not
-                var cardData = await CardModule.getCardData(cardId);
+                switch(convertOptions){
+                    case "level":
+                        //convert to level
+                        //check if user have card/not
+                        var targetCardId = args[3];
+                        var userCardStock = await CardModule.getUserCardStock(userId,cardId);
+                        var userTargetCardStock = await CardModule.getUserCardStock(userId,targetCardId);
 
-                if(cardData==null){
-                    objEmbed.thumbnail = {
-                        url:CardModule.Properties.imgResponse.imgError
-                    }
-                    objEmbed.description = ":x: Sorry, I can't find that card ID.";
-
-                    return message.channel.send({embed:objEmbed});
-                }
-
-                //check if user have card/not
-                var userCardStock = await CardModule.getUserCardStock(userId,cardId);
-
-                if(userCardStock<=-1){
-                    objEmbed.thumbnail = {
-                        url:CardModule.Properties.imgResponse.imgError
-                    }
-                    objEmbed.description = `:x: Sorry, you don't have: **${cardData[DBM_Card_Data.columns.name]}** yet. Please capture this card first.`;
-                    
-                } else if(userCardStock<=0){
-                    objEmbed.thumbnail = {
-                        url:CardModule.Properties.imgResponse.imgError
-                    }
-                    objEmbed.description = `:x: Sorry, you need another duplicate of: **${cardData[DBM_Card_Data.columns.id_card]} - ${cardData[DBM_Card_Data.columns.name]}** to convert this card.`;
-                } else if(userCardStock>=1){
-                    var convertValue = cardData[DBM_Card_Data.columns.rarity]*2;
-                    var color = cardData[DBM_Card_Data.columns.color];
-
-                    if(convertAll){
-                        convertValue*=userCardStock;
-
-                        objEmbed.thumbnail = {
-                            url:CardModule.Properties.imgResponse.imgOk
+                        if(targetCardId==null){
+                            objEmbed.thumbnail = {
+                                url:CardModule.Properties.imgResponse.imgError
+                            }
+                            objEmbed.description = `:x: Please enter the card ID that you want to leveled up with.`;
+                            return message.channel.send({embed:objEmbed});
                         }
 
-                        //update the card stock
-                        var query = `UPDATE ${DBM_Card_Inventory.TABLENAME}
-                        SET ${DBM_Card_Inventory.columns.stock}=? 
-                        WHERE ${DBM_Card_Inventory.columns.id_user}=? AND 
-                        ${DBM_Card_Inventory.columns.id_card}=?`;
-                        await DBConn.conn.promise().query(query,[0,userId,cardId]);
+                        //check for card data
+                        var cardData = await CardModule.getCardData(cardId);
+                        var targetCardData = await CardModule.getCardData(targetCardId);
 
-                        objEmbed.description = `<@${userId}> has converted ${userCardStock}x **${cardData[DBM_Card_Data.columns.id_card]} - ${cardData[DBM_Card_Data.columns.name]}** into `;
-                    } else {
-                        objEmbed.thumbnail = {
-                            url:CardModule.Properties.imgResponse.imgOk
+                        if(cardData==null){
+                            objEmbed.thumbnail = {
+                                url:CardModule.Properties.imgResponse.imgError
+                            }
+                            objEmbed.description = ":x: Sorry, I can't find that card ID.";
+        
+                            return message.channel.send({embed:objEmbed});
+                        } else if(targetCardData==null){
+                            objEmbed.thumbnail = {
+                                url:CardModule.Properties.imgResponse.imgError
+                            }
+                            objEmbed.description = ":x: Sorry, I can't find the target card ID.";
+        
+                            return message.channel.send({embed:objEmbed});
                         }
 
-                        //update the card stock
-                        var query = `UPDATE ${DBM_Card_Inventory.TABLENAME}
-                        SET ${DBM_Card_Inventory.columns.stock}=${DBM_Card_Inventory.columns.stock}-1  
-                        WHERE ${DBM_Card_Inventory.columns.id_user}=? AND 
-                        ${DBM_Card_Inventory.columns.id_card}=?`;
-                        await DBConn.conn.promise().query(query,[userId,cardId]);
+                        var userCardData = await CardModule.getUserCardInventoryData(userId,targetCardId)//card target
+                        var rarity = cardData[DBM_Card_Data.columns.rarity];
+                        var rarityValue = 0;
 
-                        objEmbed.description = `<@${userId}> has converted 1x **${cardData[DBM_Card_Data.columns.id_card]} - ${cardData[DBM_Card_Data.columns.name]}** into `;
-                    }
+                        if(cardData[DBM_Card_Data.columns.pack]!=targetCardData[DBM_Card_Data.columns.pack]){
+                            objEmbed.thumbnail = {
+                                url:CardModule.Properties.imgResponse.imgError
+                            }
+                            objEmbed.description = `:x: Sorry, both of the card need to be on the same card pack.`;
+                        } else if(userCardStock<=-1){
+                            //stock validation
+                            objEmbed.thumbnail = {
+                                url:CardModule.Properties.imgResponse.imgError
+                            }
+                            objEmbed.description = `:x: Sorry, you don't have: **${cardData[DBM_Card_Data.columns.name]}** yet. Please capture this card first.`;
+                        } else if(userTargetCardStock<=-1){
+                            //target stock validation
+                            objEmbed.thumbnail = {
+                                url:CardModule.Properties.imgResponse.imgError
+                            }
+                            objEmbed.description = `:x: Sorry, you don't have: **${targetCardData[DBM_Card_Data.columns.name]}** yet. Please capture this card first.`;
+                        } else if(userCardStock<=0||userTargetCardStock<=-1){
+                            //card stock validation
+                            objEmbed.thumbnail = {
+                                url:CardModule.Properties.imgResponse.imgError
+                            }
+                            objEmbed.description = `:x: Sorry, you need another duplicate of: **${cardData[DBM_Card_Data.columns.id_card]} - ${cardData[DBM_Card_Data.columns.name]}** & **${targetCardData[DBM_Card_Data.columns.id_card]} - ${targetCardData[DBM_Card_Data.columns.name]}** to convert the card into level.`;
+                        } else if(userCardData[DBM_Card_Inventory.columns.level]>=CardModule.Leveling.getMaxLevel(targetCardData[DBM_Card_Data.columns.rarity])){
+                            //check for max level
+                            objEmbed.thumbnail = {
+                                url:CardModule.Properties.imgResponse.imgError
+                            }
+                            objEmbed.description = `:x: Sorry, **${targetCardData[DBM_Card_Data.columns.id_card]} - ${targetCardData[DBM_Card_Data.columns.name]}** already reached the max level!`;
+                        } else if(userCardStock>=1&&userTargetCardStock>=0){
+                            if(rarity<6){
+                                objEmbed.thumbnail = {
+                                    url:CardModule.Properties.imgResponse.imgError
+                                }
+                                objEmbed.description = `:x: Sorry, you can only convert card to level with 6/7 :star: card.`;
+                            } else {
+                                //check for card level
+                                switch(targetCardData[DBM_Card_Data.columns.rarity]){
+                                    case 6:
+                                        rarityValue = 4;
+                                        break;
+                                    case 7:
+                                        rarityValue = 5;
+                                        break;
+                                    default:
+                                        rarityValue = rarity;
+                                        break;
+                                }
 
-                    if(convertOptions=="point"){
-                        //update the color point
-                        var objColor = new Map();
-                        objColor.set(`color_point_${color}`,convertValue);
-                        objEmbed.description += `**${convertValue} ${color} points**.`;
-                        await CardModule.updateColorPoint(userId,objColor);
-                    } else if(convertOptions=="mofucoin"){
-                        //update the mofucoin
-                        await CardModule.updateMofucoin(userId,convertValue);
+                                //update the level
+                                var query = `UPDATE ${DBM_Card_Inventory.TABLENAME} 
+                                SET ${DBM_Card_Inventory.columns.level}=${DBM_Card_Inventory.columns.level}+${rarityValue}
+                                WHERE ${DBM_Card_Inventory.columns.id_user}=? AND 
+                                ${DBM_Card_Inventory.columns.id_card}=?`;
+                                await DBConn.conn.promise().query(query,[userId,targetCardData[DBM_Card_Data.columns.id_card]]);
+
+                                //update the card stock
+                                var query = `UPDATE ${DBM_Card_Inventory.TABLENAME}
+                                SET ${DBM_Card_Inventory.columns.stock}=${DBM_Card_Inventory.columns.stock}-1  
+                                WHERE ${DBM_Card_Inventory.columns.id_user}=? AND 
+                                ${DBM_Card_Inventory.columns.id_card}=?`;
+                                await DBConn.conn.promise().query(query,[userId,cardId]);
+
+                                //get latest target card level & update to max level if exceed
+                                var userCardData = await CardModule.getUserCardInventoryData(userId,targetCardId)//card target
+                                if(userCardData[DBM_Card_Inventory.columns.level]>=CardModule.Leveling.getMaxLevel(targetCardData[DBM_Card_Data.columns.rarity])){
+                                    //update the level
+                                    var query = `UPDATE ${DBM_Card_Inventory.TABLENAME} 
+                                    SET ${DBM_Card_Inventory.columns.level}=?
+                                    WHERE ${DBM_Card_Inventory.columns.id_user}=? AND 
+                                    ${DBM_Card_Inventory.columns.id_card}=?`;
+                                    await DBConn.conn.promise().query(query,[CardModule.Leveling.getMaxLevel(targetCardData[DBM_Card_Data.columns.rarity]),userId,targetCardData[DBM_Card_Data.columns.id_card]]);
+                                }
+
+                                //get latest target card level
+                                var userCardData = await CardModule.getUserCardInventoryData(userId,targetCardId)//card target
+
+                                var objEmbed = CardModule.embedCardLevelUp(targetCardData[DBM_Card_Data.columns.color],targetCardData[DBM_Card_Data.columns.id_card],targetCardData[DBM_Card_Data.columns.pack],targetCardData[DBM_Card_Data.columns.name],targetCardData[DBM_Card_Data.columns.img_url],targetCardData[DBM_Card_Data.columns.series],targetCardData[DBM_Card_Data.columns.rarity],userAvatarUrl,userUsername,userCardData[DBM_Card_Inventory.columns.level],targetCardData[DBM_Card_Data.columns.max_hp],targetCardData[DBM_Card_Data.columns.max_atk],userCardData[DBM_Card_Inventory.columns.level_special]);
+
+                                return message.channel.send({content:`**${userUsername}** has convert **${cardData[DBM_Card_Data.columns.id_card]} - ${cardData[DBM_Card_Data.columns.name]}** & increased **${targetCardData[DBM_Card_Data.columns.name]}** level by **${rarityValue}**.\n${targetCardData[DBM_Card_Data.columns.name]} is now level **${userCardData[DBM_Card_Inventory.columns.level]}**!`, embed:objEmbed});
+                            }
+                        }
+
+                        break;
+                    case "item":
+                        //check if user have card/not
+                        var userCardStock = await CardModule.getUserCardStock(userId,cardId);
+
+                        //check for card data
+                        var cardData = await CardModule.getCardData(cardId);
+
+                        if(userCardStock<=-1){
+                            objEmbed.thumbnail = {
+                                url:CardModule.Properties.imgResponse.imgError
+                            }
+                            objEmbed.description = `:x: Sorry, you don't have: **${cardData[DBM_Card_Data.columns.name]}** yet. Please capture this card first.`;
+                            
+                        } else if(userCardStock<=0){
+                            objEmbed.thumbnail = {
+                                url:CardModule.Properties.imgResponse.imgError
+                            }
+                            objEmbed.description = `:x: Sorry, you need another duplicate of: **${cardData[DBM_Card_Data.columns.id_card]} - ${cardData[DBM_Card_Data.columns.name]}** to convert this card.`;
+                        } else if(userCardStock>=1){
+                            if(cardData[DBM_Card_Data.columns.rarity]<6){
+                                objEmbed.thumbnail = {
+                                    url:CardModule.Properties.imgResponse.imgError
+                                }
+                                objEmbed.description = `:x: Sorry, you can only convert card to item with 6/7 :star: card.`;
+                            } else {
+                                var minItemRarity = 70;
+                                var query = `SELECT *
+                                FROM ${DBM_Item_Data.TABLENAME} 
+                                WHERE ${DBM_Item_Data.columns.drop_rate}>=?  
+                                ORDER BY rand()`
+                                var rndItemReward = await DBConn.conn.promise().query(query, [minItemRarity]);
+                                rndItemReward = rndItemReward[0][0];
+        
+                                objEmbed.thumbnail = {
+                                    url:CardModule.Properties.imgResponse.imgOk
+                                }
     
-                        objEmbed.description += `**${convertValue} mofucoin**.`;
-                    }
+                                // //add the item inventory
+                                await ItemModule.addNewItemInventory(userId,rndItemReward[DBM_Item_Data.columns.id]);
+    
+                                //update the card stock
+                                var query = `UPDATE ${DBM_Card_Inventory.TABLENAME}
+                                SET ${DBM_Card_Inventory.columns.stock}=${DBM_Card_Inventory.columns.stock}-1  
+                                WHERE ${DBM_Card_Inventory.columns.id_user}=? AND 
+                                ${DBM_Card_Inventory.columns.id_card}=?`;
+                                await DBConn.conn.promise().query(query,[userId,cardId]);
+    
+                                objEmbed.description = `<@${userId}> has converted **${cardData[DBM_Card_Data.columns.id_card]} - ${cardData[DBM_Card_Data.columns.name]}** into **${rndItemReward[DBM_Item_Data.columns.name]} (${rndItemReward[DBM_Item_Data.columns.id]})**`;
+                            }
+                        }
+
+                        break;
+                    default:
+                        //convert to point
+                        if(args[3]!=null){
+                            //check if convert all/not
+                            if(args[3].toLowerCase()=="all"){
+                                convertAll = true;
+                            } else {
+                                objEmbed.thumbnail = {
+                                    url:CardModule.Properties.imgResponse.imgError
+                                }
+                                objEmbed.description = ":x: Use: **p!card convert <cardid> all** to convert all chosen card id into points.";
+                                return message.channel.send({embed:objEmbed});
+                            }
+                        }
+        
+                        //check if card ID exists/not
+                        var cardData = await CardModule.getCardData(cardId);
+        
+                        if(cardData==null){
+                            objEmbed.thumbnail = {
+                                url:CardModule.Properties.imgResponse.imgError
+                            }
+                            objEmbed.description = ":x: Sorry, I can't find that card ID.";
+        
+                            return message.channel.send({embed:objEmbed});
+                        }
+        
+                        //check if user have card/not
+                        var userCardStock = await CardModule.getUserCardStock(userId,cardId);
+        
+                        if(userCardStock<=-1){
+                            objEmbed.thumbnail = {
+                                url:CardModule.Properties.imgResponse.imgError
+                            }
+                            objEmbed.description = `:x: Sorry, you don't have: **${cardData[DBM_Card_Data.columns.name]}** yet. Please capture this card first.`;
+                            
+                        } else if(userCardStock<=0){
+                            objEmbed.thumbnail = {
+                                url:CardModule.Properties.imgResponse.imgError
+                            }
+                            objEmbed.description = `:x: Sorry, you need another duplicate of: **${cardData[DBM_Card_Data.columns.id_card]} - ${cardData[DBM_Card_Data.columns.name]}** to convert this card.`;
+                        } else if(userCardStock>=1){
+                            var convertValue = cardData[DBM_Card_Data.columns.rarity]*2;
+                            switch(cardData[DBM_Card_Data.columns.rarity]){
+                                case 6:
+                                    convertValue = cardData[DBM_Card_Data.columns.rarity]*4;
+                                    break;
+                                case 7:
+                                    convertValue = cardData[DBM_Card_Data.columns.rarity]*5;
+                                    break;
+                            }
+        
+                            var color = cardData[DBM_Card_Data.columns.color];
+        
+                            if(convertAll){
+                                convertValue*=userCardStock;
+        
+                                objEmbed.thumbnail = {
+                                    url:CardModule.Properties.imgResponse.imgOk
+                                }
+        
+                                //update the card stock
+                                var query = `UPDATE ${DBM_Card_Inventory.TABLENAME}
+                                SET ${DBM_Card_Inventory.columns.stock}=? 
+                                WHERE ${DBM_Card_Inventory.columns.id_user}=? AND 
+                                ${DBM_Card_Inventory.columns.id_card}=?`;
+                                await DBConn.conn.promise().query(query,[0,userId,cardId]);
+        
+                                objEmbed.description = `<@${userId}> has converted ${userCardStock}x **${cardData[DBM_Card_Data.columns.id_card]} - ${cardData[DBM_Card_Data.columns.name]}** into `;
+                            } else {
+                                objEmbed.thumbnail = {
+                                    url:CardModule.Properties.imgResponse.imgOk
+                                }
+        
+                                //update the card stock
+                                var query = `UPDATE ${DBM_Card_Inventory.TABLENAME}
+                                SET ${DBM_Card_Inventory.columns.stock}=${DBM_Card_Inventory.columns.stock}-1  
+                                WHERE ${DBM_Card_Inventory.columns.id_user}=? AND 
+                                ${DBM_Card_Inventory.columns.id_card}=?`;
+                                await DBConn.conn.promise().query(query,[userId,cardId]);
+        
+                                objEmbed.description = `<@${userId}> has converted 1x **${cardData[DBM_Card_Data.columns.id_card]} - ${cardData[DBM_Card_Data.columns.name]}** into `;
+                            }
+        
+                            if(convertOptions=="point"){
+                                //update the color point
+                                var objColor = new Map();
+                                objColor.set(`color_point_${color}`,convertValue);
+                                objEmbed.description += `**${convertValue} ${color} points**.`;
+                                await CardModule.updateColorPoint(userId,objColor);
+                            } else if(convertOptions=="mofucoin"){
+                                //update the mofucoin
+                                await CardModule.updateMofucoin(userId,convertValue);
+            
+                                objEmbed.description += `**${convertValue} mofucoin**.`;
+                            }
+                        }
+                        break;
                 }
 
                 return message.channel.send({embed:objEmbed});

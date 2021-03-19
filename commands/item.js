@@ -204,11 +204,6 @@ module.exports = {
                 }
 
                 var currentStatusEffect = userStatusData[DBM_Card_User_Data.columns.status_effect];
-                if(currentStatusEffect==CardModule.StatusEffect.debuffData.cardcaplock.value){
-                    var embedStatusEffectActivated = await CardModule.StatusEffect.embedStatusEffectActivated(
-                        userUsername,userAvatarUrl,currentStatusEffect,"debuff");
-                    return message.channel.send({embed:embedStatusEffectActivated})
-                }
 
                 if(itemId==null){
                     objEmbed.thumbnail = {
@@ -228,6 +223,26 @@ module.exports = {
                     objEmbed.description = ":x: Sorry, I can't find that item ID.";
 
                     return message.channel.send({embed:objEmbed});
+                }
+
+                if(currentStatusEffect==CardModule.StatusEffect.debuffData.item_curse.value){
+                    switch(itemData[DBM_Item_Data.columns.effect_data].toLowerCase()){
+                        case CardModule.StatusEffect.buffData.clear_status_all.value:
+                            break;
+                        default:
+                            if(currentStatusEffect in CardModule.StatusEffect.debuffData){
+                                if("recovery_item" in CardModule.StatusEffect.debuffData[currentStatusEffect]){
+                                    if(!CardModule.StatusEffect.debuffData[currentStatusEffect].recovery_item.includes(
+                                        itemData[DBM_Item_Data.columns.id])){
+                                            var embedStatusEffectActivated = await CardModule.StatusEffect.embedStatusEffectActivated(
+                                                userUsername,userAvatarUrl,currentStatusEffect,"debuff");
+                                            return message.channel.send({embed:embedStatusEffectActivated});
+                                        }
+                                    }
+                            }
+                            break;
+                    }
+                    
                 }
 
                 //check if user have item/not
@@ -251,6 +266,7 @@ module.exports = {
                 }
 
                 var messageValue = `${CardModule.StatusEffect.buffData[itemData[DBM_Item_Data.columns.effect_data]].description}`;
+                var clearStatusEffect = false;
 
                 switch(itemData[DBM_Item_Data.columns.effect_data].toLowerCase()){
                     case CardModule.StatusEffect.buffData.clear_status_all.value:
@@ -273,7 +289,16 @@ module.exports = {
                                 if(CardModule.StatusEffect.debuffData[currentStatusEffect].recovery_item.includes(
                                     itemData[DBM_Item_Data.columns.id])){
                                     //check for availability recovery item
-                                    await CardModule.StatusEffect.updateStatusEffect(userId,null);
+                                    if(itemData[DBM_Item_Data.columns.effect_data] in CardModule.StatusEffect.buffData){
+                                        if("clear_status" in CardModule.StatusEffect.buffData[itemData[DBM_Item_Data.columns.effect_data]]){
+                                            if(CardModule.StatusEffect.buffData[itemData[DBM_Item_Data.columns.effect_data]].clear_status){
+                                                await CardModule.StatusEffect.updateStatusEffect(userId,null);
+                                                clearStatusEffect = true;
+                                            }
+                                        }
+                                    }
+                                    
+                                    
                                     messageValue = `Status Effect: ${CardModule.StatusEffect.debuffData[currentStatusEffect].name} has been removed.`;
                                 } else {
                                     objEmbed.fields = [
@@ -302,7 +327,10 @@ module.exports = {
                         }
 
                         //update the status effect
-                        await CardModule.StatusEffect.updateStatusEffect(userId,itemData[DBM_Item_Data.columns.effect_data]);
+                        if(!clearStatusEffect){
+                            await CardModule.StatusEffect.updateStatusEffect(userId,itemData[DBM_Item_Data.columns.effect_data]);
+                        }
+                        
                         break;
                 }
 
