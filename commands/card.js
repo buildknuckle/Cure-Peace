@@ -1949,6 +1949,43 @@ module.exports = {
                     case CardModule.Properties.enemySpawnData.tsunagarus.term.chiguhaguu:
                     case CardModule.Properties.enemySpawnData.tsunagarus.term.gizzagizza:
 
+                        //check for rarity boost
+                        if(currentStatusEffect in CardModule.StatusEffect.buffData){
+                            if(currentStatusEffect.includes(`rarity_up_`)){
+                                //check for rarity boost
+                                if("value_rarity_boost" in CardModule.StatusEffect.buffData[currentStatusEffect]){
+                                    cardData[DBM_Card_Data.columns.rarity]+=CardModule.StatusEffect.buffData[currentStatusEffect].value_rarity_boost;
+        
+                                    var embedStatusActivated = await CardModule.StatusEffect.embedStatusEffectActivated(userUsername,userAvatarUrl,currentStatusEffect);
+                                    await message.channel.send({embed:embedStatusActivated});
+
+                                    //check if SE permanent/not
+                                    if("permanent" in CardModule.StatusEffect.buffData[currentStatusEffect]){
+                                        if(!CardModule.StatusEffect.buffData[currentStatusEffect].permanent){
+                                            await CardModule.StatusEffect.updateStatusEffect(userId,null);
+                                        }
+                                    }
+                                }
+                            }
+                        } else if(currentStatusEffect in CardModule.StatusEffect.debuffData){
+                            if(currentStatusEffect.includes(`rarity_down_`)){
+                                //check for rarity boost
+                                if("value_rarity_down" in CardModule.StatusEffect.debuffData[currentStatusEffect]){
+                                    cardData[DBM_Card_Data.columns.rarity]-=CardModule.StatusEffect.debuffData[currentStatusEffect].value_rarity_down;
+        
+                                    var embedStatusActivated = await CardModule.StatusEffect.embedStatusEffectActivated(userUsername,userAvatarUrl,currentStatusEffect,"debuff");
+                                    await message.channel.send({embed:embedStatusActivated});
+                                }
+
+                                //check if SE permanent/not
+                                if("permanent" in CardModule.StatusEffect.debuffData[currentStatusEffect]){
+                                    if(!CardModule.StatusEffect.debuffData[currentStatusEffect].permanent){
+                                        await CardModule.StatusEffect.updateStatusEffect(userId,null);
+                                    }
+                                }
+                            }
+                        }
+
                         if(specialActivated||(arrColor.includes(cardData[DBM_Card_Data.columns.color])&&
                         cardData[DBM_Card_Data.columns.series].toLowerCase()==enemyData[DBM_Card_Enemies.columns.series].toLowerCase()&&
                         cardData[DBM_Card_Data.columns.rarity]>=enemyRarity)){
