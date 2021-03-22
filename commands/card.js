@@ -494,19 +494,27 @@ module.exports = {
                             var embedStatusActivated = await CardModule.StatusEffect.embedStatusEffectActivated(userUsername,userAvatarUrl,currentStatusEffect);
                             await message.channel.send({embed:embedStatusActivated});
                         }
+
+                        if("permanent" in CardModule.StatusEffect.buffData[currentStatusEffect]){
+                            if(!CardModule.StatusEffect.buffData[currentStatusEffect].permanent){
+                                await CardModule.StatusEffect.updateStatusEffect(userId,null);
+                            }
+                        }
                     } else if(currentStatusEffect.includes('rainbow_coloraura')){
                         if("value_capture_boost" in CardModule.StatusEffect.buffData[currentStatusEffect]){
                             rngCatch+=CardModule.StatusEffect.buffData[currentStatusEffect].value_capture_boost;
                             var embedStatusActivated = await CardModule.StatusEffect.embedStatusEffectActivated(userUsername,userAvatarUrl,currentStatusEffect);
                             await message.channel.send({embed:embedStatusActivated});
                         }
-                    }
 
-                    if("permanent" in CardModule.StatusEffect.buffData[currentStatusEffect]){
-                        if(!CardModule.StatusEffect.buffData[currentStatusEffect].permanent){
-                            await CardModule.StatusEffect.updateStatusEffect(userId,null);
+                        if("permanent" in CardModule.StatusEffect.buffData[currentStatusEffect]){
+                            if(!CardModule.StatusEffect.buffData[currentStatusEffect].permanent){
+                                await CardModule.StatusEffect.updateStatusEffect(userId,null);
+                            }
                         }
                     }
+
+                    
                 } else if(currentStatusEffect in CardModule.StatusEffect.debuffData){
                     //check for user capture rate debuff from status effect
                     if("value_capture_down" in CardModule.StatusEffect.debuffData[currentStatusEffect]){
@@ -514,11 +522,11 @@ module.exports = {
                         var embedStatusActivated = await CardModule.StatusEffect.embedStatusEffectActivated(userUsername,userAvatarUrl,currentStatusEffect,"debuff");
 
                         await message.channel.send({embed:embedStatusActivated});
-                    }
 
-                    if("permanent" in CardModule.StatusEffect.debuffData[currentStatusEffect]){
-                        if(!CardModule.StatusEffect.debuffData[currentStatusEffect].permanent){
-                            await CardModule.StatusEffect.updateStatusEffect(userId,null);
+                        if("permanent" in CardModule.StatusEffect.debuffData[currentStatusEffect]){
+                            if(!CardModule.StatusEffect.debuffData[currentStatusEffect].permanent){
+                                await CardModule.StatusEffect.updateStatusEffect(userId,null);
+                            }
                         }
                     }
                 }
@@ -778,7 +786,7 @@ module.exports = {
 
                 //get status effect
                 switch(currentStatusEffect){
-                    case "lucky_number":
+                    case CardModule.StatusEffect.buffData.lucky_number.value:
                         nextNumber = CardModule.StatusEffect.buffData.lucky_number.value_number
                         //erase the status effect
                         await CardModule.StatusEffect.updateStatusEffect(userId,null);
