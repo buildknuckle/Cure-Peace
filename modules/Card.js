@@ -88,13 +88,15 @@ class Properties{
                 chokkins:"chokkins",
                 dibosu:"dibosu",
                 gizzagizza:"gizzagizza",
-                buttagiru:"buttagiru"
+                buttagiru:"buttagiru",
+                chiguhaguu:"chiguhaguu"
             },
             image:{
-                "chokkins":"https://cdn.discordapp.com/attachments/793415946738860072/817018351846293554/Chokkin.png",
-                "dibosu":"https://cdn.discordapp.com/attachments/793415946738860072/817018421795487764/Dibosufinal.png",
-                "gizzagizza":"https://cdn.discordapp.com/attachments/793415946738860072/817018549146484746/Gizzagizza.png",
-                "buttagiru":"https://cdn.discordapp.com/attachments/793415946738860072/817018566057918484/Buttagiru.png"
+                chokkins:"https://cdn.discordapp.com/attachments/793415946738860072/817018351846293554/Chokkin.png",
+                dibosu:"https://cdn.discordapp.com/attachments/793415946738860072/817018421795487764/Dibosufinal.png",
+                gizzagizza:"https://cdn.discordapp.com/attachments/793415946738860072/817018549146484746/Gizzagizza.png",
+                buttagiru:"https://cdn.discordapp.com/attachments/793415946738860072/817018566057918484/Buttagiru.png",
+                chiguhaguu:"https://cdn.discordapp.com/attachments/793415946738860072/822016967741407272/latest.png"
             }
         },
         "max heart":{
@@ -138,6 +140,9 @@ class Properties{
         },
         "healin' good":{
             term:"megabyogen"
+        },
+        "kirakira":{
+            term:"kirakirarun thieves"
         }
     }
 
@@ -196,7 +201,20 @@ class Properties{
             transform_quotes:"Emissary of light, Cure Black!",
             special_attack:"Marble Screw",
             team_attack:"Team Attack",
-            img_special_attack:"https://cdn.discordapp.com/attachments/793374640839458837/817775242729881660/unknown.png"
+            img_special_attack:"https://cdn.discordapp.com/attachments/793374640839458837/817775242729881660/unknown.png",
+            img_transformation:[],
+            hint_chiguhaguu:"Emissary of light, <x>!",
+            description:"nagisa description",
+            bio:{
+                key1:"birthday",
+                value1:"October 10",
+                key2:"",
+                value2:"",
+                key3:"",
+                value3:"",
+                key4:"",
+                value4:""
+            }
         },
         saki:{
             total:12,
@@ -208,7 +226,20 @@ class Properties{
             transform_quotes:"The shining golden flower, Cure Bloom!",
             special_attack:"Spiral Star Splash",
             team_attack:"Team Attack",
-            img_special_attack:"https://cdn.discordapp.com/attachments/793378822976045096/817775703444684820/unknown.png"
+            img_special_attack:"https://cdn.discordapp.com/attachments/793378822976045096/817775703444684820/unknown.png",
+            img_transformation:[],
+            hint_chiguhaguu:"The shining golden flower, <x>!",
+            description:"",
+            bio:{
+                key1:"",
+                value1:"",
+                key2:"",
+                value2:"",
+                key3:"",
+                value3:"",
+                key4:"",
+                value4:""
+            }
         },
         nozomi:{
             total:11,
@@ -220,7 +251,20 @@ class Properties{
             transform_quotes:"The great power of hope, Cure Dream!",
             special_attack:"Shooting Star",
             team_attack:"Team Attack",
-            img_special_attack:"https://cdn.discordapp.com/attachments/793379464753971220/817775920550248498/unknown.png"
+            img_special_attack:"https://cdn.discordapp.com/attachments/793379464753971220/817775920550248498/unknown.png",
+            img_transformation:["https://cdn.discordapp.com/attachments/793379464753971220/822044019566706698/image0.gif"],
+            hint_chiguhaguu:"The great power of hope, <x>",
+            description:"",
+            bio:{
+                key1:"",
+                value1:"",
+                key2:"",
+                value2:"",
+                key3:"",
+                value3:"",
+                key4:"",
+                value4:""
+            }
         },
         love:{
             total:11,
@@ -231,7 +275,20 @@ class Properties{
             henshin_phrase:"Change, Pretty Cure! Beat up!",
             transform_quotes:"The pink heart is the emblem of love. Freshly-picked, Cure Peach!",
             special_attack:"Love Sunshine",
-            img_special_attack:"https://cdn.discordapp.com/attachments/793381447062913064/817776599390486558/unknown.png"
+            img_special_attack:"https://cdn.discordapp.com/attachments/793381447062913064/817776599390486558/unknown.png",
+            img_transformation:[],
+            hint_chiguhaguu:"The pink heart is the emblem of love. Freshly-picked, <x>!",
+            description:"",
+            bio:{
+                key1:"",
+                value1:"",
+                key2:"",
+                value2:"",
+                key3:"",
+                value3:"",
+                key4:"",
+                value4:""
+            }
         },
         tsubomi:{
             total:13,
@@ -243,7 +300,20 @@ class Properties{
             transform_quotes:"The flowers spreading throughout the land, Cure Blossom!",
             transform_super_quotes:"The flowers shining all over the world, Heartcatch Pretty Cure! Super Silhouette!",
             special_attack:"Pink Forte Wave",
-            img_special_attack:"https://cdn.discordapp.com/attachments/793382427551727636/817777422723973190/unknown.png"
+            img_special_attack:"https://cdn.discordapp.com/attachments/793382427551727636/817777422723973190/unknown.png",
+            img_transformation:["https://cdn.discordapp.com/attachments/793382427551727636/822047607412490270/image0.gif"],
+            hint_chiguhaguu:"The flowers spreading throughout the land, <x>!",
+            description:"",
+            bio:{
+                key1:"",
+                value1:"",
+                key2:"",
+                value2:"",
+                key3:"",
+                value3:"",
+                key4:"",
+                value4:""
+            }
         },
         hibiki:{
             total:12,
@@ -254,7 +324,20 @@ class Properties{
             henshin_phrase:"Let's Play! Pretty Cure Modulation!",
             transform_quotes:"Strumming the wild tune, Cure Melody!",
             special_attack:"Miracle Heart Arpeggio",
-            img_special_attack:"https://cdn.discordapp.com/attachments/793383641119850556/817782344819408966/unknown.png"
+            img_special_attack:"https://cdn.discordapp.com/attachments/793383641119850556/817782344819408966/unknown.png",
+            img_transformation:[],
+            hint_chiguhaguu:"Strumming the wild tune, <x>!",
+            description:"",
+            bio:{
+                key1:"",
+                value1:"",
+                key2:"",
+                value2:"",
+                key3:"",
+                value3:"",
+                key4:"",
+                value4:""
+            }
         },
         miyuki:{
             total:13,
@@ -266,7 +349,20 @@ class Properties{
             transform_quotes:"Twinkling and shining, the light of the future! Cure Happy!",
             transform_super_quotes:"Pegasus, Grant Us The Power! Princess Happy!",
             special_attack:"Happy Shower",
-            img_special_attack:"https://cdn.discordapp.com/attachments/793384875465506816/817783520935673856/unknown.png"
+            img_special_attack:"https://cdn.discordapp.com/attachments/793384875465506816/817783520935673856/unknown.png",
+            img_transformation:["https://cdn.discordapp.com/attachments/793384875465506816/822032962186117140/image0.gif"],
+            hint_chiguhaguu:"Twinkling and shining, the light of the future! <x>!",
+            description:"",
+            bio:{
+                key1:"",
+                value1:"",
+                key2:"",
+                value2:"",
+                key3:"",
+                value3:"",
+                key4:"",
+                value4:""
+            }
         },
         mana:{
             total:12,
@@ -277,7 +373,21 @@ class Properties{
             henshin_phrase:"Pretty Cure, Love Link!",
             transform_quotes:"Overflowing Love! Cure Heart!",
             special_attack:"Heart Dynamite",
-            img_special_attack:"https://cdn.discordapp.com/attachments/793387637527805973/817784809380118528/unknown.png"
+            img_special_attack:"https://cdn.discordapp.com/attachments/793387637527805973/817784809380118528/unknown.png",
+            img_transformation:[],
+            hint_chiguhaguu:"Overflowing Love! <x>!",
+            catchprase:"Kyunkyun!",
+            description:"",
+            bio:{
+                key1:"",
+                value1:"",
+                key2:"",
+                value2:"",
+                key3:"",
+                value3:"",
+                key4:"",
+                value4:""
+            }
         },
         megumi:{
             total:10,
@@ -288,7 +398,20 @@ class Properties{
             henshin_phrase:"Pretty Cure Kururin Mirror Change!",
             transform_quotes:"The big love spreading throughout the world! Cure Lovely!!",
             special_attack:"Pinky Love Shoot",
-            img_special_attack:"https://cdn.discordapp.com/attachments/793388697474564157/817786157650673674/unknown.png"
+            img_special_attack:"https://cdn.discordapp.com/attachments/793388697474564157/817786157650673674/unknown.png",
+            img_transformation:[],
+            hint_chiguhaguu:"The big love spreading throughout the world! <x>!",
+            description:"",
+            bio:{
+                key1:"",
+                value1:"",
+                key2:"",
+                value2:"",
+                key3:"",
+                value3:"",
+                key4:"",
+                value4:""
+            }
         },
         haruka:{
             total:16,
@@ -299,7 +422,20 @@ class Properties{
             henshin_phrase:"Pretty Cure, Princess Engage!",
             transform_quotes:"Princess of the Flourishing Flowers! Cure Flora!",
             special_attack:"Floral Tourbillon",
-            img_special_attack:"https://cdn.discordapp.com/attachments/793389561606045737/817786541179011072/unknown.png"
+            img_special_attack:"https://cdn.discordapp.com/attachments/793389561606045737/817786541179011072/unknown.png",
+            img_transformation:["https://cdn.discordapp.com/attachments/793389561606045737/822056134847758350/image0.gif"],
+            hint_chiguhaguu:"Princess of the Flourishing Flowers! <x>!",
+            description:"",
+            bio:{
+                key1:"",
+                value1:"",
+                key2:"",
+                value2:"",
+                key3:"",
+                value3:"",
+                key4:"",
+                value4:""
+            }
         },
         mirai:{
             total:16,
@@ -310,7 +446,20 @@ class Properties{
             henshin_phrase:"Miracle, Magical, Jewelryle!",
             transform_quotes:"Our Miracle! Cure Miracle!",
             special_attack:"Diamond Eternal",
-            img_special_attack:"https://cdn.discordapp.com/attachments/793390659046080512/817787063726243880/unknown.png"
+            img_special_attack:"https://cdn.discordapp.com/attachments/793390659046080512/817787063726243880/unknown.png",
+            img_transformation:[],
+            hint_chiguhaguu:"Our Miracle! <x>!",
+            description:"",
+            bio:{
+                key1:"",
+                value1:"",
+                key2:"",
+                value2:"",
+                key3:"",
+                value3:"",
+                key4:"",
+                value4:""
+            }
         },
         ichika:{
             total:18,
@@ -321,7 +470,20 @@ class Properties{
             henshin_phrase:"Cure La Mode, Decoration!",
             transform_quotes:"With Liveliness and Smiles! Let's La Mix It All Up! Cure Whip! Ready To Serve!",
             special_attack:"Whip Decoration",
-            img_special_attack:"https://cdn.discordapp.com/attachments/793391968322322462/817792783754330142/unknown.png"
+            img_special_attack:"https://cdn.discordapp.com/attachments/793391968322322462/817792783754330142/unknown.png",
+            img_transformation:["https://cdn.discordapp.com/attachments/793391968322322462/822041487444803594/image0.gif"],
+            hint_chiguhaguu:"With Liveliness and Smiles! Let's La Mix It All Up! <x>! Ready To Serve!",
+            description:"",
+            bio:{
+                key1:"",
+                value1:"",
+                key2:"",
+                value2:"",
+                key3:"",
+                value3:"",
+                key4:"",
+                value4:""
+            }
         },
         hana:{
             total:16,
@@ -332,7 +494,20 @@ class Properties{
             henshin_phrase:"Heart Kiratto!",
             transform_quotes:"Cheering on everyone! The Pretty Cure of High Spirits! Cure Yell!",
             special_attack:"Heart For You",
-            img_special_attack:"https://cdn.discordapp.com/attachments/793393652348354600/817793676813533214/unknown.png"
+            img_special_attack:"https://cdn.discordapp.com/attachments/793393652348354600/817793676813533214/unknown.png",
+            img_transformation:[],
+            hint_chiguhaguu:"Cheering on everyone! The Pretty Cure of High Spirits! <x>!",
+            description:"",
+            bio:{
+                key1:"",
+                value1:"",
+                key2:"",
+                value2:"",
+                key3:"",
+                value3:"",
+                key4:"",
+                value4:""
+            }
         },
         hikaru:{
             total:13,
@@ -343,7 +518,20 @@ class Properties{
             henshin_phrase:"Color Charge!",
             transform_quotes:"The twinkling star that shines throughout the universe! Cure Star!",
             special_attack:"Star Punch",
-            img_special_attack:"https://cdn.discordapp.com/attachments/793395639512989727/817794726728171561/unknown.png"
+            img_special_attack:"https://cdn.discordapp.com/attachments/793395639512989727/817794726728171561/unknown.png",
+            img_transformation:[],
+            hint_chiguhaguu:"The twinkling star that shines throughout the universe! <x>!",
+            description:"",
+            bio:{
+                key1:"",
+                value1:"",
+                key2:"",
+                value2:"",
+                key3:"",
+                value3:"",
+                key4:"",
+                value4:""
+            }
         },
         nodoka:{
             total:5,
@@ -354,7 +542,20 @@ class Properties{
             henshin_phrase:"Start! Pretty Cure Operation!",
             transform_quotes:"The two overlapping flowers! Cure Grace!",
             special_attack:"Healing Flower",
-            img_special_attack:"https://cdn.discordapp.com/attachments/793396698117701632/817795329105592350/unknown.png"
+            img_special_attack:"https://cdn.discordapp.com/attachments/793396698117701632/817795329105592350/unknown.png",
+            img_transformation:["https://cdn.discordapp.com/attachments/793396698117701632/822036258628435968/image0.gif"],
+            hint_chiguhaguu:"The two overlapping flowers! <x>!",
+            description:"",
+            bio:{
+                key1:"",
+                value1:"",
+                key2:"",
+                value2:"",
+                key3:"",
+                value3:"",
+                key4:"",
+                value4:""
+            }
         },
         karen:{
             total:12,
@@ -365,7 +566,20 @@ class Properties{
             henshin_phrase:"Pretty Cure Metamorphose!",
             transform_quotes:"The blue spring of intelligence, Cure Aqua!",
             special_attack:"Sapphire Arrow",
-            img_special_attack:"https://cdn.discordapp.com/attachments/793380588223856651/817776251489747020/unknown.png"
+            img_special_attack:"https://cdn.discordapp.com/attachments/793380588223856651/817776251489747020/unknown.png",
+            img_transformation:["https://cdn.discordapp.com/attachments/793380588223856651/822045554518261800/image0.gif"],
+            hint_chiguhaguu:"The blue spring of intelligence, <x>!",
+            description:"",
+            bio:{
+                key1:"",
+                value1:"",
+                key2:"",
+                value2:"",
+                key3:"",
+                value3:"",
+                key4:"",
+                value4:""
+            }
         },
         miki:{
             total:10,
@@ -376,7 +590,20 @@ class Properties{
             henshin_phrase:"Change, Pretty Cure! Beat up!",
             transform_quotes:"The blue heart is the emblem of hope. Freshly-gathered, Cure Berry!",
             special_attack:"Espoir Shower",
-            img_special_attack:"https://cdn.discordapp.com/attachments/793381635424387073/817776807679623178/unknown.png"
+            img_special_attack:"https://cdn.discordapp.com/attachments/793381635424387073/817776807679623178/unknown.png",
+            img_transformation:["https://cdn.discordapp.com/attachments/793381635424387073/822035476323631114/image0.gif"],
+            hint_chiguhaguu:"The blue heart is the emblem of hope. Freshly-gathered, <x>!",
+            description:"",
+            bio:{
+                key1:"",
+                value1:"",
+                key2:"",
+                value2:"",
+                key3:"",
+                value3:"",
+                key4:"",
+                value4:""
+            }
         },
         erika:{
             total:13,
@@ -388,7 +615,20 @@ class Properties{
             transform_quotes:"The flower that flutters in the ocean winds, Cure Marine!",
             transform_super_quotes:"The flowers shining around the world, Heartcatch Pretty Cure, Super Silhouette!",
             special_attack:"Blue Forte Wave",
-            img_special_attack:"https://cdn.discordapp.com/attachments/793382673749377075/817778139501559888/unknown.png"
+            img_special_attack:"https://cdn.discordapp.com/attachments/793382673749377075/817778139501559888/unknown.png",
+            img_transformation:["https://cdn.discordapp.com/attachments/793382673749377075/822047680099254272/image0.gif"],
+            hint_chiguhaguu:"The flower that flutters in the ocean winds, <x>!",
+            description:"",
+            bio:{
+                key1:"",
+                value1:"",
+                key2:"",
+                value2:"",
+                key3:"",
+                value3:"",
+                key4:"",
+                value4:""
+            }
         },
         ellen:{
             total:12,
@@ -399,7 +639,20 @@ class Properties{
             henshin_phrase:"Let's Play! Pretty Cure Modulation!",
             transform_quotes:"Strumming the soul's tune, Cure Beat!",
             special_attack:"Heartful Beat Rock",
-            img_special_attack:"https://cdn.discordapp.com/attachments/793384071107575838/817783058949603368/unknown.png"
+            img_special_attack:"https://cdn.discordapp.com/attachments/793384071107575838/817783058949603368/unknown.png",
+            img_transformation:["https://cdn.discordapp.com/attachments/793384071107575838/822049486553350154/image0.gif"],
+            hint_chiguhaguu:"Strumming the soul's tune, <x>!",
+            description:"",
+            bio:{
+                key1:"",
+                value1:"",
+                key2:"",
+                value2:"",
+                key3:"",
+                value3:"",
+                key4:"",
+                value4:""
+            }
         },
         reika:{
             total:12,
@@ -411,7 +664,20 @@ class Properties{
             transform_quotes:"Snowing, falling and gathering, a noble heart! Cure Beauty!",
             transform_super_quotes:"Pegasus, Grant Us The Power! Princess Beauty",
             special_attack:"Beauty Blizzard",
-            img_special_attack:"https://cdn.discordapp.com/attachments/793387120341155850/817784652236062750/unknown.png"
+            img_special_attack:"https://cdn.discordapp.com/attachments/793387120341155850/817784652236062750/unknown.png",
+            img_transformation:["https://cdn.discordapp.com/attachments/793387120341155850/822029771910676480/image0.gif"],
+            hint_chiguhaguu:"Snowing, falling and gathering, a noble heart! <x>!",
+            description:"",
+            bio:{
+                key1:"",
+                value1:"",
+                key2:"",
+                value2:"",
+                key3:"",
+                value3:"",
+                key4:"",
+                value4:""
+            }
         },
         rikka:{
             total:11,
@@ -422,7 +688,20 @@ class Properties{
             henshin_phrase: "Pretty Cure, Love Link!",
             transform_quotes:"The light of Wisdom! Cure Diamond!!",
             special_attack:"Diamond Swirkle",
-            img_special_attack:"https://cdn.discordapp.com/attachments/793387811922903040/817785362213765141/unknown.png"
+            img_special_attack:"https://cdn.discordapp.com/attachments/793387811922903040/817785362213765141/unknown.png",
+            img_transformation:["https://cdn.discordapp.com/attachments/796354776714969119/822201577233186866/image0.gif"],
+            hint_chiguhaguu:"The light of Wisdom! <x>!!",
+            description:"",
+            bio:{
+                key1:"",
+                value1:"",
+                key2:"",
+                value2:"",
+                key3:"",
+                value3:"",
+                key4:"",
+                value4:""
+            }
         },
         hime:{
             total:11,
@@ -433,7 +712,20 @@ class Properties{
             henshin_phrase:"Pretty Cure Kururin Mirror Change!",
             trasnform_quotes:"The blue wind dancing in the sky! Cure Princess!",
             special_attack:"Blue Happy Shoot",
-            img_special_attack:"https://cdn.discordapp.com/attachments/793388907429232650/817786226895618068/unknown.png"
+            img_special_attack:"https://cdn.discordapp.com/attachments/793388907429232650/817786226895618068/unknown.png",
+            img_transformation:["https://cdn.discordapp.com/attachments/793388907429232650/822053505861812254/image0.gif"],
+            hint_chiguhaguu:"The blue wind dancing in the sky! <x>!",
+            description:"",
+            bio:{
+                key1:"",
+                value1:"",
+                key2:"",
+                value2:"",
+                key3:"",
+                value3:"",
+                key4:"",
+                value4:""
+            }
         },
         minami:{
             total:14,
@@ -444,7 +736,20 @@ class Properties{
             henshin_phrase:"Pretty Cure, Princess Engage!",
             transform_quotes:"Princess of the crystal clear seas! Cure Mermaid!",
             special_attack:"Mermaid Ripple",
-            img_special_attack:"https://cdn.discordapp.com/attachments/793389777361174549/817786645037711390/unknown.png"
+            img_special_attack:"https://cdn.discordapp.com/attachments/793389777361174549/817786645037711390/unknown.png",
+            img_transformation:["https://cdn.discordapp.com/attachments/793389777361174549/822055972255825958/image0.gif"],
+            hint_chiguhaguu:"Princess of the crystal clear seas! <x>!",
+            description:"",
+            bio:{
+                key1:"",
+                value1:"",
+                key2:"",
+                value2:"",
+                key3:"",
+                value3:"",
+                key4:"",
+                value4:""
+            }
         },
         aoi:{
             total:14,
@@ -455,7 +760,20 @@ class Properties{
             henshin_phrase:"Cure La Mode, Decoration!",
             transform_quotes:"With Freedom and Passion! Let's La Mix It All Up! Cure Gelato! Ready To Serve!",
             special_attack:"Gelato Shake",
-            img_special_attack:"https://cdn.discordapp.com/attachments/793392456019345418/817793196901400576/unknown.png"
+            img_special_attack:"https://cdn.discordapp.com/attachments/793392456019345418/817793196901400576/unknown.png",
+            img_transformation:["https://cdn.discordapp.com/attachments/793392456019345418/822041589349351434/image0.gif"],
+            hint_chiguhaguu:"With Freedom and Passion! Let's La Mix It All Up! <x>! Ready To Serve!",
+            description:"",
+            bio:{
+                key1:"",
+                value1:"",
+                key2:"",
+                value2:"",
+                key3:"",
+                value3:"",
+                key4:"",
+                value4:""
+            }
         },
         saaya:{
             total:14,
@@ -466,7 +784,20 @@ class Properties{
             henshin_phrase:"Heart Kiratto!",
             transform_quotes:"Healing everyone! The Pretty Cure of Wisdom! Cure Ange!",
             special_attack:"Heart Feather",
-            img_special_attack:"https://cdn.discordapp.com/attachments/793394491431714838/817793766152470528/unknown.png"
+            img_special_attack:"https://cdn.discordapp.com/attachments/793394491431714838/817793766152470528/unknown.png",
+            img_transformation:[],
+            hint_chiguhaguu:"Healing everyone! The Pretty Cure of Wisdom! <x>!",
+            description:"",
+            bio:{
+                key1:"",
+                value1:"",
+                key2:"",
+                value2:"",
+                key3:"",
+                value3:"",
+                key4:"",
+                value4:""
+            }
         },
         yuni:{
             total:8,
@@ -477,7 +808,20 @@ class Properties{
             henshin_phrase:"Color Charge!",
             transform_quotes:"The rainbow spectrum lighting up the galaxy! Cure Cosmo!",
             special_attack:"Cosmo Shining",
-            img_special_attack:"https://cdn.discordapp.com/attachments/793396381406199809/817795242929422406/unknown.png"
+            img_special_attack:"https://cdn.discordapp.com/attachments/793396381406199809/817795242929422406/unknown.png",
+            img_transformation:[],
+            hint_chiguhaguu:"The rainbow spectrum lighting up the galaxy! <x>!",
+            description:"",
+            bio:{
+                key1:"",
+                value1:"",
+                key2:"",
+                value2:"",
+                key3:"",
+                value3:"",
+                key4:"",
+                value4:""
+            }
         },
         chiyu:{
             total:5,
@@ -488,7 +832,20 @@ class Properties{
             henshin_phrase:"Start! Pretty Cure Operation!",
             transform_quotes:"The two intersecting streams! Cure Fontaine!",
             special_attack:"Healing Stream",
-            img_special_attack:"https://cdn.discordapp.com/attachments/793396832717111347/817795407714189332/unknown.png"
+            img_special_attack:"https://cdn.discordapp.com/attachments/793396832717111347/817795407714189332/unknown.png",
+            img_transformation:["https://cdn.discordapp.com/attachments/793396832717111347/822037799011352576/image0.gif"],
+            hint_chiguhaguu:"The two intersecting streams! <x>!",
+            description:"",
+            bio:{
+                key1:"",
+                value1:"",
+                key2:"",
+                value2:"",
+                key3:"",
+                value3:"",
+                key4:"",
+                value4:""
+            }
         },
         hikari:{
             total:14,
@@ -499,7 +856,20 @@ class Properties{
             henshin_phrase:"Color Charge!",
             transform_quotes:"Shining life, Shiny Luminous! The light's heart and the light's will, for the sake of uniting all as one!",
             special_attack:"Heartiel Action",
-            img_special_attack:"https://cdn.discordapp.com/attachments/793378136871010364/817775581458464808/unknown.png"
+            img_special_attack:"https://cdn.discordapp.com/attachments/793378136871010364/817775581458464808/unknown.png",
+            img_transformation:[],
+            hint_chiguhaguu:"Shining life, <x>! The light's heart and the light's will, for the sake of uniting all as one!",
+            description:"",
+            bio:{
+                key1:"",
+                value1:"",
+                key2:"",
+                value2:"",
+                key3:"",
+                value3:"",
+                key4:"",
+                value4:""
+            }
         },
         urara:{
             total:11,
@@ -510,7 +880,20 @@ class Properties{
             henshin_phrase:"Pretty Cure Metamorphose!",
             transform_quotes:"The effervescence of bursting lemon, Cure Lemonade!",
             special_attack:"Prism Chain",
-            img_special_attack:"https://cdn.discordapp.com/attachments/793380077173735424/817776088595300452/unknown.png"
+            img_special_attack:"https://cdn.discordapp.com/attachments/793380077173735424/817776088595300452/unknown.png",
+            img_transformation:["https://cdn.discordapp.com/attachments/793380077173735424/822044339370065941/image0.gif"],
+            hint_chiguhaguu:"The effervescence of bursting lemon, <x>!",
+            description:"",
+            bio:{
+                key1:"",
+                value1:"",
+                key2:"",
+                value2:"",
+                key3:"",
+                value3:"",
+                key4:"",
+                value4:""
+            }
         },
         inori:{
             total:10,
@@ -521,7 +904,20 @@ class Properties{
             henshin_phrase:"Change, Pretty Cure! Beat up!",
             transform_quotes:"The yellow heart is the emblem of faith! Freshly-harvested, Cure Pine!",
             special_attack:"Healing Prayer",
-            img_special_attack:"https://cdn.discordapp.com/attachments/793381839938519040/817776874607607808/unknown.png"
+            img_special_attack:"https://cdn.discordapp.com/attachments/793381839938519040/817776874607607808/unknown.png",
+            img_transformation:[],
+            hint_chiguhaguu:"The yellow heart is the emblem of faith! Freshly-harvested, <x>!",
+            description:"",
+            bio:{
+                key1:"",
+                value1:"",
+                key2:"",
+                value2:"",
+                key3:"",
+                value3:"",
+                key4:"",
+                value4:""
+            }
         },
         itsuki:{
             total:12,
@@ -533,7 +929,20 @@ class Properties{
             trasnform_quotes:"The flower that bathes in the sunlight, Cure Sunshine!",
             transform_super_quotes:"The flowers shining around the world, Heartcatch Pretty Cure, Super Silhouette!",
             special_attack:"Gold Forte Burst",
-            img_special_attack:"https://cdn.discordapp.com/attachments/793383020336906259/817781911929225236/unknown.png"
+            img_special_attack:"https://cdn.discordapp.com/attachments/793383020336906259/817781911929225236/unknown.png",
+            img_transformation:["https://cdn.discordapp.com/attachments/793383020336906259/822048055859609630/image0.gif"],
+            hint_chiguhaguu:"The flower that bathes in the sunlight, <x>!",
+            description:"",
+            bio:{
+                key1:"",
+                value1:"",
+                key2:"",
+                value2:"",
+                key3:"",
+                value3:"",
+                key4:"",
+                value4:""
+            }
         },
         ako:{
             total:11,
@@ -544,7 +953,20 @@ class Properties{
             henshin_phrase:"Let's Play! Pretty Cure Modulation!",
             transform_quotes:"Playing the Goddess' tune, Cure Muse!",
             special_attack:"Sparkling Shower",
-            img_special_attack:"https://cdn.discordapp.com/attachments/793384267753193482/817783205075353620/unknown.png"
+            img_special_attack:"https://cdn.discordapp.com/attachments/793384267753193482/817783205075353620/unknown.png",
+            img_transformation:["https://cdn.discordapp.com/attachments/793384267753193482/822049698478948372/image0.gif"],
+            hint_chiguhaguu:"Playing the Goddess' tune, <x>!",
+            description:"",
+            bio:{
+                key1:"",
+                value1:"",
+                key2:"",
+                value2:"",
+                key3:"",
+                value3:"",
+                key4:"",
+                value4:""
+            }
         },
         yayoi:{
             total:11,
@@ -556,7 +978,20 @@ class Properties{
             trasnform_quotes:"Sparkling, glittering, rock-paper-scissors! Cure Peace!",
             transform_super_quotes:"Pegasus, Grant Us The Power! Princess Peace!",
             special_attack:"Peace Thunder",
-            img_special_attack:"https://cdn.discordapp.com/attachments/793386748356067349/817784272323608626/unknown.png"
+            img_special_attack:"https://cdn.discordapp.com/attachments/793386748356067349/817784272323608626/unknown.png",
+            img_transformation:["https://cdn.discordapp.com/attachments/793386748356067349/822030765248348210/image0.gif"],
+            hint_chiguhaguu:"Sparkling, glittering, rock-paper-scissors! <x>!",
+            description:"",
+            bio:{
+                key1:"",
+                value1:"",
+                key2:"",
+                value2:"",
+                key3:"",
+                value3:"",
+                key4:"",
+                value4:""
+            }
         },
         alice:{
             total:10,
@@ -567,7 +1002,20 @@ class Properties{
             henshin_phrase:"Pretty Cure, Love Link!",
             transform_quotes:"The Sunny warmth! Cure Rosetta!",
             special_attack:"Rosetta Balloon",
-            img_special_attack:"https://cdn.discordapp.com/attachments/793388055583129601/817785467805499402/unknown.png"
+            img_special_attack:"https://cdn.discordapp.com/attachments/793388055583129601/817785467805499402/unknown.png",
+            img_transformation:["https://cdn.discordapp.com/attachments/793388055583129601/822051142506643486/image0.gif"],
+            hint_chiguhaguu:"The Sunny warmth! <x>!",
+            description:"",
+            bio:{
+                key1:"",
+                value1:"",
+                key2:"",
+                value2:"",
+                key3:"",
+                value3:"",
+                key4:"",
+                value4:""
+            }
         },
         yuko:{
             total:12,
@@ -578,7 +1026,20 @@ class Properties{
             henshin_phrase:"Pretty Cure Kururin Mirror Change!",
             transform_quotes:"The light of life flourishing on the Earth, Cure Honey!",
             special_attack:"Sparkling Baton Attack",
-            img_special_attack:"https://cdn.discordapp.com/attachments/793389083162050581/817786309334663188/unknown.png"
+            img_special_attack:"https://cdn.discordapp.com/attachments/793389083162050581/817786309334663188/unknown.png",
+            img_transformation:[],
+            hint_chiguhaguu:"The light of life flourishing on the Earth, <x>!",
+            description:"",
+            bio:{
+                key1:"",
+                value1:"",
+                key2:"",
+                value2:"",
+                key3:"",
+                value3:"",
+                key4:"",
+                value4:""
+            }
         },
         kirara:{
             total:16,
@@ -589,7 +1050,20 @@ class Properties{
             henshin_phrase:"Pretty Cure, Princess Engage!",
             transform_quotes:"Princess of the twinkling stars! Cure Twinkle!",
             special_attack:"Twinkle Humming",
-            img_special_attack:"https://cdn.discordapp.com/attachments/793389968457859093/817786728202502204/unknown.png"
+            img_special_attack:"https://cdn.discordapp.com/attachments/793389968457859093/817786728202502204/unknown.png",
+            img_transformation:["https://cdn.discordapp.com/attachments/793389968457859093/822056102803800064/image0.gif"],
+            hint_chiguhaguu:"Princess of the twinkling stars! <x>!",
+            description:"",
+            bio:{
+                key1:"",
+                value1:"",
+                key2:"",
+                value2:"",
+                key3:"",
+                value3:"",
+                key4:"",
+                value4:""
+            }
         },
         himari:{
             total:15,
@@ -600,7 +1074,20 @@ class Properties{
             henshin_phrase:"Cure La Mode, Decoration!",
             transform_quotes:"With Intelligence and Courage! Let's La Mix It All Up! Cure Custard! Ready To Serve!",
             special_attack:"Custard Illusion",
-            img_special_attack:"https://cdn.discordapp.com/attachments/793392228168237086/817793084657631262/unknown.png"
+            img_special_attack:"https://cdn.discordapp.com/attachments/793392228168237086/817793084657631262/unknown.png",
+            img_transformation:[],
+            hint_chiguhaguu:"With Intelligence and Courage! Let's La Mix It All Up! <x>! Ready To Serve!",
+            description:"",
+            bio:{
+                key1:"",
+                value1:"",
+                key2:"",
+                value2:"",
+                key3:"",
+                value3:"",
+                key4:"",
+                value4:""
+            }
         },
         homare:{
             total:14,
@@ -609,9 +1096,22 @@ class Properties{
             fullname:"Homare Kagayaki",
             alter_ego:"Cure Etoile",
             henshin_phrase:"Heart Kiratto!",
-            transform_quotes:"Making everyone shine! The Pretty Cure of Strength! Cure Étoile!",
+            transform_quotes:"Making everyone shine! The Pretty Cure of Strength! Cure Etoile!",
             special_attack:"Heart Star",
-            img_special_attack:"https://cdn.discordapp.com/attachments/793394718305419265/817794207732727858/unknown.png"
+            img_special_attack:"https://cdn.discordapp.com/attachments/793394718305419265/817794207732727858/unknown.png",
+            img_transformation:[],
+            hint_chiguhaguu:"Making everyone shine! The Pretty Cure of Strength! <x>!",
+            description:"",
+            bio:{
+                key1:"",
+                value1:"",
+                key2:"",
+                value2:"",
+                key3:"",
+                value3:"",
+                key4:"",
+                value4:""
+            }
         },
         elena:{
             total:11,
@@ -622,7 +1122,20 @@ class Properties{
             henshin_phrase:"Color Charge!",
             transform_quotes:"Light up the sky! With sparkling heat! Cure Soleil!",
             special_attack:"Soleil Shoot",
-            img_special_attack:"https://cdn.discordapp.com/attachments/793396010227204117/817794841130827786/unknown.png"
+            img_special_attack:"https://cdn.discordapp.com/attachments/793396010227204117/817794841130827786/unknown.png",
+            img_transformation:[],
+            hint_chiguhaguu:"Light up the sky! With sparkling heat! <x>!!",
+            description:"",
+            bio:{
+                key1:"",
+                value1:"",
+                key2:"",
+                value2:"",
+                key3:"",
+                value3:"",
+                key4:"",
+                value4:""
+            }
         },
         hinata:{
             total:5,
@@ -633,7 +1146,20 @@ class Properties{
             henshin_phrase:"Start! Pretty Cure Operation!",
             transform_quotes:"The two lights that come together! Cure Sparkle!",
             special_attack:"Healing Flash",
-            img_special_attack:"https://cdn.discordapp.com/attachments/793396923054686219/817795470641332244/unknown.png"
+            img_special_attack:"https://cdn.discordapp.com/attachments/793396923054686219/817795470641332244/unknown.png",
+            img_transformation:["https://cdn.discordapp.com/attachments/793396923054686219/822038127509766154/image0.gif"],
+            hint_chiguhaguu:"The two lights that come together! <x>!",
+            description:"",
+            bio:{
+                key1:"",
+                value1:"",
+                key2:"",
+                value2:"",
+                key3:"",
+                value3:"",
+                key4:"",
+                value4:""
+            }
         },
         yuri:{
             total:13,
@@ -645,7 +1171,20 @@ class Properties{
             transform_quotes:"The flower that shines in the moon's light, Cure Moonlight!",
             transform_super_quotes:"The flowers shining around the world, Heartcatch Pretty Cure, Super Silhouette!",
             special_attack:"Silver Forte Wave",
-            img_special_attack:"https://cdn.discordapp.com/attachments/793383243750703144/817782029147832360/unknown.png"
+            img_special_attack:"https://cdn.discordapp.com/attachments/793383243750703144/817782029147832360/unknown.png",
+            img_transformation:["https://cdn.discordapp.com/attachments/793383243750703144/822048055788437504/image0.gif"],
+            hint_chiguhaguu:"The flower that shines in the moon's light, <x>!",
+            description:"",
+            bio:{
+                key1:"",
+                value1:"",
+                key2:"",
+                value2:"",
+                key3:"",
+                value3:"",
+                key4:"",
+                value4:""
+            }
         },
         makoto:{
             total:11,
@@ -656,7 +1195,20 @@ class Properties{
             henshin_phrase:"Pretty Cure, Love Link!",
             transform_quotes:"The courageous blade! Cure Sword!",
             special_attack:"Sword Hurricane",
-            img_special_attack:"https://cdn.discordapp.com/attachments/793388248139300864/817785553084219402/unknown.png"
+            img_special_attack:"https://cdn.discordapp.com/attachments/793388248139300864/817785553084219402/unknown.png",
+            img_transformation:[],
+            hint_chiguhaguu:"The courageous blade! <x>!",
+            description:"",
+            bio:{
+                key1:"",
+                value1:"",
+                key2:"",
+                value2:"",
+                key3:"",
+                value3:"",
+                key4:"",
+                value4:""
+            }
         },
         iona:{
             total:12,
@@ -667,7 +1219,20 @@ class Properties{
             henshin_phrase:"Pretty Cure! Kirarin Star Symphony",
             transform_quotes:"The star of hope that glitters in the night sky! Cure Fortune!",
             special_attack:"Stardust Shoot",
-            img_special_attack:"https://cdn.discordapp.com/attachments/793389261570965504/817786376220835840/unknown.png"
+            img_special_attack:"https://cdn.discordapp.com/attachments/793389261570965504/817786376220835840/unknown.png",
+            img_transformation:[],
+            hint_chiguhaguu:"The star of hope that glitters in the night sky! <x>!",
+            description:"",
+            bio:{
+                key1:"",
+                value1:"",
+                key2:"",
+                value2:"",
+                key3:"",
+                value3:"",
+                key4:"",
+                value4:""
+            }
         },
         riko:{
             total:15,
@@ -678,7 +1243,20 @@ class Properties{
             henshin_phrase:"Miracle, Magical, Jewelryle!",
             transform_quotes:"Our Magic! Cure Magical!",
             special_attack:"Diamond Eternal",
-            img_special_attack:"https://cdn.discordapp.com/attachments/793391024067837972/817792621912129536/unknown.png"
+            img_special_attack:"https://cdn.discordapp.com/attachments/793391024067837972/817792621912129536/unknown.png",
+            img_transformation:[],
+            hint_chiguhaguu:"Our Magic! <x>!",
+            description:"",
+            bio:{
+                key1:"",
+                value1:"",
+                key2:"",
+                value2:"",
+                key3:"",
+                value3:"",
+                key4:"",
+                value4:""
+            }
         },
         yukari:{
             total:16,
@@ -689,7 +1267,20 @@ class Properties{
             henshin_phrase:"Cure La Mode, Decoration!",
             transform_quotes:"With Beauty and Excitement! Let's La Mix It All Up! Cure Macaron! Is Ready To Serve!",
             special_attack:"Macaron Julienne",
-            img_special_attack:"https://cdn.discordapp.com/attachments/793392786367316038/817793379797696512/unknown.png"
+            img_special_attack:"https://cdn.discordapp.com/attachments/793392786367316038/817793379797696512/unknown.png",
+            img_transformation:[],
+            hint_chiguhaguu:"With Beauty and Excitement! Let's La Mix It All Up! <x>! Is Ready To Serve!",
+            description:"",
+            bio:{
+                key1:"",
+                value1:"",
+                key2:"",
+                value2:"",
+                key3:"",
+                value3:"",
+                key4:"",
+                value4:""
+            }
         },
         amour:{
             total:11,
@@ -700,7 +1291,20 @@ class Properties{
             henshin_phrase:"Heart Kiratto!",
             transform_quotes:"Loving everyone! The Pretty Cure of Love! Cure Amour!",
             special_attack:"Heart Dance",
-            img_special_attack:"https://cdn.discordapp.com/attachments/793395175695187980/817794367410143262/unknown.png"
+            img_special_attack:"https://cdn.discordapp.com/attachments/793395175695187980/817794367410143262/unknown.png",
+            img_transformation:[],
+            hint_chiguhaguu:"Loving everyone! The Pretty Cure of Love! <x>!",
+            description:"",
+            bio:{
+                key1:"",
+                value1:"",
+                key2:"",
+                value2:"",
+                key3:"",
+                value3:"",
+                key4:"",
+                value4:""
+            }
         },
         madoka:{
             total:12,
@@ -711,7 +1315,20 @@ class Properties{
             henshin_phrase:"Color Charge!",
             transform_quotes:"Light up the night sky! With the secretive moonlight! Cure Selene!",
             special_attack:"Selene Arrow",
-            img_special_attack:"https://cdn.discordapp.com/attachments/793396194697019412/817794901722005554/unknown.png"
+            img_special_attack:"https://cdn.discordapp.com/attachments/793396194697019412/817794901722005554/unknown.png",
+            img_transformation:[],
+            hint_chiguhaguu:"Light up the night sky! With the secretive moonlight! <x>!",
+            description:"",
+            bio:{
+                key1:"",
+                value1:"",
+                key2:"",
+                value2:"",
+                key3:"",
+                value3:"",
+                key4:"",
+                value4:""
+            }
         },
         kurumi:{
             total:12,
@@ -722,7 +1339,20 @@ class Properties{
             henshin_phrase:"Skyrose Translate!",
             transform_quotes:"The blue rose is my secret emblem! Milky Rose!",
             special_attack:"Metal Blizzard",
-            img_special_attack:"https://cdn.discordapp.com/attachments/793380840255389716/817776335572172880/unknown.png"
+            img_special_attack:"https://cdn.discordapp.com/attachments/793380840255389716/817776335572172880/unknown.png",
+            img_transformation:[],
+            hint_chiguhaguu:"The blue rose is my secret emblem! <x>!",
+            description:"",
+            bio:{
+                key1:"",
+                value1:"",
+                key2:"",
+                value2:"",
+                key3:"",
+                value3:"",
+                key4:"",
+                value4:""
+            }
         },
         rin:{
             total:11,
@@ -733,7 +1363,20 @@ class Properties{
             henshin_phrase:"Pretty Cure Metamorphose!",
             transform_quotes:"The red flame of passion, Cure Rouge!",
             special_attack:"Fire Strike",
-            img_special_attack:"https://cdn.discordapp.com/attachments/793379843483631626/817776006181945374/unknown.png"
+            img_special_attack:"https://cdn.discordapp.com/attachments/793379843483631626/817776006181945374/unknown.png",
+            img_transformation:["https://cdn.discordapp.com/attachments/793379843483631626/822044204128534528/image0.gif"],
+            hint_chiguhaguu:"The red flame of passion, <x>!",
+            description:"",
+            bio:{
+                key1:"",
+                value1:"",
+                key2:"",
+                value2:"",
+                key3:"",
+                value3:"",
+                key4:"",
+                value4:""
+            }
         },
         setsuna:{
             total:11,
@@ -744,7 +1387,20 @@ class Properties{
             henshin_phrase:"Change, Pretty Cure! Beat up!",
             transform_quotes:"The scarlet heart is the proof of happiness! Freshly-ripened, Cure Passion!",
             special_attack:"Happiness Hurricane",
-            img_special_attack:"https://cdn.discordapp.com/attachments/793382021044371507/817776964298866688/unknown.png"
+            img_special_attack:"https://cdn.discordapp.com/attachments/793382021044371507/817776964298866688/unknown.png",
+            img_transformation:["https://cdn.discordapp.com/attachments/793382021044371507/822035356319875092/image0.gif"],
+            hint_chiguhaguu:"The scarlet heart is the proof of happiness! Freshly-ripened, <x>!",
+            description:"",
+            bio:{
+                key1:"",
+                value1:"",
+                key2:"",
+                value2:"",
+                key3:"",
+                value3:"",
+                key4:"",
+                value4:""
+            }
         },
         akane:{
             total:11,
@@ -753,10 +1409,23 @@ class Properties{
             fullname:"Akane Hino",
             alter_ego:"Cure Sunny",
             henshin_phrase:"Pretty Cure! Smile Charge!",
-            transform_quotes:"he brilliant sun, hot-blooded power! Cure Sunny!",
+            transform_quotes:"The brilliant sun, hot-blooded power! Cure Sunny!",
             transform_super_quotes:"Pegasus, Grant Us The Power! Princess Sunny!",
             special_attack:"Sunny Fire",
-            img_special_attack:"https://cdn.discordapp.com/attachments/793386538045276171/817783836435021824/unknown.png"
+            img_special_attack:"https://cdn.discordapp.com/attachments/793386538045276171/817783836435021824/unknown.png",
+            img_transformation:["https://cdn.discordapp.com/attachments/793386538045276171/822031840202063932/image0.gif"],
+            hint_chiguhaguu:"The brilliant sun, hot-blooded power! <x>!",
+            description:"",
+            bio:{
+                key1:"",
+                value1:"",
+                key2:"",
+                value2:"",
+                key3:"",
+                value3:"",
+                key4:"",
+                value4:""
+            }
         },
         aguri:{
             total:12,
@@ -767,7 +1436,20 @@ class Properties{
             henshin_phrase:"Pretty Cure, Dress Up!",
             transform_quotes:"The Trump Card of Love! Cure Ace!",
             special_attack:"Ace Shot",
-            img_special_attack:"https://cdn.discordapp.com/attachments/793388428150046740/817786014482825226/unknown.png"
+            img_special_attack:"https://cdn.discordapp.com/attachments/793388428150046740/817786014482825226/unknown.png",
+            img_transformation:[],
+            hint_chiguhaguu:"The Trump Card of Love! <x>!",
+            description:"",
+            bio:{
+                key1:"",
+                value1:"",
+                key2:"",
+                value2:"",
+                key3:"",
+                value3:"",
+                key4:"",
+                value4:""
+            }
         },
         towa:{
             total:15,
@@ -778,7 +1460,20 @@ class Properties{
             henshin_phrase:"Pretty Cure, Princess Engage!",
             transform_quotes:"Princess of crimson flames! Cure Scarlet!",
             special_attack:"Phoenix Blaze",
-            img_special_attack:"https://cdn.discordapp.com/attachments/793390200070864908/817786809270403114/unknown.png"
+            img_special_attack:"https://cdn.discordapp.com/attachments/793390200070864908/817786809270403114/unknown.png",
+            img_transformation:["https://cdn.discordapp.com/attachments/793390200070864908/822056130271641610/image0.gif"],
+            hint_chiguhaguu:"Princess of crimson flames! <x>!",
+            description:"",
+            bio:{
+                key1:"",
+                value1:"",
+                key2:"",
+                value2:"",
+                key3:"",
+                value3:"",
+                key4:"",
+                value4:""
+            }
         },
         akira:{
             total:16,
@@ -789,7 +1484,20 @@ class Properties{
             henshin_phrase:"Cure La Mode, Decoration!",
             transform_quotes:"With Strength and Love! Let's La Mix It All Up! Cure Chocolat! Is Ready To Serve!",
             special_attack:"Chocolat Aromase",
-            img_special_attack:"https://cdn.discordapp.com/attachments/793393018614841355/817793497238601738/unknown.png"
+            img_special_attack:"https://cdn.discordapp.com/attachments/793393018614841355/817793497238601738/unknown.png",
+            img_transformation:["https://cdn.discordapp.com/attachments/793393018614841355/822041731855286282/image0.gif"],
+            hint_chiguhaguu:"With Strength and Love! Let's La Mix It All Up! <x>! Is Ready To Serve!",
+            description:"",
+            bio:{
+                key1:"",
+                value1:"",
+                key2:"",
+                value2:"",
+                key3:"",
+                value3:"",
+                key4:"",
+                value4:""
+            }
         },
         emiru:{
             total:11,
@@ -800,7 +1508,20 @@ class Properties{
             henshin_phrase:"Heart Kiratto!",
             transform_quotes:"Loving everyone! The Pretty Cure of Love! Cure Machérie!",
             special_attack:"Heart Song",
-            img_special_attack:"https://cdn.discordapp.com/attachments/793394965690318898/817794295641407548/unknown.png"
+            img_special_attack:"https://cdn.discordapp.com/attachments/793394965690318898/817794295641407548/unknown.png",
+            img_transformation:[],
+            hint_chiguhaguu:"Loving everyone! The Pretty Cure of Love! <x>!",
+            description:"",
+            bio:{
+                key1:"",
+                value1:"",
+                key2:"",
+                value2:"",
+                key3:"",
+                value3:"",
+                key4:"",
+                value4:""
+            }
         },
         komachi:{
             total:13,
@@ -811,7 +1532,20 @@ class Properties{
             henshin_phrase:"Pretty Cure Metamorphose!",
             transform_quotes:"The green earth of tranquility, Cure Mint!",
             special_attack:"Emerald Saucer",
-            img_special_attack:"https://cdn.discordapp.com/attachments/793380333194051614/817776166597034014/unknown.png"
+            img_special_attack:"https://cdn.discordapp.com/attachments/793380333194051614/817776166597034014/unknown.png",
+            img_transformation:["https://cdn.discordapp.com/attachments/793380333194051614/822044644505944074/image0.gif"],
+            hint_chiguhaguu:"The green earth of tranquility, <x>!",
+            description:"",
+            bio:{
+                key1:"",
+                value1:"",
+                key2:"",
+                value2:"",
+                key3:"",
+                value3:"",
+                key4:"",
+                value4:""
+            }
         },
         nao:{
             total:11,
@@ -823,7 +1557,20 @@ class Properties{
             transform_quotes:"Intense courage, a straight-up bout! Cure March!",
             transform_super_quotes:"Pegasus, Grant Us The Power! Princess March!",
             special_attack:"March Shoot",
-            img_special_attack:"https://cdn.discordapp.com/attachments/793386892137332756/817784444546449468/unknown.png"
+            img_special_attack:"https://cdn.discordapp.com/attachments/793386892137332756/817784444546449468/unknown.png",
+            img_transformation:["https://cdn.discordapp.com/attachments/793386892137332756/822031246094761984/image0.gif"],
+            hint_chiguhaguu:"Intense courage, a straight-up bout! <x>!",
+            description:"",
+            bio:{
+                key1:"",
+                value1:"",
+                key2:"",
+                value2:"",
+                key3:"",
+                value3:"",
+                key4:"",
+                value4:""
+            }
         },
         kotoha:{
             total:15,
@@ -834,7 +1581,20 @@ class Properties{
             henshin_phrase:"Felice, Fun Fun, Flowerle!",
             transform_quotes:"Spreading blessings to lives far and wide! Cure Felice!",
             special_attack:"Emerald Reincarnation",
-            img_special_attack:"https://cdn.discordapp.com/attachments/793391246495449088/817786930174885898/unknown.png"
+            img_special_attack:"https://cdn.discordapp.com/attachments/793391246495449088/817786930174885898/unknown.png",
+            img_transformation:[],
+            hint_chiguhaguu:"Spreading blessings to lives far and wide! <x>!",
+            description:"",
+            bio:{
+                key1:"",
+                value1:"",
+                key2:"",
+                value2:"",
+                key3:"",
+                value3:"",
+                key4:"",
+                value4:""
+            }
         },
         ciel:{
             total:12,
@@ -845,7 +1605,20 @@ class Properties{
             henshin_phrase:"Cure La Mode・Decoration!",
             transform_quotes:"With Dreams and Hope! Let's La Mix It All Up! Cure Parfait! Is Ready To Serve",
             special_attack:"Parfait Étoile",
-            img_special_attack:"https://cdn.discordapp.com/attachments/793393296957243403/817793570161295390/unknown.png"
+            img_special_attack:"https://cdn.discordapp.com/attachments/793393296957243403/817793570161295390/unknown.png",
+            img_transformation:["https://cdn.discordapp.com/attachments/793393296957243403/822041883827896341/image0.gif"],
+            hint_chiguhaguu:"With Dreams and Hope! Let's La Mix It All Up! <x>! Is Ready To Serve",
+            description:"",
+            bio:{
+                key1:"",
+                value1:"",
+                key2:"",
+                value2:"",
+                key3:"",
+                value3:"",
+                key4:"",
+                value4:""
+            }
         },
         lala:{
             total:11,
@@ -856,7 +1629,20 @@ class Properties{
             henshin_phrase:"Color Charge!",
             transform_quotes:"The milky way stretching across the heavens! Cure Milky!",
             special_attack:"Milky Shock",
-            img_special_attack:"https://cdn.discordapp.com/attachments/793395855654518814/817794616949997588/unknown.png"
+            img_special_attack:"https://cdn.discordapp.com/attachments/793395855654518814/817794616949997588/unknown.png",
+            img_transformation:[],
+            hint_chiguhaguu:"The milky way stretching across the heavens! <x>!",
+            description:"",
+            bio:{
+                key1:"",
+                value1:"",
+                key2:"",
+                value2:"",
+                key3:"",
+                value3:"",
+                key4:"",
+                value4:""
+            }
         },
         honoka:{
             total:17,
@@ -867,7 +1653,20 @@ class Properties{
             henshin_phrase:"Dual Aurora Wave!",
             transform_quotes:"Emissary of light, Cure White!",
             special_attack:"Marble Screw",
-            img_special_attack:"https://cdn.discordapp.com/attachments/793377043646775297/817775439320842320/unknown.png"
+            img_special_attack:"https://cdn.discordapp.com/attachments/793377043646775297/817775439320842320/unknown.png",
+            img_transformation:[],
+            hint_chiguhaguu:"Emissary of light, <x>!",
+            description:"",
+            bio:{
+                key1:"",
+                value1:"",
+                key2:"",
+                value2:"",
+                key3:"",
+                value3:"",
+                key4:"",
+                value4:""
+            }
         },
         mai:{
             total:10,
@@ -878,7 +1677,20 @@ class Properties{
             henshin_phrase:"Dual Spiritual Power!",
             transform_quotes:"The sparkling silver wing, Cure Egret!",
             special_attack:"Twin Stream Splash",
-            img_special_attack:"https://cdn.discordapp.com/attachments/793379085069844520/817775792875372554/unknown.png"
+            img_special_attack:"https://cdn.discordapp.com/attachments/793379085069844520/817775792875372554/unknown.png",
+            img_transformation:[],
+            hint_chiguhaguu:"The sparkling silver wing, <x>!",
+            description:"",
+            bio:{
+                key1:"",
+                value1:"",
+                key2:"",
+                value2:"",
+                key3:"",
+                value3:"",
+                key4:"",
+                value4:""
+            }
         },
         kanade:{
             total:12,
@@ -889,7 +1701,20 @@ class Properties{
             henshin_phrase:"Let's Play! Pretty Cure Modulation!",
             transform_quotes:"Playing the graceful tune, Cure Rhythm!",
             special_attack:"Fantastic Piacere",
-            img_special_attack:"https://cdn.discordapp.com/attachments/793383859348701195/817782937667895306/unknown.png"
+            img_special_attack:"https://cdn.discordapp.com/attachments/793383859348701195/817782937667895306/unknown.png",
+            img_transformation:[],
+            hint_chiguhaguu:"Playing the graceful tune, <x>!",
+            description:"",
+            bio:{
+                key1:"",
+                value1:"",
+                key2:"",
+                value2:"",
+                key3:"",
+                value3:"",
+                key4:"",
+                value4:""
+            }
         }
     };
 
@@ -1041,7 +1866,7 @@ class Status {
     }
 
     static getSpecialPointProgress(level,level_special,enemyLevel=1){
-        return (level*2)+(level_special*2)+(enemyLevel*2);
+        return (level*3)+(level_special*2)+(enemyLevel*3);
         //+7
     }
 
@@ -1274,7 +2099,6 @@ class StatusEffect{
             value_rarity_boost:4,
             permanent:false
         },
-
         atk_up_1:{
             value:"atk_up_1",
             name:"Atk Up 1",
@@ -1354,31 +2178,42 @@ class StatusEffect{
             name:"Debuff Removal",
             description:"Remove the chosen debuff.",
             usable:false,
+            clear_status:true
         },
         remove_debuff_cardcaplock:{
             value:"remove_debuff_cardcaplock",
             name:"Cardcaplock Removed",
             description:"Remove **cardcaplock** debuff.",
             usable:false,
+            clear_status:true
         },
         remove_debuff_fear:{
             value:"remove_debuff_fear",
             name:"Fear  Removed",
             description:"Remove **fear** debuff.",
             usable:false,
+            clear_status:true
         },
         remove_debuff_amnesia:{
             value:"remove_debuff_amnesia",
             name:"Amnesia Removed",
             description:"Remove **amnesia** debuff.",
             usable:false,
+            clear_status:true
         },
         remove_debuff_specialock:{
             value:"remove_debuff_specialock",
             name:"Specialock Removed",
             description:"Remove **specialock** debuff.",
             usable:false,
-        }
+            clear_status:true
+        },
+        special_break:{
+            value:"special_break",
+            name:"Special Break",
+            description:"**Break** through enemy **special protection**!",
+            permanent:false
+        },
     }
 
     static debuffData = {
@@ -1664,6 +2499,14 @@ class Embeds{
         // if("transform_super_quotes" in Properties.dataCardCore[packName]){
         //     transformQuotes = Properties.dataCardCore[packName].transform_super_quotes;
         // }
+
+        var imgTransformation = Properties.dataCardCore[packName].icon;//default transformation image
+
+        if("img_transformation" in Properties.dataCardCore[packName]){
+            if(Properties.dataCardCore[packName].img_transformation.length>0){
+                imgTransformation = GlobalFunctions.randomArrayItem(Properties.dataCardCore[packName].img_transformation);
+            }
+        }
         
         return {
             color: Properties.dataColorCore[embedColor].color,
@@ -1684,10 +2527,10 @@ class Embeds{
                 url:thumbnail
             },
             image:{
-                url:Properties.dataCardCore[packName].icon
+                url:imgTransformation
             },
             footer:{
-                text:`Card ID: ${cardId}`
+                text:`Cure Avatar ID: ${cardId}`
             }
         }
     }
@@ -1975,6 +2818,46 @@ function embedCardDetail(embedColor,id_card,packName,
     }
 
     return objEmbed;
+}
+
+const embedBioPackList = {
+    color: Properties.embedColor,
+    title : `Character List`,
+    fields : [{
+        name: `Pink`,
+        value: `Nagisa\nSaki\nNozomi\nLove\nTsubomi\nHibiki\nMiyuki\nMana\nMegumi\nHaruka\nMirai\nIchika\nHana\nHikaru\nNodoka`,
+        inline: true
+    },
+    {
+        name: `Blue`,
+        value: `Karen\nMiki\nErika\nEllen\nReika\nRikka\nHime\nMinami\nAoi\nSaaya\nYuni\nChiyu`,
+        inline: true
+    },
+    {
+        name: `Yellow`,
+        value: `Hikari\nUrara\nInori\nItsuki\nAko\nYayoi\nAlice\nYuko\nKirara\nHimari\nHomare\nElena\nHinata`,
+        inline: true
+    },
+    {
+        name: `Purple`,
+        value: `Yuri\nMakoto\nIona\nRiko\nYukari\nAmour\nMadoka\nKurumi`,
+        inline: true
+    },
+    {
+        name: `Red`,
+        value: `Rin\nSetsuna\nAkane\nAguri\nTowa\nAkira\nEmiru`,
+        inline: true
+    },
+    {
+        name: `Green`,
+        value: `Komachi\nNao\nKotoha\nCiel\nLala`,
+        inline: true
+    },
+    {
+        name: `White`,
+        value: `Honoka\nMai\nKanade`,
+        inline: true
+    }]
 }
 
 const embedCardPackList = {
@@ -2504,7 +3387,7 @@ async function generateCardSpawn(id_guild,specificType=null,overwriteToken = tru
     }
 
     //for debugging purpose:
-    // cardSpawnType = "battle";
+    // cardSpawnType = "normal";
 
     var query = "";
     //prepare the embed object
@@ -2653,9 +3536,9 @@ async function generateCardSpawn(id_guild,specificType=null,overwriteToken = tru
 
             //randomize the enemy type:
             var enemyType = GlobalFunctions.capitalize(Properties.enemySpawnData.tsunagarus.term.chokkins);//default enemy type
-            var randomType = GlobalFunctions.randomNumber(0,2);
+            var randomType = GlobalFunctions.randomNumber(0,6);
 
-            // randomType = 2;//for debug purpose only
+            // randomType = 4;//for debug purpose only
 
             //get the random enemy
             var query = `SELECT * 
@@ -2674,7 +3557,105 @@ async function generateCardSpawn(id_guild,specificType=null,overwriteToken = tru
             cardRewardData = cardRewardData[0][0];
 
             var spawnData = "";
-            if(randomType>=2) {
+            if(randomType>=4) {
+                //Chiguhaguu
+                enemyType = Properties.enemySpawnData.tsunagarus.term.chiguhaguu;
+                var randRarityMin = GlobalFunctions.randomNumber(3,5);
+                var randLevel = GlobalFunctions.randomNumber(1,3);
+
+                //get the random series information
+                var query = `SELECT ${DBM_Card_Data.columns.series}, ${DBM_Card_Data.columns.pack}, ${DBM_Card_Data.columns.color}
+                FROM ${DBM_Card_Data.TABLENAME} 
+                WHERE ${DBM_Card_Data.columns.series}=? 
+                ORDER BY rand() 
+                LIMIT 1`;
+                var cardDataSeriesWeakness = await DBConn.conn.promise().query(query,[enemyData[DBM_Card_Enemies.columns.series]]);
+                cardDataSeriesWeakness = cardDataSeriesWeakness[0][0];
+
+                var dtColorWeakness = "[";
+                dtColorWeakness+=`"${cardDataSeriesWeakness[DBM_Card_Data.columns.color]}",`;
+                dtColorWeakness = dtColorWeakness.replace(/,\s*$/, "");//remove last comma
+                dtColorWeakness += "]";
+
+                //get the hint
+                var hiddenAlterEgo = Properties.dataCardCore[cardDataSeriesWeakness[DBM_Card_Data.columns.pack]].alter_ego;
+                var resultWord = [];
+                var arrAlterEgo = hiddenAlterEgo.split(" ");//split into array
+                var modWord = `${arrAlterEgo[0]} `; var ctrHidden = 0; var arrWord = [];
+                var maxModWord = randLevel;
+                if(maxModWord<=0){
+                    //preserve 2 if reached 0
+                    maxModWord = 2;
+                }
+
+                //get vowel word
+                for(var i=0;i<arrAlterEgo[1].length;i++){
+                    resultWord.push(arrAlterEgo[1][i]);
+                }
+
+                var arrTaken = GlobalFunctions.getRandomArray(resultWord,maxModWord);
+                // console.log(`original: ${arrAlterEgo[1]}`);
+                // console.log(`taken: ${arrTaken}`);
+
+                //start modify the word:
+                for(var i=0;i<arrAlterEgo[1].length;i++){
+                    if(arrTaken.includes(arrAlterEgo[1][i])){
+                        modWord+=`?`;
+                    } else {
+                        modWord+=`${arrAlterEgo[1][i]}`;
+                    }
+                }
+
+                //uniquized the array:
+                // resultWord = resultWord.filter((v, i, a) => a.indexOf(v) === i);
+
+
+                var hintPack = `${Properties.dataCardCore[cardDataSeriesWeakness[DBM_Card_Data.columns.pack]].hint_chiguhaguu}`;
+                hintPack = hintPack.replace("<x>",modWord);
+
+                //embed
+                objEmbed.image = {
+                    url:Properties.enemySpawnData.tsunagarus.image.chiguhaguu
+                }
+                objEmbed.title = `Tsunagarus Level ${randLevel} has appeared!`;
+                objEmbed.description = `${GlobalFunctions.capitalize(enemyType)} has the ${cardRewardData[DBM_Card_Data.columns.rarity]}⭐ cure card and possesses **${Properties.enemySpawnData[cardDataSeriesWeakness[DBM_Card_Data.columns.series]].term}** powers!\n\n**Available Command:**\n⚔️ **p!card battle**: Participate in battle.\n✨ **p!card battle special**: Use the special attack.\n⬆️ **p!card battle charge**: Charge up your special attack by 35%.`;
+                objEmbed.color = "#C9C9C9";
+                objEmbed.fields = [
+                    {
+                        name:`Monster Type:`,
+                        value:`${Properties.enemySpawnData[cardDataSeriesWeakness[DBM_Card_Data.columns.series]].term}`,
+                        inline:true
+                    },
+                    {
+                        name:`Catchphrase:`,
+                        value:`${hintPack}`,
+                        inline:true
+                    },
+                    {
+                        name:`Min. Rarity:`,
+                        value:`${randRarityMin}`,
+                        inline:true
+                    }
+                ]
+                
+                //randomize the special allowance
+                var randAllowSpecial = GlobalFunctions.randomNumber(0,10);
+                var dtAllowSpecial = `"${Properties.spawnData.battle.special_allow}":`;
+                if(randAllowSpecial>=7){
+                    dtAllowSpecial+="true";
+                    objEmbed.footer = {
+                        text:`Special Protection: ❌`
+                    }
+                } else {
+                    dtAllowSpecial+="false";
+                    objEmbed.footer = {
+                        text:`Special Protection: ✅`
+                    }
+                }
+
+                spawnData = `{"${Properties.spawnData.battle.type}":"${enemyType}","${Properties.spawnData.battle.id_enemy}":"${enemyData[DBM_Card_Enemies.columns.id]}","${Properties.spawnData.battle.level}":${randLevel},"${Properties.spawnData.battle.color}":${dtColorWeakness},"${Properties.spawnData.battle.id_card_reward}":"${cardRewardData[DBM_Card_Data.columns.id_card]}","${Properties.spawnData.battle.rarity}":${randRarityMin},${dtAllowSpecial}}`;
+
+            } else if(randomType>=2) {
                 //gizzagizza
                 enemyType = Properties.enemySpawnData.tsunagarus.term.gizzagizza;
                 var randRarityMin = GlobalFunctions.randomNumber(3,5);
@@ -2688,7 +3669,7 @@ async function generateCardSpawn(id_guild,specificType=null,overwriteToken = tru
                 cardDataSeriesWeakness = cardDataSeriesWeakness[0][0];
                 
                 //get the card color weakness
-                var query = `select color 
+                var query = `select ${DBM_Card_Data.columns.color}  
                 from ${DBM_Card_Data.TABLENAME} 
                 where ${DBM_Card_Data.columns.series}=? 
                 group by ${DBM_Card_Data.columns.color} 
@@ -2732,7 +3713,7 @@ async function generateCardSpawn(id_guild,specificType=null,overwriteToken = tru
                     text:`Special Protection: ❌`
                 }
 
-                spawnData = `{"${Properties.spawnData.battle.type}":"${enemyType}","${Properties.spawnData.battle.id_enemy}":"${enemyData[DBM_Card_Enemies.columns.id]}","${Properties.spawnData.battle.color}":${dtColorWeakness},"${Properties.spawnData.battle.id_card_reward}":"${cardRewardData[DBM_Card_Data.columns.id_card]}","${Properties.spawnData.battle.rarity}":${randRarityMin}}`;
+                spawnData = `{"${Properties.spawnData.battle.type}":"${enemyType}","${Properties.spawnData.battle.id_enemy}":"${enemyData[DBM_Card_Enemies.columns.id]}","${Properties.spawnData.battle.color}":${dtColorWeakness},"${Properties.spawnData.battle.id_card_reward}":"${cardRewardData[DBM_Card_Data.columns.id_card]}","${Properties.spawnData.battle.level}":1,"${Properties.spawnData.battle.rarity}":${randRarityMin}}`;
 
             } else {
                 //default: chokkins
@@ -2827,7 +3808,7 @@ async function generateCardSpawn(id_guild,specificType=null,overwriteToken = tru
                 //randomize the special allowance
                 var randAllowSpecial = GlobalFunctions.randomNumber(0,10);
                 var dtAllowSpecial = `"${Properties.spawnData.battle.special_allow}":`;
-                if(randAllowSpecial>=9){
+                if(randAllowSpecial>=7){
                     dtAllowSpecial+="true";
                     objEmbed.footer = {
                         text:`Base Chance: 20% | Special Protection: ❌`
@@ -2841,7 +3822,7 @@ async function generateCardSpawn(id_guild,specificType=null,overwriteToken = tru
 
                 spawnData = `{"${Properties.spawnData.battle.type}":"${enemyType}","${Properties.spawnData.battle.id_enemy}":"${enemyData[DBM_Card_Enemies.columns.id]}","${Properties.spawnData.battle.level}":${randLevel},"${Properties.spawnData.battle.color}":${dtColorWeakness},"${Properties.spawnData.battle.id_card_reward}":"${cardRewardData[DBM_Card_Data.columns.id_card]}","${Properties.spawnData.battle.rarity}":${randRarityMin},${dtAllowSpecial},${dtAtk}${dtHp}}`;
             }
-            
+
             parameterSet.set(DBM_Card_Guild.columns.spawn_data,spawnData);
             break;
         default: // normal spawn type
@@ -2950,5 +3931,5 @@ async function addNewCardInventory(id_user,id_card,addStock = false){
 module.exports = {latestVersion,Properties,Battle,Leveling,Quest,Shop,Status,StatusEffect,TradeBoard,Embeds,getCardData,getCardInventoryUserData,getAllCardDataByPack,
     getCardUserStatusData,getCardPack,checkUserHaveCard,getUserCardInventoryData,getUserCardStock,getUserTotalCard,
     updateCatchAttempt,updateColorPoint,updateMofucoin,removeCardGuildSpawn,generateCardSpawn,addNewCardInventory,
-    embedCardLevelUp,embedCardCapture,embedCardDetail,embedCardPackList,getBonusCatchAttempt,getNextColorPoint,
+    embedCardLevelUp,embedCardCapture,embedCardDetail,embedBioPackList,embedCardPackList,getBonusCatchAttempt,getNextColorPoint,
     checkCardCompletion,leaderboardAddNew,getAverageLevel,updateMessageIdSpawn};
