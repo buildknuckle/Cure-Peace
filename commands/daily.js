@@ -183,7 +183,7 @@ module.exports = {
                                 ORDER BY rand() LIMIT 3 
                         ) T1 
                         ORDER BY T1.rarity`;
-                        var randomizedCardData = await DBConn.conn.promise().query(query, [5]);
+                        var randomizedCardData = await DBConn.conn.promise().query(query, [4]);
                         
                         randomizedCardData[0].forEach(entry => {
                             // idCard+=`${entry[DBM_Card_Data.columns.id_card]},`;
