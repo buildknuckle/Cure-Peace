@@ -9,6 +9,7 @@ class DBM_Card_Data {
         rarity: "rarity",
         name: "name",
         img_url: "img_url",
+        img_url_upgrade1: "img_url_upgrade1",
         max_hp: "max_hp",
         max_atk: "max_atk",
         ability1: "ability1",

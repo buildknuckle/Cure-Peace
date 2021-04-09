@@ -9,6 +9,13 @@ module.exports = {
       }
       return separateWord.join(' ');
    },
+   getCurrentDate(){
+      var today = new Date();
+      var dd = String(today.getDate()).padStart(2, '0');
+      var mm = String(today.getMonth() + 1).padStart(2, '0'); //January is 0!
+      var yyyy = today.getFullYear();
+      return `${yyyy}-${mm}-${dd}`;
+   },
    getCurrentDateTime(){
       var today = new Date();
       var dd = String(today.getDate()).padStart(2, '0');
@@ -90,6 +97,20 @@ module.exports = {
           taken[x] = --len in taken ? taken[len] : len;
       }
       return result;
-  }
+  }, shuffleText(str) {
+      var originalArray = [];
+      for(var i=0;i<str.length;i++){
+         originalArray.push(str[i]);
+      }
+
+      originalArray = originalArray.sort(() => Math.random() - 0.5);
+
+      var txt = "";
+      for(var i=0;i<originalArray.length;i++){
+         txt+=originalArray[i];
+      }
+
+      return txt;
+   }
 
 }

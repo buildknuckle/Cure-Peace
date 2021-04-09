@@ -80,4 +80,19 @@ async function update(tableName,parameterSet,parameterWhere){
     return await DB.conn.promise().query(query, arrParameterized);
 }
 
-module.exports = {DB,select,selectAll,insert,update};
+async function del(tableName,parameterWhere){
+    //delete
+    var arrParameterized = [];
+    var query = `DELETE FROM ${tableName} `;
+    //WHERE
+    query += " WHERE ";
+    for (const [key, value] of parameterWhere.entries()) {
+        query += ` ${key}=? AND `;
+        arrParameterized.push(value);
+    }
+    query = query.replace(/AND\s*$/, "");//remove the last comma and any whitespace
+    // DB.conn.query(query,arrParameterized,function (err) {});
+    return await DB.conn.promise().query(query, arrParameterized);
+}
+
+module.exports = {DB,select,selectAll,insert,update,del};

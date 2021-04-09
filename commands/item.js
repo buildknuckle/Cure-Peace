@@ -3,11 +3,13 @@ const paginationEmbed = require('discord.js-pagination');
 const DB = require('../database/DatabaseCore');
 const DBConn = require('../storage/dbconn');
 const CardModule = require('../modules/Card');
+const CardGuildModule = require('../modules/CardGuild');
 const ItemModule = require('../modules/Item');
 const GlobalFunctions = require('../modules/GlobalFunctions.js');
 const DBM_Item_Inventory = require('../database/model/DBM_Item_Inventory');
 const DBM_Item_Data = require('../database/model/DBM_Item_Data');
 const DBM_Card_User_Data = require('../database/model/DBM_Card_User_Data');
+const DBM_Card_Guild = require('../database/model/DBM_Card_Guild');
 
 module.exports = {
     name: 'item',
@@ -35,8 +37,9 @@ module.exports = {
                 var arrParameterized = [userId,0];
                 if(args[1]!=null){
                     var itemFilter = args[1].toLowerCase();
-                    if(itemFilter!="card"&&itemFilter!="food"&&itemFilter!="ingredient"){
-                        objEmbed.description = ":x: Please enter the filter with: **card**/**food**/**ingredient**";
+                    if(itemFilter!="card"&&itemFilter!="food"&&
+                    itemFilter!="ingredient"&&itemFilter!="fragment"){
+                        objEmbed.description = ":x: Please enter the filter with: **card**/**food**/**ingredient**/**fragment**";
                         objEmbed.thumbnail = {
                             url:ItemModule.Properties.imgResponse.imgError
                         };
@@ -55,6 +58,10 @@ module.exports = {
                         case "ingredient":
                             queryFilterInventory+=` AND (idat.${DBM_Item_Data.columns.category}=? OR idat.${DBM_Item_Data.columns.category}=?) `;
                             arrParameterized.push("ingredient","ingredient_rare");
+                            break;
+                        case "fragment":
+                            queryFilterInventory+=` AND idat.${DBM_Item_Data.columns.category}=? `;
+                            arrParameterized.push("misc_fragment");
                             break;
                     }
                 }
@@ -142,19 +149,24 @@ module.exports = {
                 var objEmbedFields = [
                     {
                         name:`Category:`,
-                        value:ItemModule.Properties.categoryTerm[itemData[DBM_Item_Data.columns.category]],
+                        value:ItemModule.Properties.categoryData[itemData[DBM_Item_Data.columns.category]].name,
                         inline:true
                     }
                 ]
 
+                if(itemData[DBM_Item_Data.columns.img_url]!=null){
+                    objEmbed.thumbnail = {
+                        url:itemData[DBM_Item_Data.columns.img_url]
+                    }
+                }
                 objEmbed.title = `${itemData[DBM_Item_Data.columns.name]}`;
                 objEmbed.footer = {
                     text:`Item ID: ${itemData[DBM_Item_Data.columns.id]} | Stock: ${userItemStock}`
                 }
 
                 switch(itemData[DBM_Item_Data.columns.category]){
-                    case "card":
-                    case "food":
+                    case ItemModule.Properties.categoryData.card.value:
+                    case ItemModule.Properties.categoryData.food.value:
                         if("permanent" in CardModule.StatusEffect.buffData[itemData[DBM_Item_Data.columns.effect_data]]){
 
                             var permanentValue = "❌";
@@ -256,8 +268,8 @@ module.exports = {
                 }
 
                 //category validator
-                var unusableItemCategory = ["ingredient","ingredient_rare"];
-                if(unusableItemCategory.includes(itemData[DBM_Item_Data.columns.category])){
+                var usableItemCategory = [ItemModule.Properties.categoryData.card.value,ItemModule.Properties.categoryData.food.value];
+                if(!usableItemCategory.includes(itemData[DBM_Item_Data.columns.category])){
                     objEmbed.thumbnail = {
                         url:CardModule.Properties.imgResponse.imgError
                     }
@@ -363,9 +375,9 @@ module.exports = {
 
                     var query = `SELECT * 
                     FROM ${DBM_Item_Data.TABLENAME} 
-                    WHERE ${DBM_Item_Data.columns.category}<>? AND 
-                    ${DBM_Item_Data.columns.category}<>?`;
-                    var result = await DBConn.conn.promise().query(query, ["food","ingredient_rare"]);
+                    WHERE ${DBM_Item_Data.columns.category}=? OR  
+                    ${DBM_Item_Data.columns.category}=?`;
+                    var result = await DBConn.conn.promise().query(query, [ItemModule.Properties.categoryData.card.value,ItemModule.Properties.categoryData.ingredient.value]);
                     
                     var arrPages = [];
                     var itemList1 = ""; var itemList2 = ""; var itemList3 = ""; var ctr = 0;
@@ -500,6 +512,238 @@ module.exports = {
                 await ItemModule.addNewItemInventory(userId,itemId,qty);
 
                 return message.channel.send({embed:objEmbed});
+                
+                break;
+            case "sale":
+                var objEmbed = {
+                    color:CardModule.Properties.embedColor,
+                    author: {
+                        name: "Hariham Harry",
+                        icon_url: "https://cdn.discordapp.com/attachments/793415946738860072/827928547590668298/latest.png"
+                    },
+                    title:"Fragment Shop",
+                    description:`Hariham Harry has returned from the future with fragments and has opened up shop again!\nUse the command "**p!item sale buy <sale number> [qty]**" to buy the fragment!\nBe quick, once someone buys a sale, it's one! And remember, you can buy as many sale as you want, but can only buy up to 1 fragment type!`,
+                    thumbnail:{
+                        url:"https://cdn.discordapp.com/attachments/793415946738860072/827928547590668298/latest.png"
+                    }
+                }
+
+                //format: sale token, sale date, sale list
+
+                var guildData = await CardGuildModule.getCardGuildData(guildId);
+                var arrItemShopList = []; var arrItemShopListStock = []; var salePrice = 100; var lastDate = -1; var createNew = false;
+                var allSoldOut = false; var salePurchased = ""; var shopSaleToken = ""; var saleToken = ""; var lastSaleDate = "";
+                var cardUserData = await CardModule.getCardUserStatusData(userId);
+
+                if(guildData[DBM_Card_Guild.columns.sale_shop_data]!=null){
+                    //exists
+                    var jsonParsedData = JSON.parse(guildData[DBM_Card_Guild.columns.sale_shop_data]);
+                    lastDate = jsonParsedData[ItemModule.Properties.saleData.last_date];
+
+                    //calculate next time arrival
+                    var future = new Date(lastDate);
+                    future.setHours(0, 0, 0, 0);
+                    future.setDate(future.getDate() + 2);
+
+                    var timeRemaining = ( future.getTime() - new Date().getTime() ) / 1000 / 60;
+                    var num = timeRemaining;
+                    var hours = (num / 60);
+                    var rhours = Math.floor(hours);
+                    var minutes = (hours - rhours) * 60;
+                    var rminutes = Math.round(minutes);
+                    if(rhours<=0){
+                        createNew = true; rhours = 48; rminutes = 0;
+                    } else {
+                        shopSaleToken = jsonParsedData[ItemModule.Properties.saleData.sale_token];
+                        var saleList = jsonParsedData[ItemModule.Properties.saleData.sale_list];
+                        Object.keys(saleList).forEach(function(key) {
+                            arrItemShopList.push(key);
+                            arrItemShopListStock.push(saleList[key]);
+                        });
+                    }
+
+                    timeRemaining = rhours + " hour(s) and " + rminutes + " more minute(s)";
+
+                    objEmbed.footer = {
+                        text:`Next item sale will arrive at: ${timeRemaining}`
+                    }
+                }
+
+                if(cardUserData[DBM_Card_User_Data.columns.sale_token]!=null){
+                    var splittedUserTokenData = cardUserData[DBM_Card_User_Data.columns.sale_token].split(",");
+                    saleToken = splittedUserTokenData[0];
+                    if(saleToken!=shopSaleToken){
+                        //new
+                        saleToken = shopSaleToken;
+                        salePurchased = "";
+                    } else {
+                        //exists
+                        salePurchased = splittedUserTokenData[1];
+                    }
+                    
+                } else {
+                    saleToken = shopSaleToken;
+                    lastSaleDate = GlobalFunctions.getCurrentDate();
+                    salePurchased = "";
+                }
+
+                var arrField = [];
+                if(lastDate==-1||createNew){
+                    //generate new
+                    var query = `SELECT * 
+                    FROM ${DBM_Item_Data.TABLENAME} 
+                    WHERE ${DBM_Item_Data.columns.category}=? 
+                    ORDER BY RAND() 
+                    LIMIT 5`;
+                    var result = await DBConn.conn.promise().query(query, [ItemModule.Properties.categoryData.misc_fragment.value]);
+                    result = result[0]; var ctr = 1;
+                    var saleList = "";
+                    for(var i=0;i<result.length;i++){
+                        var seriesData = result[i][DBM_Item_Data.columns.extra_data];
+                        var seriesPoint = CardModule.Properties.seriesCardCore[seriesData].series_point;
+                        arrField[i] = {
+                            name:`Sale ${i+1}: ${result[i][DBM_Item_Data.columns.id]} - ${result[i][DBM_Item_Data.columns.name]} x5`,
+                            value:`Price: ${salePrice} ${CardModule.Properties.seriesCardCore[seriesPoint].currency}/each`
+                        }
+                        saleList+=`"${result[i][DBM_Item_Data.columns.id]}":5,`;
+                    }
+                    saleList = saleList.replace(/,\s*$/, "");
+                    objEmbed.fields = arrField;
+                    
+                    lastDate = GlobalFunctions.getCurrentDate();
+                    // if(cardUserData[DBM_Card_User_Data.columns.sale_token]!=null){
+                    //     saleToken = cardUserData[DBM_Card_User_Data.columns.sale_token];
+                    // }
+                    //generate guild sale shop data
+                    var saleShopData = `{"${ItemModule.Properties.saleData.sale_token}":"${GlobalFunctions.randomNumber(100,5000)}","${ItemModule.Properties.saleData.last_date}":"${lastDate}","${ItemModule.Properties.saleData.sale_list}":{${saleList}}}`;
+                    var parameterSet = new Map();
+                    parameterSet.set(DBM_Card_Guild.columns.sale_shop_data,saleShopData);
+                    var parameterWhere = new Map();
+                    parameterWhere.set(DBM_Card_Guild.columns.id_guild,guildId);
+                    await DB.update(DBM_Card_Guild.TABLENAME,parameterSet,parameterWhere);
+                    objEmbed.footer = null;
+                } else if(!createNew){
+                    //show the available list
+                    var filtered = arrItemShopListStock.filter(function (el) {
+                        return el>0;
+                    });
+                    if(filtered.length<=0){
+                        allSoldOut = true;
+                    } else {
+                        for(var i=0;i<arrItemShopList.length;i++){
+                            var entry = arrItemShopList[i];
+                            var entryStock = arrItemShopListStock[i];
+                            if(entryStock>0){
+                                var itemData = await ItemModule.getItemData(entry);
+                                var seriesData = itemData[DBM_Item_Data.columns.extra_data];
+                                var seriesPoint = CardModule.Properties.seriesCardCore[seriesData].series_point;
+    
+                                arrField[i] = {
+                                    name:`Sale ${i+1}: ${itemData[DBM_Item_Data.columns.id]} - ${itemData[DBM_Item_Data.columns.name]} x${arrItemShopListStock[i]}`,
+                                    value:`Price: ${salePrice} ${CardModule.Properties.seriesCardCore[seriesPoint].currency}/each`
+                                }
+                            } else {
+                                arrField[i] = {
+                                    name:`Sale ${i+1}: Sold Out!`,
+                                    value:`❌`
+                                }
+                            }
+                        }
+    
+                        objEmbed.fields = arrField;
+                    }
+                }
+                
+                //all sold out
+                if(allSoldOut){
+                    objEmbed.description = "All the item sale has been sold out.";
+                    objEmbed.fields = null;
+                    return message.channel.send({embed:objEmbed});
+                }
+                
+                var optionalArgs = args[1];
+                
+                if(optionalArgs!=null){
+                    objEmbed.fields = null; objEmbed.footer = null;
+                    //buy process
+                    if(optionalArgs!="buy"){
+                        objEmbed.description = ":x: Please enter the correct sale buy command with: **p!item sale buy <sale number> [qty]**";
+                        return message.channel.send({embed:objEmbed});
+                    }
+
+                    var selectedSaleNumber = args[2]; //move to next args: selected sale number
+                    if(isNaN(selectedSaleNumber)||selectedSaleNumber==null){
+                        objEmbed.description = ":x: Please enter the selected sale number between 1-5.";
+                        return message.channel.send({embed:objEmbed});
+                    } else if(arrItemShopList[selectedSaleNumber-1]==null||arrItemShopList[selectedSaleNumber-1]==""||arrItemShopListStock[selectedSaleNumber-1]<=0){
+                        objEmbed.description = ":x: The selected sale number is not on the list/has been sold out.";
+                        return message.channel.send({embed:objEmbed});
+                    } else if(saleToken==shopSaleToken && salePurchased.includes(String(selectedSaleNumber-1))){
+                        objEmbed.description = ":x: Sorry, you're not allowed to buy the same sale item again.";
+                        return message.channel.send({embed:objEmbed});
+                    }
+
+                    // console.log(saleToken);
+                    // return;
+
+                    var qty = 1;
+                    var optionalQty = args[3]; //move to next args
+                    if((optionalQty!=null&&isNaN(optionalQty))||optionalQty<1||optionalQty>99){
+                        objEmbed.description = ":x: Please enter the valid amount between 1-99.";
+                        return message.channel.send({embed:objEmbed});
+                    } else if(optionalQty!=null){
+                        qty = optionalQty; salePrice*=qty;
+                    }
+
+                    //item shop stock validation
+                    if(qty>arrItemShopListStock[selectedSaleNumber-1]){
+                        objEmbed.description = `:x: You can only buy up to **${arrItemShopListStock[selectedSaleNumber-1]} ${arrItemShopList[selectedSaleNumber-1]}**.`;
+                        return message.channel.send({embed:objEmbed});
+                    }
+    
+                    var itemData = await ItemModule.getItemData(arrItemShopList[selectedSaleNumber-1]);
+                    var seriesData = itemData[DBM_Item_Data.columns.extra_data];
+                    var seriesPoint = CardModule.Properties.seriesCardCore[seriesData].series_point;
+    
+                    if(cardUserData[seriesPoint]<salePrice){
+                        objEmbed.description = `:x: You need ${salePrice} ${CardModule.Properties.seriesCardCore[seriesPoint].currency} to purchase ${qty}x sale number ${selectedSaleNumber}: **${itemData[DBM_Item_Data.columns.id]} - ${itemData[DBM_Item_Data.columns.name]}**.`;
+                        return message.channel.send({embed:objEmbed});
+                    }
+    
+                    objEmbed.description = `:white_check_mark: <@${userId}> has purchased ${qty}x sale number ${selectedSaleNumber}: **${itemData[DBM_Item_Data.columns.id]} - ${itemData[DBM_Item_Data.columns.name]}** with **${salePrice} ${CardModule.Properties.seriesCardCore[seriesPoint].currency}**.`;
+    
+                    //{"sale_token":"2239","last_date":"2021-04-04","sale_list":{"cfrg001":5,"cfrg011":0,"cfrg007":0,"cfrg004":5,"cfrg015":5}}
+
+                    //update the series point
+                    var parameterSeries = new Map();
+                    parameterSeries.set(seriesPoint,-salePrice);
+                    await CardModule.updateSeriesPoint(userId,parameterSeries);
+
+                    salePurchased += selectedSaleNumber-1;
+
+                    //update the sale token
+                    var parameterSet = new Map();
+                    parameterSet.set(DBM_Card_User_Data.columns.sale_token,`${saleToken},${salePurchased}`);
+                    var parameterWhere = new Map();
+                    parameterWhere.set(DBM_Card_User_Data.columns.id_user,userId);
+                    await DB.update(DBM_Card_User_Data.TABLENAME,parameterSet,parameterWhere);
+    
+                    //update the item
+                    await ItemModule.addNewItemInventory(userId,itemData[DBM_Item_Data.columns.id],qty);
+    
+                    //update the item sale data
+                    var jsonParsedData = JSON.parse(guildData[DBM_Card_Guild.columns.sale_shop_data]);
+                    jsonParsedData[ItemModule.Properties.saleData.sale_list][arrItemShopList[selectedSaleNumber-1]]-=qty;
+                    guildData[DBM_Card_Guild.columns.sale_shop_data] = jsonParsedData;
+                    var parameterSet = new Map();
+                    parameterSet.set(DBM_Card_Guild.columns.sale_shop_data,JSON.stringify(jsonParsedData));
+                    var parameterWhere = new Map();
+                    parameterWhere.set(DBM_Card_Guild.columns.id_guild,guildId);
+                    await DB.update(DBM_Card_Guild.TABLENAME,parameterSet,parameterWhere);
+                }
+
+                return message.channel.send({embed:objEmbed});
+
                 break;
         }
 

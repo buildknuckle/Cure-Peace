@@ -20,7 +20,8 @@ class DBM_Card_Guild {
         spawn_data: "spawn_data",
         spawn_color: "spawn_color",
         spawn_number: "spawn_number",
-        completion_date_pinky: "completion_date_pinky"
+        completion_date_pinky: "completion_date_pinky",
+        sale_shop_data: "sale_shop_data"
     };
 }
 

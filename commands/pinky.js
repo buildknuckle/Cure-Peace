@@ -180,14 +180,20 @@ module.exports = {
                 var colorPointReward = cardData[DBM_Card_Data.columns.rarity]*10;
                 var textReward = `>${colorPointReward} ${cardData[DBM_Card_Data.columns.color]} color point\n`;
                 var mofuCoinReward = cardData[DBM_Card_Data.columns.rarity]*10;
+
+                var seriesPointReward = cardData[DBM_Card_Data.columns.rarity]*10;
+
+
                 textReward += `>${mofuCoinReward} mofucoin\n`;
+                textReward += `>${seriesPointReward} ${CardModule.Properties.seriesCardCore.sp003.currency}\n`;
 
                 //update the item
                 var query = `SELECT * 
                 FROM ${DBM_Item_Data.TABLENAME} 
+                WHERE ${DBM_Item_Data.columns.category}<>? 
                 ORDER BY rand() 
                 LIMIT 1`;
-                var itemDropData = await DBConn.conn.promise().query(query);
+                var itemDropData = await DBConn.conn.promise().query(query,["misc_fragment"]);
                 if(itemDropData[0][0]!=null){
                     textReward+=`>Item: ${itemDropData[0][0][DBM_Item_Data.columns.name]} **(${itemDropData[0][0][DBM_Item_Data.columns.id]})**\n`;
                     await ItemModule.addNewItemInventory(userId,itemDropData[0][0][DBM_Item_Data.columns.id]);
@@ -222,6 +228,10 @@ module.exports = {
                 var colorMap = new Map();
                 colorMap.set(`color_point_${cardData[DBM_Card_Data.columns.color]}`,colorPointReward);
                 await CardModule.updateColorPoint(userId,colorMap);
+                //update series point
+                var seriesMap = new Map();
+                seriesMap.set(CardModule.Properties.seriesCardCore.sp003.value,seriesPointReward);
+                await CardModule.updateSeriesPoint(userId,seriesMap);
                 //erase pinky spawn data
                 if(spawnedCardData.id==null){
                     await CardModule.removeCardGuildSpawn(guildId);
