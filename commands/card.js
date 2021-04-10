@@ -782,9 +782,9 @@ module.exports = {
                 var userInventoryData = await CardModule.getUserCardInventoryData(userId,cardId);
 
                 var type = CardModule.Properties.cardCategory.normal.value;
-                if(userInventoryData[DBM_Card_Inventory.columns.is_gold]){
-                    type = CardModule.Properties.cardCategory.gold.value;
-                }
+                // if(userInventoryData[DBM_Card_Inventory.columns.is_gold]){
+                //     type = CardModule.Properties.cardCategory.gold.value;
+                // }
 
                 if(args[2]!=null){
                     var cardCategory = args[2];
