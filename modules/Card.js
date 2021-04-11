@@ -1202,7 +1202,7 @@ class Properties{
         },
         yuri:{
             total:13,
-            icon:"https://waa.ai/JEwf",
+            icon:"https://static.wikia.nocookie.net/prettycure/images/7/71/Puzzlun_Sprite_HPC_Cure_Moonlight.png",
             color:"purple",
             fullname:"Yuri Tsukikage",
             alter_ego:"Cure Moonlight",
