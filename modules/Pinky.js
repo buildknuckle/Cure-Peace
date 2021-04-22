@@ -78,7 +78,7 @@ async function pinkyCompletion(id_guild){
 
         var userContributor = "";
         var arrUserContributor = [];
-        var mofuCoinReward = 100;
+        var mofuCoinReward = 1000;
 
         //get all user who contribute
         var query = `SELECT ${DBM_Pinky_Inventory.columns.id_user},count(${DBM_Pinky_Inventory.columns.id_user}) as total 

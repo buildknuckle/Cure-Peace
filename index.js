@@ -76,8 +76,6 @@ client.once('ready', () => {
     //added the activity
     var arrActivity = [
         'Sparkling, glittering, rock-paper-scissors! Cure Peace!',
-        'Healin\' good precure!',
-        'The two lights that come together! Cure Sparkle!',
         'Puzzlun Cure!'
     ];
 

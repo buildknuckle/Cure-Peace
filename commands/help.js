@@ -15,19 +15,23 @@ module.exports = {
               },
               {
                 "name": "Card",
-                "value": "`catch/capture`,`detail <card id>`,`guide`,`status [username]`,`inventory [pack][username]`,`duplicate [pack][username]`,`guess [lower/higher]`,`color set [color]`,`answer [a/b/c/d]`,`convert item/level/point/mofucoin <card id> [all]`,`set/transform/precure <card id>`,`spawn`,`battle [special]`,`avatar`,`up color <color>`,`up level <card id> [level qty]`,`up special <card id>`,`leaderboard <pack/color>`,`tradeboard search <card id>`,`tradeboard post <card id that you search/want> <your card id offer>`,`tradeboard trade <trade id>`,`tradeboard remove`,`verify`"
+                "value": "`catch/capture`,`detail <card id> [normal/gold]`,`guide`,`status [username]`,`inventory [pack][username]`,`duplicate [pack][username]`,`guess [lower/higher]`,`color set [color]`,`answer [a/b/c/d]`,`convert item <id> | convert level <id> <id target> | convert point <id> | convert mofucoin <id> | convert fraglevel <id>| convert fragpoint <id>`,`set/transform/precure <card id>`,`spawn`,`battle [special/charge]`,`avatar`,`up color <color>`,`up level <card id> [level qty]`,`up special <card id>`,`leaderboard <pack/color>`,`tradeboard search <card id>`,`tradeboard post <card id that you search/want> <your card id offer>`,`tradeboard trade <trade id>`,`tradeboard remove`,`verify`,`upgrade gold <card id>`,`party create <name>/status/join <party id>/list/leave/charge`"
               },
               {
                 "name": "Item",
-                "value": "`inventory`,`use <item id>`,`detail <item id>`,`shop/shop buy <item id> [qty]`"
+                "value": "`inventory [card/food/ingredient/fragment]`,`use <item id>`,`detail <item id>`,`shop/shop buy <item id> [qty]`"
               },
               {
                 "name": "Pinky",
                 "value": "`collet/inventory`,`catch`,`detail <pinky id>`"
               },
               {
+                "name": "Party",
+                "value": "`create <party name>`,`status`,`join <party id>`,`list`,`leave`,`charge`"
+              },
+              {
                 "name": "Kirakira",
-                "value": "`recipe`,`create/craft/synthesize <recipe id>`,`detail <recipe id>`"
+                "value": "`recipe`,`create/craft/synthesize <recipe id> [qty]`,`detail <recipe id>`"
               },
               {
                 "name": "Setting [Moderator]",

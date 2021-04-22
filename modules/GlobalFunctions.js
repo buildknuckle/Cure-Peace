@@ -9,6 +9,13 @@ module.exports = {
       }
       return separateWord.join(' ');
    },
+   getCurrentDate(){
+      var today = new Date();
+      var dd = String(today.getDate()).padStart(2, '0');
+      var mm = String(today.getMonth() + 1).padStart(2, '0'); //January is 0!
+      var yyyy = today.getFullYear();
+      return `${yyyy}-${mm}-${dd}`;
+   },
    getCurrentDateTime(){
       var today = new Date();
       var dd = String(today.getDate()).padStart(2, '0');
@@ -90,6 +97,31 @@ module.exports = {
           taken[x] = --len in taken ? taken[len] : len;
       }
       return result;
-  }
+  }, shuffleText(str) {
+      var originalArray = [];
+      for(var i=0;i<str.length;i++){
+         originalArray.push(str[i]);
+      }
+
+      originalArray = originalArray.sort(() => Math.random() - 0.5);
+
+      var txt = "";
+      for(var i=0;i<originalArray.length;i++){
+         txt+=originalArray[i];
+      }
+
+      return txt;
+   }, timestampToDateTime(UNIX_timestamp){
+      var a = new Date(UNIX_timestamp * 1000);
+      var months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+      var year = a.getFullYear();
+      var month = months[a.getMonth()];
+      var date = a.getDate();
+      var hour = a.getHours() < 10 ? '0' + a.getHours() : a.getHours();
+      var min = a.getMinutes() < 10 ? '0' + a.getMinutes() : a.getMinutes(); 
+      var sec = a.getSeconds() < 10 ? '0' + a.getSeconds() : a.getSeconds();
+      var time = date + '-' + month + '-' + year + ' ' + hour + ':' + min + ':' + sec ;
+      return time;
+   }
 
 }

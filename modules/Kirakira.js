@@ -19,7 +19,7 @@ class Properties{
 }
 
 class Embeds{
-    static synthesizeComplete(userUsername,userAvatarUrl,idItem,name,_description,imgUrl = ""){
+    static synthesizeComplete(userUsername,userAvatarUrl,idItem,name,_description,total=1,imgUrl = ""){
         return {
             color: Properties.embedColor,
             author: {
@@ -30,7 +30,7 @@ class Embeds{
                 url:Properties.imgResponse.imgOk
             },
             title: "Kirakirarun!",
-            description: `You have received: **${idItem} - ${name}** from creating the kirakira.`,
+            description: `You have received ${total}x: **${idItem} - ${name}** from creating the kirakira.`,
             image:{
                 url:imgUrl
             },

@@ -141,6 +141,18 @@ module.exports = {
                     color:KirakiraModule.Properties.embedColor
                 }
 
+                //check for qty parameter
+                var qty = args[2];
+                if(qty==null){
+                    qty = 1;
+                } else if(isNaN(qty)){
+                    objEmbed.thumbnail = {
+                        url:KirakiraModule.Properties.imgResponse.imgError
+                    }
+                    objEmbed.description = ":x: Please enter the valid qty number from 1-99.";
+                    return message.channel.send({embed:objEmbed});
+                }
+
                 if(recipeId==null){
                     objEmbed.thumbnail = {
                         url:KirakiraModule.Properties.imgResponse.imgError
@@ -180,7 +192,7 @@ module.exports = {
                 FROM ${DBM_Item_Data.TABLENAME} idat 
                 LEFT JOIN ${DBM_Item_Inventory.TABLENAME} inv 
                 ON (inv.${DBM_Item_Inventory.columns.id_item}=idat.${DBM_Item_Data.columns.id} AND 
-                inv.${DBM_Item_Inventory.columns.stock}>=1 AND  
+                inv.${DBM_Item_Inventory.columns.stock}>=${qty} AND  
                 inv.${DBM_Item_Inventory.columns.id_user}=?) 
                 WHERE idat.${DBM_Item_Data.columns.id} in (${idIngredient})`;
                 var dataIngredient = await DBConn.conn.promise().query(query, [userId]);
@@ -207,7 +219,7 @@ module.exports = {
                             value:textIngredient,
                             inline:true
                         }
-                    ]
+                    ];
                     objEmbed.thumbnail = {
                         url:KirakiraModule.Properties.imgResponse.imgFailed
                     }
@@ -217,7 +229,7 @@ module.exports = {
 
                 //get current food user stock
                 var currentStock = await ItemModule.getUserItemStock(userId,foodData[DBM_Item_Data.columns.id]);
-                if(currentStock+1>=ItemModule.Properties.maxItem){
+                if(currentStock+qty>=ItemModule.Properties.maxItem){
                     objEmbed.thumbnail = {
                         url:ItemModule.Properties.imgResponse.imgFailed
                     }
@@ -227,20 +239,20 @@ module.exports = {
 
                 //remove the ingredient
                 var query = `UPDATE ${DBM_Item_Inventory.TABLENAME} 
-                SET ${DBM_Item_Inventory.columns.stock} = ${DBM_Item_Inventory.columns.stock}-1 
+                SET ${DBM_Item_Inventory.columns.stock} = ${DBM_Item_Inventory.columns.stock}-${qty} 
                 WHERE ${DBM_Item_Inventory.columns.id_item} in (${idIngredient}) AND 
                 ${DBM_Item_Inventory.columns.id_user}=?`;
                 var dataIngredient = await DBConn.conn.promise().query(query, [userId]);
 
                 // //add the food to inventory
-                await ItemModule.addNewItemInventory(userId,foodData[DBM_Item_Inventory.columns.id],1);
+                await ItemModule.addNewItemInventory(userId,foodData[DBM_Item_Inventory.columns.id],qty);
 
                 //embed
                 var imgUrl = "";
                 if(foodData[DBM_Item_Data.columns.img_url]!=null){
                     imgUrl = foodData[DBM_Item_Data.columns.img_url];
                 }
-                await message.channel.send({embed:KirakiraModule.Embeds.synthesizeComplete(userUsername,userAvatarUrl,foodData[DBM_Item_Data.columns.id],foodData[DBM_Item_Data.columns.name],foodData[DBM_Item_Data.columns.description],imgUrl)});
+                await message.channel.send({embed:KirakiraModule.Embeds.synthesizeComplete(userUsername,userAvatarUrl,foodData[DBM_Item_Data.columns.id],foodData[DBM_Item_Data.columns.name],foodData[DBM_Item_Data.columns.description],qty,imgUrl)});
 
                 break;
         }

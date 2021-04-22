@@ -14,11 +14,33 @@ class Properties{
         imgFailed: "https://waa.ai/JEwr.png"
     }
 
-    static categoryTerm = {
-        card:"card",
-        food:"food",
-        ingredient:"Ingredient",
-        ingredient_rare:"Rare Ingredient",
+    static categoryData = {
+        card:{
+            value:"card",
+            name:"Card"
+        },
+        food:{
+            value:"food",
+            name:"Food"
+        },
+        ingredient:{
+            value:"ingredient",
+            name:"Ingredient"
+        },
+        ingredient_rare:{
+            value:"ingredient_rare",
+            name:"Rare Ingredient"
+        },
+        misc_fragment:{
+            value:"misc_Fragment",
+            name:"Card Fragment",
+        },
+    }
+
+    static saleData = {
+        sale_token:"sale_token",
+        last_date:"last_date",
+        sale_list:"sale_list"
     }
 }
 
