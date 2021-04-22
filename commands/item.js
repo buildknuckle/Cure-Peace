@@ -10,6 +10,7 @@ const DBM_Item_Inventory = require('../database/model/DBM_Item_Inventory');
 const DBM_Item_Data = require('../database/model/DBM_Item_Data');
 const DBM_Card_User_Data = require('../database/model/DBM_Card_User_Data');
 const DBM_Card_Guild = require('../database/model/DBM_Card_Guild');
+const DBM_Card_Data = require('../database/model/DBM_Card_Data');
 
 module.exports = {
     name: 'item',
@@ -278,22 +279,57 @@ module.exports = {
                 }
 
                 var messageValue = `${CardModule.StatusEffect.buffData[itemData[DBM_Item_Data.columns.effect_data]].description}`;
-                var clearStatusEffect = false;
+                var clearStatusEffect = false; var announceStatusEffect = true;
 
                 switch(itemData[DBM_Item_Data.columns.effect_data].toLowerCase()){
+                    case CardModule.StatusEffect.buffData.scan_tsunagarus.value:
+                        //check for guild spawn type
+                        var guildSpawnData = await CardGuildModule.getCardGuildData(guildId);
+                        var spawnedCardData = {
+                            token:guildSpawnData[DBM_Card_Guild.columns.spawn_token],
+                            type:guildSpawnData[DBM_Card_Guild.columns.spawn_type]
+                        }
+
+                        if(spawnedCardData.token!=null&&spawnedCardData.type!=null){
+                            switch(spawnedCardData.type.toLowerCase()){
+                                case "battle":
+                                    announceStatusEffect = false;
+                                    var jsonParsedSpawnData = JSON.parse(guildSpawnData[DBM_Card_Guild.columns.spawn_data]);
+                                    var cardDataReward = await CardModule.getCardData(jsonParsedSpawnData[CardModule.Properties.spawnData.battle.id_card_reward]);
+                                    var enemyType = jsonParsedSpawnData[CardModule.Properties.spawnData.battle.type];
+
+                                    objEmbed.thumbnail = {
+                                        url:CardModule.Properties.enemySpawnData.tsunagarus.image[enemyType]
+                                    }
+                                    objEmbed.fields = [
+                                        {
+                                            name:`${CardModule.StatusEffect.buffData[itemData[DBM_Item_Data.columns.effect_data]].name}`,
+                                            value:`This tsunagarus will drop: **${cardDataReward[DBM_Card_Data.columns.id_card]} - ${cardDataReward[DBM_Card_Data.columns.name]}**`
+                                        }
+                                    ];
+                                    break;
+                                default:
+                                    objEmbed.thumbnail = {
+                                        url:CardModule.Properties.imgResponse.imgError
+                                    }
+                                    objEmbed.description = `:x: Cannot use this item when no tsunagarus detected!`;
+                                    return message.channel.send({embed:objEmbed});
+                                    break;
+                            }
+                            
+                        } else {
+                            objEmbed.thumbnail = {
+                                url:CardModule.Properties.imgResponse.imgError
+                            }
+                            objEmbed.description = `:x: Cannot use this item when no tsunagarus detected!`;
+
+                            return message.channel.send({embed:objEmbed});
+                        }
+                        break;
                     case CardModule.StatusEffect.buffData.clear_status_all.value:
                         //clear the status effect
                         await CardModule.StatusEffect.updateStatusEffect(userId,null);
                         break;
-                    // case CardModule.StatusEffect.buffData.second_chance.value:
-                    //     //update the capture token
-                    //     // var parameterSet = new Map();
-                    //     // parameterSet.set(DBM_Card_User_Data.columns.spawn_token,null);
-                    //     // var parameterWhere = new Map();
-                    //     // parameterWhere.set(DBM_Card_User_Data.columns.id_user,userId);
-                    //     // await DB.update(DBM_Card_User_Data.TABLENAME,parameterSet,parameterWhere);
-                    //     await CardModule.StatusEffect.updateStatusEffect(userId,itemData[DBM_Item_Data.columns.effect_data]);
-                    //     break;
                     default:
                         //check for debuff status effect:
                         if(currentStatusEffect in CardModule.StatusEffect.debuffData){
@@ -348,15 +384,16 @@ module.exports = {
 
                 //update the item stock
                 await ItemModule.updateItemStock(userId,itemId,-1);
-
-                objEmbed.description = `<@${userId}> used the item: **${itemData[DBM_Item_Data.columns.name]}**.`;
-                objEmbed.fields = [
-                    {
-                        name:`Status Effect: ${CardModule.StatusEffect.buffData[itemData[DBM_Item_Data.columns.effect_data]].name}`,
-                        value:messageValue,
-                        inline:true
-                    }
-                ]
+                //announce item use
+                if(announceStatusEffect){
+                    objEmbed.fields = [
+                        {
+                            name:`Status Effect: ${CardModule.StatusEffect.buffData[itemData[DBM_Item_Data.columns.effect_data]].name}`,
+                            value:messageValue,
+                            inline:true
+                        }
+                    ];
+                }
                 
                 return message.channel.send({embed:objEmbed});
 

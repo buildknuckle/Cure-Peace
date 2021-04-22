@@ -19,7 +19,7 @@ const latestVersion = "1.13";
 
 class Properties{
     static embedColor = '#efcc2c';
-    static maximumCard = 99; 
+    static maximumCard = 99;
     static limit = {
         colorpoint:2000,
         mofucoin:2000,
@@ -95,8 +95,12 @@ class Properties{
             type:"type",//enemy type
             level:"level",//the level of the enemy
             color:"color",
+            color_non:"color_non",//non color condition
+            //for color condition
             color_lives:"color_lives",
             rarity:"rarity",
+            rarity_less:"rarity_less",//less
+            rarity_more:"rarity_more",//more rarity
             id_enemy:"id_enemy",
             id_card_reward:"id_card_reward",
             special_allow:"special_allow",//true: special can be used
@@ -178,7 +182,7 @@ class Properties{
             term:"oshimaida"
         },
         "star twinkle":{
-            term:"nottoriga"
+            term:"nottrigger"
         },
         "healin' good":{
             term:"megabyogen"
@@ -244,6 +248,7 @@ class Properties{
             special_attack:"Marble Screw",
             img_special_attack:"https://cdn.discordapp.com/attachments/793374640839458837/817775242729881660/unknown.png",
             img_transformation:[],
+            badge_completion:"",
             hint_chiguhaguu:"Emissary of light, <x>!",
             description:"nagisa description",
             bio:{
@@ -1321,7 +1326,7 @@ class Properties{
                 value4:""
             }
         },
-        amour:{
+        ruru:{
             total:11,
             icon:"https://waa.ai/JEwH.png",
             color:"purple",
@@ -2496,6 +2501,12 @@ class StatusEffect{
             name:"Special Break",
             description:"**Break** through enemy **special protection**!",
             permanent:false
+        },
+        scan_tsunagarus:{
+            value:"scan_tsunagarus",
+            name:"🔍 Tsunagascan!",
+            description:"Scan",
+            permanent:false
         }
     }
 
@@ -3664,7 +3675,7 @@ const embedCardPackList = {
     },
     {
         name: `Purple`,
-        value: `Yuri\nMakoto\nIona\nRiko\nYukari\nAmour\nMadoka\nKurumi`,
+        value: `Yuri\nMakoto\nIona\nRiko\nYukari\nRuru\nMadoka\nKurumi`,
         inline: true
     },
     {
@@ -4108,7 +4119,7 @@ function getCardPack(id_card){
     } else if(id_card.contains("alyo")){
         return "alice";
     } else if(id_card.contains("amru")){
-        return "amour";
+        return "ruru";
     } else if(id_card.contains("aota")){
         return "aoi";
     } else if(id_card.contains("chsa")){
@@ -4291,7 +4302,7 @@ async function generateCardSpawn(id_guild,specificType=null,overwriteToken = tru
     }
 
     //for debugging purpose:
-    // cardSpawnType = "number";
+    // cardSpawnType = "battle";
 
     var query = "";
     //prepare the embed object
@@ -4494,7 +4505,7 @@ async function generateCardSpawn(id_guild,specificType=null,overwriteToken = tru
                 objEmbed.thumbnail = {
                     url:Properties.imgResponse.imgFailed
                 }
-                objEmbed.description = `**${GlobalFunctions.capitalize(Properties.enemySpawnData.tsunagarus.term.chiridjirin)}** has interrupt over the quiz time.\nRearrange this provided hint: **${name}** and choose the correct branch!`;
+                objEmbed.description = `**${GlobalFunctions.capitalize(Properties.enemySpawnData.tsunagarus.term.chiridjirin)}** has interrupting the quiz time!\nRearrange this provided hint: **${name}** and choose the correct branch!`;
                 objEmbed.fields = [{
                     name:`Branch command:\np!card choose <a/b/c/d>`,
                     value:`**A. ${arrAnswerList[0]}\nB. ${arrAnswerList[1]}\nC. ${arrAnswerList[2]}\nD. ${arrAnswerList[3]}**`
@@ -4528,9 +4539,9 @@ async function generateCardSpawn(id_guild,specificType=null,overwriteToken = tru
 
             //randomize the enemy type:
             var enemyType = GlobalFunctions.capitalize(Properties.enemySpawnData.tsunagarus.term.chokkins);//default enemy type
-            var randomType = GlobalFunctions.randomNumber(0,8);
+            var randomType = GlobalFunctions.randomNumber(0,10);
 
-            // randomType = 3;//for debug purpose only
+            // randomType = 9;//for debug purpose only
 
             //get the random enemy
             var query = `SELECT * 
@@ -4549,7 +4560,77 @@ async function generateCardSpawn(id_guild,specificType=null,overwriteToken = tru
             cardRewardData = cardRewardData[0][0];
 
             var spawnData = "";
-            if(randomType>=6) {
+            if(randomType>=9){
+                //dibosu
+                enemyType = Properties.enemySpawnData.tsunagarus.term.dibosu;
+                var randRarityMin = GlobalFunctions.randomNumber(3,5);
+                var randLevel = GlobalFunctions.randomNumber(1,1);
+
+                var randRarityCondition = GlobalFunctions.randomNumber(0,1);
+                var titleRarity = "Rarity More Than:";
+                if(randRarityCondition){
+                    titleRarity = "Rarity Less Than:";
+                    randRarityCondition = Properties.spawnData.battle.rarity_less;
+                } else {
+                    randRarityCondition = Properties.spawnData.battle.rarity_more;
+                }
+
+                //get the random series information
+                var query = `select ${DBM_Card_Data.columns.series}, ${DBM_Card_Data.columns.pack}, ${DBM_Card_Data.columns.color}
+                from ${DBM_Card_Data.TABLENAME} where ${DBM_Card_Data.columns.series}=? group by ${DBM_Card_Data.columns.color} order by rand() limit 2`;
+                var cardDataWeakness = await DBConn.conn.promise().query(query,[enemyData[DBM_Card_Enemies.columns.series]]);
+                cardDataWeakness = cardDataWeakness[0];
+                var cardDataSeriesWeakness = cardDataWeakness[0][DBM_Card_Data.columns.series];
+
+                //get random color information
+                var randColorCondition = GlobalFunctions.randomNumber(0,1);
+                var titleColor = "Color:";
+                if(randColorCondition){
+                    titleColor = "Non Color:";
+                    randColorCondition = Properties.spawnData.battle.color_non;
+                } else {
+                    randColorCondition = Properties.spawnData.battle.color;
+                }
+
+                var dtColorWeakness = "[";
+                for(var i=0;i<cardDataWeakness.length;i++){
+                    dtColorWeakness+=`"${cardDataWeakness[i][DBM_Card_Data.columns.color]}",`;
+                }
+                dtColorWeakness = dtColorWeakness.replace(/,\s*$/, "");//remove last comma
+                dtColorWeakness += "]";
+
+                //embed
+                objEmbed.image = {
+                    url:Properties.enemySpawnData.tsunagarus.image.dibosu
+                }
+                objEmbed.title = `Tsunagarus Lv.${randLevel} has appeared!`;
+                objEmbed.description = `${GlobalFunctions.capitalize(enemyType)} has manifest the **series cure card** and possesses **${Properties.enemySpawnData[cardDataSeriesWeakness].term}** powers!\n\n**Available Command:**\n⚔️ **p!card battle**: Participate in battle.\n✨ **p!card battle special**: Use the special attack.\n⬆️ **p!card battle charge**: Charge up your special attack.`;
+                objEmbed.color = Properties.enemySpawnData.tsunagarus.embedColor.dibosu;
+                objEmbed.fields = [
+                    {
+                        name:`Monster Type:`,
+                        value:`${Properties.enemySpawnData[cardDataSeriesWeakness].term}`,
+                        inline:true
+                    },
+                    {
+                        name:titleColor,
+                        value:`${dtColorWeakness.replace("[","").replace("]","").replace(/"/g, "")}`,
+                        inline:true
+                    },
+                    {
+                        name:titleRarity,
+                        value:`${randRarityMin}`,
+                        inline:true
+                    }
+                ]
+
+                objEmbed.footer = {
+                    text:`Special Protection: ❌`
+                }
+
+                spawnData = `{"${Properties.spawnData.battle.category}":"${Properties.enemySpawnData.tsunagarus.category.normal}","${Properties.spawnData.battle.type}":"${enemyType}","${Properties.spawnData.battle.id_enemy}":"${enemyData[DBM_Card_Enemies.columns.id]}","${randColorCondition}":${dtColorWeakness},"${Properties.spawnData.battle.level}":1,"${randRarityCondition}":${randRarityMin}}`;
+
+            } else if(randomType>=6) {
                 //buttagiru : 6-7 star
                 var query = `SELECT * 
                 FROM ${DBM_Card_Data.TABLENAME} 

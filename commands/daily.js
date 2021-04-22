@@ -312,6 +312,71 @@ module.exports = {
         var seriesPoint = Math.round(basePoint/2);
         var arrParameterized = [];
         var assignedSeriesCurrency = CardModule.Properties.seriesCardCore[userCardData[DBM_Card_User_Data.columns.series_set]].currency;
+        var bonusReward = "";
+        //check for newbie claim reward
+        if(!userCardData[DBM_Card_User_Data.columns.newbie_reward_claim]){
+            //check if user already own 10 cards
+            var query = `SELECT COUNT(*) as total
+            FROM ${DBM_Card_Inventory.TABLENAME} 
+            WHERE ${DBM_Card_Inventory.columns.id_user}=?`;
+            var totalCard = await DBConn.conn.promise().query(query,[userId]);
+            totalCard = totalCard[0][0]["total"];
+            if(totalCard<10){
+                var query = `(SELECT * 
+                    FROM ${DBM_Card_Data.TABLENAME} 
+                    WHERE ${DBM_Card_Data.columns.rarity}=6 
+                    ORDER BY rand() 
+                    LIMIT 1)
+                    UNION ALL 
+                    (SELECT * 
+                    FROM ${DBM_Card_Data.TABLENAME} 
+                    WHERE ${DBM_Card_Data.columns.rarity}=5 
+                    ORDER BY rand() 
+                    LIMIT 1)
+                    UNION ALL 
+                    (SELECT * 
+                    FROM ${DBM_Card_Data.TABLENAME} 
+                    WHERE ${DBM_Card_Data.columns.rarity}=4 
+                    ORDER BY rand() 
+                    LIMIT 1)
+                    UNION ALL 
+                    (SELECT * 
+                    FROM ${DBM_Card_Data.TABLENAME} 
+                    WHERE ${DBM_Card_Data.columns.rarity}=3 
+                    ORDER BY rand() 
+                    LIMIT 2)
+                    UNION ALL 
+                    (SELECT * 
+                    FROM ${DBM_Card_Data.TABLENAME} 
+                    WHERE ${DBM_Card_Data.columns.rarity}=2 
+                    ORDER BY rand() 
+                    LIMIT 2)
+                    UNION ALL 
+                    (SELECT * 
+                    FROM ${DBM_Card_Data.TABLENAME} 
+                    WHERE ${DBM_Card_Data.columns.rarity}=1 
+                    ORDER BY rand() 
+                LIMIT 3)`;
+                var cardRewardData = await DBConn.conn.promise().query(query);
+                cardRewardData = cardRewardData[0];
+                for(var i=0;i<cardRewardData.length;i++){
+                    bonusReward+=`>${cardRewardData[i][DBM_Card_Data.columns.id_card]} - ${cardRewardData[i][DBM_Card_Data.columns.name]}\n`;
+                    var userCardStock = await CardModule.getUserCardStock(userId,cardRewardData[i][DBM_Card_Data.columns.id_card]);
+                    if(userCardStock<=-1){
+                        await CardModule.addNewCardInventory(userId,cardRewardData[i][DBM_Card_Data.columns.id_card]);
+                    } else {
+                        await CardModule.addNewCardInventory(userId,cardRewardData[i][DBM_Card_Data.columns.id_card],true);
+                    }
+                }
+            }
+            
+            //update the newbie claim reward
+            var query = `UPDATE ${DBM_Card_User_Data.TABLENAME} 
+            SET ${DBM_Card_User_Data.columns.newbie_reward_claim}=? 
+            WHERE ${DBM_Card_User_Data.columns.id_user}=?`;
+            await DBConn.conn.promise().query(query,[1,userId]);
+        }
+
         if(optionalColor!=null){
             //double the color point
             basePoint*=2;
@@ -364,6 +429,13 @@ module.exports = {
                     value:`>${basePoint} overall color points\n>${basePoint} mofucoin\n>${seriesPoint} overall series points.`
                 }
             ]
+        }
+
+        if(bonusReward!=""){
+            objEmbed.fields[1] = {
+                name:"Received 10 Bonus Newbie Card!",
+                value:bonusReward
+            }
         }
 
         //update the token & color point data
