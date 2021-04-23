@@ -218,7 +218,7 @@ class Properties{
         white:{
             imgMysteryUrl:"https://waa.ai/JEyE.png",
             color:"#FFFFEA",
-            total:39
+            total:40
         },
         blue:{
             imgMysteryUrl:"https://waa.ai/JEyE.png",
