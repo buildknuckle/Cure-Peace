@@ -5048,6 +5048,9 @@ module.exports = {
                                 var parameterWhere = new Map();
                                 parameterWhere.set(DBM_Card_Party.columns.id,partyData[DBM_Card_Party.columns.id]);
                                 await DB.update(DBM_Card_Party.TABLENAME,parameterSet,parameterWhere);
+
+                                await CardModule.Party.updatePartyPoint(partyData[DBM_Card_Party.columns.id],1);
+
                             } else {
                                 objEmbed.thumbnail = {
                                     url:CardModule.Properties.imgResponse.imgError

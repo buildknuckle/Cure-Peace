@@ -41,9 +41,10 @@ class Properties{
 
     //any other spawn type that is not listed will put as normal spawn
     static objSpawnType = {
-        number:15,
+        battle:25,
         quiz:20,
-        battle:15,
+        normal:20,
+        number:15,
         color:10,
         series:10
     }
@@ -4286,19 +4287,55 @@ async function generateCardSpawn(id_guild,specificType=null,overwriteToken = tru
 
     //start randomize the spawn
     var cardSpawnType = "";
-    for (const key in Properties.objSpawnType) {
-        if(cardSpawnType==""){
-            var rnd = GlobalFunctions.randomNumber(0,100);
-            var minRnd = 100-Properties.objSpawnType[key];//get the minimum random number
-            if(rnd>=minRnd){
-                cardSpawnType = key;
-            }
-        }
-    }
+
+    // for (const key in Properties.objSpawnType) {
+    //     if(cardSpawnType==""){
+    //         var rnd = GlobalFunctions.randomNumber(0,100);
+    //         var minRnd = 100-Properties.objSpawnType[key];//get the minimum random number
+    //         if(rnd>=minRnd){
+    //             cardSpawnType = key;
+    //         }
+    //     }
+    // }
 
     //if card spawn is empty set to default:normal
-    if(cardSpawnType==""){
-        cardSpawnType = "normal";
+    // if(cardSpawnType==""){
+    //     cardSpawnType = "normal";
+    // }
+
+    var rnd = GlobalFunctions.randomNumber(1,100);
+    // battle:25,//25
+    // quiz:20,//20
+    // normal:20,
+    // number:15,
+    // color:10,
+    // series:10
+    if(rnd<Properties.objSpawnType.battle){
+        cardSpawnType = "battle";
+    } else if(rnd<Properties.objSpawnType.battle+Properties.objSpawnType.normal+Properties.objSpawnType.quiz){
+        var rnd = GlobalFunctions.randomNumber(0,1);
+        switch(rnd){
+            case 0:
+                cardSpawnType = "normal";
+                break;
+            case 1:
+                cardSpawnType = "quiz";
+                break;
+        }
+    } else if(rnd<Properties.objSpawnType.battle+Properties.objSpawnType.normal+Properties.objSpawnType.quiz+Properties.objSpawnType.number){
+        cardSpawnType = "number";
+    } else if(rnd<Properties.objSpawnType.battle+Properties.objSpawnType.normal+Properties.objSpawnType.quiz+Properties.objSpawnType.number+Properties.objSpawnType.color+Properties.objSpawnType.quiz+Properties.objSpawnType.number+Properties.objSpawnType.series){
+        var rnd = GlobalFunctions.randomNumber(0,1);
+        switch(rnd){
+            case 0:
+                cardSpawnType = "series";
+                break;
+            case 1:
+                cardSpawnType = "color";
+                break;
+        }
+    } else {
+        cardSpawnType = "battle";
     }
 
     //for debugging purpose:
@@ -4451,7 +4488,7 @@ async function generateCardSpawn(id_guild,specificType=null,overwriteToken = tru
                     url:Properties.spawnData.quiz.embed_img
                 }
                 objEmbed.footer = {
-                    text:`⭐ Rarity: 4-5 | ⏫ Catch Rate: 100%`
+                    text:`⭐ Rarity: 1-4 | ⏫ Catch Rate: 100%`
                 }
             } else {
                 var splittedText = Properties.dataCardCore[cardSpawnPack].fullname.split(" ");
@@ -4560,7 +4597,7 @@ async function generateCardSpawn(id_guild,specificType=null,overwriteToken = tru
             cardRewardData = cardRewardData[0][0];
 
             var spawnData = "";
-            if(randomType>=9){
+            if(randomType>=10){
                 //dibosu
                 enemyType = Properties.enemySpawnData.tsunagarus.term.dibosu;
                 var randRarityMin = GlobalFunctions.randomNumber(3,5);
