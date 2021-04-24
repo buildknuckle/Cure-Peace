@@ -3208,7 +3208,6 @@ class Party {
 
             objReturn.status_effect = cardData[DBM_Card_Data.columns.ability1];
             objReturn.synergy_series = synergySeries;
-
         }
 
         //member status
@@ -3220,9 +3219,12 @@ class Party {
                     var cardData = await getCardData(cardUserData[DBM_Card_User_Data.columns.card_id_selected]);
                     var cardInventoryData = await getCardInventoryUserData(splittedUserId[i],
                         cardUserData[DBM_Card_User_Data.columns.card_id_selected]);
+                    if(cardData[DBM_Card_Data.columns.series]==synergySeries){
+                        objReturn.atk+=Status.getAtk(cardInventoryData[DBM_Card_Inventory.columns.level],cardData[DBM_Card_Data.columns.max_atk]);
+                        objReturn.hp+=Status.getHp(cardInventoryData[DBM_Card_Inventory.columns.level],cardData[DBM_Card_Data.columns.max_hp]);
+                    }
                     // console.log(Status.getAtk(cardUserData[DBM_Card_User_Data.columns.level],cardData[DBM_Card_Data.columns.max_atk]));
-                    objReturn.atk+=Status.getAtk(cardInventoryData[DBM_Card_Inventory.columns.level],cardData[DBM_Card_Data.columns.max_atk]);
-                    objReturn.hp+=Status.getHp(cardInventoryData[DBM_Card_Inventory.columns.level],cardData[DBM_Card_Data.columns.max_hp]);
+                    
                     //check for synergy
                     if(synergySeries!=""&&synergySeries!=cardData[DBM_Card_Data.columns.series]){
                         objReturn.synergy = false;
@@ -3233,7 +3235,6 @@ class Party {
         
 
         return objReturn;
-
     }
 
     static async updateParty(id_guild,id_user,party_name){
@@ -4709,30 +4710,30 @@ async function generateCardSpawn(id_guild,specificType=null,overwriteToken = tru
 
                 //start randomize status
                 //randomize attack group
-                var rndAtk1 = GlobalFunctions.randomNumber(200,(randBaseAtk*randLevel));
-                var rndAtk2 = GlobalFunctions.randomNumber(rndAtk1+2,rndAtk1+3+(randBaseAtk*randLevel));
-                var rndAtk3 = GlobalFunctions.randomNumber(rndAtk2+2,rndAtk2+3+(randBaseAtk*randLevel));
+                var rndAtk1 = GlobalFunctions.randomNumber(1000,1001+(randBaseAtk*randLevel));
+                // var rndAtk2 = GlobalFunctions.randomNumber(rndAtk1+2,rndAtk1+3+(randBaseAtk*randLevel));
+                // var rndAtk3 = GlobalFunctions.randomNumber(rndAtk2+2,rndAtk2+3+(randBaseAtk*randLevel));
                 var dtAtk = `"${Properties.spawnData.battle.atk1}":${rndAtk1},`;
                 var txtAtk = String(rndAtk1);
-                txtAtk = txtAtk.replace(txtAtk[0],"?");
+                txtAtk = txtAtk.replace(txtAtk[0],"?").replace([txtAtk[1]],"?");
                 if(rndShowInfo>GlobalFunctions.randomNumber(1,10)){
-                    // txtAtk=rndAtk1;
+                    txtAtk=rndAtk1;
                 }
                 // txtAtk = txtAtk.replace(txtAtk[0],"?");
 
                 //a-b,b-c,>c
                 //randomize hp group
-                var rndHp1 = GlobalFunctions.randomNumber(200,201+(randBaseHp*randLevel));
-                var rndHp2 = GlobalFunctions.randomNumber(rndHp1+2,rndHp1+3+(randBaseHp*randLevel));
-                if(rndHp2>=519){rndHp2=519;}
-                var rndHp3 = GlobalFunctions.randomNumber(rndHp2+2,rndHp2+3+(randBaseHp*randLevel));
-                if(rndHp3>=750){rndHp3=750;}//cap the hp penalty
+                var rndHp1 = GlobalFunctions.randomNumber(1500,1501+(randBaseHp*randLevel));
+                // var rndHp2 = GlobalFunctions.randomNumber(rndHp1+2,rndHp1+3+(randBaseHp*randLevel));
+                // if(rndHp2>=519){rndHp2=519;}
+                // var rndHp3 = GlobalFunctions.randomNumber(rndHp2+2,rndHp2+3+(randBaseHp*randLevel));
+                // if(rndHp3>=750){rndHp3=750;}//cap the hp penalty
                 var dtHp = `"${Properties.spawnData.battle.hp1}":${rndHp1},`;
                 dtHp = dtHp.replace(/,\s*$/, "");//remove last comma
                 var txtHp = String(rndHp1);
-                txtHp = txtHp.replace(txtHp[0],"?");
+                txtHp = txtHp.replace(txtHp[0],"?").replace(txtHp[1],"?");
                 if(rndShowInfo>GlobalFunctions.randomNumber(1,10)){
-                    // txtHp=rndHp1;
+                    txtHp=rndHp1;
                 }
 
                 //embed
