@@ -301,12 +301,21 @@ module.exports = {
                                     objEmbed.thumbnail = {
                                         url:CardModule.Properties.enemySpawnData.tsunagarus.image[enemyType]
                                     }
-                                    objEmbed.fields = [
-                                        {
-                                            name:`${CardModule.StatusEffect.buffData[itemData[DBM_Item_Data.columns.effect_data]].name}`,
-                                            value:`This tsunagarus will drop: **${cardDataReward[DBM_Card_Data.columns.id_card]} - ${cardDataReward[DBM_Card_Data.columns.name]}**`
+                                    if(cardDataReward == null){
+                                        objEmbed.thumbnail = {
+                                            url:CardModule.Properties.imgResponse.imgError
                                         }
-                                    ];
+                                        objEmbed.description = `:x: I can't scan the card reward for this tsunagarus!`;
+                                        return message.channel.send({embed:objEmbed});
+                                    } else {
+                                        objEmbed.fields = [
+                                            {
+                                                name:`${CardModule.StatusEffect.buffData[itemData[DBM_Item_Data.columns.effect_data]].name}`,
+                                                value:`This tsunagarus will drop: **${cardDataReward[DBM_Card_Data.columns.id_card]} - ${cardDataReward[DBM_Card_Data.columns.name]}**`
+                                            }
+                                        ];
+                                    }
+                                    
                                     break;
                                 default:
                                     objEmbed.thumbnail = {
