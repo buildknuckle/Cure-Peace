@@ -2747,76 +2747,26 @@ module.exports = {
 
                         captured = true;
                         if(!specialActivated){
-                            
                             if(CardModule.Properties.spawnData.battle.rarity_less in jsonParsedSpawnData&&
-                            cardData[DBM_Card_Data.columns.rarity]+rarityBoost>enemyRarity){
+                            cardData[DBM_Card_Data.columns.rarity]+rarityBoost>=enemyRarity){
                                 captured = false;
-                                console.log("1");
                             }
                             
                             if(CardModule.Properties.spawnData.battle.rarity_more in jsonParsedSpawnData&&
-                                cardData[DBM_Card_Data.columns.rarity]+rarityBoost<enemyRarity){
+                                cardData[DBM_Card_Data.columns.rarity]+rarityBoost<=enemyRarity){
                                 captured = false;
-                                console.log("2");
                             }
 
                             if(CardModule.Properties.spawnData.battle.color in jsonParsedSpawnData&&
                                 (!arrColor.includes(cardData[DBM_Card_Data.columns.color]))){
                                 captured = false;
-                                console.log("3");
                             }
 
                             if(CardModule.Properties.spawnData.battle.color_non in jsonParsedSpawnData&&
                                 (arrColor.includes(cardData[DBM_Card_Data.columns.color]))){
                                 captured = false;
-                                console.log("4");
                             }
                         }
-
-                        // if(specialActivated||
-                        //     (CardModule.Properties.spawnData.battle.rarity_less in jsonParsedSpawnData&&
-                        //     cardData[DBM_Card_Data.columns.rarity]<enemyRarity)&&
-                        //     (CardModule.Properties.spawnData.battle.rarity_more in jsonParsedSpawnData&&
-                        //     cardData[DBM_Card_Data.columns.rarity]>enemyRarity)&&
-                        //     (CardModule.Properties.spawnData.battle.color in jsonParsedSpawnData&&
-                        //     (arrColor.includes(cardData[DBM_Card_Data.columns.color])))&&
-                        //     (CardModule.Properties.spawnData.battle.color_non in jsonParsedSpawnData&&
-                        //     (!arrColor.includes(cardData[DBM_Card_Data.columns.color])))){
-                        //     captured = true;
-                        // }
-
-                        // if(CardModule.Properties.spawnData.battle.rarity_less in jsonParsedSpawnData&&
-                        //     cardData[DBM_Card_Data.columns.rarity]<enemyRarity){
-                        //     console.log("OK");
-                        // }
-
-                        // console.log(captured);
-
-                        // return;
-
-                        // if(CardModule.Properties.spawnData.battle.rarity_less in jsonParsedSpawnData&&
-                        //     cardData[DBM_Card_Data.columns.rarity]<enemyRarity){
-                        //         captured = true;
-                        // } else if(CardModule.Properties.spawnData.battle.rarity_more in jsonParsedSpawnData&&
-                        //     cardData[DBM_Card_Data.columns.rarity]>enemyRarity){
-                        //         captured = true;
-                        // }
-        
-                        // var enemyType = jsonParsedSpawnData[CardModule.Properties.spawnData.battle.type];
-                        // var arrColor = [];
-                        // if(CardModule.Properties.spawnData.battle.color in jsonParsedSpawnData&&
-                        //     (arrColor.includes(cardData[DBM_Card_Data.columns.color]))){
-                        //     captured = true;
-                        // } else if(CardModule.Properties.spawnData.battle.color_non in jsonParsedSpawnData&&
-                        //     (!arrColor.includes(cardData[DBM_Card_Data.columns.color]))){
-                        //     captured = true;
-                        // }
-
-                        // if(specialActivated||(arrColor.includes(cardData[DBM_Card_Data.columns.color])&&
-                        // cardData[DBM_Card_Data.columns.series].toLowerCase()==enemyData[DBM_Card_Enemies.columns.series].toLowerCase()&&
-                        // cardData[DBM_Card_Data.columns.rarity]+rarityBoost>=enemyRarity)){
-                        //     captured = true;
-                        // }
 
                         break;
                     case CardModule.Properties.enemySpawnData.tsunagarus.term.buttagiru:

@@ -4652,7 +4652,7 @@ async function generateCardSpawn(id_guild,specificType=null,overwriteToken = tru
                     },
                     {
                         name:titleColor,
-                        value:`${dtColorWeakness.replace("[","").replace("]","").replace(/"/g, "")}`,
+                        value:`${dtColorWeakness.replace("[","").replace("]","").replace(/"/g, "").replace(/,/g,"/")}`,
                         inline:true
                     },
                     {
