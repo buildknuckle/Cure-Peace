@@ -4073,7 +4073,6 @@ module.exports = {
 
                         //check for card data
                         var cardData = await CardModule.getCardData(cardId);
-                        var cardData = await CardModule.getCardData(targetCardId);
 
                         if(cardData==null){
                             objEmbed.thumbnail = {
@@ -4125,61 +4124,54 @@ module.exports = {
                             }
                             objEmbed.description = `:x: Sorry, **${cardData[DBM_Card_Data.columns.id_card]} - ${cardData[DBM_Card_Data.columns.name]}** already reached the max level!`;
                         } else if(itemStock>=1&&userTargetCardStock>=0){
-                            if(rarity<6){
-                                objEmbed.thumbnail = {
-                                    url:CardModule.Properties.imgResponse.imgError
-                                }
-                                objEmbed.description = `:x: Sorry, you can only convert card to level with 6/7 :star: card.`;
-                            } else {
-                                //check for card level
-                                switch(cardData[DBM_Card_Data.columns.rarity]){
-                                    case 6:
-                                        rarityValue = 4;
-                                        break;
-                                    case 7:
-                                        rarityValue = 5;
-                                        break;
-                                    default:
-                                        rarityValue = rarity;
-                                        break;
-                                }
+                            //check for card level
+                            switch(rarity){
+                                case 6:
+                                case 7:
+                                    rarityValue = 6;
+                                default:
+                                    rarityValue = rarity;
+                                    break;
+                            }
 
+                            var cardData = await CardModule.getCardData(targetCardId);//target card id
+
+                            //update the level
+                            var query = `UPDATE ${DBM_Card_Inventory.TABLENAME} 
+                            SET ${DBM_Card_Inventory.columns.level}=${DBM_Card_Inventory.columns.level}+${rarityValue}
+                            WHERE ${DBM_Card_Inventory.columns.id_user}=? AND 
+                            ${DBM_Card_Inventory.columns.id_card}=?`;
+                            await DBConn.conn.promise().query(query,[userId,cardData[DBM_Card_Data.columns.id_card]]);
+
+                            //update the card stock
+                            var query = `UPDATE ${DBM_Card_Inventory.TABLENAME}
+                            SET ${DBM_Card_Inventory.columns.stock}=${DBM_Card_Inventory.columns.stock}-1  
+                            WHERE ${DBM_Card_Inventory.columns.id_user}=? AND 
+                            ${DBM_Card_Inventory.columns.id_card}=?`;
+                            await DBConn.conn.promise().query(query,[userId,cardId]);
+
+                            //get latest target card level & update to max level if exceed
+                            var userCardData = await CardModule.getUserCardInventoryData(userId,targetCardId)//card target
+                            if(userCardData[DBM_Card_Inventory.columns.level]>=CardModule.Leveling.getMaxLevel(cardData[DBM_Card_Data.columns.rarity])){
                                 //update the level
                                 var query = `UPDATE ${DBM_Card_Inventory.TABLENAME} 
-                                SET ${DBM_Card_Inventory.columns.level}=${DBM_Card_Inventory.columns.level}+${rarityValue}
+                                SET ${DBM_Card_Inventory.columns.level}=?
                                 WHERE ${DBM_Card_Inventory.columns.id_user}=? AND 
                                 ${DBM_Card_Inventory.columns.id_card}=?`;
-                                await DBConn.conn.promise().query(query,[userId,cardData[DBM_Card_Data.columns.id_card]]);
-
-                                //update the card stock
-                                var query = `UPDATE ${DBM_Card_Inventory.TABLENAME}
-                                SET ${DBM_Card_Inventory.columns.stock}=${DBM_Card_Inventory.columns.stock}-1  
-                                WHERE ${DBM_Card_Inventory.columns.id_user}=? AND 
-                                ${DBM_Card_Inventory.columns.id_card}=?`;
-                                await DBConn.conn.promise().query(query,[userId,cardId]);
-
-                                //get latest target card level & update to max level if exceed
-                                var userCardData = await CardModule.getUserCardInventoryData(userId,targetCardId)//card target
-                                if(userCardData[DBM_Card_Inventory.columns.level]>=CardModule.Leveling.getMaxLevel(cardData[DBM_Card_Data.columns.rarity])){
-                                    //update the level
-                                    var query = `UPDATE ${DBM_Card_Inventory.TABLENAME} 
-                                    SET ${DBM_Card_Inventory.columns.level}=?
-                                    WHERE ${DBM_Card_Inventory.columns.id_user}=? AND 
-                                    ${DBM_Card_Inventory.columns.id_card}=?`;
-                                    await DBConn.conn.promise().query(query,[CardModule.Leveling.getMaxLevel(cardData[DBM_Card_Data.columns.rarity]),userId,cardData[DBM_Card_Data.columns.id_card]]);
-                                }
-
-                                //get latest target card level
-                                var userCardData = await CardModule.getUserCardInventoryData(userId,targetCardId)//card target
-
-                                var objEmbed = CardModule.embedCardLevelUp(cardData[DBM_Card_Data.columns.color],cardData[DBM_Card_Data.columns.id_card],cardData[DBM_Card_Data.columns.pack],cardData[DBM_Card_Data.columns.name],cardData[DBM_Card_Data.columns.img_url],cardData[DBM_Card_Data.columns.series],cardData[DBM_Card_Data.columns.rarity],userAvatarUrl,userUsername,userCardData[DBM_Card_Inventory.columns.level],cardData[DBM_Card_Data.columns.max_hp],cardData[DBM_Card_Data.columns.max_atk],userCardData[DBM_Card_Inventory.columns.level_special]);
-
-                                if(userCardData[DBM_Card_Inventory.columns.is_gold]){
-                                    objEmbed = CardModule.embedCardLevelUp(cardData[DBM_Card_Data.columns.color],cardData[DBM_Card_Data.columns.id_card],cardData[DBM_Card_Data.columns.pack],cardData[DBM_Card_Data.columns.name],cardData[DBM_Card_Data.columns.img_url_upgrade1],cardData[DBM_Card_Data.columns.series],cardData[DBM_Card_Data.columns.rarity],userAvatarUrl,userUsername,userCardData[DBM_Card_Inventory.columns.level],cardData[DBM_Card_Data.columns.max_hp],cardData[DBM_Card_Data.columns.max_atk],userCardData[DBM_Card_Inventory.columns.level_special],CardModule.Properties.cardCategory.gold.value);
-                                }
-
-                                return message.channel.send({content:`**${userUsername}** has convert **${cardData[DBM_Card_Data.columns.id_card]} - ${cardData[DBM_Card_Data.columns.name]}** & increased **${cardData[DBM_Card_Data.columns.name]}** level by **${rarityValue}**.\n${cardData[DBM_Card_Data.columns.name]} is now level **${userCardData[DBM_Card_Inventory.columns.level]}**!`, embed:objEmbed});
+                                await DBConn.conn.promise().query(query,[CardModule.Leveling.getMaxLevel(cardData[DBM_Card_Data.columns.rarity]),userId,cardData[DBM_Card_Data.columns.id_card]]);
                             }
+
+                            //get latest target card level
+                            var userCardData = await CardModule.getUserCardInventoryData(userId,targetCardId)//card target
+
+                            var objEmbed = CardModule.embedCardLevelUp(cardData[DBM_Card_Data.columns.color],cardData[DBM_Card_Data.columns.id_card],cardData[DBM_Card_Data.columns.pack],cardData[DBM_Card_Data.columns.name],cardData[DBM_Card_Data.columns.img_url],cardData[DBM_Card_Data.columns.series],cardData[DBM_Card_Data.columns.rarity],userAvatarUrl,userUsername,userCardData[DBM_Card_Inventory.columns.level],cardData[DBM_Card_Data.columns.max_hp],cardData[DBM_Card_Data.columns.max_atk],userCardData[DBM_Card_Inventory.columns.level_special]);
+
+                            if(userCardData[DBM_Card_Inventory.columns.is_gold]){
+                                objEmbed = CardModule.embedCardLevelUp(cardData[DBM_Card_Data.columns.color],cardData[DBM_Card_Data.columns.id_card],cardData[DBM_Card_Data.columns.pack],cardData[DBM_Card_Data.columns.name],cardData[DBM_Card_Data.columns.img_url_upgrade1],cardData[DBM_Card_Data.columns.series],cardData[DBM_Card_Data.columns.rarity],userAvatarUrl,userUsername,userCardData[DBM_Card_Inventory.columns.level],cardData[DBM_Card_Data.columns.max_hp],cardData[DBM_Card_Data.columns.max_atk],userCardData[DBM_Card_Inventory.columns.level_special],CardModule.Properties.cardCategory.gold.value);
+                            }
+
+                            return message.channel.send({content:`**${userUsername}** has convert **${cardData[DBM_Card_Data.columns.id_card]} - ${cardData[DBM_Card_Data.columns.name]}** & increased **${cardData[DBM_Card_Data.columns.name]}** level by **${rarityValue}**.\n${cardData[DBM_Card_Data.columns.name]} is now level **${userCardData[DBM_Card_Inventory.columns.level]}**!`, embed:objEmbed});
+                            
                         }
 
                         break;
