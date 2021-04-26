@@ -1221,18 +1221,19 @@ module.exports = {
 
                 break;
             case "series":
-                var newSeries = args[2];
+                var newSeries = args.slice(2).join(' ');
+                
                 //validator if parameter format is not correct
                 if(args[1]==null|| args[1].toLowerCase()!="set" || 
                     (args[1].toLowerCase()!="set" && newSeries == null)||
-                    (args[1].toLowerCase()=="set" && !(newSeries in CardModule.Properties.seriesCardCore))){
+                    (args[1].toLowerCase()=="set" && !CardModule.Properties.arrSeriesName.includes(newSeries))){
                     var txtSeriesList = "";
                     CardModule.Properties.arrSeriesList.forEach(entry => {
-                        txtSeriesList+=`-**${CardModule.Properties.seriesCardCore[entry].value}** (${CardModule.Properties.seriesCardCore[entry].pack}) : ${CardModule.Properties.seriesCardCore[entry].currency}\n`
+                        txtSeriesList+=`-**${CardModule.Properties.seriesCardCore[entry].pack}** : ${CardModule.Properties.seriesCardCore[entry].currency}\n`
                     });
                     var objEmbed = {
                         color: CardModule.Properties.embedColor,
-                        description : ":x: Please enter the correct series id from the list below.\nExample: **p!card series set sp001**:",
+                        description : ":x: Please enter the correct series from the list below.\nExample: **p!card series set max heart**",
                         fields:[{
                             name:"Series List:",
                             value:txtSeriesList
@@ -1245,7 +1246,7 @@ module.exports = {
                 var assignedSeries = userCardData[DBM_Card_User_Data.columns.series_set];
                 var assignedSeriesPoint = userCardData[`${assignedSeries}`];
                 var changePrice = 50;
-                //validator: check if color points is enough/not
+                //validator: check if series points is enough/not
                 if(assignedSeriesPoint<changePrice){
                     var objEmbed = {
                         color: CardModule.Properties.embedColor,
@@ -1256,6 +1257,8 @@ module.exports = {
                     };
                     return message.channel.send({embed:objEmbed});
                 }
+
+                newSeries = CardModule.Properties.seriesCardCore[CardModule.Properties.seriesCardCore[newSeries].series_point].value;
 
                 //assign new series & update series
                 var parameterSet = new Map();

@@ -1782,6 +1782,7 @@ class Properties{
     }
 
     static arrSeriesList = ["sp001","sp002","sp003","sp004","sp005","sp006","sp007","sp008","sp009","sp010","sp011","sp012","sp013","sp014","sp015"];
+    static arrSeriesName = ["max heart","splash star","yes! precure 5 gogo!","fresh","heartcatch","suite","smile","doki doki!","happiness","go! princess","mahou tsukai","kirakira","hugtto","star twinkle","healin' good"];
 
     static seriesCardCore = {
         sp001:{
