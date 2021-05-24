@@ -151,6 +151,8 @@ module.exports = {
                     }
                     objEmbed.description = ":x: Please enter the valid qty number from 1-99.";
                     return message.channel.send({embed:objEmbed});
+                } else {
+                    qty = parseInt(args[2]);
                 }
 
                 if(recipeId==null){

@@ -568,7 +568,7 @@ module.exports = {
                         icon_url: "https://cdn.discordapp.com/attachments/793415946738860072/827928547590668298/latest.png"
                     },
                     title:"Fragment Shop",
-                    description:`Hariham Harry has returned from the future with fragments and has opened up shop again!\nUse the command "**p!item sale buy <sale number> [qty]**" to buy the fragment!\nBe quick, once someone buys a sale, it's one! And remember, you can buy as many sale as you want, but can only buy up to 1 fragment type!`,
+                    description:`Hariham Harry has returned from the future with fragments and has opened up shop again!\nUse the command "**p!item sale buy <sale number> [qty]**" to buy the fragment!\nBe quick, once someone buys a sale, it's gone! And remember, you can buy as many sale as you want, but can only buy up to 1 fragment type!`,
                     thumbnail:{
                         url:"https://cdn.discordapp.com/attachments/793415946738860072/827928547590668298/latest.png"
                     }

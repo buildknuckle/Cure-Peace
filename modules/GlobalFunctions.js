@@ -9,6 +9,13 @@ module.exports = {
       }
       return separateWord.join(' ');
    },
+   getCurrentDateFooterPrint(){
+      var today = new Date();
+      var dd = String(today.getDate()).padStart(2, '0');
+      var mm = String(today.getMonth() + 1).padStart(2, '0'); //January is 0!
+      var yyyy = today.getFullYear();
+      return `${dd}/${mm}/${yyyy}`;
+   },
    getCurrentDate(){
       var today = new Date();
       var dd = String(today.getDate()).padStart(2, '0');
@@ -77,6 +84,10 @@ module.exports = {
       var keys = Object.keys(obj);
       return obj[keys[ keys.length * Math.random() << 0]];
    },
+   randomPropertyKey(obj) {
+      var keys = Object.keys(obj);
+      return keys[ keys.length * Math.random() << 0];
+   },
    cutText(text,maxLength){
       //give ... from the given length
       if(text.length>=maxLength){
@@ -122,6 +133,17 @@ module.exports = {
       var sec = a.getSeconds() < 10 ? '0' + a.getSeconds() : a.getSeconds();
       var time = date + '-' + month + '-' + year + ' ' + hour + ':' + min + ':' + sec ;
       return time;
+   },
+   calculatePercentage(original_value,percentage){
+      return Math.round(original_value*(percentage/100));
+   },
+   calculateAddPercentage(original_value,percentage){
+      return original_value+Math.round(original_value*(percentage/100));
+   },
+   sortObject(dataObject){
+      return Object.fromEntries(
+         Object.entries(dataObject).sort(([,a],[,b]) => a-b)
+     );
    }
 
 }

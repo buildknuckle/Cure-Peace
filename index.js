@@ -105,14 +105,18 @@ client.on('message', async message => {
     try {
         if(!cooldown){
             cooldown = true;
-            await command.execute(message, args);
+            message.channel.startTyping();
+            var msgRet = await command.execute(message, args);
+            message.channel.stopTyping();
             cooldown = false;
         }
+        message.channel.stopTyping();
     } catch (error) {
         console.error(error);
         cooldown = false;
         GlobalFunctions.errorLogger(error);
         message.reply("I'm having trouble doing what you're asking me to do, help!");
+        message.channel.stopTyping();
     }
 
     if (!cooldowns.has(command.name)) {
