@@ -449,7 +449,7 @@ module.exports = {
         await DBConn.conn.promise().query(query, arrParameterized);
 
         //limit all points
-        await CardModule.limitizeUserPoints(userId);
+        await CardModule.limitizeUserPoints();
 
         return message.channel.send({embed:objEmbed});
 	},

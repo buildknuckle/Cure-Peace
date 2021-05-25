@@ -258,7 +258,7 @@ module.exports = {
                     
                 }
 
-                //check if user have item/not
+                //stock validation
                 var userItemStock = await ItemModule.getUserItemStock(userId,itemId);
                 if(userItemStock<=0){
                     objEmbed.thumbnail = {
@@ -355,8 +355,7 @@ module.exports = {
                                         }
                                     }
                                     
-                                    
-                                    messageValue = `Status Effect: ${CardModule.StatusEffect.debuffData[currentStatusEffect].name} has been removed.`;
+                                    messageValue = `✨ **${CardModule.StatusEffect.debuffData[currentStatusEffect].name}** has been removed.\n⬆️**New Status Effect:** ${CardModule.StatusEffect.buffData[itemData[DBM_Item_Data.columns.effect_data]].description}`;
                                 } else {
                                     objEmbed.fields = [
                                         {
@@ -397,11 +396,16 @@ module.exports = {
                 if(announceStatusEffect){
                     objEmbed.fields = [
                         {
-                            name:`Status Effect: ${CardModule.StatusEffect.buffData[itemData[DBM_Item_Data.columns.effect_data]].name}`,
+                            name:`✨Status Effect: ${CardModule.StatusEffect.buffData[itemData[DBM_Item_Data.columns.effect_data]].name}`,
                             value:messageValue,
                             inline:true
                         }
                     ];
+                    if(itemData[DBM_Item_Data.columns.img_url]!=null){
+                        objEmbed.thumbnail = {
+                            url:itemData[DBM_Item_Data.columns.img_url]
+                        }
+                    }
                 }
                 
                 return message.channel.send({embed:objEmbed});

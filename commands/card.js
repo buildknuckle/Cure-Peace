@@ -119,16 +119,22 @@ module.exports = {
                 var currentSE = "-";
                 if(cardUserStatusData[DBM_Card_User_Data.columns.status_effect] in CardModule.StatusEffect.buffData){
                     currentSE = `${CardModule.StatusEffect.buffData[cardUserStatusData[DBM_Card_User_Data.columns.status_effect]].name}\n⬆️ ${CardModule.StatusEffect.buffData[cardUserStatusData[DBM_Card_User_Data.columns.status_effect]].description}`;
+                    //check for hp buff
+                    if(CardModule.StatusEffect.buffData[cardUserStatusData[DBM_Card_User_Data.columns.status_effect]].value.includes("hp_up_")){
+                        iconHp = "⬆️";
+                    } else if(CardModule.StatusEffect.buffData[cardUserStatusData[DBM_Card_User_Data.columns.status_effect]].value.includes("atk_up_")){
+                        iconAtk = "⬆️";
+                    }
                 } else if(cardUserStatusData[DBM_Card_User_Data.columns.status_effect] in CardModule.StatusEffect.debuffData){
                     currentSE = `${CardModule.StatusEffect.debuffData[cardUserStatusData[DBM_Card_User_Data.columns.status_effect]].name}\n⬇️ ${CardModule.StatusEffect.debuffData[cardUserStatusData[DBM_Card_User_Data.columns.status_effect]].description}`;
                 }
 
                 var currentSkills = "-";
                 if(cardUserStatusData[DBM_Card_User_Data.columns.status_effect_2]!=null){
-                    cardUserStatusData[DBM_Card_User_Data.columns.status_effect_2] = JSON.parse(cardUserStatusData[DBM_Card_User_Data.columns.status_effect_2]);
+                    var statusEffect2 = JSON.parse(cardUserStatusData[DBM_Card_User_Data.columns.status_effect_2]);
 
-                    if(cardUserStatusData[DBM_Card_User_Data.columns.status_effect_2].value in CardModule.StatusEffect.cureSkillsBuffData){
-                        currentSkills = `${CardModule.StatusEffect.cureSkillsBuffData[cardUserStatusData[DBM_Card_User_Data.columns.status_effect_2].value].name} x${cardUserStatusData[DBM_Card_User_Data.columns.status_effect_2].attempts}\n⬆️ ${CardModule.StatusEffect.cureSkillsBuffData[cardUserStatusData[DBM_Card_User_Data.columns.status_effect_2].value].description}`;
+                    if(statusEffect2.value in CardModule.StatusEffect.cureSkillsBuffData){
+                        currentSkills = `${CardModule.StatusEffect.cureSkillsBuffData[statusEffect2.value].name} x${statusEffect2.attempts}\n⬆️ ${CardModule.StatusEffect.cureSkillsBuffData[statusEffect2.value].description}`;
                     }
                 }
 
@@ -312,8 +318,7 @@ module.exports = {
                     name: `White Gold:`,
                     value: `Honoka: ${arrCardTotal.honoka}\nMai: ${arrCardTotal.mai}\nKanade: ${arrCardTotal.kanade}`,
                     inline: true
-                }
-            ];
+                }];
 
                 var msgEmbed = new Discord.MessageEmbed(objEmbed);
                 arrPages[3] = msgEmbed;
@@ -343,10 +348,100 @@ module.exports = {
                         }
                     }
 
+                    var iconHp = ""; var iconAtk = "";//for status effect
+                    var bHp = CardModule.Status.getHp(level,hp); var bAtk = CardModule.Status.getAtk(level,atk);
+                    var hp = bHp; var atk = bAtk;
+
+                    //skills effect
+                    var currentSkills = "-";
+                    if(cardUserStatusData[DBM_Card_User_Data.columns.status_effect_2]!=null){
+                        var statusEffect2 = JSON.parse(cardUserStatusData[DBM_Card_User_Data.columns.status_effect_2]).value;
+
+                        if(statusEffect2 in CardModule.StatusEffect.cureSkillsBuffData){
+                            switch(statusEffect2){
+                                case "stats_booster":
+                                    hp+=GlobalFunctions.calculatePercentage(hp,CardModule.StatusEffect.cureSkillsBuffData[statusEffect2].boost_value);
+                                    atk+=GlobalFunctions.calculatePercentage(atk,CardModule.StatusEffect.cureSkillsBuffData[statusEffect2].boost_value);
+                                    break;
+                                case "catchphrage":
+                                    hp-=GlobalFunctions.calculatePercentage(hp,CardModule.StatusEffect.cureSkillsBuffData[statusEffect2].boost_penalty);
+                                    atk+=GlobalFunctions.calculatePercentage(atk,CardModule.StatusEffect.cureSkillsBuffData[statusEffect2].boost_value);
+                                    break;
+                                case "levelcutter":
+                                    level-=GlobalFunctions.calculatePercentage(level,CardModule.StatusEffect.cureSkillsBuffData[statusEffect2].boost_penalty);
+                                    if(level<=1){level = 1;}
+                                    //update the latest stats
+                                    bHp = CardModule.Status.getHp(level,hp); bAtk = CardModule.Status.getAtk(level,atk);
+                                    hp = bHp; atk = bAtk;
+
+                                    atk+=GlobalFunctions.calculatePercentage(atk,CardModule.StatusEffect.cureSkillsBuffData[statusEffect2].boost_value);
+                                    break;
+                                case "endure":
+                                    hp-=GlobalFunctions.calculatePercentage(hp,CardModule.StatusEffect.cureSkillsBuffData[statusEffect2].boost_penalty);
+                                    atk+=GlobalFunctions.calculatePercentage(atk,CardModule.StatusEffect.cureSkillsBuffData[statusEffect2].boost_value);
+                                    break;
+                                case "starmaster":
+                                    rarity+=7;
+                                    break;
+                            }
+                        }
+                    }
+
+                    //prevents from negative/limit
+                    if(hp<=0){ hp=1; } 
+                    else if(hp>=100){ hp=100; }
+                    if(atk<=0){atk=0;}
+                    if(rarity>=7){rarity = 7;}
+
+                    //buff/debuff
+                    if(cardUserStatusData[DBM_Card_User_Data.columns.status_effect] in CardModule.StatusEffect.buffData){
+                        //check for hp buff
+                        if(CardModule.StatusEffect.buffData[cardUserStatusData[DBM_Card_User_Data.columns.status_effect]].value.includes("hp_up_")){
+                            hp+=GlobalFunctions.calculatePercentage(hp,CardModule.StatusEffect.buffData[cardUserStatusData[DBM_Card_User_Data.columns.status_effect]].value_hp_boost);
+
+                        } else if(CardModule.StatusEffect.buffData[cardUserStatusData[DBM_Card_User_Data.columns.status_effect]].value.includes("atk_up_")){
+                            atk+=GlobalFunctions.calculatePercentage(atk,CardModule.StatusEffect.buffData[cardUserStatusData[DBM_Card_User_Data.columns.status_effect]].value_atk_boost);
+                        }
+                    } else if(cardUserStatusData[DBM_Card_User_Data.columns.status_effect] in CardModule.StatusEffect.debuffData){
+                        if(CardModule.StatusEffect.debuffData[cardUserStatusData[DBM_Card_User_Data.columns.status_effect]].value.includes("hp_down_")){
+                            hp-=GlobalFunctions.calculatePercentage(hp,CardModule.StatusEffect.debuffData[cardUserStatusData[DBM_Card_User_Data.columns.status_effect]].value_hp_down);
+
+                        } else if(CardModule.StatusEffect.debuffData[cardUserStatusData[DBM_Card_User_Data.columns.status_effect]].value.includes("atk_down_")){
+                            atk-=GlobalFunctions.calculatePercentage(atk,CardModule.StatusEffect.debuffData[cardUserStatusData[DBM_Card_User_Data.columns.status_effect]].value_atk_down);
+                        }
+                    }
+
+                    //prevents from negative
+                    if(hp<=0){ hp=1; } 
+                    else if(hp>=100){ hp=100; }
+                    if(atk<=0){atk=0;}
+
+                    var txtHp = `${bHp}`; var txtAtk =  `${bAtk}`;
+
+                    if(hp>bHp){ 
+                        iconHp = "⬆️"; 
+                    } else if(hp<bHp) {
+                        iconHp = "⬇️";
+                    }
+
+                    if(iconHp!=""){
+                        txtHp += ` ➡️ ${hp}`;
+                    }
+
+                    if(atk>bAtk){
+                        iconAtk = "⬆️"; 
+                    } else if(atk<bAtk) {
+                        iconAtk = "⬇️"; 
+                    }
+
+                    if(iconAtk!=""){
+                        txtAtk += ` ➡️ ${atk}`;
+                    }
+
                     if(avatarFormMode=="normal"){
                         objEmbed.fields = [{
                             name:`Cure Avatar:\n${rarity+CardModule.Properties.cardCategory[type].rarityBoost}⭐ ${CardModule.Properties.dataCardCore[packName].alter_ego}${goldIcon} Lv.${level}`,
-                            value:`❤️ **HP: **${CardModule.Status.getHp(level,hp)}\n⚔️ **Atk:** ${CardModule.Status.getAtk(level,atk)}\n**Special**: ${CardModule.Properties.dataCardCore[packName].special_attack} Lv.${level_special}`,
+                            value:`${iconHp}❤️ **HP: **${txtHp}\n${iconAtk}⚔️ **Atk:** ${txtAtk}\n**Special**: ${CardModule.Properties.dataCardCore[packName].special_attack} Lv.${level_special}`,
                             inline:true
                         }];
                         objEmbed.image = {
@@ -355,7 +450,7 @@ module.exports = {
                     } else {
                         objEmbed.fields = [{
                             name:`Cure Avatar:\n${rarity+CardModule.Properties.cardCategory[type].rarityBoost}⭐ ${GlobalFunctions.capitalize(cardTypeDisplay)} ${CardModule.Properties.dataCardCore[packName].form[avatarFormMode].name}${goldIcon} Lv.${level}`,
-                            value:`❤️ **HP: **${CardModule.Status.getHp(level,hp)}\n⚔️ **Atk:** ${CardModule.Status.getAtk(level,atk)}\n**Special**: ${CardModule.Properties.dataCardCore[packName].special_attack} Lv.${level_special}`,
+                            value:`${iconHp}❤️ **HP: **${txtHp}\n${iconAtk}⚔️ **Atk:** ${txtAtk}\n\n**Special**: ${CardModule.Properties.dataCardCore[packName].special_attack} Lv.${level_special}`,
                             inline:true
                         }];
 
@@ -2199,10 +2294,10 @@ module.exports = {
                                 break;
                             case CardModule.Properties.spawnData.quiz.typeTsunagarus:
                                 objEmbed.thumbnail = {
-                                    url: CardModule.Properties.enemySpawnData.tsunagarus.image[CardModule.Properties.enemySpawnData.tsunagarus.term.chiridjirin]
+                                    url: TsunagarusModules.Properties.enemySpawnData.tsunagarus.chiridjirin.image
                                 }
                                 objEmbed.title = "Defeated!";
-                                objEmbed.color = CardModule.Properties.enemySpawnData.tsunagarus.embedColor[CardModule.Properties.enemySpawnData.tsunagarus.term.chiridjirin];
+                                objEmbed.color = TsunagarusModules.Properties.enemySpawnData.tsunagarus.chiridjirin.embedColor;
                                 objEmbed.description = `:x: Chirichiri! You failed to rescue this time.`;
                                 break;
                         }
@@ -2726,7 +2821,7 @@ module.exports = {
                 // var partyTotalData = null;//temporary
 
                 //check for team battle validation:
-                if(enemyCategory==CardModule.Properties.enemySpawnData.tsunagarus.category.boss){
+                if(enemyCategory==TsunagarusModules.Properties.enemySpawnData.tsunagarus.category.boss){
                     teamBattle = true;
                 }
 
@@ -2788,7 +2883,7 @@ module.exports = {
                             objEmbed.description = "Use one of these <info> that you want to scan: **color**/**type**/**rarity**.";
                         } else {
                             objEmbed.thumbnail = {
-                                url:CardModule.Properties.enemySpawnData.tsunagarus.image[enemyType]
+                                url:TsunagarusModules.Properties.enemySpawnData.tsunagarus.enemyType.image
                             };
                             switch(args[2]){
                                 case "color":
@@ -2803,7 +2898,7 @@ module.exports = {
                                     break;
                                 case "type":
                                     objEmbed.title = "Enemy Type Scanned!"
-                                    objEmbed.description = `1 PP has been used! This tsunagarus possesses **${CardModule.Properties.enemySpawnData[enemyData[DBM_Card_Enemies.columns.series].toLowerCase()].term}** power`;
+                                    objEmbed.description = `1 PP has been used! This tsunagarus possesses **${TsunagarusModules.Properties.enemySpawnData[enemyData[DBM_Card_Enemies.columns.series].toLowerCase()].term}** power`;
                                     break;
                                 case "rarity":
                                     objEmbed.title = "Rarity Scanned!"
@@ -2819,6 +2914,7 @@ module.exports = {
                     } else if(args[1].toLowerCase()=="charge"){
                         //check if party/individual one
                         //if Properties.spawnData.battle.category
+
                         objEmbed.author = {
                             name: userUsername,
                             icon_url: userAvatarUrl
@@ -2828,24 +2924,45 @@ module.exports = {
                         };
 
                         if(teamBattle){
+                            //team battle
+                            var ppCost = 20;
+
+                            //party point validation: not enough PP
+                            if(partyData.partyData[DBM_Card_Party.columns.party_point]<ppCost){
+                                var objEmbed = await message.channel.send({embed:{
+                                    color:CardModule.Properties.embedColor,
+                                    author: {
+                                        name: userUsername,
+                                        icon_url: userAvatarUrl
+                                    },
+                                    description: `:x: Your party need **${ppCost} Party Points** to charge up the special attack!`
+                                }});
+
+                                setTimeout(function() {
+                                    objEmbed.delete();
+                                }, 5000);
+                                return;
+                            }
+
                             var pointSpecial = CardModule.Status.getPartySpecialPointProgress(userCardInventoryData[DBM_Card_Inventory.columns.level_special]+5);
                             //charge for party
                             objEmbed.title = "Party Special Point Charged!";
                             objEmbed.description = `Your party special point has been charged up by ${pointSpecial}%.`;
-                            
 
                             //update the special point reward
                             var specialCharged = await CardModule.Status.updatePartySpecialPoint(partyData.partyData[DBM_Card_Party.columns.id],pointSpecial);
                             if(specialCharged){
-                                objEmbed.description += `Your party special point is ready now! You can use the special attack on the next battle spawn.`;
-                                // await message.channel.send({embed:CardModule.Embeds.battleSpecialReady(userUsername,userAvatarUrl,false)}); //announce the special ready
+                                objEmbed.description += `\nYour party special point is ready now. You can use the team special attack!`;
                             }
+                            //update the party point
+                            await CardModule.Party.updatePartyPoint(partyData.partyData[DBM_Card_Party.columns.id],-ppCost);
+
                             await message.channel.send({embed:objEmbed});
                         } else {
+                            //individual battle
                             //reduce the color point
                             var cpCost = 20;//cp cost for battling the enemy
-                            if(!specialActivated&&
-                                userCardData[`color_point_${cardData[DBM_Card_Data.columns.color]}`]<=cpCost){
+                            if(userCardData[`color_point_${cardData[DBM_Card_Data.columns.color]}`]<=cpCost){
                                 var objEmbed = await message.channel.send({embed:{
                                     color:CardModule.Properties.embedColor,
                                     author: {
@@ -2862,7 +2979,7 @@ module.exports = {
                                     objEmbed.delete();
                                 }, 5000);
                                 return;
-                            } else if(!specialActivated&&userCardData[`color_point_${cardData[DBM_Card_Data.columns.color]}`]>=cpCost){
+                            } else if(userCardData[`color_point_${cardData[DBM_Card_Data.columns.color]}`]>=cpCost){
                                 var objColor = new Map();
                                 objColor.set(`color_point_${cardData[DBM_Card_Data.columns.color]}`,-cpCost);
                                 await CardModule.updateColorPoint(userId,objColor);
@@ -3102,7 +3219,7 @@ module.exports = {
 
                 if(!specialActivated){
                     switch(enemyType){
-                        case CardModule.Properties.enemySpawnData.tsunagarus.term.dibosu:
+                        case TsunagarusModules.Properties.enemySpawnData.tsunagarus.dibosu.term:
                             
                             var rarity = cardData[DBM_Card_Data.columns.rarity];
                             var overrideChance = false;
@@ -3316,7 +3433,7 @@ module.exports = {
                             }
     
                             break;
-                        case CardModule.Properties.enemySpawnData.tsunagarus.term.buttagiru:
+                        case TsunagarusModules.Properties.enemySpawnData.tsunagarus.buttagiru.term:
                             var overrideChance = false;
                             var rarity = cardData[DBM_Card_Data.columns.rarity];
 
@@ -3508,32 +3625,29 @@ module.exports = {
                             // chance = 100;//for debugging
 
                             //{"category":"boss","type":"buttagiru","id_enemy":"HPC01","level":45,"color_lives":{"purple":420,"yellow":420,"blue":420,"pink":420},"hp_max":420,"id_card_reward":"itmy601","actions":{},"turn":1,"turn_max":28,"rarity":4,"special_allow":false}
+                            var txtHeaderActions = ""; var txtDescriptionActions = "";
                             if(chance>=100||overrideChance){
-                                
                                 var actions = jsonParsedSpawnData[CardModule.Properties.spawnData.battle.actions];
-
-                                var txtHeaderActions = ""; var txtDescriptionActions = "" 
                                 var parsedColorLives = jsonParsedSpawnData[CardModule.Properties.spawnData.battle.color_lives];
 
-                                if(CardModule.Properties.enemySpawnData.tsunagarus.buttagiru.actions.color_absorb.value in actions){
+                                if(TsunagarusModules.Properties.enemySpawnData.tsunagarus.buttagiru.actions.color_absorb.value in actions){
                                     //check for color absorb actions
                                     if(cardData[DBM_Card_Data.columns.color]==jsonParsedSpawnData[CardModule.Properties.spawnData.battle.actions][CardModule.Properties.spawnData.battle.color_absorb]){
                                         parsedColorLives[cardData[DBM_Card_Data.columns.color]]+=atk;
                                         if(parsedColorLives[cardData[DBM_Card_Data.columns.color]]>=hpMaxEnemy){ parsedColorLives[cardData[DBM_Card_Data.columns.color]] = hpMaxEnemy;}
 
-                                        txtHeaderActions = CardModule.Properties.enemySpawnData.tsunagarus.buttagiru.actions.color_absorb.name;
-                                        txtDescriptionActions = CardModule.Properties.enemySpawnData.tsunagarus.buttagiru.actions.color_absorb.description;
+                                        txtHeaderActions = TsunagarusModules.Properties.enemySpawnData.tsunagarus.buttagiru.actions.color_absorb.name;
+                                        txtDescriptionActions = TsunagarusModules.Properties.enemySpawnData.tsunagarus.buttagiru.actions.color_absorb.description;
                                         txtDescriptionActions = `${txtDescriptionActions.replace("<xcolor>",cardData[DBM_Card_Data.columns.color])}. `;
                                         txtDescriptionActions += `Absorbed **${atk} ${cardData[DBM_Card_Data.columns.color]}** atk!`;
+                                        hitted = false;
+                                    } else {
                                         hitted = true;
                                     }
-                                    if(!partyBlock){
-                                        hitted = true;
-                                    }
-                                } else if (CardModule.Properties.enemySpawnData.tsunagarus.buttagiru.actions.buttascream.value in actions){
+                                } else if (TsunagarusModules.Properties.enemySpawnData.tsunagarus.buttagiru.actions.buttascream.value in actions){
                                     //atk debuff
-                                    txtHeaderActions = CardModule.Properties.enemySpawnData.tsunagarus.buttagiru.actions.buttascream.name;
-                                    txtDescriptionActions = CardModule.Properties.enemySpawnData.tsunagarus.buttagiru.actions.buttascream.description;
+                                    txtHeaderActions = TsunagarusModules.Properties.enemySpawnData.tsunagarus.buttagiru.actions.buttascream.name;
+                                    txtDescriptionActions = TsunagarusModules.Properties.enemySpawnData.tsunagarus.buttagiru.actions.buttascream.description;
 
                                     if(!partyBlock){
                                         var randDebuff = [
@@ -3548,10 +3662,10 @@ module.exports = {
                                     
                                     
                                     hitted = true;
-                                } else if (CardModule.Properties.enemySpawnData.tsunagarus.buttagiru.actions.big_punch.value in actions){
+                                } else if (TsunagarusModules.Properties.enemySpawnData.tsunagarus.buttagiru.actions.big_punch.value in actions){
                                     //hp debuff
-                                    txtHeaderActions = CardModule.Properties.enemySpawnData.tsunagarus.buttagiru.actions.big_punch.name;
-                                    txtDescriptionActions = CardModule.Properties.enemySpawnData.tsunagarus.buttagiru.actions.big_punch.description;
+                                    txtHeaderActions = TsunagarusModules.Properties.enemySpawnData.tsunagarus.buttagiru.actions.big_punch.name;
+                                    txtDescriptionActions = TsunagarusModules.Properties.enemySpawnData.tsunagarus.buttagiru.actions.big_punch.description;
 
                                     if(!partyBlock){
                                         var randDebuff = [
@@ -3565,10 +3679,10 @@ module.exports = {
                                     }
                                     
                                     hitted = true;
-                                } else if (CardModule.Properties.enemySpawnData.tsunagarus.buttagiru.actions.charge_up.value in actions){
+                                } else if (TsunagarusModules.Properties.enemySpawnData.tsunagarus.buttagiru.actions.charge_up.value in actions){
                                     //charge up
-                                    txtHeaderActions = CardModule.Properties.enemySpawnData.tsunagarus.buttagiru.actions.charge_up.name;
-                                    txtDescriptionActions = CardModule.Properties.enemySpawnData.tsunagarus.buttagiru.actions.charge_up.description;
+                                    txtHeaderActions = TsunagarusModules.Properties.enemySpawnData.tsunagarus.buttagiru.actions.charge_up.name;
+                                    txtDescriptionActions = TsunagarusModules.Properties.enemySpawnData.tsunagarus.buttagiru.actions.charge_up.description;
 
                                     jsonParsedSpawnData[CardModule.Properties.spawnData.battle.turn]+=1;
                                     
@@ -3578,10 +3692,10 @@ module.exports = {
                                         hitted = true;
                                     }
                                     
-                                } else if (CardModule.Properties.enemySpawnData.tsunagarus.buttagiru.actions.daydreaming.value in actions){
+                                } else if (TsunagarusModules.Properties.enemySpawnData.tsunagarus.buttagiru.actions.daydreaming.value in actions){
                                     //do nothing
-                                    txtHeaderActions = CardModule.Properties.enemySpawnData.tsunagarus.buttagiru.actions.daydreaming.name;
-                                    txtDescriptionActions = CardModule.Properties.enemySpawnData.tsunagarus.buttagiru.actions.daydreaming.description;
+                                    txtHeaderActions = TsunagarusModules.Properties.enemySpawnData.tsunagarus.buttagiru.actions.daydreaming.name;
+                                    txtDescriptionActions = TsunagarusModules.Properties.enemySpawnData.tsunagarus.buttagiru.actions.daydreaming.description;
                                     if(partyBlock){
                                         hitted = false;
                                     } else {
@@ -3590,28 +3704,6 @@ module.exports = {
                                 } else {
                                     hitted = true;
                                 }
-
-                                //announce actions embed
-                                try {
-                                    if(txtHeaderActions!=""){
-                                        if(!hitted&&partyBlock){
-                                            var objEmbedActions = await message.channel.send({embed:CardModule.Embeds.battleEnemyActions(enemyType,`Counter Fail!`,`**${txtHeaderActions}** cannot be countered/blocked!`,enemySpawnLink)});
-                                            setTimeout(function(){
-                                                objEmbedActions.delete();
-                                            }, 7000);
-                                        } else if(hitted&partyBlock) {
-                                            var objEmbedActions = await message.channel.send({embed:CardModule.Embeds.battleEnemyActionsBlock(cardData[DBM_Card_Data.columns.color],cardData[DBM_Card_Data.columns.pack],userUsername,userAvatarUrl,`Actions Blocked: ${txtHeaderActions}!`,`${userUsername} has successfully blocked: **${txtHeaderActions}** & counter the attacks!`)});
-                                            setTimeout(function(){
-                                                objEmbedActions.delete();
-                                            }, 7000);
-                                        } else if(!partyBlock){
-                                            var objEmbedActions = await message.channel.send({embed:CardModule.Embeds.battleEnemyActions(enemyType,txtHeaderActions,txtDescriptionActions)});
-                                            setTimeout(function(){
-                                                objEmbedActions.delete();
-                                            }, 7000);
-                                        }
-                                    }
-                                } catch(error){}
 
                                 var minChance = GlobalFunctions.randomNumber(jsonParsedSpawnData[CardModule.Properties.spawnData.battle.level],85);
                                 chance = hp;
@@ -3645,14 +3737,38 @@ module.exports = {
                                     bossAlive = true; colorLivesLeft++;
                                 }
                             }
+                            
+                            //announce actions embed
+                            if(bossAlive){
+                                try {
+                                    if(txtHeaderActions!=""){
+                                        if(!hitted&&partyBlock){
+                                            var objEmbedActions = await message.channel.send({embed:CardModule.Embeds.battleEnemyActions(enemyType,`Counter Fail!`,`**${txtHeaderActions}** cannot be countered/blocked!`,enemySpawnLink)});
+                                            setTimeout(function(){
+                                                objEmbedActions.delete();
+                                            }, 7000);
+                                        } else if(hitted&partyBlock) {
+                                            var objEmbedActions = await message.channel.send({embed:CardModule.Embeds.battleEnemyActionsBlock(cardData[DBM_Card_Data.columns.color],cardData[DBM_Card_Data.columns.pack],userUsername,userAvatarUrl,`Actions Blocked: ${txtHeaderActions}!`,`${userUsername} has successfully blocked: **${txtHeaderActions}** & counter the attacks!`)});
+                                            setTimeout(function(){
+                                                objEmbedActions.delete();
+                                            }, 7000);
+                                        } else {
+                                            var objEmbedActions = await message.channel.send({embed:CardModule.Embeds.battleEnemyActions(enemyType,txtHeaderActions,txtDescriptionActions,enemySpawnLink)});
+                                            setTimeout(function(){
+                                                objEmbedActions.delete();
+                                            }, 7000);
+                                        }
+                                    }
+                                } catch(error){}
+                            }
 
                             //update the turn
                             jsonParsedSpawnData[CardModule.Properties.spawnData.battle.turn]+=1;
                             if(jsonParsedSpawnData[CardModule.Properties.spawnData.battle.turn]>=jsonParsedSpawnData[CardModule.Properties.spawnData.battle.turn_max]&&bossAlive){
                                 //special attack: wipe out party
                                 teamBattleTurnOut = true;
-                                var txtDescription = CardModule.Properties.enemySpawnData.tsunagarus.buttagiru.special_attack.buttagislam.description;
-                                await message.channel.send({embed:CardModule.Embeds.battleEnemyActions(enemyType,CardModule.Properties.enemySpawnData.tsunagarus.buttagiru.special_attack.buttagislam.name,CardModule.Properties.enemySpawnData.tsunagarus.buttagiru.special_attack.buttagislam.description)});
+                                var txtDescription = TsunagarusModules.Properties.enemySpawnData.tsunagarus.buttagiru.special_attack.buttagislam.description;
+                                await message.channel.send({embed:CardModule.Embeds.battleEnemyActions(enemyType,TsunagarusModules.Properties.enemySpawnData.tsunagarus.buttagiru.special_attack.buttagislam.name,TsunagarusModules.Properties.enemySpawnData.tsunagarus.buttagiru.special_attack.buttagislam.description)});
 
                                 var parsedDataUser = partyData.data_user;
                                 for (var key in parsedDataUser) {
@@ -3662,7 +3778,7 @@ module.exports = {
                                     parameterWhere.set(DBM_Card_User_Data.columns.id_user,key);
                                     await DB.update(DBM_Card_User_Data.TABLENAME,parameterSet,parameterWhere);
                                 }
-                            } else {
+                            } else if(jsonParsedSpawnData[CardModule.Properties.spawnData.battle.turn]<jsonParsedSpawnData[CardModule.Properties.spawnData.battle.turn_max]&&bossAlive) {
                                 //reset the actions
                                 jsonParsedSpawnData[CardModule.Properties.spawnData.battle.actions] = {};
 
@@ -3670,19 +3786,19 @@ module.exports = {
                                 var nextActions = null;
                                 var randomActions = null;
                                 if(colorLivesLeft>1){
-                                    randomActions = GlobalFunctions.randomProperty(CardModule.Properties.enemySpawnData.tsunagarus.buttagiru.actions);
+                                    randomActions = GlobalFunctions.randomProperty(TsunagarusModules.Properties.enemySpawnData.tsunagarus.buttagiru.actions);
                                 } else {
-                                    randomActions = GlobalFunctions.randomProperty(CardModule.Properties.enemySpawnData.tsunagarus.buttagiru.actions_last_lives);
+                                    randomActions = GlobalFunctions.randomProperty(TsunagarusModules.Properties.enemySpawnData.tsunagarus.buttagiru.actions_last_lives);
                                 }
 
-                                // randomActions = CardModule.Properties.enemySpawnData.tsunagarus.buttagiru.actions.charge_up;//for debugging
+                                // randomActions = TsunagarusModules.Properties.enemySpawnData.tsunagarus.buttagiru.actions.color_absorb;//for debugging
 
                                 if(jsonParsedSpawnData[CardModule.Properties.spawnData.battle.turn]+1>=jsonParsedSpawnData[CardModule.Properties.spawnData.battle.turn_max]){
-                                    randomActions = CardModule.Properties.enemySpawnData.tsunagarus.buttagiru.special_attack.buttagislam;
+                                    randomActions = TsunagarusModules.Properties.enemySpawnData.tsunagarus.buttagiru.special_attack.buttagislam;
                                     jsonParsedSpawnData[CardModule.Properties.spawnData.battle.actions][randomActions.value] = "";
                                     txtActionsEmbed = randomActions.name;
                                 } else {
-                                    if(randomActions.value==CardModule.Properties.enemySpawnData.tsunagarus.buttagiru.actions.color_absorb.value){
+                                    if(randomActions.value==TsunagarusModules.Properties.enemySpawnData.tsunagarus.buttagiru.actions.color_absorb.value){
                                         //randomize color absorb
                                         var randomColor = GlobalFunctions.randomPropertyKey(jsonParsedSpawnData[CardModule.Properties.spawnData.battle.color_lives]);
                                         
@@ -3739,8 +3855,8 @@ module.exports = {
                             } catch(error){}
     
                             break;
-                        case CardModule.Properties.enemySpawnData.tsunagarus.term.chiguhaguu:
-                        case CardModule.Properties.enemySpawnData.tsunagarus.term.gizzagizza:
+                        case TsunagarusModules.Properties.enemySpawnData.tsunagarus.chiguhaguu.term:
+                        case TsunagarusModules.Properties.enemySpawnData.tsunagarus.gizzagizza.term:
                             //gizzagizza
                             // {"category":"normal","type":"gizzagizza","id_enemy":"FPC10","color_block":"red","id_card_reward":"haha501","level":32,"rarity":5,"hp":388,"hp_max":388,"damage_dealer":{}}
     
@@ -3909,7 +4025,7 @@ module.exports = {
                             }
     
                             break;
-                        case CardModule.Properties.enemySpawnData.tsunagarus.term.chokkins:
+                        case TsunagarusModules.Properties.enemySpawnData.tsunagarus.chokkins.term:
                         default:
                             //chokkins:
                             // {"category":"normal","type":"chokkins","id_enemy":"HCPC03","level":20,"color":["purple"],"id_card_reward":"saya702","special_allow":false,"hp":90,"max_hp":90}
@@ -4447,21 +4563,6 @@ module.exports = {
                             txtDescription = `:x: Oh no! <@${userId}> has lost from the battle!`;
                         }
 
-                        // if(allowSet){
-                        //     //erase the card set token
-                        //     var parameterSet = new Map();
-                        //     parameterSet.set(DBM_Card_User_Data.columns.card_set_token,null);
-                        //     var parameterWhere = new Map();
-                        //     parameterWhere.set(DBM_Card_User_Data.columns.id_user,userId);
-                        //     await DB.update(DBM_Card_User_Data.TABLENAME,parameterSet,parameterWhere);
-                        // }
-
-                        //check for second battle allowance
-                        // if(!allowSecondBattle){
-                        //     //update the spawn token
-                        //     await CardModule.updateCatchAttempt(userId,spawnedCardData.token);
-                        // }
-
                         //activate the debuff if user doesn't have debuff protection
                         var debuff_data = "";
                         if(!debuffProtection&&randomDebuff!=null){
@@ -4492,7 +4593,6 @@ module.exports = {
                             parameterWhere.set(DBM_Card_Guild.columns.id_guild,guildId);
                             await DB.update(DBM_Card_Guild.TABLENAME,parameterSet,parameterWhere);
                         }
-
                     }
                 } else {
                     //individual
@@ -4549,22 +4649,22 @@ module.exports = {
                         
                         //edit the embed
                         switch(enemyType){
-                            case CardModule.Properties.enemySpawnData.tsunagarus.term.chokkins:
+                            case TsunagarusModules.Properties.enemySpawnData.tsunagarus.chokkins.term:
                                 try{
                                     var editedEmbed = new Discord.MessageEmbed(messageSpawn.embeds[0]);
                                     editedEmbed.fields[2].value = `${hpEnemy}/${hpMaxEnemy}`;
                                     await messageSpawn.edit(editedEmbed);
                                 } catch(error){}
                                 break;
-                            case CardModule.Properties.enemySpawnData.tsunagarus.term.dibosu:
-                            case CardModule.Properties.enemySpawnData.tsunagarus.term.chiguhaguu:
+                            case TsunagarusModules.Properties.enemySpawnData.tsunagarus.dibosu.term:
+                            case TsunagarusModules.Properties.enemySpawnData.tsunagarus.chiguhaguu.term:
                                 try{
                                     var editedEmbed = new Discord.MessageEmbed(messageSpawn.embeds[0]);
                                     editedEmbed.fields[1].value = `${hpEnemy}/${hpMaxEnemy}`;
                                     await messageSpawn.edit(editedEmbed);
                                 } catch(error){}
                                 break;
-                            case CardModule.Properties.enemySpawnData.tsunagarus.term.gizzagizza:
+                            case TsunagarusModules.Properties.enemySpawnData.tsunagarus.gizzagizza.term:
                                 try{
                                     var editedEmbed = new Discord.MessageEmbed(messageSpawn.embeds[0]);
                                     editedEmbed.fields[0].value = `${hpEnemy}/${hpMaxEnemy}`;
@@ -4646,7 +4746,7 @@ module.exports = {
                         await message.channel.send({embed:embedDamageDealerList});
 
                         var userCardRewardStock = await CardModule.getUserCardStock(userId,cardDataReward[DBM_Card_Data.columns.id_card]);
-                        var qty = 1; var rewardBoost = false;
+                        var qty = 1; var rewardBoost = false; var iconBoost = "";
 
                         //reward booster validation
                         if(currentStatusEffectSkills!=null&&oldIdUser==userId){
@@ -4673,6 +4773,8 @@ module.exports = {
                             }
                         }
 
+                        if(rewardBoost){ iconBoost = "⬆️"; }
+
                         //stock validation
                         if(userCardRewardStock<=-1){
                             if(!rewardBoost){
@@ -4681,7 +4783,7 @@ module.exports = {
                                 //add new card:
                                 await CardModule.addNewCardInventory(userId,cardDataReward[DBM_Card_Data.columns.id_card]);
                             } else {
-                                rewardsReceived+=`>2x New Card: **${cardDataReward[DBM_Card_Data.columns.id_card]} - ${cardDataReward[DBM_Card_Data.columns.name]}**\n`;
+                                rewardsReceived+=`>${iconBoost}2x New Card: **${cardDataReward[DBM_Card_Data.columns.id_card]} - ${cardDataReward[DBM_Card_Data.columns.name]}**\n`;
                             
                                 //add new card:
                                 await CardModule.addNewCardInventory(userId,cardDataReward[DBM_Card_Data.columns.id_card]);
@@ -4697,7 +4799,7 @@ module.exports = {
                                     //add new card:
                                     await CardModule.addNewCardInventory(userId,cardDataReward[DBM_Card_Data.columns.id_card],true);
                                 } else {
-                                    rewardsReceived+=`>2x Duplicate Card: **${cardDataReward[DBM_Card_Data.columns.id_card]} - ${cardDataReward[DBM_Card_Data.columns.name]}**\n`;
+                                    rewardsReceived+=`>${iconBoost}2x Duplicate Card: **${cardDataReward[DBM_Card_Data.columns.id_card]} - ${cardDataReward[DBM_Card_Data.columns.name]}**\n`;
                                     userCardRewardStock+=1;
                                     //add new card:
                                     await CardModule.addNewCardInventory(userId,cardDataReward[DBM_Card_Data.columns.id_card],true,2);
@@ -4765,8 +4867,8 @@ module.exports = {
                         if(rewardBoost){
                             pointReward*=2; seriesPointReward*=2;
                         }
-                        rewardsReceived+=`>**${pointReward} ${cardData[DBM_Card_Data.columns.color]}** color points\n`;
-                        rewardsReceived+=`>${seriesPointReward} ${CardModule.Properties.seriesCardCore[selectedSeriesPoint].currency}\n`;
+                        rewardsReceived+=`>${iconBoost}**${pointReward} ${cardData[DBM_Card_Data.columns.color]}** color points\n`;
+                        rewardsReceived+=`>${iconBoost}${seriesPointReward} ${CardModule.Properties.seriesCardCore[selectedSeriesPoint].currency}\n`;
                         
                         //update the mofucoin
                         var mofucoinReward = Math.round(pointReward/3);
@@ -4785,7 +4887,7 @@ module.exports = {
                             var pointSpecial = CardModule.Status.getSpecialPointProgress(level_special);
                             if(rewardBoost){ pointSpecial*=2; }
                             specialCharged = await CardModule.Status.updateSpecialPoint(userId,pointSpecial);
-                            rewardsReceived+=`>**${pointSpecial}**% special points\n`;
+                            rewardsReceived+=`>${iconBoost}**${pointSpecial}**% special points\n`;
                         }
     
                         //update the token & color point
@@ -4865,10 +4967,10 @@ module.exports = {
                                 description: `Looks like the tsunagarus has been respawned again!`,
                                 fields:{
                                     name:'Spawn Link:',
-                                    value:`[Jump to spawn link](${GlobalFunctions.discordMessageLinkFormat(guildId,guildSpawnData[DBM_Card_Guild.columns.id_channel_spawn],guildSpawnData[DBM_Card_Guild.columns.id_last_message_spawn])})`
+                                    value:`[Jump to spawn link](${GlobalFunctions.discordMessageLinkFormat(guildId,message.channel.id,guildSpawnData[DBM_Card_Guild.columns.id_last_message_spawn])})`
                                 },
                                 thumbnail:{
-                                    url:CardModule.Properties.enemySpawnData.tsunagarus.image[enemyType]
+                                    url:TsunagarusModules.Properties.enemySpawnData.tsunagarus[enemyType].image
                                 }
                             };
                             await message.channel.send({embed:enemyRevivalEmbed});
@@ -4885,22 +4987,22 @@ module.exports = {
 
                             //update the embed
                             switch(enemyType){
-                                case CardModule.Properties.enemySpawnData.tsunagarus.term.chokkins:
+                                case TsunagarusModules.Properties.enemySpawnData.tsunagarus.chokkins.term:
                                     try{
                                         var editedEmbed = new Discord.MessageEmbed(messageSpawn.embeds[0]);
                                         editedEmbed.fields[2].value = `${hpMaxEnemy}/${hpMaxEnemy}`;
                                         await messageSpawn.edit(editedEmbed);
                                     } catch(error){}
                                     break;
-                                case CardModule.Properties.enemySpawnData.tsunagarus.term.dibosu:
-                                case CardModule.Properties.enemySpawnData.tsunagarus.term.chiguhaguu:
+                                case TsunagarusModules.Properties.enemySpawnData.tsunagarus.dibosu.term:
+                                case TsunagarusModules.Properties.enemySpawnData.tsunagarus.chiguhaguu.term:
                                     try{
                                         var editedEmbed = new Discord.MessageEmbed(messageSpawn.embeds[0]);
                                         editedEmbed.fields[1].value = `${hpMaxEnemy}/${hpMaxEnemy}`;
                                         await messageSpawn.edit(editedEmbed);
                                     } catch(error){}
                                     break;
-                                case CardModule.Properties.enemySpawnData.tsunagarus.term.gizzagizza:
+                                case TsunagarusModules.Properties.enemySpawnData.tsunagarus.gizzagizza.term:
                                     try{
                                         var editedEmbed = new Discord.MessageEmbed(messageSpawn.embeds[0]);
                                         editedEmbed.fields[0].value = `${hpMaxEnemy}/${hpMaxEnemy}`;
@@ -5003,7 +5105,7 @@ module.exports = {
                             // await message.channel.send({embed:embedStatusActivated});
                         }
 
-                        await message.channel.send({embed:CardModule.Embeds.battleLost(userUsername,userAvatarUrl,txtDescription,`>**${pointReward} ${cardData[DBM_Card_Data.columns.color]}** color points.`,debuff_data)});
+                        await message.channel.send({embed:CardModule.Embeds.battleLost(userUsername,userAvatarUrl,txtDescription,`>**${pointReward} ${cardData[DBM_Card_Data.columns.color]}** color points.`,debuff_data,enemySpawnLink)});
 
                         //check if buff status effect is permanent/not
                         if(currentStatusEffect in CardModule.StatusEffect.buffData){
@@ -5016,6 +5118,8 @@ module.exports = {
                     }
                 }
 
+                await CardModule.limitizeUserPoints();//limitize user points
+
                 break;
             case "spawn":
                 //get card spawn information
@@ -5024,7 +5128,6 @@ module.exports = {
                     token:guildSpawnData[DBM_Card_Guild.columns.spawn_token],
                     type:guildSpawnData[DBM_Card_Guild.columns.spawn_type]
                 }
-                var channelSpawnId = guildSpawnData[DBM_Card_Guild.columns.id_channel_spawn];
                 
                 //for countdown timer
                 var minutes = GlobalFunctions.str_pad_left(Math.floor(CardGuildModule.arrTimerGuildInformation[guildId].remaining / 60),'0',2);
@@ -5081,7 +5184,7 @@ module.exports = {
                         },
                         {
                             name:'Link:',
-                            value:`[Jump to spawn](${GlobalFunctions.discordMessageLinkFormat(guildId,channelSpawnId,guildSpawnData[DBM_Card_Guild.columns.id_last_message_spawn])})`,
+                            value:`[Jump to spawn](${GlobalFunctions.discordMessageLinkFormat(guildId,message.channel.id,guildSpawnData[DBM_Card_Guild.columns.id_last_message_spawn])})`,
                             inline:true
                         }
                     ]
@@ -5929,7 +6032,7 @@ module.exports = {
                             }
                         }
 
-                        await CardModule.limitizeUserPoints(userId);
+                        await CardModule.limitizeUserPoints();
                         break;
                 }
 

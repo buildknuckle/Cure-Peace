@@ -311,7 +311,7 @@ class StatusEffect{
         },
         remove_debuff_fear:{
             value:"remove_debuff_fear",
-            name:"Fear  Removed",
+            name:"Fear Removed",
             description:"Remove **fear** debuff.",
             usable:false,
             clear_status:true
@@ -547,32 +547,32 @@ class StatusEffect{
         hp_down_1:{
             value:"hp_down_1",
             name:"Hp Down 1",
-            description:"-20% hp during battle.",
-            value_hp_down:20,
+            description:"-50% hp during battle.",
+            value_hp_down:50,
             recovery_item:["ca017","ca019","ca020","ca023","fo001","fo009"],
             permanent:true
         },
         hp_down_2:{
             value:"hp_down_2",
             name:"Hp Down 2",
-            description:"-25% hp during battle.",
-            value_hp_down:25,
+            description:"-60% hp during battle.",
+            value_hp_down:60,
             recovery_item:["ca017","ca019","ca020","ca023","fo001","fo009"],
             permanent:true
         },
         hp_down_3:{
             value:"hp_down_3",
             name:"Hp Down 3",
-            description:"-30% hp during battle.",
-            value_hp_down:30,
+            description:"-70% hp during battle.",
+            value_hp_down:70,
             recovery_item:["ca017","ca019","ca020","ca023","fo001","fo009"],
             permanent:true
         },
         hp_down_4:{
             value:"hp_down_4",
-            name:"Hp Up 4",
-            description:"-40% hp during battle.",
-            value_hp_down:40,
+            name:"Hp Down 4",
+            description:"-80% hp during battle.",
+            value_hp_down:80,
             recovery_item:["ca017","ca019","ca020","ca023","fo001","fo009"],
             permanent:true
         },
@@ -613,32 +613,32 @@ class StatusEffect{
         atk_down_1:{
             value:"atk_down_1",
             name:"Atk Down 1",
-            description:"-20% atk during battle.",
-            value_atk_down:20,
+            description:"-50% atk during battle.",
+            value_atk_down:50,
             recovery_item:["ca017","ca025","ca026","ca027","fo003","fo009"],
             permanent:true
         },
         atk_down_2:{
             value:"atk_down_2",
             name:"Atk Down 2",
-            description:"-25% atk during battle.",
-            value_atk_down:25,
+            description:"-60% atk during battle.",
+            value_atk_down:60,
             recovery_item:["ca017","ca025","ca026","ca027","fo003","fo009"],
             permanent:true
         },
         atk_down_3:{
             value:"atk_down_3",
             name:"Atk Down 3",
-            description:"-30% atk during battle.",
-            value_atk_down:30,
+            description:"-65% atk during battle.",
+            value_atk_down:65,
             recovery_item:["ca017","ca025","ca026","ca027","fo003","fo009"],
             permanent:true
         },
         atk_down_4:{
             value:"atk_down_4",
             name:"Atk Down 4",
-            description:"-40% atk during battle.",
-            value_atk_down:40,
+            description:"-80% atk during battle.",
+            value_atk_down:80,
             recovery_item:["ca017","ca025","ca026","ca027","fo003","fo009"],
             permanent:true
         },
@@ -669,12 +669,6 @@ class StatusEffect{
             description:"Unable to use special attack during battle.",
             permanent:true,
             recovery_item:["ca031","ca017","fo009"]
-        },
-        cure_duel_time:{
-            value:"cure_duel_time",
-            name:"Cure Duel Time",
-            description:"Affected by Dueling Restriction:\n>Specialock",
-            permanent:true
         }
     }
 
@@ -892,155 +886,6 @@ class Properties{
             non_color:"non_color",
             level:"level",
             card_level:"card_level"
-        }
-    }
-
-    static enemySpawnData = {
-        tsunagarus : {
-            category:{
-                normal:"normal",
-                boss:"boss",
-                executives:"executives"
-            },
-            term:{
-                chokkins:"chokkins",
-                dibosu:"dibosu",
-                gizzagizza:"gizzagizza",
-                buttagiru:"buttagiru",
-                chiguhaguu:"chiguhaguu",
-                chiridjirin:"chiridjirin",
-                dibosu_princess:"dibosu (princess)",
-                barabaran:"barabaran"
-            },
-            image:{
-                chokkins:"https://cdn.discordapp.com/attachments/793415946738860072/817018351846293554/Chokkin.png",
-                dibosu:"https://cdn.discordapp.com/attachments/793415946738860072/817018421795487764/Dibosufinal.png",
-                gizzagizza:"https://cdn.discordapp.com/attachments/793415946738860072/817018549146484746/Gizzagizza.png",
-                buttagiru:"https://cdn.discordapp.com/attachments/793415946738860072/817018566057918484/Buttagiru.png",
-                chiguhaguu:"https://cdn.discordapp.com/attachments/793415946738860072/822016967741407272/latest.png",
-                chiridjirin:"https://cdn.discordapp.com/attachments/793415946738860072/824898467646013451/latest.png",
-                dibosu_princess:"https://static.wikia.nocookie.net/prettycure/images/1/18/Dibosuprincess.png",
-                barabaran:"https://static.wikia.nocookie.net/prettycure/images/7/7e/Barabaran.png"
-            },
-            embedColor:{
-                chokkins:"#D9A4FE",
-                dibosu:"#1D0F21",
-                gizzagizza:"#ED873C",
-                buttagiru:"#B2D67A",
-                chiguhaguu:"#C9C9C9",
-                chiridjirin:"#CC3060",
-                dibosu_princess:"#8B5DB3",
-                barabaran:"#FF9E26"
-            },
-            buttagiru:{
-                term:"buttagiru",
-                image:"https://cdn.discordapp.com/attachments/793415946738860072/817018566057918484/Buttagiru.png",
-                embedColor:"#B2D67A",
-                actions:{
-                    color_absorb:{
-                        value:"color_absorb",
-                        name:"💔Color Absorb!",
-                        description:"Absorb <xcolor> color into HP",
-                    },
-                    buttascream:{
-                        value:"buttascream",
-                        name:"💥Buttascream!",
-                        description:"Inflict atk debuff after battle"
-                    },
-                    big_punch:{
-                        value:"big_slam",
-                        name:"💥Big Slam!",
-                        description:"Inflict hp debuff after battle"
-                    },
-                    charge_up:{
-                        value:"charge_up",
-                        name:"⬆️Charge Up!",
-                        description:"Hasten & take 2 turns ahead"
-                    },
-                    daydreaming:{
-                        value:"daydreaming",
-                        name:"💭Daydreaming...",
-                        description:"Daydreaming and do nothing!"
-                    }
-                },
-                actions_last_lives:{
-                    buttascream:{
-                        value:"buttascream",
-                        name:"💥Buttascream!",
-                        description:"Inflict atk debuff after battle"
-                    },
-                    big_punch:{
-                        value:"big_slam",
-                        name:"💥Big Slam!",
-                        description:"Inflict hp debuff after battle"
-                    },
-                    charge_up:{
-                        value:"charge_up",
-                        name:"⬆️Charge Up!",
-                        description:"Hasten & take 2 turns ahead"
-                    }
-                },
-                special_attack:{
-                    buttagislam:{
-                        value:"buttagislam",
-                        name:"💢Buttagislam!",
-                        description:"Deal 100% hp damage to all party members & ends the battle"
-                    }
-                }
-            }
-        },
-        "max heart":{
-            term:"zakenna"
-        },
-        "splash star":{
-            term:"uzaina"
-        },
-        "yes! precure 5 gogo!":{
-            term:"hoshina"
-        },
-        "fresh":{
-            term:"nakewameke"
-        },
-        "heartcatch":{
-            term:"desertrian",
-            super:true
-        },
-        "suite":{
-            term:"negatone"
-        },
-        "smile":{
-            term:"akanbe",
-            super:true
-        },
-        "doki doki!":{
-            term:"jikochuu"
-        },
-        "happiness":{
-            term:"saiarks",
-            super:true
-        },
-        "go! princess":{
-            term:"zetsuborg",
-            super:true
-        },
-        "mahou tsukai":{
-            term:"yokubaru",
-            super:true
-        },
-        "kirakira":{
-            term:"kirakirarun thieves",
-            super:true
-        },
-        "hugtto":{
-            term:"oshimaida",
-            super:true
-        },
-        "star twinkle":{
-            term:"nottrigger",
-            super:true
-        },
-        "healin' good":{
-            term:"megabyogen"
         }
     }
 
@@ -3266,7 +3111,7 @@ class Battle{
         }
 
         return {
-            color: Properties.enemySpawnData.tsunagarus.color[enemy_type],
+            color: TsunagarusModules.Properties.enemySpawnData.tsunagarus[enemy_type].embedColor,
             author: {
                 name: userUsername,
                 icon_url: userAvatarUrl
@@ -3296,7 +3141,7 @@ class Battle{
                 }
             ],
             image:{
-                url:Properties.enemySpawnData.tsunagarus.image[enemy_type]
+                url:TsunagarusModules.Properties.enemySpawnData.tsunagarus[enemy_type].image
             },
             footer:{
                 text:`Special Protection: ${special_protection}`
@@ -3768,15 +3613,18 @@ class Embeds{
         return objEmbed;
     }
 
-    static battleEnemyActions(enemyType,txtHeader,txtDescription,txtSpawnLink){
+    static battleEnemyActions(enemyType,txtHeader,txtDescription,txtSpawnLink=""){
         var objEmbed = {
-            color: Properties.enemySpawnData.tsunagarus[enemyType].embedColor,
+            color: TsunagarusModules.Properties.enemySpawnData.tsunagarus[enemyType].embedColor,
             thumbnail:{
-                url:Properties.enemySpawnData.tsunagarus[enemyType].image
+                url:TsunagarusModules.Properties.enemySpawnData.tsunagarus[enemyType].image
             },
             title: txtHeader,
-            description: txtDescription,
-            fields:{
+            description: txtDescription
+        }
+
+        if(txtSpawnLink!=""){
+            objEmbed.fields = {
                 name:"Spawn Link:",
                 value:`[Jump To Enemy Spawn](${txtSpawnLink})`
             }
@@ -3804,9 +3652,9 @@ class Embeds{
 
     static battleEnemyActionsPrepare(enemyType,txtHeader,txtDescription){
         var objEmbed = {
-            color: Properties.enemySpawnData.tsunagarus[enemyType].embedColor,
+            color: TsunagarusModules.Properties.enemySpawnData.tsunagarus[enemyType].embedColor,
             thumbnail:{
-                url:Properties.enemySpawnData.tsunagarus[enemyType].image
+                url:TsunagarusModules.Properties.enemySpawnData.tsunagarus[enemyType].image
             },
             title: `Next Actions: ${txtHeader}`,
             description: `${enemyType} will prepare: **${txtDescription}** for the next actions!`
@@ -3824,7 +3672,7 @@ class Embeds{
                 icon_url: userAvatarUrl
             },
             thumbnail:{
-                url:Properties.enemySpawnData.tsunagarus.image[enemyType]
+                url:TsunagarusModules.Properties.enemySpawnData.tsunagarus[enemyType].image
             },
             description: txtDescription,
             fields:[
@@ -5552,20 +5400,20 @@ async function generateCardSpawn(id_guild,specificType=null,overwriteToken = tru
                     `{"${Properties.spawnData.quiz.type}":"${Properties.spawnData.quiz.typeTsunagarus}","${Properties.spawnData.quiz.answer}":"${answer}","${Properties.spawnData.quiz.id_card}":"${cardSpawnId}"}`);
     
                     //prepare the embed:
-                    objEmbed.color = Properties.enemySpawnData.tsunagarus.embedColor[Properties.enemySpawnData.tsunagarus.term.chiridjirin]
+                    objEmbed.color = TsunagarusModules.Properties.enemySpawnData.tsunagarus.chiridjirin.embedColor;
                     objEmbed.author = {
                         name:`Quiztaccked!`,
                     }
                     objEmbed.thumbnail = {
                         url:Properties.imgResponse.imgFailed
                     }
-                    objEmbed.description = `**${GlobalFunctions.capitalize(Properties.enemySpawnData.tsunagarus.term.chiridjirin)}** has take over the quiz time!\nRearrange this provided hint: **${name}** and choose the correct branch!`;
+                    objEmbed.description = `**${GlobalFunctions.capitalize(TsunagarusModules.Properties.enemySpawnData.tsunagarus.chiridjirin.term)}** has take over the quiz time!\nRearrange this provided hint: **${name}** and choose the correct branch!`;
                     objEmbed.fields = [{
                         name:`Branch command:\np!card choose <a/b/c/d>`,
                         value:`**A. ${arrAnswerList[0]}\nB. ${arrAnswerList[1]}\nC. ${arrAnswerList[2]}\nD. ${arrAnswerList[3]}**`
                     }]
                     objEmbed.image ={
-                        url:Properties.enemySpawnData.tsunagarus.image[Properties.enemySpawnData.tsunagarus.term.chiridjirin]
+                        url:TsunagarusModules.Properties.enemySpawnData.tsunagarus.chiridjirin.image
                     }
                     objEmbed.footer = {
                         text:`⭐ Rarity: 5`
@@ -5732,7 +5580,7 @@ async function generateCardSpawn(id_guild,specificType=null,overwriteToken = tru
         case "battle":
 
             //randomize the enemy type:
-            var enemyType = Properties.enemySpawnData.tsunagarus.term.chokkins;//default enemy type
+            var enemyType = TsunagarusModules.Properties.enemySpawnData.tsunagarus.chokkins.term;//default enemy type
             var randomType = GlobalFunctions.randomNumber(0,10);
 
             // randomType = 7;//for debug purpose only
@@ -5744,16 +5592,16 @@ async function generateCardSpawn(id_guild,specificType=null,overwriteToken = tru
 
             if(spawnData2!=null){
                 switch(spawnData2.toLowerCase()){
-                    case Properties.enemySpawnData.tsunagarus.term.dibosu:
+                    case TsunagarusModules.Properties.enemySpawnData.tsunagarus.dibosu.term:
                         randomType=10;
                         break;
-                    case Properties.enemySpawnData.tsunagarus.term.buttagiru:
+                    case TsunagarusModules.Properties.enemySpawnData.tsunagarus.buttagiru.term:
                         randomType=6;
                         break;
-                    case Properties.enemySpawnData.tsunagarus.term.chiguhaguu:
+                    case TsunagarusModules.Properties.enemySpawnData.tsunagarus.chiguhaguu.term:
                         randomType=5;
                         break;
-                    case Properties.enemySpawnData.tsunagarus.term.gizzagizza:
+                    case TsunagarusModules.Properties.enemySpawnData.tsunagarus.gizzagizza.term:
                         randomType=3;
                         break;
                     default:
@@ -5773,7 +5621,7 @@ async function generateCardSpawn(id_guild,specificType=null,overwriteToken = tru
             var spawnData = "";
             if(randomType>=10){
                 //dibosu
-                enemyType = Properties.enemySpawnData.tsunagarus.term.dibosu;
+                enemyType = TsunagarusModules.Properties.enemySpawnData.tsunagarus.dibosu.term;
                 var randRarityMin = 4;
 
                 //get enemy color weakness
@@ -5843,11 +5691,11 @@ async function generateCardSpawn(id_guild,specificType=null,overwriteToken = tru
 
                 //embed
                 objEmbed.thumbnail = {
-                    url:Properties.enemySpawnData.tsunagarus.image.dibosu
+                    url:TsunagarusModules.Properties.enemySpawnData.tsunagarus.dibosu.image
                 }
                 objEmbed.title = `Tsunagarus Lv.${lvR} has appeared!`;
-                objEmbed.description = `${GlobalFunctions.capitalize(enemyType)} has manifest the **series cure card** and possesses **${Properties.enemySpawnData[spawnSeries].term}** powers!\n\n**Available Command:**\n⚔️ **p!card battle**: Participate in battle. (10 CP)\n✨ **p!card battle special**: Use the special attack.\n⬆️ **p!card battle charge**: Charge up your special attack. (20 CP)\n\n**Traits:**\n>Can attack\n>Weak against cure that can hit this monster type\n>Counter cure that has incorrect rarity\n>Counter cure with tricky color information`;
-                objEmbed.color = Properties.enemySpawnData.tsunagarus.embedColor.dibosu;
+                objEmbed.description = `${GlobalFunctions.capitalize(enemyType)} has manifest the **series cure card** and possesses **${TsunagarusModules.Properties.enemySpawnData[spawnSeries].term}** powers!\n\n**Available Command:**\n⚔️ **p!card battle**: Participate in battle. (10 CP)\n✨ **p!card battle special**: Use the special attack.\n⬆️ **p!card battle charge**: Charge up your special attack. (20 CP)\n\n**Traits:**\n>Can attack\n>Weak against cure that can hit this monster type\n>Counter cure that has incorrect rarity\n>Counter cure with tricky color information`;
+                objEmbed.color = TsunagarusModules.Properties.enemySpawnData.tsunagarus.dibosu.embedColor;
                 objEmbed.fields = [
                     {
                         name:`${iconRarity} ${randRarityMin}⭐ ${txtHeader}`,
@@ -5860,7 +5708,7 @@ async function generateCardSpawn(id_guild,specificType=null,overwriteToken = tru
                     },
                     {
                         name:`Monster Type HP Boost:`,
-                        value:`${Properties.enemySpawnData[spawnSeries].term}: HP+70%`,
+                        value:`${TsunagarusModules.Properties.enemySpawnData[spawnSeries].term}: HP+70%`,
                         inline:true
                     }
                 ]
@@ -5880,7 +5728,7 @@ async function generateCardSpawn(id_guild,specificType=null,overwriteToken = tru
                     }
                 }
 
-                spawnData = `{"${Properties.spawnData.battle.category}":"${Properties.enemySpawnData.tsunagarus.category.normal}","${Properties.spawnData.battle.type}":"${enemyType}","${Properties.spawnData.battle.id_enemy}":"${enemyData[DBM_Card_Enemies.columns.id]}",${dtColor},"${Properties.spawnData.battle.level}":${lvR},${dtAllowSpecial},"${randRarityCondition}":${randRarityMin},${dtHp},"${Properties.spawnData.battle.damage_dealer}":{}}`;
+                spawnData = `{"${Properties.spawnData.battle.category}":"${TsunagarusModules.Properties.enemySpawnData.tsunagarus.category.normal}","${Properties.spawnData.battle.type}":"${enemyType}","${Properties.spawnData.battle.id_enemy}":"${enemyData[DBM_Card_Enemies.columns.id]}",${dtColor},"${Properties.spawnData.battle.level}":${lvR},${dtAllowSpecial},"${randRarityCondition}":${randRarityMin},${dtHp},"${Properties.spawnData.battle.damage_dealer}":{}}`;
 
             } else if(randomType>=7) {
                 //buttagiru : 6-7 star
@@ -5891,7 +5739,7 @@ async function generateCardSpawn(id_guild,specificType=null,overwriteToken = tru
                 var cardRewardData = await DBConn.conn.promise().query(query,[6]);
                 cardRewardData = cardRewardData[0][0];
 
-                enemyType = Properties.enemySpawnData.tsunagarus.term.buttagiru;
+                enemyType = TsunagarusModules.Properties.enemySpawnData.tsunagarus.buttagiru.term;
 
                 var randomMinLives = GlobalFunctions.randomNumber(2,3);
 
@@ -5925,9 +5773,9 @@ async function generateCardSpawn(id_guild,specificType=null,overwriteToken = tru
 
                 //randomize hp
                 var baseHp = 15;//default hp
-                var turnMax = GlobalFunctions.randomNumber(7,10);
+                var turnMax = GlobalFunctions.randomNumber(10,15);
                 var colorGroup = arrTempColor.length; 
-                var turnBonus = GlobalFunctions.randomNumber(13,15);
+                var turnBonus = GlobalFunctions.randomNumber(10,12);
 
                 // var rndHp = baseHp;
                 rndHp = Status.getAtk(lvR,baseHp)*turnMax;
@@ -5956,7 +5804,7 @@ async function generateCardSpawn(id_guild,specificType=null,overwriteToken = tru
 
                 //hiddenize the rarity
                 //get the hint
-                var hiddenEnemy = Properties.enemySpawnData[cardDataSeriesWeakness[0][DBM_Card_Data.columns.series]].term;
+                var hiddenEnemy = TsunagarusModules.Properties.enemySpawnData[cardDataSeriesWeakness[0][DBM_Card_Data.columns.series]].term;
                 var resultWord = [];
                 var modWord = ``;
                 var maxModWord = 4;
@@ -5979,10 +5827,10 @@ async function generateCardSpawn(id_guild,specificType=null,overwriteToken = tru
 
                 //embed
                 objEmbed.thumbnail = {
-                    url:Properties.enemySpawnData.tsunagarus.image.buttagiru
+                    url:TsunagarusModules.Properties.enemySpawnData.tsunagarus.buttagiru.image
                 }
                 objEmbed.title = `Tsunagarus Lv.${lvR} has appeared!`;
-                objEmbed.description = `It's a Big Monster! Team up to defeat the **${GlobalFunctions.capitalize(enemyType)}**! \n\n**p!card <command> List:**\n⚔️ **battle**: Participate in team battle (10 CP)\n✨ **battle special**: Use the fully charged team attack\n🛡️ **battle block**: Counter/Block any offensive actions (10 CP)\n⬆️ **battle charge**: Charge up the team special point. (1 PP)\n🔍 **battle scan <info>**: Scan & Reveal <info> (1 PP)\n\n**Traits:**\n>Can Attack\n>Counter cure that cannot hit this monster type\n>Counter cure that has less than ${txtRarity}⭐\n>Counter cure that cannot hit the color`;
+                objEmbed.description = `It's a Big Monster! Team up to defeat the **${GlobalFunctions.capitalize(enemyType)}**! \n\n**p!card <command> List:**\n⚔️ **battle**: Participate in team battle (10 CP)\n✨ **battle special**: Use the fully charged team attack\n🛡️ **battle block**: Counter/Block any offensive actions (10 CP)\n⬆️ **battle charge**: Charge up team special point (10 PP)\n🔍 **battle scan <info>**: Scan & Reveal <info> (1 PP)\n\n**Traits:**\n>Can Attack\n>Counter cure that cannot hit this monster type\n>Counter cure that has less than ${txtRarity}⭐\n>Counter cure that cannot hit the color`;
                 objEmbed.color = "#B2D67A";
 
                 objEmbed.fields = [
@@ -6023,7 +5871,7 @@ async function generateCardSpawn(id_guild,specificType=null,overwriteToken = tru
                     }
                 }
 
-                spawnData = `{"${Properties.spawnData.battle.category}":"${Properties.enemySpawnData.tsunagarus.category.boss}","${Properties.spawnData.battle.type}":"${enemyType}","${Properties.spawnData.battle.id_enemy}":"${enemyData[DBM_Card_Enemies.columns.id]}","${Properties.spawnData.battle.level}":${lvR},${dtHp},"${Properties.spawnData.battle.color_lives_down}":[],"${Properties.spawnData.battle.id_card_reward}":"${cardRewardData[DBM_Card_Data.columns.id_card]}","${Properties.spawnData.battle.actions}":{},${dtTurn},"${Properties.spawnData.battle.rarity}":${randRarityMin},${dtAllowSpecial}}`;
+                spawnData = `{"${Properties.spawnData.battle.category}":"${TsunagarusModules.Properties.enemySpawnData.tsunagarus.category.boss}","${Properties.spawnData.battle.type}":"${enemyType}","${Properties.spawnData.battle.id_enemy}":"${enemyData[DBM_Card_Enemies.columns.id]}","${Properties.spawnData.battle.level}":${lvR},${dtHp},"${Properties.spawnData.battle.color_lives_down}":[],"${Properties.spawnData.battle.id_card_reward}":"${cardRewardData[DBM_Card_Data.columns.id_card]}","${Properties.spawnData.battle.actions}":{},${dtTurn},"${Properties.spawnData.battle.rarity}":${randRarityMin},${dtAllowSpecial}}`;
 
             } else if(randomType>=5) {
                 //Chiguhaguu : 5-7
@@ -6035,7 +5883,7 @@ async function generateCardSpawn(id_guild,specificType=null,overwriteToken = tru
                 var cardRewardData = await DBConn.conn.promise().query(query,[5]);
                 cardRewardData = cardRewardData[0][0];
 
-                enemyType = Properties.enemySpawnData.tsunagarus.term.chiguhaguu;
+                enemyType = TsunagarusModules.Properties.enemySpawnData.tsunagarus.chiguhaguu.term;
                 var randRarityMin = GlobalFunctions.randomNumber(3,5);
                 var randLevel = GlobalFunctions.randomNumber(1,3);
 
@@ -6117,10 +5965,10 @@ async function generateCardSpawn(id_guild,specificType=null,overwriteToken = tru
 
                 //embed
                 objEmbed.thumbnail = {
-                    url:Properties.enemySpawnData.tsunagarus.image.chiguhaguu
+                    url:TsunagarusModules.Properties.enemySpawnData.tsunagarus.chiguhaguu.image
                 }
                 objEmbed.title = `Tsunagarus LvR. ${lvR} has appeared!`;
-                objEmbed.description = `${GlobalFunctions.capitalize(enemyType)} has the ${cardRewardData[DBM_Card_Data.columns.rarity]}⭐ cure card and possesses **${Properties.enemySpawnData[cardDataSeriesWeakness[DBM_Card_Data.columns.series]].term}** powers!\n\n**Available Command:**\n⚔️ **p!card battle**: Participate in battle. (10 CP)\n✨ **p!card battle special**: Use the special attack.\n⬆️ **p!card battle charge**: Charge up your special attack. (20 CP)\n\n**Traits:**\n>Cannot attack\n>Counter cure that cannot hit this monster type\n>Counter cure that has less than ${randRarityMin}⭐\n>Counter cure with tricky catchphrase information`;
+                objEmbed.description = `${GlobalFunctions.capitalize(enemyType)} has the ${cardRewardData[DBM_Card_Data.columns.rarity]}⭐ cure card and possesses **${TsunagarusModules.Properties.enemySpawnData[cardDataSeriesWeakness[DBM_Card_Data.columns.series]].term}** powers!\n\n**Available Command:**\n⚔️ **p!card battle**: Participate in battle. (10 CP)\n✨ **p!card battle special**: Use the special attack.\n⬆️ **p!card battle charge**: Charge up your special attack. (20 CP)\n\n**Traits:**\n>Cannot attack\n>Counter cure that cannot hit this monster type\n>Counter cure that has less than ${randRarityMin}⭐\n>Counter cure with tricky catchphrase information`;
                 objEmbed.color = "#C9C9C9";
                 objEmbed.fields = [
                     {
@@ -6135,7 +5983,7 @@ async function generateCardSpawn(id_guild,specificType=null,overwriteToken = tru
                     },
                     {
                         name:`Monster Type:`,
-                        value:`${Properties.enemySpawnData[cardDataSeriesWeakness[DBM_Card_Data.columns.series]].term}`,
+                        value:`${TsunagarusModules.Properties.enemySpawnData[cardDataSeriesWeakness[DBM_Card_Data.columns.series]].term}`,
                         inline:true
                     }
                 ]
@@ -6155,7 +6003,7 @@ async function generateCardSpawn(id_guild,specificType=null,overwriteToken = tru
                     }
                 }
 
-                spawnData = `{"${Properties.spawnData.battle.category}":"${Properties.enemySpawnData.tsunagarus.category.normal}","${Properties.spawnData.battle.type}":"${enemyType}","${Properties.spawnData.battle.id_enemy}":"${enemyData[DBM_Card_Enemies.columns.id]}","${Properties.spawnData.battle.level}":${lvR},${dtColor},"${Properties.spawnData.battle.id_card_reward}":"${cardRewardData[DBM_Card_Data.columns.id_card]}",${dtHp},"${Properties.spawnData.battle.rarity}":${randRarityMin},${dtAllowSpecial},"${Properties.spawnData.battle.damage_dealer}":{}}`;
+                spawnData = `{"${Properties.spawnData.battle.category}":"${TsunagarusModules.Properties.enemySpawnData.tsunagarus.category.normal}","${Properties.spawnData.battle.type}":"${enemyType}","${Properties.spawnData.battle.id_enemy}":"${enemyData[DBM_Card_Enemies.columns.id]}","${Properties.spawnData.battle.level}":${lvR},${dtColor},"${Properties.spawnData.battle.id_card_reward}":"${cardRewardData[DBM_Card_Data.columns.id_card]}",${dtHp},"${Properties.spawnData.battle.rarity}":${randRarityMin},${dtAllowSpecial},"${Properties.spawnData.battle.damage_dealer}":{}}`;
 
             } else if(randomType>=3) {
                 //gizzagizza: 5-7 star
@@ -6167,7 +6015,7 @@ async function generateCardSpawn(id_guild,specificType=null,overwriteToken = tru
                 var cardRewardData = await DBConn.conn.promise().query(query,[5]);
                 cardRewardData = cardRewardData[0][0];
 
-                enemyType = Properties.enemySpawnData.tsunagarus.term.gizzagizza;
+                enemyType = TsunagarusModules.Properties.enemySpawnData.tsunagarus.gizzagizza.term;
                 var randRarityMin = GlobalFunctions.randomNumber(3,5);
 
                 //get the random series information
@@ -6239,10 +6087,10 @@ async function generateCardSpawn(id_guild,specificType=null,overwriteToken = tru
 
                 //embed
                 objEmbed.thumbnail = {
-                    url:Properties.enemySpawnData.tsunagarus.image.gizzagizza
+                    url:TsunagarusModules.Properties.enemySpawnData.tsunagarus.gizzagizza.image
                 }
                 objEmbed.title = `Tsunagarus LvR. ${lvR} has appeared!`;
-                objEmbed.description = `${GlobalFunctions.capitalize(enemyType)} has the ${cardRewardData[DBM_Card_Data.columns.rarity]}⭐ cure card and possesses **${Properties.enemySpawnData[spawnSeries].term}** powers!\n\n**Available Command:**\n⚔️ **p!card battle**: Participate in battle. (10 CP)\n✨ **p!card battle special**: Use the special attack.\n⬆️ **p!card battle charge**: Charge up your special attack. (20 CP)\n\n**Traits:**\n>Cannot attack\n>Counter cure that cannot hit this monster type\n>Counter cure that has less than ${randRarityMin}⭐\n>Counter cure with tricky color information`;
+                objEmbed.description = `${GlobalFunctions.capitalize(enemyType)} has the ${cardRewardData[DBM_Card_Data.columns.rarity]}⭐ cure card and possesses **${TsunagarusModules.Properties.enemySpawnData[spawnSeries].term}** powers!\n\n**Available Command:**\n⚔️ **p!card battle**: Participate in battle. (10 CP)\n✨ **p!card battle special**: Use the special attack.\n⬆️ **p!card battle charge**: Charge up your special attack. (20 CP)\n\n**Traits:**\n>Cannot attack\n>Counter cure that cannot hit this monster type\n>Counter cure that has less than ${randRarityMin}⭐\n>Counter cure with tricky color information`;
                 objEmbed.color = "#ED873C";
                 objEmbed.fields = [
                     {
@@ -6252,7 +6100,7 @@ async function generateCardSpawn(id_guild,specificType=null,overwriteToken = tru
                     },
                     {
                         name:`Monster Type:`,
-                        value:`${Properties.enemySpawnData[spawnSeries].term}`,
+                        value:`${TsunagarusModules.Properties.enemySpawnData[spawnSeries].term}`,
                         inline:true
                     },
                     {
@@ -6266,7 +6114,7 @@ async function generateCardSpawn(id_guild,specificType=null,overwriteToken = tru
                     text:`Special Protection: ❌`
                 }
 
-                spawnData = `{"${Properties.spawnData.battle.category}":"${Properties.enemySpawnData.tsunagarus.category.normal}","${Properties.spawnData.battle.type}":"${enemyType}","${Properties.spawnData.battle.id_enemy}":"${enemyData[DBM_Card_Enemies.columns.id]}",${dtColor},"${Properties.spawnData.battle.id_card_reward}":"${cardRewardData[DBM_Card_Data.columns.id_card]}","${Properties.spawnData.battle.level}":${lvR},"${Properties.spawnData.battle.rarity}":${randRarityMin},${dtHp},"${Properties.spawnData.battle.damage_dealer}":{}}`;
+                spawnData = `{"${Properties.spawnData.battle.category}":"${TsunagarusModules.Properties.enemySpawnData.tsunagarus.category.normal}","${Properties.spawnData.battle.type}":"${enemyType}","${Properties.spawnData.battle.id_enemy}":"${enemyData[DBM_Card_Enemies.columns.id]}",${dtColor},"${Properties.spawnData.battle.id_card_reward}":"${cardRewardData[DBM_Card_Data.columns.id_card]}","${Properties.spawnData.battle.level}":${lvR},"${Properties.spawnData.battle.rarity}":${randRarityMin},${dtHp},"${Properties.spawnData.battle.damage_dealer}":{}}`;
 
             } else {
                 //chokkins
@@ -6311,10 +6159,10 @@ async function generateCardSpawn(id_guild,specificType=null,overwriteToken = tru
 
                 //embed
                 objEmbed.thumbnail = {
-                    url:Properties.enemySpawnData.tsunagarus.image.chokkins
+                    url:TsunagarusModules.Properties.enemySpawnData.tsunagarus.chokkins.image
                 }
                 objEmbed.title = `Tsunagarus LvR. ${lvR} has appeared!`;
-                objEmbed.description = `${GlobalFunctions.capitalize(enemyType)} has the ${cardRewardData[DBM_Card_Data.columns.rarity]}⭐ cure card and possesses **${Properties.enemySpawnData[spawnSeries].term}** powers!\n\n**Available Command:**\n⚔️ **p!card battle**: Participate in battle. (10 CP)\n✨ **p!card battle special**: Use the special attack.\n⬆️ **p!card battle charge**: Charge up your special attack. (20 CP)\n\n**Traits:**\n>Can attack\n>Weak against cure that can hit this monster type`;
+                objEmbed.description = `${GlobalFunctions.capitalize(enemyType)} has the ${cardRewardData[DBM_Card_Data.columns.rarity]}⭐ cure card and possesses **${TsunagarusModules.Properties.enemySpawnData[spawnSeries].term}** powers!\n\n**Available Command:**\n⚔️ **p!card battle**: Participate in battle. (10 CP)\n✨ **p!card battle special**: Use the special attack.\n⬆️ **p!card battle charge**: Charge up your special attack. (20 CP)\n\n**Traits:**\n>Can attack\n>Weak against cure that can hit this monster type`;
                 objEmbed.color = "#D9A4FE";
                 objEmbed.fields = [
                     {
@@ -6349,7 +6197,7 @@ async function generateCardSpawn(id_guild,specificType=null,overwriteToken = tru
                     }
                 }
 
-                spawnData = `{"${Properties.spawnData.battle.category}":"${Properties.enemySpawnData.tsunagarus.category.normal}","${Properties.spawnData.battle.type}":"${enemyType}","${Properties.spawnData.battle.id_enemy}":"${enemyData[DBM_Card_Enemies.columns.id]}","${Properties.spawnData.battle.level}":${lvR},${dtColor},"${Properties.spawnData.battle.id_card_reward}":"${cardRewardData[DBM_Card_Data.columns.id_card]}",${dtAllowSpecial},${dtHp},"${Properties.spawnData.battle.damage_dealer}":{}}`;
+                spawnData = `{"${Properties.spawnData.battle.category}":"${TsunagarusModules.Properties.enemySpawnData.tsunagarus.category.normal}","${Properties.spawnData.battle.type}":"${enemyType}","${Properties.spawnData.battle.id_enemy}":"${enemyData[DBM_Card_Enemies.columns.id]}","${Properties.spawnData.battle.level}":${lvR},${dtColor},"${Properties.spawnData.battle.id_card_reward}":"${cardRewardData[DBM_Card_Data.columns.id_card]}",${dtAllowSpecial},${dtHp},"${Properties.spawnData.battle.damage_dealer}":{}}`;
             }
 
             parameterSet.set(DBM_Card_Guild.columns.spawn_data,spawnData);
@@ -6461,7 +6309,7 @@ async function addNewCardInventory(id_user,id_card,addStock = false,qty=1){
     
 }
 
-async function limitizeUserPoints(userId){
+async function limitizeUserPoints(){
     var query = `UPDATE ${DBM_Card_User_Data.TABLENAME} 
     SET ${DBM_Card_User_Data.columns.mofucoin} = IF(${DBM_Card_User_Data.columns.mofucoin}>=${Properties.limit.mofucoin}, ${Properties.limit.mofucoin}, ${DBM_Card_User_Data.columns.mofucoin}), 
 
@@ -6487,10 +6335,9 @@ async function limitizeUserPoints(userId){
     ${DBM_Card_User_Data.columns.sp012} = IF(${DBM_Card_User_Data.columns.sp012}>=${Properties.limit.seriespoint}, ${Properties.limit.seriespoint}, ${DBM_Card_User_Data.columns.sp012}),
     ${DBM_Card_User_Data.columns.sp013} = IF(${DBM_Card_User_Data.columns.sp013}>=${Properties.limit.seriespoint}, ${Properties.limit.seriespoint}, ${DBM_Card_User_Data.columns.sp013}),
     ${DBM_Card_User_Data.columns.sp014} = IF(${DBM_Card_User_Data.columns.sp014}>=${Properties.limit.seriespoint}, ${Properties.limit.seriespoint}, ${DBM_Card_User_Data.columns.sp014}),
-    ${DBM_Card_User_Data.columns.sp015} = IF(${DBM_Card_User_Data.columns.sp015}>=${Properties.limit.seriespoint}, ${Properties.limit.seriespoint}, ${DBM_Card_User_Data.columns.sp015}) 
-    WHERE ${DBM_Card_User_Data.columns.id_user}=?`;
+    ${DBM_Card_User_Data.columns.sp015} = IF(${DBM_Card_User_Data.columns.sp015}>=${Properties.limit.seriespoint}, ${Properties.limit.seriespoint}, ${DBM_Card_User_Data.columns.sp015})`;
 
-    await DBConn.conn.promise().query(query, [userId]);
+    await DBConn.conn.promise().query(query);
 }
 
 module.exports = {latestVersion,Properties,PrecureStarTwinkle: PrecureStarTwinkleCore,Battle,Leveling,Quest,Shop,Status,StatusEffect,TradeBoard,Embeds,Party,Skills,getCardData,getCardInventoryUserData,getAllCardDataByPack,
