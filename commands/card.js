@@ -2675,7 +2675,11 @@ module.exports = {
                 await message.delete();
 
                 var objEmbed = {
-                    color: CardModule.Properties.embedColor
+                    color: CardModule.Properties.embedColor,
+                    author:{
+                        iconURL:userAvatarUrl,
+                        name: userUsername
+                    }
                 };
 
                 //get the spawn token & prepare the card color
@@ -2701,30 +2705,20 @@ module.exports = {
                 }
 
                 //card catcher validator, check if card is still spawning/not
-                if(spawnedCardData.type!=null && spawnedCardData.type != "battle"){
+                if((spawnedCardData.type!=null && spawnedCardData.type != "battle")||
+                spawnedCardData.type==null||spawnedCardData.token==null||spawnedCardData.spawn_data==null){
                     objEmbed.thumbnail = {
                         url: CardModule.Properties.imgResponse.imgOk
                     }
-                    objEmbed.description = ":x: There are no tsunagarus detected!";
-                    return message.channel.send({embed:objEmbed});
-                } else if(spawnedCardData.type==null||
-                    spawnedCardData.token==null||
-                    spawnedCardData.spawn_data==null){
+                    objEmbed.description = ":x: There are no tsunagarus right now!";
+                }  else if(userData.token==spawnedCardData.token) {
+                    //user already capture the card on this turn
                     objEmbed.thumbnail = {
-                        url: CardModule.Properties.imgResponse.imgError
+                        url: CardModule.Properties.imgResponse.imgFailed
                     }
-                    objEmbed.description = ":x: There are no tsunagarus detected.";
+                    objEmbed.description = ":x: You cannot participate in battle anymore this time!";
                     return message.channel.send({embed:objEmbed});
-                } 
-                // else if(userData.token==spawnedCardData.token) {
-                //     //user already capture the card on this turn
-                //     objEmbed.thumbnail = {
-                //         url: CardModule.Properties.imgResponse.imgFailed
-                //     }
-                //     objEmbed.description = ":x: I know you want to battle but you are in no condition to fight now!";
-                //     return message.channel.send({embed:objEmbed});
-                // } 
-                else if(userData.cardIdSelected==null) {
+                }  else if(userData.cardIdSelected==null) {
                     //user already capture the card on this turn
                     objEmbed.thumbnail = {
                         url: CardModule.Properties.imgResponse.imgFailed
@@ -4893,15 +4887,9 @@ module.exports = {
                         //update the token & color point
                         var objColor = new Map();
                         objColor.set(`color_point_${cardData[DBM_Card_Data.columns.color]}`,pointReward);
-                        await CardModule.updateCatchAttempt(userId,
-                            spawnedCardData.token,
-                            objColor
-                        );
-
-                        //update the series point:
                         var objSeries = new Map();
                         objSeries.set(selectedSeriesPoint,seriesPointReward);
-                        await CardModule.updateSeriesPoint(userId,objSeries);
+                        await CardModule.updateCatchAttempt(userId,spawnedCardData.token,objColor,objSeries);
 
                         if(!specialActivated){
                             //battle win
@@ -4956,7 +4944,7 @@ module.exports = {
                         //check for enemy revival/erase the card guild spawn
                         var reviveChance = GlobalFunctions.randomNumber(1,10);
                         // reviveChance = 0;//for debugging purpose only
-                        if(duplicate&&reviveChance<=7){
+                        if(duplicate&&reviveChance<=9){
                             var enemyRevivalEmbed = {
                                 author : {
                                     name: "Mofurun",
