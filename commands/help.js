@@ -15,7 +15,7 @@ module.exports = {
               },
               {
                 "name": "Card",
-                "value": "`catch/capture`,`detail <card id> [normal/gold]`,`guide`,`status [username]`,`inventory [pack][username]`,`duplicate [pack][username]`,`guess [lower/higher]`,`color set [color]`,`answer [a/b/c/d]`,`convert item <id> | convert level <id> <id target> | convert point <id> | convert mofucoin <id> | convert fraglevel <id>| convert fragpoint <id>`,`set/transform/precure <card id>`,`spawn`,`battle [special/charge]`,`avatar`,`up color <color>`,`up level <card id> [level qty]`,`up special <card id>`,`leaderboard <pack/color>`,`tradeboard search <card id>`,`tradeboard post <card id that you search/want> <your card id offer>`,`tradeboard trade <trade id>`,`tradeboard remove`,`verify`,`upgrade gold <card id>`,`party create <name>/status/join <party id>/list/leave/charge`"
+                "value": "`detail <card id> [normal/gold]`\n`status [username]`\n`inventory [pack][username]`\n`duplicate [pack][username]`\n`color set [color]`\n`series set <series>`\n`set/transform/precure <card id>`\n`spawn`\n`special <card id>`\n`leaderboard <pack/color>`\n`trade <trade id>`,`remove`\n`verify`\n**party:**`create <name>/status/join <party id>/list/leave/charge`\n**tradeboard: **`search <card id> | post <card id that you search/want> <your card id offer>`\n**convert: **`point <cardid> [all/qty] | mofucoin <cardid> [all/qty] | item <cardid> | level <cardid> <card id target> [qty] | fraglevel <cardid> | fragpoint <fragment id>`\n**up/upgrade: **`color <color> | level <card id> [level qty] | gold <card id>`"
               },
               {
                 "name": "Item",

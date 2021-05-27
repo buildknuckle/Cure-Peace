@@ -26,12 +26,9 @@ class Embeds{
                 name: userUsername,
                 icon_url: userAvatarUrl
             },
-            thumbnail: {
-                url:Properties.imgResponse.imgOk
-            },
             title: "Kirakirarun!",
             description: `You have received ${total}x: **${idItem} - ${name}** from creating the kirakira.`,
-            image:{
+            thumbnail:{
                 url:imgUrl
             },
             fields:[

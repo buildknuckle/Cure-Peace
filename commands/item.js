@@ -258,7 +258,7 @@ module.exports = {
                     
                 }
 
-                //check if user have item/not
+                //stock validation
                 var userItemStock = await ItemModule.getUserItemStock(userId,itemId);
                 if(userItemStock<=0){
                     objEmbed.thumbnail = {
@@ -301,12 +301,21 @@ module.exports = {
                                     objEmbed.thumbnail = {
                                         url:CardModule.Properties.enemySpawnData.tsunagarus.image[enemyType]
                                     }
-                                    objEmbed.fields = [
-                                        {
-                                            name:`${CardModule.StatusEffect.buffData[itemData[DBM_Item_Data.columns.effect_data]].name}`,
-                                            value:`This tsunagarus will drop: **${cardDataReward[DBM_Card_Data.columns.id_card]} - ${cardDataReward[DBM_Card_Data.columns.name]}**`
+                                    if(cardDataReward == null){
+                                        objEmbed.thumbnail = {
+                                            url:CardModule.Properties.imgResponse.imgError
                                         }
-                                    ];
+                                        objEmbed.description = `:x: I can't scan the card reward for this tsunagarus!`;
+                                        return message.channel.send({embed:objEmbed});
+                                    } else {
+                                        objEmbed.fields = [
+                                            {
+                                                name:`${CardModule.StatusEffect.buffData[itemData[DBM_Item_Data.columns.effect_data]].name}`,
+                                                value:`This tsunagarus will drop: **${cardDataReward[DBM_Card_Data.columns.id_card]} - ${cardDataReward[DBM_Card_Data.columns.name]}**`
+                                            }
+                                        ];
+                                    }
+                                    
                                     break;
                                 default:
                                     objEmbed.thumbnail = {
@@ -346,8 +355,7 @@ module.exports = {
                                         }
                                     }
                                     
-                                    
-                                    messageValue = `Status Effect: ${CardModule.StatusEffect.debuffData[currentStatusEffect].name} has been removed.`;
+                                    messageValue = `✨ **${CardModule.StatusEffect.debuffData[currentStatusEffect].name}** has been removed.\n⬆️**New Status Effect:** ${CardModule.StatusEffect.buffData[itemData[DBM_Item_Data.columns.effect_data]].description}`;
                                 } else {
                                     objEmbed.fields = [
                                         {
@@ -388,11 +396,16 @@ module.exports = {
                 if(announceStatusEffect){
                     objEmbed.fields = [
                         {
-                            name:`Status Effect: ${CardModule.StatusEffect.buffData[itemData[DBM_Item_Data.columns.effect_data]].name}`,
+                            name:`✨Status Effect: ${CardModule.StatusEffect.buffData[itemData[DBM_Item_Data.columns.effect_data]].name}`,
                             value:messageValue,
                             inline:true
                         }
                     ];
+                    if(itemData[DBM_Item_Data.columns.img_url]!=null){
+                        objEmbed.thumbnail = {
+                            url:itemData[DBM_Item_Data.columns.img_url]
+                        }
+                    }
                 }
                 
                 return message.channel.send({embed:objEmbed});
@@ -559,7 +572,7 @@ module.exports = {
                         icon_url: "https://cdn.discordapp.com/attachments/793415946738860072/827928547590668298/latest.png"
                     },
                     title:"Fragment Shop",
-                    description:`Hariham Harry has returned from the future with fragments and has opened up shop again!\nUse the command "**p!item sale buy <sale number> [qty]**" to buy the fragment!\nBe quick, once someone buys a sale, it's one! And remember, you can buy as many sale as you want, but can only buy up to 1 fragment type!`,
+                    description:`Hariham Harry has returned from the future with fragments and has opened up shop again!\nUse the command "**p!item sale buy <sale number> [qty]**" to buy the fragment!\nBe quick, once someone buys a sale, it's gone! And remember, you can buy as many sale as you want, but can only buy up to 1 fragment type!`,
                     thumbnail:{
                         url:"https://cdn.discordapp.com/attachments/793415946738860072/827928547590668298/latest.png"
                     }

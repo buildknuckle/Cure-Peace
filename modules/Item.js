@@ -32,7 +32,7 @@ class Properties{
             name:"Rare Ingredient"
         },
         misc_fragment:{
-            value:"misc_Fragment",
+            value:"misc_fragment",
             name:"Card Fragment",
         },
     }

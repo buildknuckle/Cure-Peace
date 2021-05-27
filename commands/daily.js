@@ -133,6 +133,13 @@ module.exports = {
 
                         //update mofucoin
                         await CardModule.updateMofucoin(userId,mofucoinReward);
+                        //update series point
+                        var seriesId = CardModule.Properties.seriesCardCore[cardData[DBM_Card_Data.columns.series]].series_point;
+                        var seriesCurrency = CardModule.Properties.seriesCardCore[seriesId].currency;
+                        
+                        var objSeries = new Map();
+                        objSeries.set(seriesId,mofucoinReward);
+                        await CardModule.updateSeriesPoint(userId,objSeries);
 
                         //add item reward
                         if(itemRewardData!=null){
@@ -160,7 +167,7 @@ module.exports = {
                         objEmbed.fields = [
                             {
                                 name:"Rewards Received:",
-                                value:`>**Item:** ${itemRewardData[DBM_Item_Data.columns.name]} (**${itemRewardData[DBM_Item_Data.columns.id]}**)\n>${mofucoinReward} Mofucoin`
+                                value:`>**Item:** ${itemRewardData[DBM_Item_Data.columns.name]} (**${itemRewardData[DBM_Item_Data.columns.id]}**)\n>${mofucoinReward} Mofucoin\n>${mofucoinReward} ${seriesCurrency}`
                             }
                         ];
                         return message.channel.send({embed:objEmbed});
@@ -190,7 +197,7 @@ module.exports = {
                             objQuestData+=`"${entry[DBM_Card_Data.columns.id_card]}":"${entry["id_item"]}",`;
                             //randomize the reward:
                             requestedCards+=`-**[${entry[DBM_Card_Data.columns.pack]}] ${entry[DBM_Card_Data.columns.id_card]}** - ${GlobalFunctions.cutText(entry[DBM_Card_Data.columns.name],20)}\n`;
-                            requestedRewards+=`**${entry["id_item"]}**: ${GlobalFunctions.cutText(entry["item_name"],12)} & ${CardModule.Quest.getQuestReward(entry[DBM_Card_Data.columns.rarity])} MC\n`;
+                            requestedRewards+=`**${entry["id_item"]}**: ${GlobalFunctions.cutText(entry["item_name"],12)} & ${CardModule.Quest.getQuestReward(entry[DBM_Card_Data.columns.rarity])} MC&SP\n`;
                         });
     
                         objQuestData = objQuestData.replace(/,\s*$/, "");
@@ -235,7 +242,7 @@ module.exports = {
     
                                 //get the item reward
                                 var itemData = await ItemModule.getItemData(arrItemReward[ctr]); ctr++;
-                                requestedRewards+=`**${itemData[DBM_Item_Data.columns.id]}**: ${GlobalFunctions.cutText(itemData[DBM_Item_Data.columns.name],12)} & ${CardModule.Quest.getQuestReward(entry[DBM_Card_Data.columns.rarity])} MC\n`;
+                                requestedRewards+=`**${itemData[DBM_Item_Data.columns.id]}**: ${GlobalFunctions.cutText(itemData[DBM_Item_Data.columns.name],12)} & ${CardModule.Quest.getQuestReward(entry[DBM_Card_Data.columns.rarity])} MC&SP\n`;
                             }
     
                             objEmbed.fields = [{
@@ -308,7 +315,7 @@ module.exports = {
         };
 
         var query = "";
-        var basePoint = GlobalFunctions.randomNumber(10,20);
+        var basePoint = GlobalFunctions.randomNumber(60,70);
         var seriesPoint = Math.round(basePoint/2);
         var arrParameterized = [];
         var assignedSeriesCurrency = CardModule.Properties.seriesCardCore[userCardData[DBM_Card_User_Data.columns.series_set]].currency;
@@ -442,7 +449,7 @@ module.exports = {
         await DBConn.conn.promise().query(query, arrParameterized);
 
         //limit all points
-        await CardModule.limitizeUserPoints(userId);
+        await CardModule.limitizeUserPoints();
 
         return message.channel.send({embed:objEmbed});
 	},
