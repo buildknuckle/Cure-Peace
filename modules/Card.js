@@ -3263,13 +3263,13 @@ class Status {
     }
 
     static getSpecialPointProgress(level_special){
-        var retValue = level_special+GlobalFunctions.calculatePercentage(level_special,2);
+        var retValue = level_special+GlobalFunctions.calculatePercentage(level_special,20);
         if(retValue>=15){retValue = 15;} //cap the received special point
         return retValue;
     }
 
     static getPartySpecialPointProgress(level_special){
-        var retValue = level_special+GlobalFunctions.calculatePercentage(level_special,2);
+        var retValue = level_special+GlobalFunctions.calculatePercentage(level_special,20);
         if(retValue>=10){retValue = 10;} //cap the received special point
         return retValue;
     }
@@ -3416,7 +3416,7 @@ class Quest {
     }
 
     static getQuestReward(cardRarity){
-        return cardRarity*10;
+        return cardRarity*20;
     }
 }
 
@@ -3549,7 +3549,7 @@ class Embeds{
             description: `**${teamName}** has used the team special attack and defeat the tsunagarus instantly!`,
             fields: [
                 {
-                    name:"Battle Rewards:",
+                    name:"Party Rewards:",
                     value:rewardsReceived,
                     inline:false
                 }
@@ -3559,6 +3559,31 @@ class Embeds{
             },
             image:{
                 url:Properties.seriesCardCore[seriesName].img_team_attack
+            },
+        }
+    }
+
+    static teamBattleSpecialActivatedHitOne(embedColor,userUsername,userAvatarUrl,packName,rewardsReceived){
+        return {
+            color: Properties.dataColorCore[embedColor].color,
+            author: {
+                name: userUsername,
+                icon_url: userAvatarUrl
+            },
+            title: `**${Properties.dataCardCore[packName].special_attack}**!`,
+            description: `**${userUsername}** has used the special attack and take down **${embedColor}** color!`,
+            fields: [
+                {
+                    name:"Party Rewards:",
+                    value:rewardsReceived,
+                    inline:false
+                }
+            ],
+            thumbnail:{
+                url:Properties.dataCardCore[packName].icon
+            },
+            image:{
+                url:Properties.dataCardCore[packName].img_special_attack
             },
         }
     }
@@ -5239,7 +5264,7 @@ async function generateCardSpawn(id_guild,specificType=null,overwriteToken = tru
             var randomQuizType = GlobalFunctions.randomNumber(0,2);
             var query = ``;
             var resultData;
-            // randomQuizType = 2;//for debugging purpose
+            randomQuizType = 1;//for debugging purpose
             var subRandType = 0;
             switch(randomQuizType){
                 case 1:
@@ -5583,7 +5608,7 @@ async function generateCardSpawn(id_guild,specificType=null,overwriteToken = tru
             var enemyType = TsunagarusModules.Properties.enemySpawnData.tsunagarus.chokkins.term;//default enemy type
             var randomType = GlobalFunctions.randomNumber(0,10);
 
-            // randomType = 7;//for debug purpose only
+            // randomType = 9;//for debug purpose only
 
             if(specificType!=null&&
             (spawnData2==null||spawnData3==null)){
@@ -5619,7 +5644,7 @@ async function generateCardSpawn(id_guild,specificType=null,overwriteToken = tru
             var spawnSeries = enemyData[DBM_Card_Enemies.columns.series];
 
             var spawnData = "";
-            if(randomType>=10){
+            if(randomType>=9){
                 //dibosu
                 enemyType = TsunagarusModules.Properties.enemySpawnData.tsunagarus.dibosu.term;
                 var randRarityMin = 4;
@@ -5653,7 +5678,7 @@ async function generateCardSpawn(id_guild,specificType=null,overwriteToken = tru
                 //randomize hp
                 var baseHp = 15;//default hp
                 var lvR = GlobalFunctions.randomNumber(48,50);
-                var rndHp = Status.getAtk(lvR,baseHp)*GlobalFunctions.randomNumber(15,18);
+                var rndHp = Status.getAtk(lvR,baseHp)*GlobalFunctions.randomNumber(5,7);
                 var dtHp = `"${Properties.spawnData.battle.hp}":${rndHp},"${Properties.spawnData.battle.hp_max}":${rndHp}`;
 
                 //process color
@@ -5695,7 +5720,7 @@ async function generateCardSpawn(id_guild,specificType=null,overwriteToken = tru
                 }
                 objEmbed.title = `Tsunagarus Lv.${lvR} has appeared!`;
                 objEmbed.description = `${GlobalFunctions.capitalize(enemyType)} has manifest the **series cure card** and possesses **${TsunagarusModules.Properties.enemySpawnData[spawnSeries].term}** powers!\n\n**Available Command:**\n⚔️ **p!card battle**: Participate in battle. (10 CP)\n✨ **p!card battle special**: Use the special attack.\n⬆️ **p!card battle charge**: Charge up your special attack. (20 CP)\n\n**Traits:**\n>Can attack\n>Weak against cure that can hit this monster type\n>Counter cure that has incorrect rarity\n>Counter cure with tricky color information`;
-                objEmbed.color = TsunagarusModules.Properties.enemySpawnData.tsunagarus.dibosu.embedColor;
+                objEmbed.color = TsunagarusModules.Properties.enemySpawnData.tsunagarus[enemyType].embedColor;
                 objEmbed.fields = [
                     {
                         name:`${iconRarity} ${randRarityMin}⭐ ${txtHeader}`,
@@ -5773,9 +5798,14 @@ async function generateCardSpawn(id_guild,specificType=null,overwriteToken = tru
 
                 //randomize hp
                 var baseHp = 15;//default hp
-                var turnMax = GlobalFunctions.randomNumber(10,15);
+                var turnMax = GlobalFunctions.randomNumber(3,7);
                 var colorGroup = arrTempColor.length; 
                 var turnBonus = GlobalFunctions.randomNumber(10,12);
+
+                if(colorGroup>=3){
+                    turnMax = GlobalFunctions.randomNumber(3,6);
+                    turnBonus = GlobalFunctions.randomNumber(10,12);
+                }
 
                 // var rndHp = baseHp;
                 rndHp = Status.getAtk(lvR,baseHp)*turnMax;
@@ -5830,8 +5860,8 @@ async function generateCardSpawn(id_guild,specificType=null,overwriteToken = tru
                     url:TsunagarusModules.Properties.enemySpawnData.tsunagarus.buttagiru.image
                 }
                 objEmbed.title = `Tsunagarus Lv.${lvR} has appeared!`;
-                objEmbed.description = `It's a Big Monster! Team up to defeat the **${GlobalFunctions.capitalize(enemyType)}**! \n\n**p!card <command> List:**\n⚔️ **battle**: Participate in team battle (10 CP)\n✨ **battle special**: Use the fully charged team attack\n🛡️ **battle block**: Counter/Block any offensive actions (10 CP)\n⬆️ **battle charge**: Charge up team special point (10 PP)\n🔍 **battle scan <info>**: Scan & Reveal <info> (1 PP)\n\n**Traits:**\n>Can Attack\n>Counter cure that cannot hit this monster type\n>Counter cure that has less than ${txtRarity}⭐\n>Counter cure that cannot hit the color`;
-                objEmbed.color = "#B2D67A";
+                objEmbed.description = `It's a Big Monster! Team up to defeat the **${GlobalFunctions.capitalize(enemyType)}**! \n\n**p!card <command> List:**\n⚔️ **battle**: Participate in team battle (10 CP)\n✨ **battle special [party]**: Use the fully charged special attack/team attack\n🛡️ **battle block**: Counter/Block any offensive actions (10 CP)\n⬆️ **battle charge**: Charge up team special point (10 PP)\n🔍 **battle scan <info>**: Scan & Reveal <info> (1 PP)\n\n**Traits:**\n>Can attack & counter cure with HP<${lvR}\n>Counter cure that cannot hit this monster type\n>Counter cure that has less than ${txtRarity}⭐\n>Counter cure that cannot hit the color`;
+                objEmbed.color = TsunagarusModules.Properties.enemySpawnData.tsunagarus[enemyType].embedColor;
 
                 objEmbed.fields = [
                     {
@@ -5929,7 +5959,7 @@ async function generateCardSpawn(id_guild,specificType=null,overwriteToken = tru
                 // resultWord = resultWord.filter((v, i, a) => a.indexOf(v) === i);
                 var baseHp = 15;//default hp
                 var lvR = GlobalFunctions.randomNumber(43,50);
-                var rndHp = Status.getAtk(lvR,baseHp)*GlobalFunctions.randomNumber(14,15);
+                var rndHp = Status.getAtk(lvR,baseHp)*GlobalFunctions.randomNumber(4,8);
                 var dtHp = `"${Properties.spawnData.battle.hp}":${rndHp},"${Properties.spawnData.battle.hp_max}":${rndHp}`;
 
                 //process color
@@ -5969,7 +5999,7 @@ async function generateCardSpawn(id_guild,specificType=null,overwriteToken = tru
                 }
                 objEmbed.title = `Tsunagarus LvR. ${lvR} has appeared!`;
                 objEmbed.description = `${GlobalFunctions.capitalize(enemyType)} has the ${cardRewardData[DBM_Card_Data.columns.rarity]}⭐ cure card and possesses **${TsunagarusModules.Properties.enemySpawnData[cardDataSeriesWeakness[DBM_Card_Data.columns.series]].term}** powers!\n\n**Available Command:**\n⚔️ **p!card battle**: Participate in battle. (10 CP)\n✨ **p!card battle special**: Use the special attack.\n⬆️ **p!card battle charge**: Charge up your special attack. (20 CP)\n\n**Traits:**\n>Cannot attack\n>Counter cure that cannot hit this monster type\n>Counter cure that has less than ${randRarityMin}⭐\n>Counter cure with tricky catchphrase information`;
-                objEmbed.color = "#C9C9C9";
+                objEmbed.color = TsunagarusModules.Properties.enemySpawnData.tsunagarus[enemyType].embedColor;
                 objEmbed.fields = [
                     {
                         name:`${randRarityMin}⭐ ${txtHeader}`,
@@ -6058,7 +6088,7 @@ async function generateCardSpawn(id_guild,specificType=null,overwriteToken = tru
                 //randomize hp
                 var baseHp = 15;//default hp
                 var lvR = GlobalFunctions.randomNumber(40,50);
-                var rndHp = Status.getAtk(lvR,baseHp)*GlobalFunctions.randomNumber(13,15);
+                var rndHp = Status.getAtk(lvR,baseHp)*GlobalFunctions.randomNumber(5,7);
                 var dtHp = `"${Properties.spawnData.battle.hp}":${rndHp},"${Properties.spawnData.battle.hp_max}":${rndHp}`;
 
                 //process color
@@ -6091,7 +6121,7 @@ async function generateCardSpawn(id_guild,specificType=null,overwriteToken = tru
                 }
                 objEmbed.title = `Tsunagarus LvR. ${lvR} has appeared!`;
                 objEmbed.description = `${GlobalFunctions.capitalize(enemyType)} has the ${cardRewardData[DBM_Card_Data.columns.rarity]}⭐ cure card and possesses **${TsunagarusModules.Properties.enemySpawnData[spawnSeries].term}** powers!\n\n**Available Command:**\n⚔️ **p!card battle**: Participate in battle. (10 CP)\n✨ **p!card battle special**: Use the special attack.\n⬆️ **p!card battle charge**: Charge up your special attack. (20 CP)\n\n**Traits:**\n>Cannot attack\n>Counter cure that cannot hit this monster type\n>Counter cure that has less than ${randRarityMin}⭐\n>Counter cure with tricky color information`;
-                objEmbed.color = "#ED873C";
+                objEmbed.color = TsunagarusModules.Properties.enemySpawnData.tsunagarus[enemyType].embedColor;
                 objEmbed.fields = [
                     {
                         name:`💔Hp:`,
@@ -6140,7 +6170,7 @@ async function generateCardSpawn(id_guild,specificType=null,overwriteToken = tru
                 var lvR = GlobalFunctions.randomNumber(35,40);
 
                 //randomize hp
-                var rndHp = Status.getAtk(lvR,baseHp)*GlobalFunctions.randomNumber(15,20);
+                var rndHp = Status.getAtk(lvR,baseHp)*GlobalFunctions.randomNumber(3,7);
                 var dtHp = `"${Properties.spawnData.battle.hp}":${rndHp},"${Properties.spawnData.battle.hp_max}":${rndHp}`;
 
                 var randTrait = GlobalFunctions.randomNumber(0,1);
@@ -6161,9 +6191,9 @@ async function generateCardSpawn(id_guild,specificType=null,overwriteToken = tru
                 objEmbed.thumbnail = {
                     url:TsunagarusModules.Properties.enemySpawnData.tsunagarus.chokkins.image
                 }
-                objEmbed.title = `Tsunagarus LvR. ${lvR} has appeared!`;
+                objEmbed.title = `Tsunagarus Lv. ${lvR} has appeared!`;
                 objEmbed.description = `${GlobalFunctions.capitalize(enemyType)} has the ${cardRewardData[DBM_Card_Data.columns.rarity]}⭐ cure card and possesses **${TsunagarusModules.Properties.enemySpawnData[spawnSeries].term}** powers!\n\n**Available Command:**\n⚔️ **p!card battle**: Participate in battle. (10 CP)\n✨ **p!card battle special**: Use the special attack.\n⬆️ **p!card battle charge**: Charge up your special attack. (20 CP)\n\n**Traits:**\n>Can attack\n>Weak against cure that can hit this monster type`;
-                objEmbed.color = "#D9A4FE";
+                objEmbed.color = TsunagarusModules.Properties.enemySpawnData.tsunagarus[enemyType].embedColor;
                 objEmbed.fields = [
                     {
                         name:`⬆️ Series Hp Boost:`,

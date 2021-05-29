@@ -277,7 +277,7 @@ module.exports = {
                     thumbnail : {
                         url: CardModule.Properties.imgResponse.imgError
                     },
-                    description : ":x: Please enter the correct daily color command with: **p!color daily** or **p!color daily <pink/purple/green/yellow/white/blue/red>**."
+                    description : ":x: Please enter the correct daily color command with: **p!daily** or **p!daily <pink/purple/green/yellow/white/blue/red>**."
                 };
                 return message.channel.send({embed:objEmbed});
             }

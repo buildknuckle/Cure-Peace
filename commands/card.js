@@ -2541,6 +2541,18 @@ module.exports = {
                 var currentColorPoint = cardUserData[`color_point_${selectedColor}`];
                 var msgContent = "";
 
+                //unset if previously set
+                if(cardUserData[DBM_Card_User_Data.columns.card_id_selected]!=null){
+                    var previousSetAvatar = await CardModule.getCardData(cardUserData[DBM_Card_User_Data.columns.card_id_selected]);
+
+                    if(previousSetAvatar[DBM_Card_Data.columns.rarity]>=3){
+                        var objColor = new Map();
+                        objColor.set(`color_point_${previousSetAvatar[DBM_Card_Data.columns.color]}`,previousSetAvatar[DBM_Card_Data.columns.rarity]*10);
+                        await CardModule.updateColorPoint(userId,objColor);
+                        msgContent = `🔁 `;
+                    }
+                }
+
                 // if(cardGuildData[DBM_Card_Guild.columns.spawn_type]=="battle" && 
                 // cardUserData[DBM_Card_User_Data.columns.card_set_token]==cardGuildData[DBM_Card_Guild.columns.spawn_token]){
                 //     var objEmbed = {
@@ -2573,9 +2585,9 @@ module.exports = {
                     var objColor = new Map();
                     objColor.set(`color_point_${selectedColor}`,-price);
                     await CardModule.updateColorPoint(userId,objColor);
-                    msgContent = `${userUsername} has set **${cardData[DBM_Card_Data.columns.id_card]} - ${cardData[DBM_Card_Data.columns.name]}** as the cure avatar & use **${price} ${selectedColor}** color points!`
+                    msgContent += `${userUsername} has set **${cardData[DBM_Card_Data.columns.id_card]} - ${cardData[DBM_Card_Data.columns.name]}** as the cure avatar & use **${price} ${selectedColor}** color points!`
                 } else {
-                    msgContent = `${userUsername} has set **${cardData[DBM_Card_Data.columns.id_card]} - ${cardData[DBM_Card_Data.columns.name]}** as the cure avatar`;
+                    msgContent += `${userUsername} has set **${cardData[DBM_Card_Data.columns.id_card]} - ${cardData[DBM_Card_Data.columns.name]}** as the cure avatar`;
                 }
 
                 //update the cure card avatar & card id set token
@@ -2711,14 +2723,15 @@ module.exports = {
                         url: CardModule.Properties.imgResponse.imgOk
                     }
                     objEmbed.description = ":x: There are no tsunagarus right now!";
-                }  else if(userData.token==spawnedCardData.token) {
+                    return message.channel.send({embed:objEmbed});
+                } else if(userData.token==spawnedCardData.token) {
                     //user already capture the card on this turn
                     objEmbed.thumbnail = {
                         url: CardModule.Properties.imgResponse.imgFailed
                     }
                     objEmbed.description = ":x: You cannot participate in battle anymore this time!";
                     return message.channel.send({embed:objEmbed});
-                }  else if(userData.cardIdSelected==null) {
+                } else if(userData.cardIdSelected==null) {
                     //user already capture the card on this turn
                     objEmbed.thumbnail = {
                         url: CardModule.Properties.imgResponse.imgFailed
@@ -2777,7 +2790,7 @@ module.exports = {
                 } else if(CardModule.Properties.spawnData.battle.color_block in jsonParsedSpawnData){
                     arrColor = jsonParsedSpawnData[CardModule.Properties.spawnData.battle.color_block];
                     trait = CardModule.Properties.spawnData.battle.color_block;
-                }  else if(CardModule.Properties.spawnData.battle.color_absorb in jsonParsedSpawnData){
+                } else if(CardModule.Properties.spawnData.battle.color_absorb in jsonParsedSpawnData){
                     arrColor = jsonParsedSpawnData[CardModule.Properties.spawnData.battle.color_absorb];
                     trait = CardModule.Properties.spawnData.battle.color_absorb;
                 }
@@ -2791,6 +2804,7 @@ module.exports = {
                 }
 
                 var captured = false; var specialActivated = false; var teamBattle = false; var hitted = false;
+                var specialActivatedIndividual = false;//for team battle only
 
                 //default point reward
                 var pointReward = 0;
@@ -2836,6 +2850,10 @@ module.exports = {
 
                 //optional command validation
                 if(args[1]!=null){
+                    var subcommand = args[2];
+                    if(subcommand==null){
+                        subcommand = ""; subcommand = subcommand.toLowerCase();
+                    }
                     var specialAllow = true;
                     
                     //special validation
@@ -2854,307 +2872,313 @@ module.exports = {
                         };
                         if(teamBattle){
                             //team battle
-                            objEmbed.description = ">Use **p!card battle special** to activate the team attack.\n>Use **p!card battle block** to block any offensive actions.\n>Use **p!card battle charge** to charge up the party special attack.\nUse **p!card battle scan <info: color/type/rarity>** to scan the enemy <info>";
+                            objEmbed.description = ">Use **p!card battle special party** to activate the team attack.\nUse **p!card battle special** to activate the special attack.\n>Use **p!card battle block** to block any offensive actions.\n>Use **p!card battle charge** to charge up the party special attack.\nUse **p!card battle scan <info: color/type/rarity>** to scan the enemy <info>";
                         } else {
                             //individual
                             objEmbed.description = ">Use **p!card battle special** to activate the special attack.\n>Use **p!card battle charge** to charge up your special attack.";
                         }
                         
                         return message.channel.send({embed:objEmbed});
-                    } else if(args[1].toLowerCase()=="scan"){
-                        //scan command
-                        if(!teamBattle){
-                            objEmbed.thumbnail = {
-                                url:CardModule.Properties.imgResponse.imgError
-                            };
-                            objEmbed.description = ":x: You cannot use the **scan** command for this tsunagarus.";
-                        } else if(partyPoint<=0){
-                            objEmbed.thumbnail = {
-                                url:CardModule.Properties.imgResponse.imgError
-                            };
-                            objEmbed.description = ":x: Your party need 1 Party Point to use the scan command.";
-                        } else if(args[2]==null||(args[2]!="color"&&args[2]!="type"&&args[2]!="rarity")){
-                            objEmbed.description = "Use one of these <info> that you want to scan: **color**/**type**/**rarity**.";
-                        } else {
-                            objEmbed.thumbnail = {
-                                url:TsunagarusModules.Properties.enemySpawnData.tsunagarus.enemyType.image
-                            };
-                            switch(args[2]){
-                                case "color":
-                                    var txtColor = "";
-                                    for(var key in jsonParsedSpawnData[CardModule.Properties.spawnData.battle.color_lives]){
-                                        txtColor+=`${key},`;
-                                    }
-                                    txtColor = txtColor.replace(/,(?=[^,]*$)/, '');
+                    }
+                    
+                    //special validation
+                    switch(args[1].toLowerCase()){
+                        case "scan":
+                            //scan command
+                            if(!teamBattle){
+                                objEmbed.thumbnail = {
+                                    url:CardModule.Properties.imgResponse.imgError
+                                };
+                                objEmbed.description = ":x: You cannot use the **scan** command for this tsunagarus.";
+                            } else if(partyPoint<=0){
+                                objEmbed.thumbnail = {
+                                    url:CardModule.Properties.imgResponse.imgError
+                                };
+                                objEmbed.description = ":x: Your party need 1 Party Point to use the scan command.";
+                            } else if(args[2]==null||(args[2]!="color"&&args[2]!="type"&&args[2]!="rarity")){
+                                objEmbed.description = "Use one of these <info> that you want to scan: **color**/**type**/**rarity**.";
+                            } else {
+                                objEmbed.thumbnail = {
+                                    url:TsunagarusModules.Properties.enemySpawnData.tsunagarus[enemyType].image
+                                };
+                                switch(args[2]){
+                                    case "color":
+                                        var txtColor = "";
+                                        for(var key in jsonParsedSpawnData[CardModule.Properties.spawnData.battle.color_lives]){
+                                            txtColor+=`${key},`;
+                                        }
+                                        txtColor = txtColor.replace(/,(?=[^,]*$)/, '');
 
-                                    objEmbed.title = "Color Scanned!"
-                                    objEmbed.description = `1 PP has been used! This tsunagarus currently have: **${txtColor}** lives.`;
-                                    break;
-                                case "type":
-                                    objEmbed.title = "Enemy Type Scanned!"
-                                    objEmbed.description = `1 PP has been used! This tsunagarus possesses **${TsunagarusModules.Properties.enemySpawnData[enemyData[DBM_Card_Enemies.columns.series].toLowerCase()].term}** power`;
-                                    break;
-                                case "rarity":
-                                    objEmbed.title = "Rarity Scanned!"
-                                    objEmbed.description = `1 PP has been used! You need card with minimum rarity of: **${jsonParsedSpawnData[CardModule.Properties.spawnData.battle.rarity]}** for this one.`;
-                                    break;
+                                        objEmbed.title = "🔍 Color Scanned!"
+                                        objEmbed.description = `1 PP has been used! This tsunagarus currently have: **${txtColor}** lives.`;
+                                        break;
+                                    case "type":
+                                        objEmbed.title = "🔍 Enemy Type Scanned!"
+                                        objEmbed.description = `1 PP has been used! This tsunagarus possesses **${TsunagarusModules.Properties.enemySpawnData[enemyData[DBM_Card_Enemies.columns.series].toLowerCase()].term}** power`;
+                                        break;
+                                    case "rarity":
+                                        objEmbed.title = "🔍 Rarity Scanned!"
+                                        objEmbed.description = `1 PP has been used! You need card with minimum rarity of: **${jsonParsedSpawnData[CardModule.Properties.spawnData.battle.rarity]}** for this one.`;
+                                        break;
+                                }
+                                
+                                //update the party point
+                                await CardModule.Party.updatePartyPoint(partyData.partyData[DBM_Card_Party.columns.id],-1);
                             }
                             
-                            //update the party point
-                            await CardModule.Party.updatePartyPoint(partyData.partyData[DBM_Card_Party.columns.id],-1);
-                        }
-                        
-                        return message.channel.send({embed:objEmbed});
-                    } else if(args[1].toLowerCase()=="charge"){
-                        //check if party/individual one
-                        //if Properties.spawnData.battle.category
+                            return message.channel.send({embed:objEmbed});
+                            break;
+                        case "charge":
+                            //check if party/individual one
+                            //if Properties.spawnData.battle.category
 
-                        objEmbed.author = {
-                            name: userUsername,
-                            icon_url: userAvatarUrl
-                        };
-                        objEmbed.thumbnail = {
-                            url:CardModule.Properties.imgResponse.imgOk
-                        };
+                            objEmbed.author = {
+                                name: userUsername,
+                                icon_url: userAvatarUrl
+                            };
+                            objEmbed.thumbnail = {
+                                url:CardModule.Properties.imgResponse.imgOk
+                            };
 
-                        if(teamBattle){
-                            //team battle
-                            var ppCost = 20;
+                            if(teamBattle){
+                                //team battle
+                                var ppCost = 10;
 
-                            //party point validation: not enough PP
-                            if(partyData.partyData[DBM_Card_Party.columns.party_point]<ppCost){
-                                var objEmbed = await message.channel.send({embed:{
-                                    color:CardModule.Properties.embedColor,
-                                    author: {
-                                        name: userUsername,
-                                        icon_url: userAvatarUrl
-                                    },
-                                    description: `:x: Your party need **${ppCost} Party Points** to charge up the special attack!`
-                                }});
+                                //party point validation: not enough PP
+                                if(partyData.partyData[DBM_Card_Party.columns.party_point]<ppCost){
+                                    var objEmbed = await message.channel.send({embed:{
+                                        color:CardModule.Properties.embedColor,
+                                        author: {
+                                            name: userUsername,
+                                            icon_url: userAvatarUrl
+                                        },
+                                        description: `:x: Your party need **${ppCost} Party Points** to charge up the special attack!`
+                                    }});
 
-                                setTimeout(function() {
-                                    objEmbed.delete();
-                                }, 5000);
-                                return;
+                                    setTimeout(function() {
+                                        objEmbed.delete();
+                                    }, 5000);
+                                    return;
+                                }
+
+                                var pointSpecial = CardModule.Status.getPartySpecialPointProgress(userCardInventoryData[DBM_Card_Inventory.columns.level_special]);
+                                //charge for party
+                                objEmbed.title = "Party Special Point Charged!";
+                                objEmbed.description = `Your party special point has been charged up by ${pointSpecial}%`;
+
+                                //update the special point reward
+                                var specialCharged = await CardModule.Status.updatePartySpecialPoint(partyData.partyData[DBM_Card_Party.columns.id],pointSpecial);
+                                if(specialCharged){
+                                    objEmbed.description += `\n✨Your party special point is ready now!`;
+                                }
+                                //update the party point
+                                await CardModule.Party.updatePartyPoint(partyData.partyData[DBM_Card_Party.columns.id],-ppCost);
+
+                                await message.channel.send({embed:objEmbed});
+                            } else {
+                                //individual battle
+                                //reduce the color point
+                                var cpCost = 20;//cp cost for battling the enemy
+                                if(userCardData[`color_point_${cardData[DBM_Card_Data.columns.color]}`]<=cpCost){
+                                    var objEmbed = await message.channel.send({embed:{
+                                        color:CardModule.Properties.embedColor,
+                                        author: {
+                                            name: userUsername,
+                                            icon_url: userAvatarUrl
+                                        },
+                                        thumbnail: {
+                                            url:CardModule.Properties.imgResponse.imgError
+                                        },
+                                        description: `:x: You need ${cpCost} ${cardData[DBM_Card_Data.columns.color]} points to charge up the special attack!`
+                                    }});
+
+                                    setTimeout(function() {
+                                        objEmbed.delete();
+                                    }, 5000);
+                                    return;
+                                } else if(userCardData[`color_point_${cardData[DBM_Card_Data.columns.color]}`]>=cpCost){
+                                    var objColor = new Map();
+                                    objColor.set(`color_point_${cardData[DBM_Card_Data.columns.color]}`,-cpCost);
+                                    await CardModule.updateColorPoint(userId,objColor);
+                                }
+
+                                var pointSpecial = userCardInventoryData[DBM_Card_Inventory.columns.level_special];
+                                pointSpecial=CardModule.Status.getSpecialPointProgress(pointSpecial);
+
+                                //charge individual
+                                objEmbed.title = "Special Point Charged!";
+                                objEmbed.description = `Your special point has been charged up by ${pointSpecial}%`;
+
+                                //update the special point reward
+                                var specialCharged = await CardModule.Status.updateSpecialPoint(userId,pointSpecial);
+                                if(specialCharged){
+                                    objEmbed.description += `\n✨Your special point is ready now!`;
+                                    // await message.channel.send({embed:CardModule.Embeds.battleSpecialReady(userUsername,userAvatarUrl)}); //announce the special ready
+                                }
+                                await message.channel.send({embed:objEmbed});
                             }
 
-                            var pointSpecial = CardModule.Status.getPartySpecialPointProgress(userCardInventoryData[DBM_Card_Inventory.columns.level_special]+5);
-                            //charge for party
-                            objEmbed.title = "Party Special Point Charged!";
-                            objEmbed.description = `Your party special point has been charged up by ${pointSpecial}%.`;
+                            return;
+                            break;
+                        case "block":
+                            partyBlock = true;
+                            break;
+                        case "special":
+                            if(currentStatusEffect==CardModule.StatusEffect.debuffData.specialock.value){
+                                //specialock debuff
+                                var embedStatusActivated = await CardModule.StatusEffect.embedStatusEffectActivated(userUsername,userAvatarUrl,currentStatusEffect,"debuff");
+                                return message.channel.send({embed:embedStatusActivated});
+                            } else if(!teamBattle&&subcommand=="party") {
+                                objEmbed.author = {
+                                    name: userUsername,
+                                    icon_url: userAvatarUrl
+                                };
+                                objEmbed.thumbnail = {
+                                    url:CardModule.Properties.imgResponse.imgFailed
+                                };
+                                objEmbed.description = ":x: You cannot use the party special at this point!";
+                                return message.channel.send({embed:objEmbed});
+                            } else if(subcommand!="party"&&userCardData[DBM_Card_User_Data.columns.special_point]<100){
+                                objEmbed.author = {
+                                    name: userUsername,
+                                    icon_url: userAvatarUrl
+                                };
+                                objEmbed.thumbnail = {
+                                    url:CardModule.Properties.imgResponse.imgFailed
+                                };
+                                objEmbed.description = ":x: Your special point is not fully charged yet!";
+                                return message.channel.send({embed:objEmbed});
+                            } else if(teamBattle&&partyData.partyData[DBM_Card_Party.columns.special_point]<100&&subcommand=="party"){
+                                objEmbed.author = {
+                                    name: userUsername,
+                                    icon_url: userAvatarUrl
+                                };
+                                objEmbed.thumbnail = {
+                                    url:CardModule.Properties.imgResponse.imgFailed
+                                };
+                                objEmbed.description = ":x: Your party special point is not fully charged yet!";
+                                return message.channel.send({embed:objEmbed});
+                            } else if(teamBattle&&!partySynergy&&subcommand=="party"){
+                                //check for special synergy
+                                objEmbed.author = {
+                                    name: userUsername,
+                                    icon_url: userAvatarUrl
+                                };
+                                objEmbed.thumbnail = {
+                                    url:CardModule.Properties.imgResponse.imgFailed
+                                };
+                                objEmbed.title = "Non Synergy!";
+                                objEmbed.description = "Your party is not on synergy and can't use the team attack!";
+                                return message.channel.send({embed:objEmbed});
+                            } else if(!specialAllow||cardData[DBM_Card_Data.columns.series]!=enemyData[DBM_Card_Enemies.columns.series]){
+                                //special countered
+                                //remove the precure avatar
+                                var parameterSet = new Map();
+                                parameterSet.set(DBM_Card_User_Data.columns.card_id_selected,null);
+                                var parameterWhere = new Map();
+                                parameterWhere.set(DBM_Card_User_Data.columns.id_user,userId);
+                                await DB.update(DBM_Card_User_Data.TABLENAME,parameterSet,parameterWhere);
 
-                            //update the special point reward
-                            var specialCharged = await CardModule.Status.updatePartySpecialPoint(partyData.partyData[DBM_Card_Party.columns.id],pointSpecial);
-                            if(specialCharged){
-                                objEmbed.description += `\nYour party special point is ready now. You can use the team special attack!`;
-                            }
-                            //update the party point
-                            await CardModule.Party.updatePartyPoint(partyData.partyData[DBM_Card_Party.columns.id],-ppCost);
+                                //update the capture attempt
+                                // await CardModule.updateCatchAttempt(userId,spawnedCardData.token);
 
-                            await message.channel.send({embed:objEmbed});
-                        } else {
-                            //individual battle
-                            //reduce the color point
-                            var cpCost = 20;//cp cost for battling the enemy
-                            if(userCardData[`color_point_${cardData[DBM_Card_Data.columns.color]}`]<=cpCost){
-                                var objEmbed = await message.channel.send({embed:{
-                                    color:CardModule.Properties.embedColor,
-                                    author: {
-                                        name: userUsername,
-                                        icon_url: userAvatarUrl
-                                    },
-                                    thumbnail: {
-                                        url:CardModule.Properties.imgResponse.imgError
-                                    },
-                                    description: `:x: You need ${cpCost} ${cardData[DBM_Card_Data.columns.color]} points to charge up the special attack!`
-                                }});
+                                objEmbed.thumbnail = {
+                                    url:CardModule.Properties.imgResponse.imgFailed
+                                };
 
-                                setTimeout(function() {
-                                    objEmbed.delete();
-                                }, 5000);
-                                return;
-                            } else if(userCardData[`color_point_${cardData[DBM_Card_Data.columns.color]}`]>=cpCost){
-                                var objColor = new Map();
-                                objColor.set(`color_point_${cardData[DBM_Card_Data.columns.color]}`,-cpCost);
-                                await CardModule.updateColorPoint(userId,objColor);
-                            }
+                                objEmbed.title = "Battle Lost: Special Countered!";
+                                if(teamBattle&&subcommand=="party"){
+                                    //reset party special point
+                                    var parameterSet = new Map();
+                                    parameterSet.set(DBM_Card_Party.columns.special_point,0);
+                                    var parameterWhere = new Map();
+                                    parameterWhere.set(DBM_Card_Party.columns.id,partyData.partyData[DBM_Card_Party.columns.id]);
+                                    await DB.update(DBM_Card_Party.TABLENAME,parameterSet,parameterWhere);
 
-                            var pointSpecial = CardModule.Status.getSpecialPointProgress(userCardInventoryData[DBM_Card_Inventory.columns.level],userCardInventoryData[DBM_Card_Inventory.columns.level_special]);
+                                    //erase the set token
+                                    var parameterSet = new Map();
+                                    // parameterSet.set(DBM_Card_User_Data.columns.card_set_token,spawnedCardData.token);
+                                    parameterSet.set(DBM_Card_User_Data.columns.card_id_selected,null);
+                                    var parameterWhere = new Map();
+                                    parameterWhere.set(DBM_Card_User_Data.columns.id_user,userId);
+                                    await DB.update(DBM_Card_User_Data.TABLENAME,parameterSet,parameterWhere);
+                                    objEmbed.description = "The team attack has been countered by the tsunagarus and you've instantly defeated! Your party special point has dropped into 0%!";
+                                } else {
+                                    //reset the special point
+                                    var parameterSet = new Map();
+                                    parameterSet.set(DBM_Card_User_Data.columns.special_point,0);
+                                    // parameterSet.set(DBM_Card_User_Data.columns.card_set_token,spawnedCardData.token);
+                                    parameterSet.set(DBM_Card_User_Data.columns.card_id_selected,null);
+                                    var parameterWhere = new Map();
+                                    parameterWhere.set(DBM_Card_User_Data.columns.id_user,userId);
+                                    await DB.update(DBM_Card_User_Data.TABLENAME,parameterSet,parameterWhere);
 
-                            //charge individual
-                            objEmbed.title = "Special Point Charged!";
-                            objEmbed.description = `Your special point has been charged up by ${pointSpecial}%.`;
-                            await message.channel.send({embed:objEmbed});
+                                    //erase the set token
+                                    objEmbed.description = "Your special has been countered by the tsunagarus and you've instantly defeated! Your special point has dropped into 0%!";
+                                }
 
-                            //update the special point reward
-                            var specialCharged = await CardModule.Status.updateSpecialPoint(userId,pointSpecial);
-                            if(specialCharged){
-                                objEmbed.description += `Your special point is ready now! You can use the special attack on the next battle spawn.`;
-                                // await message.channel.send({embed:CardModule.Embeds.battleSpecialReady(userUsername,userAvatarUrl)}); //announce the special ready
-                            }
-                        }
-                        
-                        //update the battle token
-                        // await CardModule.updateCatchAttempt(userId,spawnedCardData.token);
-                        return;
-                    } else if(args[1].toLowerCase()=="block") {
-                        partyBlock = true;
-                    } else if(currentStatusEffect==CardModule.StatusEffect.debuffData.specialock.value&&args[1].toLowerCase()=="special"){
-                        //specialock debuff
-                        var embedStatusActivated = await CardModule.StatusEffect.embedStatusEffectActivated(userUsername,userAvatarUrl,currentStatusEffect,"debuff");
-                        return message.channel.send({embed:embedStatusActivated});
-                    } else if(!teamBattle&&userCardData[DBM_Card_User_Data.columns.special_point]<100&&args[1].toLowerCase()=="special"){
-                        objEmbed.author = {
-                            name: userUsername,
-                            icon_url: userAvatarUrl
-                        };
-                        objEmbed.thumbnail = {
-                            url:CardModule.Properties.imgResponse.imgFailed
-                        };
-                        objEmbed.description = ":x: Your special point is not fully charged yet!";
-                        return message.channel.send({embed:objEmbed});
-                    } else if(teamBattle&&partyData.partyData[DBM_Card_Party.columns.special_point]<100&&args[1].toLowerCase()=="special") {
-                        objEmbed.author = {
-                            name: userUsername,
-                            icon_url: userAvatarUrl
-                        };
-                        objEmbed.thumbnail = {
-                            url:CardModule.Properties.imgResponse.imgFailed
-                        };
-                        objEmbed.description = ":x: Your party special point is not fully charged yet!";
-                        return message.channel.send({embed:objEmbed});
-                    } else if(teamBattle&&!partySynergy&&args[1].toLowerCase()=="special") {
-                        //check for special synergy
-                        objEmbed.author = {
-                            name: userUsername,
-                            icon_url: userAvatarUrl
-                        };
-                        objEmbed.thumbnail = {
-                            url:CardModule.Properties.imgResponse.imgFailed
-                        };
-                        objEmbed.title = "Non Synergy!";
-                        objEmbed.description = "Your party is not on synergy and can't use the team attack!";
-                        return message.channel.send({embed:objEmbed});
-                    } else if(specialAllow&&teamBattle&&partySynergy&&
-                        partyData.synergy_series!=enemyData[DBM_Card_Enemies.columns.series]&&
-                        args[1].toLowerCase()=="special") {
-                        //check for special synergy
-                        objEmbed.author = {
-                            name: userUsername,
-                            icon_url: userAvatarUrl
-                        };
-                        objEmbed.thumbnail = {
-                            url:CardModule.Properties.imgResponse.imgFailed
-                        };
+                                return message.channel.send({embed:objEmbed});
+                            } else {
+                                var parsedColorLives = jsonParsedSpawnData[CardModule.Properties.spawnData.battle.color_lives];
 
-                        objEmbed.title = "Defeated! Special Countered!";
-                        //reset party special point
-                        var parameterSet = new Map();
-                        parameterSet.set(DBM_Card_Party.columns.special_point,0);
-                        var parameterWhere = new Map();
-                        parameterWhere.set(DBM_Card_Party.columns.id,partyData.partyData[DBM_Card_Party.columns.id]);
-                        await DB.update(DBM_Card_Party.TABLENAME,parameterSet,parameterWhere);
-
-                        //erase the set token
-                        var parameterSet = new Map();
-                        parameterSet.set(DBM_Card_User_Data.columns.card_set_token,spawnedCardData.token);
-                        parameterSet.set(DBM_Card_User_Data.columns.card_id_selected,null);
-                        var parameterWhere = new Map();
-                        parameterWhere.set(DBM_Card_User_Data.columns.id_user,userId);
-                        await DB.update(DBM_Card_User_Data.TABLENAME,parameterSet,parameterWhere);
-                        objEmbed.description = "Oh no, the team attack has been countered by the tsunagarus and you've instantly defeated! Your party special point has dropped into 0%!";
-
-                        return message.channel.send({embed:objEmbed});
-                    } else if(!specialAllow||
-                        cardData[DBM_Card_Data.columns.series]!=enemyData[DBM_Card_Enemies.columns.series]) {
-                        //special countered
-                        //remove the precure avatar
-                        var parameterSet = new Map();
-                        parameterSet.set(DBM_Card_User_Data.columns.card_id_selected,null);
-                        var parameterWhere = new Map();
-                        parameterWhere.set(DBM_Card_User_Data.columns.id_user,userId);
-                        await DB.update(DBM_Card_User_Data.TABLENAME,parameterSet,parameterWhere);
-
-                        //update the capture attempt
-                        await CardModule.updateCatchAttempt(userId,spawnedCardData.token);
-
-                        objEmbed.author = {
-                            name: userUsername,
-                            icon_url: userAvatarUrl
-                        };
-                        objEmbed.thumbnail = {
-                            url:CardModule.Properties.imgResponse.imgFailed
-                        };
-
-                        objEmbed.title = "Battle Lost: Special Countered!";
-                        if(teamBattle){
-                            //reset party special point
-                            var parameterSet = new Map();
-                            parameterSet.set(DBM_Card_Party.columns.special_point,0);
-                            var parameterWhere = new Map();
-                            parameterWhere.set(DBM_Card_Party.columns.id,partyData[DBM_Card_Party.columns.id]);
-                            await DB.update(DBM_Card_Party.TABLENAME,parameterSet,parameterWhere);
-
-                            //erase the set token
-                            var parameterSet = new Map();
-                            parameterSet.set(DBM_Card_User_Data.columns.card_set_token,spawnedCardData.token);
-                            parameterSet.set(DBM_Card_User_Data.columns.card_id_selected,null);
-                            var parameterWhere = new Map();
-                            parameterWhere.set(DBM_Card_User_Data.columns.id_user,userId);
-                            await DB.update(DBM_Card_User_Data.TABLENAME,parameterSet,parameterWhere);
-                            objEmbed.description = "Oh no, the team attack has been countered by the tsunagarus and you've instantly defeated! Your party special point has dropped into 0%!";
-                        } else {
-                            //reset the special point
-                            var parameterSet = new Map();
-                            parameterSet.set(DBM_Card_User_Data.columns.special_point,0);
-                            parameterSet.set(DBM_Card_User_Data.columns.card_set_token,spawnedCardData.token);
-                            parameterSet.set(DBM_Card_User_Data.columns.card_id_selected,null);
-                            var parameterWhere = new Map();
-                            parameterWhere.set(DBM_Card_User_Data.columns.id_user,userId);
-                            await DB.update(DBM_Card_User_Data.TABLENAME,parameterSet,parameterWhere);
-
-                            //erase the set token
-                            objEmbed.description = "Oh no, your special has been countered by the tsunagarus and you've instantly defeated! Your special point has dropped into 0%!";
-                        }
-
-                        return message.channel.send({embed:objEmbed});
-                    } else {
-                        //special activation with special break
-                        if(currentStatusEffect==CardModule.StatusEffect.buffData.special_break.value){
-                            var embedStatusActivated = await CardModule.StatusEffect.embedStatusEffectActivated(userUsername,userAvatarUrl,currentStatusEffect);
-                            await message.channel.send({embed:embedStatusActivated});
-    
-                            if(currentStatusEffect in CardModule.StatusEffect.buffData){
-                                if("permanent" in CardModule.StatusEffect.buffData[currentStatusEffect]){
-                                    if(!CardModule.StatusEffect.buffData[currentStatusEffect].permanent){
-                                        await CardModule.StatusEffect.updateStatusEffect(userId,null); //remove the SE
+                                //special activation with special break
+                                if(currentStatusEffect==CardModule.StatusEffect.buffData.special_break.value){
+                                    var embedStatusActivated = await CardModule.StatusEffect.embedStatusEffectActivated(userUsername,userAvatarUrl,currentStatusEffect);
+                                    await message.channel.send({embed:embedStatusActivated});
+            
+                                    if(currentStatusEffect in CardModule.StatusEffect.buffData){
+                                        if("permanent" in CardModule.StatusEffect.buffData[currentStatusEffect]){
+                                            if(!CardModule.StatusEffect.buffData[currentStatusEffect].permanent){
+                                                await CardModule.StatusEffect.updateStatusEffect(userId,null); //remove the SE
+                                            }
+                                        }
                                     }
                                 }
+
+                                if(subcommand=="party"){
+                                    specialActivated = true;
+                                    //activate team attack
+                                    //reset party special point
+                                    var parameterSet = new Map();
+                                    parameterSet.set(DBM_Card_Party.columns.special_point,0);
+                                    var parameterWhere = new Map();
+                                    parameterWhere.set(DBM_Card_Party.columns.id,partyData.partyData[DBM_Card_Party.columns.id]);
+                                    await DB.update(DBM_Card_Party.TABLENAME,parameterSet,parameterWhere);
+                                } else if(teamBattle&&subcommand!="party"&&parsedColorLives!=null&&!(cardData[DBM_Card_Data.columns.color] in parsedColorLives)) {
+                                    //reset the special point
+                                    var parameterSet = new Map();
+                                    parameterSet.set(DBM_Card_User_Data.columns.special_point,0);
+                                    var parameterWhere = new Map();
+                                    parameterWhere.set(DBM_Card_User_Data.columns.id_user,userId);
+                                    await DB.update(DBM_Card_User_Data.TABLENAME,parameterSet,parameterWhere);
+
+                                    //check if color exists/not
+                                    objEmbed.thumbnail = {
+                                        url:CardModule.Properties.imgResponse.imgFailed
+                                    };
+                                    objEmbed.title = "Special attack missed!";
+                                    objEmbed.description = "Your special attack has been missed!";
+                                    return message.channel.send({embed:objEmbed});
+                                } else {
+                                    if(teamBattle){
+                                        specialActivatedIndividual = true;
+                                        hitted = true;
+                                    } else {
+                                        specialActivated = true;
+                                    }
+
+                                    //activate individual special
+                                    var level_special = userCardInventoryData[DBM_Card_Inventory.columns.level_special];
+
+                                    //reset the special point
+                                    var parameterSet = new Map();
+                                    parameterSet.set(DBM_Card_User_Data.columns.special_point,0);
+                                    var parameterWhere = new Map();
+                                    parameterWhere.set(DBM_Card_User_Data.columns.id_user,userId);
+                                    await DB.update(DBM_Card_User_Data.TABLENAME,parameterSet,parameterWhere);
+                                }
                             }
-                        }
-
-                        captured = true; specialActivated = true;
-
-                        if(teamBattle){
-                            //activate team attack
-                            //reset party special point
-                            var parameterSet = new Map();
-                            parameterSet.set(DBM_Card_Party.columns.special_point,0);
-                            var parameterWhere = new Map();
-                            parameterWhere.set(DBM_Card_Party.columns.id,partyData.partyData[DBM_Card_Party.columns.id]);
-                            await DB.update(DBM_Card_Party.TABLENAME,parameterSet,parameterWhere);
-                        } else {
-                            //activate individual special
-                            var level_special = userCardInventoryData[DBM_Card_Inventory.columns.level_special];
-
-                            //reset the special point
-                            var parameterSet = new Map();
-                            parameterSet.set(DBM_Card_User_Data.columns.special_point,0);
-                            var parameterWhere = new Map();
-                            parameterWhere.set(DBM_Card_User_Data.columns.id_user,userId);
-                            await DB.update(DBM_Card_User_Data.TABLENAME,parameterSet,parameterWhere);
-                        }
-
+                        break;
                     }
                 }
 
@@ -3200,6 +3224,22 @@ module.exports = {
                 atk = cardData[DBM_Card_Data.columns.max_atk];
                 atk = CardModule.Status.getAtk(level,atk);
 
+                //check for debuff prevention buff
+                switch(currentStatusEffect){
+                    case CardModule.StatusEffect.buffData.battle_protection.value:
+                        allowSecondBattle = true;
+                        debuffProtection = true;
+                        break;
+                    case CardModule.StatusEffect.buffData.precure_protection.value:
+                        allowSecondBattle = true;
+                        removePrecure = false;
+                        break;
+                    case CardModule.StatusEffect.buffData.debuff_protection_1.value:
+                    case CardModule.StatusEffect.buffData.debuff_protection_2.value:
+                        debuffProtection = true;
+                        break;
+                }
+
                 //get enemy hp stats:
                 if(!teamBattle){
                     if(CardModule.Properties.spawnData.battle.hp in jsonParsedSpawnData){
@@ -3211,7 +3251,7 @@ module.exports = {
                 var txtStatusEffectHit = "";//for the end status embed results
                 var enemySpawnLink = GlobalFunctions.discordMessageLinkFormat(guildId,message.channel.id,guildSpawnData[DBM_Card_Guild.columns.id_last_message_spawn]);
 
-                if(!specialActivated){
+                if(!specialActivated||specialActivatedIndividual){
                     switch(enemyType){
                         case TsunagarusModules.Properties.enemySpawnData.tsunagarus.dibosu.term:
                             
@@ -3435,176 +3475,181 @@ module.exports = {
                             var txtActionsEmbed = "";
                             hpMaxEnemy = jsonParsedSpawnData[CardModule.Properties.spawnData.battle.hp_max];
 
-                            //party buffs
-                            if(partyData.status_effect in CardModule.StatusEffect.partyBuffData){
-                                if(CardModule.StatusEffect.partyBuffData[partyData.status_effect].value.includes(`party_rarity_up_`)){
-                                    //check for rarity boost
-                                    if("value_rarity_boost" in CardModule.StatusEffect.partyBuffData[partyData.status_effect]){
-                                        rarity+=CardModule.StatusEffect.partyBuffData[partyData.status_effect].value_rarity_boost;
-                                    }
-                                } else if(CardModule.StatusEffect.partyBuffData[partyData.status_effect].value.includes(`party_atk_up_`)){
-                                    //check for rarity boost
-                                    if("value_atk_boost" in CardModule.StatusEffect.partyBuffData[partyData.status_effect]){
-                                        atk+=GlobalFunctions.calculatePercentage(atk,CardModule.StatusEffect.partyBuffData[partyData.status_effect].value_atk_boost);
+                            //check if special individual activated
+                            if(specialActivatedIndividual){ overrideChance = true; }
 
-                                        txtStatusEffectHit+=CardModule.StatusEffect.statusEffectBattleHitResults(partyData.status_effect,"buff",true);
-                                    }
-                                } else if(CardModule.StatusEffect.partyBuffData[partyData.status_effect].value.includes(`party_hp_up_`)){
-                                    //check for rarity boost
-                                    if("value_hp_boost" in CardModule.StatusEffect.partyBuffData[partyData.status_effect]){
-                                        hp+=GlobalFunctions.calculatePercentage(hp,CardModule.StatusEffect.partyBuffData[partyData.status_effect].value_hp_boost);
-                                    }
-                                }
-
-                                if(hp>=100){hp=100;}
-                                else if(hp<=0){hp=0;}
-                                if(rarity>=7){rarity=7;}
-                            }
-
-                            //skills buffs
-                            //check for skills boost
-                            if(currentStatusEffectSkills!=null){
-                                var valueSkillEffects = currentStatusEffectSkills[CardModule.StatusEffect.propertiesStatusEffect2.value];
-                                var attempts = currentStatusEffectSkills[CardModule.StatusEffect.propertiesStatusEffect2.attempts];
-                                var skillsActivated = true;
-                                switch(valueSkillEffects){
-                                    case CardModule.StatusEffect.cureSkillsBuffData.stats_booster.value:
-                                        hp+=GlobalFunctions.calculatePercentage(hp,CardModule.StatusEffect.cureSkillsBuffData.stats_booster.boost_value);
-                                        atk+=GlobalFunctions.calculatePercentage(atk,CardModule.StatusEffect.cureSkillsBuffData.stats_booster.boost_value);
-                                        break;
-                                    case CardModule.StatusEffect.cureSkillsBuffData.catchphrage.value:
-                                        hp-=GlobalFunctions.calculatePercentage(hp,CardModule.StatusEffect.cureSkillsBuffData.catchphrage.boost_penalty);
-                                        atk+=GlobalFunctions.calculatePercentage(hp,CardModule.StatusEffect.cureSkillsBuffData.catchphrage.boost_value);
-                                        break;
-                                    case CardModule.StatusEffect.cureSkillsBuffData.levelcutter.value:
-                                        //lower the levels
-                                        level-=GlobalFunctions.calculatePercentage(hp,CardModule.StatusEffect.cureSkillsBuffData.levelcutter.boost_penalty);
-                                        if(level<=0){level=1;}//prevents negative
-                                        atk = CardModule.Status.getAtk(level,cardData[DBM_Card_Data.columns.max_atk]);//modify the atk based from new level
-                                        atk+=GlobalFunctions.calculatePercentage(atk,CardModule.StatusEffect.cureSkillsBuffData.levelcutter.boost_value);
-                                        break;
-                                    case CardModule.StatusEffect.cureSkillsBuffData.endure.value:
-                                        atk-=GlobalFunctions.calculatePercentage(atk,CardModule.StatusEffect.cureSkillsBuffData.endure.boost_penalty);
-                                        hp+=GlobalFunctions.calculatePercentage(hp,CardModule.StatusEffect.cureSkillsBuffData.endure.boost_value);
-                                        break;
-                                    case CardModule.StatusEffect.cureSkillsBuffData.starmaster.value:
-                                        rarity = 7;
-                                        break;
-                                    case CardModule.StatusEffect.cureSkillsBuffData.cure_blessing.value:
-                                        if(cardData[DBM_Card_Data.columns.color] in jsonParsedSpawnData[CardModule.Properties.spawnData.battle.color_lives]){
-                                            overrideChance = true;
+                            if(!specialActivatedIndividual){
+                                //party buffs
+                                if(partyData.status_effect in CardModule.StatusEffect.partyBuffData){
+                                    if(CardModule.StatusEffect.partyBuffData[partyData.status_effect].value.includes(`party_rarity_up_`)){
+                                        //check for rarity boost
+                                        if("value_rarity_boost" in CardModule.StatusEffect.partyBuffData[partyData.status_effect]){
+                                            rarity+=CardModule.StatusEffect.partyBuffData[partyData.status_effect].value_rarity_boost;
                                         }
-                                        break;
-                                    default:
-                                        skillsActivated = false;
-                                        break;
-                                }
-                                
-                                if(skillsActivated){
-                                    if("notifications" in CardModule.StatusEffect.cureSkillsBuffData[valueSkillEffects]){
-                                        if(CardModule.StatusEffect.cureSkillsBuffData[valueSkillEffects].notifications.includes("atk")){
-                                            txtStatusEffectHit+=CardModule.StatusEffect.statusEffectBattleHitResults(valueSkillEffects,"skills");
+                                    } else if(CardModule.StatusEffect.partyBuffData[partyData.status_effect].value.includes(`party_atk_up_`)){
+                                        //check for rarity boost
+                                        if("value_atk_boost" in CardModule.StatusEffect.partyBuffData[partyData.status_effect]){
+                                            atk+=GlobalFunctions.calculatePercentage(atk,CardModule.StatusEffect.partyBuffData[partyData.status_effect].value_atk_boost);
+
+                                            txtStatusEffectHit+=CardModule.StatusEffect.statusEffectBattleHitResults(partyData.status_effect,"buff",true);
+                                        }
+                                    } else if(CardModule.StatusEffect.partyBuffData[partyData.status_effect].value.includes(`party_hp_up_`)){
+                                        //check for rarity boost
+                                        if("value_hp_boost" in CardModule.StatusEffect.partyBuffData[partyData.status_effect]){
+                                            hp+=GlobalFunctions.calculatePercentage(hp,CardModule.StatusEffect.partyBuffData[partyData.status_effect].value_hp_boost);
                                         }
                                     }
-    
-                                    //update the attempts
-                                    if(attempts<=1){
-                                        await CardModule.StatusEffect.updateCureSkillsStatusEffect(userId,null);
-                                    } else {
-                                        // currentStatusEffectSkills[CardModule.StatusEffect.propertiesStatusEffect2.attempts]-=1;
-                                        await CardModule.StatusEffect.updateCureSkillsStatusEffect(userId,currentStatusEffectSkills,true);
-                                    }
-                                }
-    
-                                //prevents from getting negative
-                                if(hp<=0){hp=0;}
-                                if(atk<=0){atk=1;}
-                            }
 
-                            //check for buff/debuff
-                            if(currentStatusEffect in CardModule.StatusEffect.buffData){
-                                if(currentStatusEffect.includes(`hp_up_`)){
-                                    //check for hp boost
-                                    if("value_hp_boost" in CardModule.StatusEffect.buffData[currentStatusEffect]){
-                                        hp+=GlobalFunctions.calculatePercentage(hp,CardModule.StatusEffect.buffData[currentStatusEffect].value_hp_boost);
+                                    if(hp>=100){hp=100;}
+                                    else if(hp<=0){hp=0;}
+                                    if(rarity>=7){rarity=7;}
+                                }
+
+                                //skills buffs
+                                //check for skills boost
+                                if(currentStatusEffectSkills!=null){
+                                    var valueSkillEffects = currentStatusEffectSkills[CardModule.StatusEffect.propertiesStatusEffect2.value];
+                                    var attempts = currentStatusEffectSkills[CardModule.StatusEffect.propertiesStatusEffect2.attempts];
+                                    var skillsActivated = true;
+                                    switch(valueSkillEffects){
+                                        case CardModule.StatusEffect.cureSkillsBuffData.stats_booster.value:
+                                            hp+=GlobalFunctions.calculatePercentage(hp,CardModule.StatusEffect.cureSkillsBuffData.stats_booster.boost_value);
+                                            atk+=GlobalFunctions.calculatePercentage(atk,CardModule.StatusEffect.cureSkillsBuffData.stats_booster.boost_value);
+                                            break;
+                                        case CardModule.StatusEffect.cureSkillsBuffData.catchphrage.value:
+                                            hp-=GlobalFunctions.calculatePercentage(hp,CardModule.StatusEffect.cureSkillsBuffData.catchphrage.boost_penalty);
+                                            atk+=GlobalFunctions.calculatePercentage(hp,CardModule.StatusEffect.cureSkillsBuffData.catchphrage.boost_value);
+                                            break;
+                                        case CardModule.StatusEffect.cureSkillsBuffData.levelcutter.value:
+                                            //lower the levels
+                                            level-=GlobalFunctions.calculatePercentage(hp,CardModule.StatusEffect.cureSkillsBuffData.levelcutter.boost_penalty);
+                                            if(level<=0){level=1;}//prevents negative
+                                            atk = CardModule.Status.getAtk(level,cardData[DBM_Card_Data.columns.max_atk]);//modify the atk based from new level
+                                            atk+=GlobalFunctions.calculatePercentage(atk,CardModule.StatusEffect.cureSkillsBuffData.levelcutter.boost_value);
+                                            break;
+                                        case CardModule.StatusEffect.cureSkillsBuffData.endure.value:
+                                            atk-=GlobalFunctions.calculatePercentage(atk,CardModule.StatusEffect.cureSkillsBuffData.endure.boost_penalty);
+                                            hp+=GlobalFunctions.calculatePercentage(hp,CardModule.StatusEffect.cureSkillsBuffData.endure.boost_value);
+                                            break;
+                                        case CardModule.StatusEffect.cureSkillsBuffData.starmaster.value:
+                                            rarity = 7;
+                                            break;
+                                        case CardModule.StatusEffect.cureSkillsBuffData.cure_blessing.value:
+                                            if(cardData[DBM_Card_Data.columns.color] in jsonParsedSpawnData[CardModule.Properties.spawnData.battle.color_lives]){
+                                                overrideChance = true;
+                                            }
+                                            break;
+                                        default:
+                                            skillsActivated = false;
+                                            break;
                                     }
-    
-                                    //check if SE permanent/not
-                                    if("permanent" in CardModule.StatusEffect.buffData[currentStatusEffect]){
-                                        if(!CardModule.StatusEffect.buffData[currentStatusEffect].permanent){
-                                            await CardModule.StatusEffect.updateStatusEffect(userId,null);
+                                    
+                                    if(skillsActivated){
+                                        if("notifications" in CardModule.StatusEffect.cureSkillsBuffData[valueSkillEffects]){
+                                            if(CardModule.StatusEffect.cureSkillsBuffData[valueSkillEffects].notifications.includes("atk")){
+                                                txtStatusEffectHit+=CardModule.StatusEffect.statusEffectBattleHitResults(valueSkillEffects,"skills");
+                                            }
+                                        }
+        
+                                        //update the attempts
+                                        if(attempts<=1){
+                                            await CardModule.StatusEffect.updateCureSkillsStatusEffect(userId,null);
+                                        } else {
+                                            // currentStatusEffectSkills[CardModule.StatusEffect.propertiesStatusEffect2.attempts]-=1;
+                                            await CardModule.StatusEffect.updateCureSkillsStatusEffect(userId,currentStatusEffectSkills,true);
                                         }
                                     }
-                                } else if(currentStatusEffect.includes(`rarity_up_`)){
-                                    //check for rarity boost
-                                    if("value_rarity_boost" in CardModule.StatusEffect.buffData[currentStatusEffect]){
-                                        rarity+=CardModule.StatusEffect.buffData[currentStatusEffect].value_rarity_boost;
-    
+        
+                                    //prevents from getting negative
+                                    if(hp<=0){hp=0;}
+                                    if(atk<=0){atk=1;}
+                                }
+
+                                //check for buff/debuff
+                                if(currentStatusEffect in CardModule.StatusEffect.buffData){
+                                    if(currentStatusEffect.includes(`hp_up_`)){
+                                        //check for hp boost
+                                        if("value_hp_boost" in CardModule.StatusEffect.buffData[currentStatusEffect]){
+                                            hp+=GlobalFunctions.calculatePercentage(hp,CardModule.StatusEffect.buffData[currentStatusEffect].value_hp_boost);
+                                        }
+        
                                         //check if SE permanent/not
                                         if("permanent" in CardModule.StatusEffect.buffData[currentStatusEffect]){
                                             if(!CardModule.StatusEffect.buffData[currentStatusEffect].permanent){
                                                 await CardModule.StatusEffect.updateStatusEffect(userId,null);
                                             }
                                         }
-                                    }
-                                } else if(currentStatusEffect.includes(`atk_up_`)){
-                                    //check for rarity boost
-                                    if("value_atk_boost" in CardModule.StatusEffect.buffData[currentStatusEffect]){
-                                        atk+=GlobalFunctions.calculatePercentage(atk,CardModule.StatusEffect.buffData[currentStatusEffect].value_atk_boost);
-
-                                        txtStatusEffectHit+=CardModule.StatusEffect.statusEffectBattleHitResults(currentStatusEffect);
-                                    }
-
-                                    //check if SE permanent/not
-                                    if("permanent" in CardModule.StatusEffect.buffData[currentStatusEffect]){
-                                        if(!CardModule.StatusEffect.buffData[currentStatusEffect].permanent){
-                                            await CardModule.StatusEffect.updateStatusEffect(userId,null);
+                                    } else if(currentStatusEffect.includes(`rarity_up_`)){
+                                        //check for rarity boost
+                                        if("value_rarity_boost" in CardModule.StatusEffect.buffData[currentStatusEffect]){
+                                            rarity+=CardModule.StatusEffect.buffData[currentStatusEffect].value_rarity_boost;
+        
+                                            //check if SE permanent/not
+                                            if("permanent" in CardModule.StatusEffect.buffData[currentStatusEffect]){
+                                                if(!CardModule.StatusEffect.buffData[currentStatusEffect].permanent){
+                                                    await CardModule.StatusEffect.updateStatusEffect(userId,null);
+                                                }
+                                            }
                                         }
-                                    }
-                                }
-                            } else if(currentStatusEffect in CardModule.StatusEffect.debuffData){
-                                if(currentStatusEffect.includes(`hp_down_`)){
-                                    //check for rarity boost
-                                    if("value_hp_down" in CardModule.StatusEffect.debuffData[currentStatusEffect]){
-                                        hp-=GlobalFunctions.calculatePercentage(hp,CardModule.StatusEffect.debuffData[currentStatusEffect].value_hp_down);
-                                    }
-    
-                                    //check if SE permanent/not
-                                    if("permanent" in CardModule.StatusEffect.debuffData[currentStatusEffect]){
-                                        if(!CardModule.StatusEffect.debuffData[currentStatusEffect].permanent){
-                                            await CardModule.StatusEffect.updateStatusEffect(userId,null);
-                                        }
-                                    }
-                                } else if(currentStatusEffect.includes(`rarity_down_`)){
-                                    //check for rarity boost
-                                    if("value_rarity_down" in CardModule.StatusEffect.debuffData[currentStatusEffect]){
-                                        rarity-=CardModule.StatusEffect.debuffData[currentStatusEffect].value_rarity_down;
-                                    }
-    
-                                    //check if SE permanent/not
-                                    if("permanent" in CardModule.StatusEffect.debuffData[currentStatusEffect]){
-                                        if(!CardModule.StatusEffect.debuffData[currentStatusEffect].permanent){
-                                            await CardModule.StatusEffect.updateStatusEffect(userId,null);
-                                        }
-                                    }
-                                } else if(currentStatusEffect.includes(`atk_down_`)){
-                                    //check for rarity boost
-                                    if("value_atk_down" in CardModule.StatusEffect.debuffData[currentStatusEffect]){
-                                        atk-=GlobalFunctions.calculatePercentage(atk,CardModule.StatusEffect.debuffData[currentStatusEffect].value_atk_down);
-                                        if(atk<=0){atk=0;}//prevents negative
+                                    } else if(currentStatusEffect.includes(`atk_up_`)){
+                                        //check for rarity boost
+                                        if("value_atk_boost" in CardModule.StatusEffect.buffData[currentStatusEffect]){
+                                            atk+=GlobalFunctions.calculatePercentage(atk,CardModule.StatusEffect.buffData[currentStatusEffect].value_atk_boost);
 
-                                        txtStatusEffectHit+=CardModule.StatusEffect.statusEffectBattleHitResults(currentStatusEffect,"debuff");
-                                    }
+                                            txtStatusEffectHit+=CardModule.StatusEffect.statusEffectBattleHitResults(currentStatusEffect);
+                                        }
 
-                                    //check if SE permanent/not 
-                                    if("permanent" in CardModule.StatusEffect.debuffData[currentStatusEffect]){
-                                        if(!CardModule.StatusEffect.debuffData[currentStatusEffect].permanent){
-                                            await CardModule.StatusEffect.updateStatusEffect(userId,null);
+                                        //check if SE permanent/not
+                                        if("permanent" in CardModule.StatusEffect.buffData[currentStatusEffect]){
+                                            if(!CardModule.StatusEffect.buffData[currentStatusEffect].permanent){
+                                                await CardModule.StatusEffect.updateStatusEffect(userId,null);
+                                            }
+                                        }
+                                    } 
+                                } else if(currentStatusEffect in CardModule.StatusEffect.debuffData){
+                                    if(currentStatusEffect.includes(`hp_down_`)){
+                                        //check for rarity boost
+                                        if("value_hp_down" in CardModule.StatusEffect.debuffData[currentStatusEffect]){
+                                            hp-=GlobalFunctions.calculatePercentage(hp,CardModule.StatusEffect.debuffData[currentStatusEffect].value_hp_down);
+                                        }
+        
+                                        //check if SE permanent/not
+                                        if("permanent" in CardModule.StatusEffect.debuffData[currentStatusEffect]){
+                                            if(!CardModule.StatusEffect.debuffData[currentStatusEffect].permanent){
+                                                await CardModule.StatusEffect.updateStatusEffect(userId,null);
+                                            }
+                                        }
+                                    } else if(currentStatusEffect.includes(`rarity_down_`)){
+                                        //check for rarity boost
+                                        if("value_rarity_down" in CardModule.StatusEffect.debuffData[currentStatusEffect]){
+                                            rarity-=CardModule.StatusEffect.debuffData[currentStatusEffect].value_rarity_down;
+                                        }
+        
+                                        //check if SE permanent/not
+                                        if("permanent" in CardModule.StatusEffect.debuffData[currentStatusEffect]){
+                                            if(!CardModule.StatusEffect.debuffData[currentStatusEffect].permanent){
+                                                await CardModule.StatusEffect.updateStatusEffect(userId,null);
+                                            }
+                                        }
+                                    } else if(currentStatusEffect.includes(`atk_down_`)){
+                                        //check for rarity boost
+                                        if("value_atk_down" in CardModule.StatusEffect.debuffData[currentStatusEffect]){
+                                            atk-=GlobalFunctions.calculatePercentage(atk,CardModule.StatusEffect.debuffData[currentStatusEffect].value_atk_down);
+                                            if(atk<=0){atk=0;}//prevents negative
+
+                                            txtStatusEffectHit+=CardModule.StatusEffect.statusEffectBattleHitResults(currentStatusEffect,"debuff");
+                                        }
+
+                                        //check if SE permanent/not 
+                                        if("permanent" in CardModule.StatusEffect.debuffData[currentStatusEffect]){
+                                            if(!CardModule.StatusEffect.debuffData[currentStatusEffect].permanent){
+                                                await CardModule.StatusEffect.updateStatusEffect(userId,null);
+                                            }
                                         }
                                     }
                                 }
                             }
-
+                            
                             chance = hp;
 
                             if(cardData[DBM_Card_Data.columns.series].toLowerCase()==enemyData[DBM_Card_Enemies.columns.series].toLowerCase()&&
@@ -3624,103 +3669,112 @@ module.exports = {
                                 var actions = jsonParsedSpawnData[CardModule.Properties.spawnData.battle.actions];
                                 var parsedColorLives = jsonParsedSpawnData[CardModule.Properties.spawnData.battle.color_lives];
 
-                                if(TsunagarusModules.Properties.enemySpawnData.tsunagarus.buttagiru.actions.color_absorb.value in actions){
-                                    //check for color absorb actions
-                                    if(cardData[DBM_Card_Data.columns.color]==jsonParsedSpawnData[CardModule.Properties.spawnData.battle.actions][CardModule.Properties.spawnData.battle.color_absorb]){
-                                        parsedColorLives[cardData[DBM_Card_Data.columns.color]]+=atk;
-                                        if(parsedColorLives[cardData[DBM_Card_Data.columns.color]]>=hpMaxEnemy){ parsedColorLives[cardData[DBM_Card_Data.columns.color]] = hpMaxEnemy;}
-
-                                        txtHeaderActions = TsunagarusModules.Properties.enemySpawnData.tsunagarus.buttagiru.actions.color_absorb.name;
-                                        txtDescriptionActions = TsunagarusModules.Properties.enemySpawnData.tsunagarus.buttagiru.actions.color_absorb.description;
-                                        txtDescriptionActions = `${txtDescriptionActions.replace("<xcolor>",cardData[DBM_Card_Data.columns.color])}. `;
-                                        txtDescriptionActions += `Absorbed **${atk} ${cardData[DBM_Card_Data.columns.color]}** atk!`;
-                                        hitted = false;
+                                if(!specialActivatedIndividual){
+                                    if(TsunagarusModules.Properties.enemySpawnData.tsunagarus.buttagiru.actions.color_absorb.value in actions){
+                                        //check for color absorb actions
+                                        if(cardData[DBM_Card_Data.columns.color]==jsonParsedSpawnData[CardModule.Properties.spawnData.battle.actions][CardModule.Properties.spawnData.battle.color_absorb]){
+                                            parsedColorLives[cardData[DBM_Card_Data.columns.color]]+=atk;
+                                            if(parsedColorLives[cardData[DBM_Card_Data.columns.color]]>=hpMaxEnemy){ parsedColorLives[cardData[DBM_Card_Data.columns.color]] = hpMaxEnemy;}
+    
+                                            txtHeaderActions = TsunagarusModules.Properties.enemySpawnData.tsunagarus.buttagiru.actions.color_absorb.name;
+                                            txtDescriptionActions = TsunagarusModules.Properties.enemySpawnData.tsunagarus.buttagiru.actions.color_absorb.description;
+                                            txtDescriptionActions = `${txtDescriptionActions.replace("<xcolor>",cardData[DBM_Card_Data.columns.color])}. `;
+                                            txtDescriptionActions += `Absorbed **${atk} ${cardData[DBM_Card_Data.columns.color]}** atk!`;
+                                            hitted = false;
+                                        } else {
+                                            hitted = true;
+                                        }
+                                    } else if (TsunagarusModules.Properties.enemySpawnData.tsunagarus.buttagiru.actions.buttascream.value in actions){
+                                        //atk debuff
+                                        txtHeaderActions = TsunagarusModules.Properties.enemySpawnData.tsunagarus.buttagiru.actions.buttascream.name;
+                                        txtDescriptionActions = TsunagarusModules.Properties.enemySpawnData.tsunagarus.buttagiru.actions.buttascream.description;
+    
+                                        if(!partyBlock&&!debuffProtection){
+                                            var randDebuff = [
+                                                CardModule.StatusEffect.debuffData.atk_down_1.value,
+                                                CardModule.StatusEffect.debuffData.atk_down_2.value,
+                                                CardModule.StatusEffect.debuffData.atk_down_3.value,
+                                                CardModule.StatusEffect.debuffData.atk_down_4.value,
+                                            ];
+                                            randDebuff = randDebuff[GlobalFunctions.randomNumber(0,randDebuff.length-1)];
+                                            await CardModule.StatusEffect.updateStatusEffect(userId,randDebuff);
+                                        } else if(partyBlock) {
+                                            hitted = true;
+                                        }
+                                        
+                                    } else if (TsunagarusModules.Properties.enemySpawnData.tsunagarus.buttagiru.actions.big_punch.value in actions){
+                                        //hp debuff
+                                        txtHeaderActions = TsunagarusModules.Properties.enemySpawnData.tsunagarus.buttagiru.actions.big_punch.name;
+                                        txtDescriptionActions = TsunagarusModules.Properties.enemySpawnData.tsunagarus.buttagiru.actions.big_punch.description;
+    
+                                        if(!partyBlock&&!debuffProtection){
+                                            var randDebuff = [
+                                                CardModule.StatusEffect.debuffData.hp_down_1.value,
+                                                CardModule.StatusEffect.debuffData.hp_down_2.value,
+                                                CardModule.StatusEffect.debuffData.hp_down_3.value,
+                                                CardModule.StatusEffect.debuffData.hp_down_4.value,
+                                            ];
+                                            randDebuff = randDebuff[GlobalFunctions.randomNumber(0,randDebuff.length-1)];
+                                            await CardModule.StatusEffect.updateStatusEffect(userId,randDebuff);
+                                        } else if(partyBlock) {
+                                            hitted = true;
+                                        }
+                                    } else if (TsunagarusModules.Properties.enemySpawnData.tsunagarus.buttagiru.actions.charge_up.value in actions){
+                                        //charge up
+                                        txtHeaderActions = TsunagarusModules.Properties.enemySpawnData.tsunagarus.buttagiru.actions.charge_up.name;
+                                        txtDescriptionActions = TsunagarusModules.Properties.enemySpawnData.tsunagarus.buttagiru.actions.charge_up.description;
+    
+                                        jsonParsedSpawnData[CardModule.Properties.spawnData.battle.turn]+=1;
+                                        
+                                        if(partyBlock){
+                                            hitted = false;
+                                        } else {
+                                            hitted = true;
+                                        }
+                                        
+                                    } else if (TsunagarusModules.Properties.enemySpawnData.tsunagarus.buttagiru.actions.daydreaming.value in actions){
+                                        //do nothing
+                                        txtHeaderActions = TsunagarusModules.Properties.enemySpawnData.tsunagarus.buttagiru.actions.daydreaming.name;
+                                        txtDescriptionActions = TsunagarusModules.Properties.enemySpawnData.tsunagarus.buttagiru.actions.daydreaming.description;
+                                        if(partyBlock){
+                                            hitted = false;
+                                        } else {
+                                            hitted = true;
+                                        }
                                     } else {
                                         hitted = true;
                                     }
-                                } else if (TsunagarusModules.Properties.enemySpawnData.tsunagarus.buttagiru.actions.buttascream.value in actions){
-                                    //atk debuff
-                                    txtHeaderActions = TsunagarusModules.Properties.enemySpawnData.tsunagarus.buttagiru.actions.buttascream.name;
-                                    txtDescriptionActions = TsunagarusModules.Properties.enemySpawnData.tsunagarus.buttagiru.actions.buttascream.description;
-
-                                    if(!partyBlock){
-                                        var randDebuff = [
-                                            CardModule.StatusEffect.debuffData.atk_down_1.value,
-                                            CardModule.StatusEffect.debuffData.atk_down_2.value,
-                                            CardModule.StatusEffect.debuffData.atk_down_3.value,
-                                            CardModule.StatusEffect.debuffData.atk_down_4.value,
-                                        ];
-                                        randDebuff = randDebuff[GlobalFunctions.randomNumber(0,randDebuff.length-1)];
-                                        await CardModule.StatusEffect.updateStatusEffect(userId,randDebuff);
-                                    }
-                                    
-                                    
-                                    hitted = true;
-                                } else if (TsunagarusModules.Properties.enemySpawnData.tsunagarus.buttagiru.actions.big_punch.value in actions){
-                                    //hp debuff
-                                    txtHeaderActions = TsunagarusModules.Properties.enemySpawnData.tsunagarus.buttagiru.actions.big_punch.name;
-                                    txtDescriptionActions = TsunagarusModules.Properties.enemySpawnData.tsunagarus.buttagiru.actions.big_punch.description;
-
-                                    if(!partyBlock){
-                                        var randDebuff = [
-                                            CardModule.StatusEffect.debuffData.hp_down_1.value,
-                                            CardModule.StatusEffect.debuffData.hp_down_2.value,
-                                            CardModule.StatusEffect.debuffData.hp_down_3.value,
-                                            CardModule.StatusEffect.debuffData.hp_down_4.value,
-                                        ];
-                                        randDebuff = randDebuff[GlobalFunctions.randomNumber(0,randDebuff.length-1)];
-                                        await CardModule.StatusEffect.updateStatusEffect(userId,randDebuff);
-                                    }
-                                    
-                                    hitted = true;
-                                } else if (TsunagarusModules.Properties.enemySpawnData.tsunagarus.buttagiru.actions.charge_up.value in actions){
-                                    //charge up
-                                    txtHeaderActions = TsunagarusModules.Properties.enemySpawnData.tsunagarus.buttagiru.actions.charge_up.name;
-                                    txtDescriptionActions = TsunagarusModules.Properties.enemySpawnData.tsunagarus.buttagiru.actions.charge_up.description;
-
-                                    jsonParsedSpawnData[CardModule.Properties.spawnData.battle.turn]+=1;
-                                    
-                                    if(partyBlock){
-                                        hitted = false;
-                                    } else {
-                                        hitted = true;
-                                    }
-                                    
-                                } else if (TsunagarusModules.Properties.enemySpawnData.tsunagarus.buttagiru.actions.daydreaming.value in actions){
-                                    //do nothing
-                                    txtHeaderActions = TsunagarusModules.Properties.enemySpawnData.tsunagarus.buttagiru.actions.daydreaming.name;
-                                    txtDescriptionActions = TsunagarusModules.Properties.enemySpawnData.tsunagarus.buttagiru.actions.daydreaming.description;
-                                    if(partyBlock){
-                                        hitted = false;
-                                    } else {
-                                        hitted = true;
-                                    }
-                                } else {
-                                    hitted = true;
                                 }
 
-                                var minChance = GlobalFunctions.randomNumber(jsonParsedSpawnData[CardModule.Properties.spawnData.battle.level],85);
-                                chance = hp;
+                                var minChance = jsonParsedSpawnData[CardModule.Properties.spawnData.battle.level];
+                                if(hp<jsonParsedSpawnData[CardModule.Properties.spawnData.battle.level]){
+                                    chance = GlobalFunctions.randomNumber(hp,100);
+                                } else {
+                                    chance = 100;
+                                }
+                                
                                 // minChance = 0;//for debugging purpose
                                 //process damage
-                                if(hitted&&chance>=minChance){
+                                if((chance>=minChance&&hitted)||specialActivatedIndividual){
                                     var parsedColorLivesDown = jsonParsedSpawnData[CardModule.Properties.spawnData.battle.color_lives_down];
 
                                     parsedColorLives[cardData[DBM_Card_Data.columns.color]]-=atk;
+                                    if(specialActivatedIndividual){
+                                        parsedColorLives[cardData[DBM_Card_Data.columns.color]]-=9999;
+                                    }
+                                    
                                     if(parsedColorLives[cardData[DBM_Card_Data.columns.color]]<=0){
                                         parsedColorLives[cardData[DBM_Card_Data.columns.color]] = 0;
-
+    
                                         //check for color taken down
                                         if(!parsedColorLivesDown.includes(cardData[DBM_Card_Data.columns.color])){
                                             livesDown = true;
                                             parsedColorLivesDown.push(cardData[DBM_Card_Data.columns.color]);
                                         }
                                     }
-
+    
                                     jsonParsedSpawnData[CardModule.Properties.spawnData.battle.color_lives] = parsedColorLives;
                                     jsonParsedSpawnData[CardModule.Properties.spawnData.battle.color_lives_down] = parsedColorLivesDown;
-                                } else {
-                                    hitted = false;
                                 }
                             }
 
@@ -4210,12 +4264,11 @@ module.exports = {
                 try{
                     messageSpawn = await message.channel.messages
                     .fetch(guildSpawnData[DBM_Card_Guild.columns.id_last_message_spawn]);
-                } catch(error){
-                }
+                } catch(error){}
 
                 if(teamBattle){
                     //team battle
-                    if(bossAlive&&hitted&&!teamBattleTurnOut&&!specialActivated){
+                    if(bossAlive&&hitted&&!teamBattleTurnOut&&(!specialActivated||specialActivatedIndividual)){
                         var dataUser = partyData.data_user;
                         //color points
                         switch(cardData[DBM_Card_Data.columns.rarity]){
@@ -4237,12 +4290,12 @@ module.exports = {
                         }
 
                         var queryIdUser= "";
+                        var splittedUserId = [];
                         for(var key in dataUser){
                             queryIdUser+=`"${key}",`;
+                            splittedUserId.push(key);
                         }
                         queryIdUser = queryIdUser.replace(/,\s*$/, "");//remove last comma
-
-                        var splittedUserId = partyData.partyData[DBM_Card_Party.columns.party_data].split(",");
 
                         if(livesDown){
                             var query = `SELECT *  
@@ -4281,10 +4334,12 @@ module.exports = {
                         rewardsReceived+=`>**${pointSpecial}**% party special points\n`;
 
                         try{
-                            if(livesDown){
+                            if(specialActivatedIndividual){
+                                await message.channel.send({embed:CardModule.Embeds.teamBattleSpecialActivatedHitOne(cardData[DBM_Card_Data.columns.color],userUsername,userAvatarUrl,cardData[DBM_Card_Data.columns.pack],rewardsReceived)});
+                            } else if(livesDown){
                                 await message.channel.send({embed:CardModule.Embeds.teamBattleLivesDown(cardData[DBM_Card_Data.columns.color],cardData[DBM_Card_Data.columns.pack],`${partyData.partyData[DBM_Card_Party.columns.name]} - ${userUsername}`,userAvatarUrl,rewardsReceived)});
                             } else {
-                                var messageHit = await message.channel.send({embed:CardModule.Embeds.teamBattleHit(cardData[DBM_Card_Data.columns.color],cardData[DBM_Card_Data.columns.pack],`${partyData.partyData[DBM_Card_Party.columns.name]} - ${userUsername}`,userAvatarUrl,`**${userUsername}** has deal **${atk} ${cardData[DBM_Card_Data.columns.color]}** damage!`,txtStatusEffectHit,rewardsReceived,enemySpawnLink)});
+                                var messageHit = await message.channel.send({embed:CardModule.Embeds.teamBattleHit(cardData[DBM_Card_Data.columns.color],cardData[DBM_Card_Data.columns.pack],`${partyData.partyData[DBM_Card_Party.columns.name]} - ${userUsername}`,userAvatarUrl,`**${userUsername}** has dealt **${atk} ${cardData[DBM_Card_Data.columns.color]}** damage!`,txtStatusEffectHit,rewardsReceived,enemySpawnLink)});
                                 setTimeout(function(){
                                     messageHit.delete();
                                 }, 6000);
@@ -4298,8 +4353,9 @@ module.exports = {
                         var parameterWhere = new Map();
                         parameterWhere.set(DBM_Card_Guild.columns.id_guild,guildId);
                         await DB.update(DBM_Card_Guild.TABLENAME,parameterSet,parameterWhere);
-
-                    } else if(!bossAlive||specialActivated){
+                    }
+                    
+                    if(!bossAlive||specialActivated){
                         //team battle win
                         //randomize card fragment
                         switch(cardData[DBM_Card_Data.columns.rarity]){
@@ -4489,7 +4545,7 @@ module.exports = {
                         //erase the spawn data
                         await CardModule.removeCardGuildSpawn(guildId);
 
-                    } else {
+                    } else if((bossAlive&&!hitted)||teamBattleTurnOut) {
                         //team battle defeated
                         switch(cardData[DBM_Card_Data.columns.rarity]){
                             case 3:
@@ -4514,36 +4570,13 @@ module.exports = {
                         objColor.set(`color_point_${cardData[DBM_Card_Data.columns.color]}`,pointReward);
                         await CardModule.updateColorPoint(userId,objColor);
 
-                        //check for buff
-                        switch(currentStatusEffect){
-                            case CardModule.StatusEffect.buffData.battle_protection.value:
-                                allowSet = true;
-                                allowSecondBattle = true;
-                                debuffProtection = true;
-                                var embedStatusActivated = await CardModule.StatusEffect.embedStatusEffectActivated(userUsername,userAvatarUrl,currentStatusEffect);
-                                await message.channel.send({embed:embedStatusActivated});
-                                break;
-                            case CardModule.StatusEffect.buffData.precure_protection.value:
-                                allowSecondBattle = true;
-                                removePrecure = false;
-                                var embedStatusActivated = await CardModule.StatusEffect.embedStatusEffectActivated(userUsername,userAvatarUrl,currentStatusEffect);
-                                await message.channel.send({embed:embedStatusActivated});
-                                break;
-                            case CardModule.StatusEffect.buffData.debuff_protection_1.value:
-                            case CardModule.StatusEffect.buffData.debuff_protection_2.value:
-                                debuffProtection = true;
-                                var embedStatusActivated = await CardModule.StatusEffect.embedStatusEffectActivated(userUsername,userAvatarUrl,currentStatusEffect);
-                                await message.channel.send({embed:embedStatusActivated});
-                                break;
-                        }
-
-                        objEmbed.title = "Defeated";
                         var txtDescription = "";
+                        objEmbed.title = "Defeated";
                         if(removePrecure){
                             objEmbed.thumbnail = {
                                 url:CardModule.Properties.imgResponse.imgFailed
                             }
-                            txtDescription = `:x: Oh no! <@${userId}> has lost from the battle and lost the precure avatar power!`;
+                            txtDescription = `:x: Oh no! <@${userId}> has lost from the battle and lost the precure avatar power!\n`;
                             //remove the precure avatar
                             var parameterSet = new Map();
                             parameterSet.set(DBM_Card_User_Data.columns.card_id_selected,null);
@@ -4554,14 +4587,33 @@ module.exports = {
                             objEmbed.thumbnail = {
                                 url:CardModule.Properties.imgResponse.imgFailed
                             }
-                            txtDescription = `:x: Oh no! <@${userId}> has lost from the battle!`;
+                            txtDescription = `:x: Oh no! <@${userId}> has lost from the battle!\n`;
+                        }
+
+                        //check for buff
+                        switch(currentStatusEffect){
+                            case CardModule.StatusEffect.buffData.battle_protection.value:
+                                allowSecondBattle = true;
+                                debuffProtection = true;
+                                txtDescription+=`${CardModule.StatusEffect.statusEffectBattleHitResults(currentStatusEffect,"buff")}`;
+                                break;
+                            case CardModule.StatusEffect.buffData.precure_protection.value:
+                                allowSecondBattle = true;
+                                removePrecure = false;
+                                txtDescription+=`${CardModule.StatusEffect.statusEffectBattleHitResults(currentStatusEffect,"buff")}`;
+                                break;
+                            case CardModule.StatusEffect.buffData.debuff_protection_1.value:
+                            case CardModule.StatusEffect.buffData.debuff_protection_2.value:
+                                debuffProtection = true;
+                                txtDescription+=`${CardModule.StatusEffect.statusEffectBattleHitResults(currentStatusEffect,"buff")}`;
+                                break;
                         }
 
                         //activate the debuff if user doesn't have debuff protection
                         var debuff_data = "";
                         if(!debuffProtection&&randomDebuff!=null){
                             await CardModule.StatusEffect.updateStatusEffect(userId,randomDebuff.value);
-                            var embedStatusActivated = await CardModule.StatusEffect.embedStatusEffectActivated(userUsername,userAvatarUrl,randomDebuff.value,"debuff");
+                            // var embedStatusActivated = await CardModule.StatusEffect.embedStatusEffectActivated(userUsername,userAvatarUrl,randomDebuff.value,"debuff");
                             debuff_data = randomDebuff.value;
                         }
 
@@ -5028,32 +5080,9 @@ module.exports = {
                         objColor.set(`color_point_${cardData[DBM_Card_Data.columns.color]}`,pointReward);
                         await CardModule.updateColorPoint(userId,objColor);
 
-                        //check for buff
-                        switch(currentStatusEffect){
-                            case CardModule.StatusEffect.buffData.battle_protection.value:
-                                allowSet = true;
-                                allowSecondBattle = true;
-                                debuffProtection = true;
-                                var embedStatusActivated = await CardModule.StatusEffect.embedStatusEffectActivated(userUsername,userAvatarUrl,currentStatusEffect);
-                                await message.channel.send({embed:embedStatusActivated});
-                                break;
-                            case CardModule.StatusEffect.buffData.precure_protection.value:
-                                allowSecondBattle = true;
-                                removePrecure = false;
-                                var embedStatusActivated = await CardModule.StatusEffect.embedStatusEffectActivated(userUsername,userAvatarUrl,currentStatusEffect);
-                                await message.channel.send({embed:embedStatusActivated});
-                                break;
-                            case CardModule.StatusEffect.buffData.debuff_protection_1.value:
-                            case CardModule.StatusEffect.buffData.debuff_protection_2.value:
-                                debuffProtection = true;
-                                var embedStatusActivated = await CardModule.StatusEffect.embedStatusEffectActivated(userUsername,userAvatarUrl,currentStatusEffect);
-                                await message.channel.send({embed:embedStatusActivated});
-                                break;
-                        }
-
                         var txtDescription = "";
                         if(removePrecure){
-                            txtDescription = `:x: Oh no! <@${userId}> has lost from the battle and lost the precure avatar power!`;
+                            txtDescription = `:x: Oh no! <@${userId}> has lost from the battle and lost the precure avatar power!\n`;
                             //remove the precure avatar
                             var parameterSet = new Map();
                             parameterSet.set(DBM_Card_User_Data.columns.card_id_selected,null);
@@ -5061,7 +5090,33 @@ module.exports = {
                             parameterWhere.set(DBM_Card_User_Data.columns.id_user,userId);
                             await DB.update(DBM_Card_User_Data.TABLENAME,parameterSet,parameterWhere);
                         } else {
-                            txtDescription = `:x: Oh no! <@${userId}> has lost from the battle!`;
+                            txtDescription = `:x: Oh no! <@${userId}> has lost from the battle!\n`;
+                        }
+
+                        //check for buff
+                        switch(currentStatusEffect){
+                            case CardModule.StatusEffect.buffData.battle_protection.value:
+                                allowSet = true;
+                                allowSecondBattle = true;
+                                debuffProtection = true;
+                                txtDescription+=`${CardModule.StatusEffect.statusEffectBattleHitResults(currentStatusEffect,"buff")}`;
+                                // var embedStatusActivated = await CardModule.StatusEffect.embedStatusEffectActivated(userUsername,userAvatarUrl,currentStatusEffect);
+                                // await message.channel.send({embed:embedStatusActivated});
+                                break;
+                            case CardModule.StatusEffect.buffData.precure_protection.value:
+                                allowSecondBattle = true;
+                                removePrecure = false;
+                                txtDescription+=`${CardModule.StatusEffect.statusEffectBattleHitResults(currentStatusEffect,"buff")}`;
+                                // var embedStatusActivated = await CardModule.StatusEffect.embedStatusEffectActivated(userUsername,userAvatarUrl,currentStatusEffect);
+                                // await message.channel.send({embed:embedStatusActivated});
+                                break;
+                            case CardModule.StatusEffect.buffData.debuff_protection_1.value:
+                            case CardModule.StatusEffect.buffData.debuff_protection_2.value:
+                                debuffProtection = true;
+                                txtDescription+=`${CardModule.StatusEffect.statusEffectBattleHitResults(currentStatusEffect,"buff")}`;
+                                // var embedStatusActivated = await CardModule.StatusEffect.embedStatusEffectActivated(userUsername,userAvatarUrl,currentStatusEffect);
+                                // await message.channel.send({embed:embedStatusActivated});
+                                break;
                         }
 
                         // if(allowSet){
@@ -5079,8 +5134,6 @@ module.exports = {
                         //     await CardModule.updateCatchAttempt(userId,spawnedCardData.token);
                         // }
 
-                        txtDescription += ` You have received some rewards from the battle.`;
-
                         //activate the debuff if user doesn't have debuff protection
                         var debuff_data = "";
                         if(!debuffProtection&&randomDebuff!=null){
@@ -5090,10 +5143,11 @@ module.exports = {
                                 var embedStatusActivated = await CardModule.StatusEffect.embedStatusEffectActivated(userUsername,userAvatarUrl,randomDebuff.value,"debuff");
                                 debuff_data = randomDebuff.value;
                             }
+                            await message.channel.send({embed:CardModule.Embeds.battleLost(userUsername,userAvatarUrl,txtDescription,`>**${pointReward} ${cardData[DBM_Card_Data.columns.color]}** color points.`,debuff_data,enemySpawnLink)});
                             // await message.channel.send({embed:embedStatusActivated});
+                        } else {
+                            await message.channel.send({embed:CardModule.Embeds.battleLost(userUsername,userAvatarUrl,txtDescription,`>**${pointReward} ${cardData[DBM_Card_Data.columns.color]}** color points.`,"",enemySpawnLink)});
                         }
-
-                        await message.channel.send({embed:CardModule.Embeds.battleLost(userUsername,userAvatarUrl,txtDescription,`>**${pointReward} ${cardData[DBM_Card_Data.columns.color]}** color points.`,debuff_data,enemySpawnLink)});
 
                         //check if buff status effect is permanent/not
                         if(currentStatusEffect in CardModule.StatusEffect.buffData){
@@ -5589,6 +5643,7 @@ module.exports = {
                         }
 
                         var userCardData = await CardModule.getUserCardInventoryData(userId,targetCardId)//card target
+                        var cardTargetData = await CardModule.getCardData(targetCardId);
                         var rarity = cardData[DBM_Card_Data.columns.rarity];
                         var rarityValue = 0;
 
@@ -5615,12 +5670,12 @@ module.exports = {
                                 url:CardModule.Properties.imgResponse.imgError
                             }
                             objEmbed.description = `:x: Sorry, you need ${qty}x **${cardData[DBM_Card_Data.columns.id_card]} - ${cardData[DBM_Card_Data.columns.name]}** & **${cardData[DBM_Card_Data.columns.id_card]} - ${cardData[DBM_Card_Data.columns.name]}** to convert the card into level.`;
-                        } else if(userCardData[DBM_Card_Inventory.columns.level]>=CardModule.Leveling.getMaxLevel(cardData[DBM_Card_Data.columns.rarity])){
+                        } else if(userCardData[DBM_Card_Inventory.columns.level]>=CardModule.Leveling.getMaxLevel(userCardData[DBM_Card_Data.columns.rarity])){
                             //check for max level
                             objEmbed.thumbnail = {
-                                url:CardModule.Properties.imgResponse.imgError
+                                url:CardModule.Properties.imgResponse.imgOk
                             }
-                            objEmbed.description = `:x: **${cardData[DBM_Card_Data.columns.id_card]} - ${cardData[DBM_Card_Data.columns.name]}** already reached the max level!`;   
+                            objEmbed.description = `:x: **${cardTargetData[DBM_Card_Data.columns.id_card]} - ${cardTargetData[DBM_Card_Data.columns.name]}** already reached the max level!`;   
                         } else if(cardStock>=1&&userTargetCardStock>=0){
                             //check for card level
                             switch(rarity){

@@ -3,6 +3,7 @@ const paginationEmbed = require('discord.js-pagination');
 const DB = require('../database/DatabaseCore');
 const DBConn = require('../storage/dbconn');
 const CardModule = require('../modules/Card');
+const TsunagarusModule = require('../modules/Tsunagarus');
 const CardGuildModule = require('../modules/CardGuild');
 const ItemModule = require('../modules/Item');
 const GlobalFunctions = require('../modules/GlobalFunctions.js');
@@ -68,7 +69,7 @@ module.exports = {
                 }
 
                 var query = `select idat.${DBM_Item_Data.columns.id},idat.${DBM_Item_Data.columns.name}, 
-                inv.${DBM_Item_Inventory.columns.stock} 
+                inv.${DBM_Item_Inventory.columns.stock},idat.${DBM_Item_Data.columns.description}
                 from ${DBM_Item_Data.TABLENAME} idat 
                 left join ${DBM_Item_Inventory.TABLENAME} inv 
                 on inv.${DBM_Item_Inventory.columns.id_item}=idat.${DBM_Item_Data.columns.id} and 
@@ -84,14 +85,18 @@ module.exports = {
                 
                 inventoryUser[0].forEach(entry => {
                     
-                    itemList+=`**${entry[DBM_Item_Data.columns.id]} - ${entry[DBM_Item_Data.columns.name]}** x${entry[DBM_Item_Inventory.columns.stock]}\n`;
+                    itemList+=`**[${entry[DBM_Item_Data.columns.id]}] - ${entry[DBM_Item_Data.columns.name]}** x${entry[DBM_Item_Inventory.columns.stock]}: ${GlobalFunctions.cutText(entry[DBM_Item_Data.columns.description],20).replace(/\*\*/g, '')}\n`;
+
                     
                     //create pagination
                     if(pointerMaxData-1<=0||ctr>maxCtr){
-                        objEmbed.fields = [{
-                            name: `ID - Name - Stock:`,
-                            value: itemList,
-                        }];
+                        objEmbed.fields = [
+                            {
+                                name: `[ID] - Name - Stock:`,
+                                value: itemList,
+                                inline:true
+                            }
+                        ];
                         var msgEmbed = new Discord.MessageEmbed(objEmbed);
                         arrPages.push(msgEmbed);
                         itemList = ""; ctr = 0;
@@ -299,7 +304,7 @@ module.exports = {
                                     var enemyType = jsonParsedSpawnData[CardModule.Properties.spawnData.battle.type];
 
                                     objEmbed.thumbnail = {
-                                        url:CardModule.Properties.enemySpawnData.tsunagarus.image[enemyType]
+                                        url:TsunagarusModule.Properties.enemySpawnData.tsunagarus[enemyType].image
                                     }
                                     if(cardDataReward == null){
                                         objEmbed.thumbnail = {
