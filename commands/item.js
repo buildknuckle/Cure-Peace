@@ -419,6 +419,13 @@ module.exports = {
             case "shop":
                 var userCardData = await CardModule.getCardUserStatusData(userId);
 
+                var arrSaleDay = ["fri","sat","sun"];
+                var itemSale = false;
+                var day = GlobalFunctions.getDayName();
+                if(arrSaleDay.includes(day)){
+                    itemSale = true;
+                }
+
                 if(args[1]==null){
                     var objEmbed = {
                         color:CardModule.Properties.embedColor,
@@ -426,6 +433,11 @@ module.exports = {
                             name: "Mofu shop",
                             icon_url: "https://waa.ai/JEwn.png"
                         }
+                    }
+
+                    var itemSaleNotification = ""; 
+                    if(itemSale){
+                        itemSaleNotification = `\n\n✨**Special Offer:** It's **${day}sale**-day! I'm giving the discount sale price by 50% for all items!\n`;
                     }
 
                     var query = `SELECT * 
@@ -437,12 +449,18 @@ module.exports = {
                     var arrPages = [];
                     var itemList1 = ""; var itemList2 = ""; var itemList3 = ""; var ctr = 0;
                     var maxCtr = 8; var pointerMaxData = result[0].length;
-                    objEmbed.title = `Item Shop List:`;
-                    objEmbed.description = `Welcome to Mofushop! Here are the available item list that you can purchase:\nUse **p!item shop buy <item id> [qty]** to purchase the item.\nYour Mofucoin: **${userCardData[DBM_Card_User_Data.columns.mofucoin]}**`;
+                    objEmbed.title = `Mofu Item Shop:`;
+                    objEmbed.description = `Welcome to Mofushop! Here are the available item list that you can purchase:\nUse **p!item shop buy <item id> [qty]** to purchase the item.${itemSaleNotification}\nYour Mofucoin: **${userCardData[DBM_Card_User_Data.columns.mofucoin]}**`;
 
                     result[0].forEach(item => {
                         itemList1+=`**${item[DBM_Item_Data.columns.id]}** - ${item[DBM_Item_Data.columns.name]}\n`;
-                        itemList2+=`${item[DBM_Item_Data.columns.price_mofucoin]}\n`;
+                        
+                        if(itemSale){
+                            itemList2+=`${Math.round(item[DBM_Item_Data.columns.price_mofucoin]/2)}\n`;
+                        } else {
+                            itemList2+=`${item[DBM_Item_Data.columns.price_mofucoin]}\n`;
+                        }
+                        
                         itemList3+=`${item[DBM_Item_Data.columns.description]}\n`;
                         
                         //create pagination
@@ -538,6 +556,9 @@ module.exports = {
                 var mofucoin = userCardData[DBM_Card_User_Data.columns.mofucoin];
 
                 var itemDataPrice = itemData[DBM_Item_Data.columns.price_mofucoin]*qty;
+                if(itemSale){
+                    itemDataPrice=Math.round(itemData[DBM_Item_Data.columns.price_mofucoin]/2)*qty;
+                }
                 var itemDataId = itemData[DBM_Item_Data.columns.id];
                 var itemDataName = itemData[DBM_Item_Data.columns.name];
 

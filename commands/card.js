@@ -4917,10 +4917,7 @@ module.exports = {
                         rewardsReceived+=`>${iconBoost}${seriesPointReward} ${CardModule.Properties.seriesCardCore[selectedSeriesPoint].currency}\n`;
                         
                         //update the mofucoin
-                        var mofucoinReward = Math.round(pointReward/3);
-                        if(mofucoinReward<=0){
-                            mofucoinReward = 20;
-                        }
+                        var mofucoinReward = pointReward;
                         if(rewardBoost){
                             mofucoinReward*=2;
                         }

@@ -38,7 +38,11 @@ module.exports = {
       var dt = new Date(dateTime);
       return `${("0" + dt.getDate()).slice(-2)}/${("0" + (dt.getMonth() + 1)).slice(-2)}/${dt.getFullYear()}`;
    },
-
+   getDayName(){
+      var options = {  weekday: 'short', hour12: false };
+      var prnDt = new Date().toLocaleTimeString('en-us', options).split(" ");
+      return prnDt[0].toLowerCase();
+   },
    shuffleArray(array) {
       for (let i = array.length - 1; i > 0; i--) {
          const j = Math.floor(Math.random() * (i + 1));

@@ -3416,7 +3416,7 @@ class Quest {
     }
 
     static getQuestReward(cardRarity){
-        return cardRarity*20;
+        return cardRarity*30;
     }
 }
 
