@@ -196,7 +196,7 @@ module.exports = {
                             // idCard+=`${entry[DBM_Card_Data.columns.id_card]},`;
                             objQuestData+=`"${entry[DBM_Card_Data.columns.id_card]}":"${entry["id_item"]}",`;
                             //randomize the reward:
-                            requestedCards+=`-**[${entry[DBM_Card_Data.columns.pack]}] ${entry[DBM_Card_Data.columns.id_card]}** - ${GlobalFunctions.cutText(entry[DBM_Card_Data.columns.name],20)}\n`;
+                            requestedCards+=`-**[${entry[DBM_Card_Data.columns.pack]}] ${entry[DBM_Card_Data.columns.id_card]}** - ${GlobalFunctions.cutText(entry[DBM_Card_Data.columns.name],23)}\n`;
                             requestedRewards+=`**${entry["id_item"]}**: ${GlobalFunctions.cutText(entry["item_name"],12)} & ${CardModule.Quest.getQuestReward(entry[DBM_Card_Data.columns.rarity])} MC&SP\n`;
                         });
     
@@ -238,7 +238,7 @@ module.exports = {
                             var ctr = 0;//for item data
                             for(var key in cardData[0]){
                                 var entry = cardData[0][key];
-                                requestedCards+=`-**[${entry[DBM_Card_Data.columns.pack]}] ${entry[DBM_Card_Data.columns.id_card]}** - ${GlobalFunctions.cutText(entry[DBM_Card_Data.columns.name],20)}\n`;
+                                requestedCards+=`-**[${entry[DBM_Card_Data.columns.pack]}] ${entry[DBM_Card_Data.columns.id_card]}** - ${GlobalFunctions.cutText(entry[DBM_Card_Data.columns.name],23)}\n`;
     
                                 //get the item reward
                                 var itemData = await ItemModule.getItemData(arrItemReward[ctr]); ctr++;
@@ -277,7 +277,7 @@ module.exports = {
                     thumbnail : {
                         url: CardModule.Properties.imgResponse.imgError
                     },
-                    description : ":x: Please enter the correct daily color command with: **p!color daily** or **p!color daily <pink/purple/green/yellow/white/blue/red>**."
+                    description : ":x: Please enter the correct daily color command with: **p!daily** or **p!daily <pink/purple/green/yellow/white/blue/red>**."
                 };
                 return message.channel.send({embed:objEmbed});
             }

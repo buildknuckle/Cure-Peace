@@ -89,11 +89,6 @@ class Properties {
                         name:"💥Buttascream!",
                         description:"Inflict atk debuff after battle"
                     },
-                    big_punch:{
-                        value:"big_slam",
-                        name:"💥Big Slam!",
-                        description:"Inflict hp debuff after battle"
-                    },
                     charge_up:{
                         value:"charge_up",
                         name:"⬆️Charge Up!",
