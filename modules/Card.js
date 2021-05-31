@@ -5677,8 +5677,8 @@ async function generateCardSpawn(id_guild,specificType=null,overwriteToken = tru
 
                 //randomize hp
                 var baseHp = 15;//default hp
-                var lvR = GlobalFunctions.randomNumber(48,50);
-                var rndHp = Status.getAtk(lvR,baseHp)*GlobalFunctions.randomNumber(5,7);
+                var lvR = GlobalFunctions.randomNumber(45,50);
+                var rndHp = Status.getAtk(lvR,baseHp)*GlobalFunctions.randomNumber(4,6);
                 var dtHp = `"${Properties.spawnData.battle.hp}":${rndHp},"${Properties.spawnData.battle.hp_max}":${rndHp}`;
 
                 //process color
@@ -5958,8 +5958,8 @@ async function generateCardSpawn(id_guild,specificType=null,overwriteToken = tru
                 //uniquized the array:
                 // resultWord = resultWord.filter((v, i, a) => a.indexOf(v) === i);
                 var baseHp = 15;//default hp
-                var lvR = GlobalFunctions.randomNumber(43,50);
-                var rndHp = Status.getAtk(lvR,baseHp)*GlobalFunctions.randomNumber(4,8);
+                var lvR = GlobalFunctions.randomNumber(45,48);
+                var rndHp = Status.getAtk(lvR,baseHp)*GlobalFunctions.randomNumber(4,5);
                 var dtHp = `"${Properties.spawnData.battle.hp}":${rndHp},"${Properties.spawnData.battle.hp_max}":${rndHp}`;
 
                 //process color
@@ -6087,8 +6087,8 @@ async function generateCardSpawn(id_guild,specificType=null,overwriteToken = tru
 
                 //randomize hp
                 var baseHp = 15;//default hp
-                var lvR = GlobalFunctions.randomNumber(40,50);
-                var rndHp = Status.getAtk(lvR,baseHp)*GlobalFunctions.randomNumber(5,7);
+                var lvR = GlobalFunctions.randomNumber(40,44);
+                var rndHp = Status.getAtk(lvR,baseHp)*GlobalFunctions.randomNumber(4,5);
                 var dtHp = `"${Properties.spawnData.battle.hp}":${rndHp},"${Properties.spawnData.battle.hp_max}":${rndHp}`;
 
                 //process color
@@ -6170,7 +6170,7 @@ async function generateCardSpawn(id_guild,specificType=null,overwriteToken = tru
                 var lvR = GlobalFunctions.randomNumber(35,40);
 
                 //randomize hp
-                var rndHp = Status.getAtk(lvR,baseHp)*GlobalFunctions.randomNumber(3,7);
+                var rndHp = Status.getAtk(lvR,baseHp)*GlobalFunctions.randomNumber(3,5);
                 var dtHp = `"${Properties.spawnData.battle.hp}":${rndHp},"${Properties.spawnData.battle.hp_max}":${rndHp}`;
 
                 var randTrait = GlobalFunctions.randomNumber(0,1);
