@@ -288,13 +288,8 @@ module.exports = {
         if(userCardData[DBM_Card_User_Data.columns.daily_last]==dateToken){
             var midnight = new Date();
             midnight.setHours(24, 0, 0, 0);
-            var timeRemaining = ( midnight.getTime() - new Date().getTime() ) / 1000 / 60;
-            var num = timeRemaining;
-            var hours = (num / 60);
-            var rhours = Math.floor(hours);
-            var minutes = (hours - rhours) * 60;
-            var rminutes = Math.round(minutes);
-            timeRemaining = rhours + " hour(s) and " + rminutes + " more minute(s)";
+            var timeRemaining = GlobalFunctions.getDateTimeDifference(midnight.getTime(),new Date().getTime());
+            timeRemaining = timeRemaining.hours + " hour(s) and " + timeRemaining.minutes + " more minute(s)";
 
             var objEmbed = {
                 color: CardModule.Properties.embedColor,

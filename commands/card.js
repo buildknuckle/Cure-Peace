@@ -1421,17 +1421,18 @@ module.exports = {
                     return message.channel.send({embed:objEmbed});
                 }
 
+                var colorCost = 100;
                 var userCardData = await CardModule.getCardUserStatusData(userId);
                 var assignedColor = userCardData[DBM_Card_User_Data.columns.color];
                 var assignedColorPoint = userCardData[`color_point_${assignedColor}`];
                 //validator: check if color points is enough/not
-                if(assignedColorPoint<100){
+                if(assignedColorPoint<colorCost){
                     var objEmbed = {
                         color: CardModule.Properties.embedColor,
                         thumbnail : {
                             url: CardModule.Properties.imgResponse.imgError
                         },
-                        description : `:x: Sorry, you need **100 ${assignedColor}** color points to change your color.`
+                        description : `:x: Sorry, you need **${colorCost} ${assignedColor}** points to change your color.`
                     };
                     return message.channel.send({embed:objEmbed});
                 }
@@ -1445,7 +1446,7 @@ module.exports = {
 
                 //update the color points
                 var parameterSetColorPoint = new Map();
-                parameterSetColorPoint.set(`color_point_${assignedColor}`,-100);
+                parameterSetColorPoint.set(`color_point_${assignedColor}`,-colorCost);
                 await CardModule.updateColorPoint(userId,parameterSetColorPoint);
 
                 var objEmbed = {
@@ -1455,7 +1456,7 @@ module.exports = {
                     },
                     color: CardModule.Properties.embedColor,
                     title: `New color has been set`,
-                    description : `:white_check_mark: <@${userId}> is now assigned with color: **${newColor}** and use **100 ${assignedColor}** color points.`
+                    description : `:white_check_mark: <@${userId}> has set as **${newColor}** color with **${colorCost} ${assignedColor}** points.`
                 };
 
                 return message.channel.send({embed:objEmbed});
@@ -3185,7 +3186,7 @@ module.exports = {
                 //color point validator
                 var cpBattleCost = 10;//cp cost for battling the enemy
                 if(!specialActivated&&
-                    userCardData[`color_point_${cardData[DBM_Card_Data.columns.color]}`]<=cpBattleCost){
+                    userCardData[`color_point_${cardData[DBM_Card_Data.columns.color]}`]<cpBattleCost){
                     var objEmbed = await message.channel.send({embed:{
                         color:CardModule.Properties.embedColor,
                         author: {
@@ -3195,7 +3196,7 @@ module.exports = {
                         thumbnail: {
                             url:CardModule.Properties.imgResponse.imgError
                         },
-                        description: `:x: You need ${cpAttackCost} ${cardData[DBM_Card_Data.columns.color]} points to attack the tsunagarus!`
+                        description: `:x: You need ${cpBattleCost} ${cardData[DBM_Card_Data.columns.color]} points to attack the tsunagarus!`
                     }});
 
                     setTimeout(function() {
@@ -3253,6 +3254,588 @@ module.exports = {
 
                 if(!specialActivated||specialActivatedIndividual){
                     switch(enemyType){
+                        case TsunagarusModules.Properties.enemySpawnData.tsunagarus.barabaran.term:
+                            var overrideChance = false;
+                            var rarity = cardData[DBM_Card_Data.columns.rarity];
+
+                            //check for actions
+                            var txtActionsEmbed = "";
+                            hpMaxEnemy = jsonParsedSpawnData[CardModule.Properties.spawnData.battle.hp_max];
+
+                            //check if special individual activated
+                            if(specialActivatedIndividual){ overrideChance = true; }
+
+                            if(!specialActivatedIndividual){
+                                //party buffs
+                                if(partyData.status_effect in CardModule.StatusEffect.partyBuffData){
+                                    if(CardModule.StatusEffect.partyBuffData[partyData.status_effect].value.includes(`party_rarity_up_`)){
+                                        //check for rarity boost
+                                        if("value_rarity_boost" in CardModule.StatusEffect.partyBuffData[partyData.status_effect]){
+                                            rarity+=CardModule.StatusEffect.partyBuffData[partyData.status_effect].value_rarity_boost;
+                                        }
+                                    } else if(CardModule.StatusEffect.partyBuffData[partyData.status_effect].value.includes(`party_atk_up_`)){
+                                        //check for rarity boost
+                                        if("value_atk_boost" in CardModule.StatusEffect.partyBuffData[partyData.status_effect]){
+                                            atk+=GlobalFunctions.calculatePercentage(atk,CardModule.StatusEffect.partyBuffData[partyData.status_effect].value_atk_boost);
+
+                                            txtStatusEffectHit+=CardModule.StatusEffect.statusEffectBattleHitResults(partyData.status_effect,"buff",true);
+                                        }
+                                    } else if(CardModule.StatusEffect.partyBuffData[partyData.status_effect].value.includes(`party_hp_up_`)){
+                                        //check for rarity boost
+                                        if("value_hp_boost" in CardModule.StatusEffect.partyBuffData[partyData.status_effect]){
+                                            hp+=GlobalFunctions.calculatePercentage(hp,CardModule.StatusEffect.partyBuffData[partyData.status_effect].value_hp_boost);
+                                        }
+                                    }
+
+                                    if(hp>=100){hp=100;}
+                                    else if(hp<=0){hp=0;}
+                                    if(rarity>=7){rarity=7;}
+                                }
+
+                                //skills buffs
+                                //check for skills boost
+                                if(currentStatusEffectSkills!=null){
+                                    var valueSkillEffects = currentStatusEffectSkills[CardModule.StatusEffect.propertiesStatusEffect2.value];
+                                    var attempts = currentStatusEffectSkills[CardModule.StatusEffect.propertiesStatusEffect2.attempts];
+                                    var skillsActivated = true;
+                                    switch(valueSkillEffects){
+                                        case CardModule.StatusEffect.cureSkillsBuffData.stats_booster.value:
+                                            hp+=GlobalFunctions.calculatePercentage(hp,CardModule.StatusEffect.cureSkillsBuffData.stats_booster.boost_value);
+                                            atk+=GlobalFunctions.calculatePercentage(atk,CardModule.StatusEffect.cureSkillsBuffData.stats_booster.boost_value);
+                                            break;
+                                        case CardModule.StatusEffect.cureSkillsBuffData.catchphrage.value:
+                                            hp-=GlobalFunctions.calculatePercentage(hp,CardModule.StatusEffect.cureSkillsBuffData.catchphrage.boost_penalty);
+                                            atk+=GlobalFunctions.calculatePercentage(hp,CardModule.StatusEffect.cureSkillsBuffData.catchphrage.boost_value);
+                                            break;
+                                        case CardModule.StatusEffect.cureSkillsBuffData.levelcutter.value:
+                                            //lower the levels
+                                            level-=GlobalFunctions.calculatePercentage(hp,CardModule.StatusEffect.cureSkillsBuffData.levelcutter.boost_penalty);
+                                            if(level<=0){level=1;}//prevents negative
+                                            atk = CardModule.Status.getAtk(level,cardData[DBM_Card_Data.columns.max_atk]);//modify the atk based from new level
+                                            atk+=GlobalFunctions.calculatePercentage(atk,CardModule.StatusEffect.cureSkillsBuffData.levelcutter.boost_value);
+                                            break;
+                                        case CardModule.StatusEffect.cureSkillsBuffData.endure.value:
+                                            atk-=GlobalFunctions.calculatePercentage(atk,CardModule.StatusEffect.cureSkillsBuffData.endure.boost_penalty);
+                                            hp+=GlobalFunctions.calculatePercentage(hp,CardModule.StatusEffect.cureSkillsBuffData.endure.boost_value);
+                                            break;
+                                        case CardModule.StatusEffect.cureSkillsBuffData.starmaster.value:
+                                            rarity = 7;
+                                            break;
+                                        case CardModule.StatusEffect.cureSkillsBuffData.cure_blessing.value:
+                                            if(cardData[DBM_Card_Data.columns.color] in jsonParsedSpawnData[CardModule.Properties.spawnData.battle.color_lives]){
+                                                overrideChance = true;
+                                            }
+                                            break;
+                                        default:
+                                            skillsActivated = false;
+                                            break;
+                                    }
+                                    
+                                    if(skillsActivated){
+                                        if("notifications" in CardModule.StatusEffect.cureSkillsBuffData[valueSkillEffects]){
+                                            if(CardModule.StatusEffect.cureSkillsBuffData[valueSkillEffects].notifications.includes("atk")){
+                                                txtStatusEffectHit+=CardModule.StatusEffect.statusEffectBattleHitResults(valueSkillEffects,"skills");
+                                            }
+                                        }
+        
+                                        //update the attempts
+                                        if(attempts<=1){
+                                            await CardModule.StatusEffect.updateCureSkillsStatusEffect(userId,null);
+                                        } else {
+                                            // currentStatusEffectSkills[CardModule.StatusEffect.propertiesStatusEffect2.attempts]-=1;
+                                            await CardModule.StatusEffect.updateCureSkillsStatusEffect(userId,currentStatusEffectSkills,true);
+                                        }
+                                    }
+        
+                                    //prevents from getting negative
+                                    if(hp<=0){hp=0;}
+                                    if(atk<=0){atk=1;}
+                                }
+
+                                //check for buff/debuff
+                                if(currentStatusEffect in CardModule.StatusEffect.buffData){
+                                    if(currentStatusEffect.includes(`hp_up_`)){
+                                        //check for hp boost
+                                        if("value_hp_boost" in CardModule.StatusEffect.buffData[currentStatusEffect]){
+                                            hp+=GlobalFunctions.calculatePercentage(hp,CardModule.StatusEffect.buffData[currentStatusEffect].value_hp_boost);
+                                        }
+        
+                                        //check if SE permanent/not
+                                        if("permanent" in CardModule.StatusEffect.buffData[currentStatusEffect]){
+                                            if(!CardModule.StatusEffect.buffData[currentStatusEffect].permanent){
+                                                await CardModule.StatusEffect.updateStatusEffect(userId,null);
+                                            }
+                                        }
+                                    } else if(currentStatusEffect.includes(`rarity_up_`)){
+                                        //check for rarity boost
+                                        if("value_rarity_boost" in CardModule.StatusEffect.buffData[currentStatusEffect]){
+                                            rarity+=CardModule.StatusEffect.buffData[currentStatusEffect].value_rarity_boost;
+        
+                                            //check if SE permanent/not
+                                            if("permanent" in CardModule.StatusEffect.buffData[currentStatusEffect]){
+                                                if(!CardModule.StatusEffect.buffData[currentStatusEffect].permanent){
+                                                    await CardModule.StatusEffect.updateStatusEffect(userId,null);
+                                                }
+                                            }
+                                        }
+                                    } else if(currentStatusEffect.includes(`atk_up_`)){
+                                        //check for rarity boost
+                                        if("value_atk_boost" in CardModule.StatusEffect.buffData[currentStatusEffect]){
+                                            atk+=GlobalFunctions.calculatePercentage(atk,CardModule.StatusEffect.buffData[currentStatusEffect].value_atk_boost);
+
+                                            txtStatusEffectHit+=CardModule.StatusEffect.statusEffectBattleHitResults(currentStatusEffect);
+                                        }
+
+                                        //check if SE permanent/not
+                                        if("permanent" in CardModule.StatusEffect.buffData[currentStatusEffect]){
+                                            if(!CardModule.StatusEffect.buffData[currentStatusEffect].permanent){
+                                                await CardModule.StatusEffect.updateStatusEffect(userId,null);
+                                            }
+                                        }
+                                    } 
+                                } else if(currentStatusEffect in CardModule.StatusEffect.debuffData){
+                                    if(currentStatusEffect.includes(`hp_down_`)){
+                                        //check for rarity boost
+                                        if("value_hp_down" in CardModule.StatusEffect.debuffData[currentStatusEffect]){
+                                            hp-=GlobalFunctions.calculatePercentage(hp,CardModule.StatusEffect.debuffData[currentStatusEffect].value_hp_down);
+                                        }
+        
+                                        //check if SE permanent/not
+                                        if("permanent" in CardModule.StatusEffect.debuffData[currentStatusEffect]){
+                                            if(!CardModule.StatusEffect.debuffData[currentStatusEffect].permanent){
+                                                await CardModule.StatusEffect.updateStatusEffect(userId,null);
+                                            }
+                                        }
+                                    } else if(currentStatusEffect.includes(`rarity_down_`)){
+                                        //check for rarity boost
+                                        if("value_rarity_down" in CardModule.StatusEffect.debuffData[currentStatusEffect]){
+                                            rarity-=CardModule.StatusEffect.debuffData[currentStatusEffect].value_rarity_down;
+                                        }
+        
+                                        //check if SE permanent/not
+                                        if("permanent" in CardModule.StatusEffect.debuffData[currentStatusEffect]){
+                                            if(!CardModule.StatusEffect.debuffData[currentStatusEffect].permanent){
+                                                await CardModule.StatusEffect.updateStatusEffect(userId,null);
+                                            }
+                                        }
+                                    } else if(currentStatusEffect.includes(`atk_down_`)){
+                                        //check for rarity boost
+                                        if("value_atk_down" in CardModule.StatusEffect.debuffData[currentStatusEffect]){
+                                            atk-=GlobalFunctions.calculatePercentage(atk,CardModule.StatusEffect.debuffData[currentStatusEffect].value_atk_down);
+                                            if(atk<=0){atk=0;}//prevents negative
+
+                                            txtStatusEffectHit+=CardModule.StatusEffect.statusEffectBattleHitResults(currentStatusEffect,"debuff");
+                                        }
+
+                                        //check if SE permanent/not 
+                                        if("permanent" in CardModule.StatusEffect.debuffData[currentStatusEffect]){
+                                            if(!CardModule.StatusEffect.debuffData[currentStatusEffect].permanent){
+                                                await CardModule.StatusEffect.updateStatusEffect(userId,null);
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+
+                            chance = hp;
+
+                            if(cardData[DBM_Card_Data.columns.series].toLowerCase()==enemyData[DBM_Card_Enemies.columns.series].toLowerCase()&&
+                            rarity>=jsonParsedSpawnData[CardModule.Properties.spawnData.battle.rarity]&&
+                            cardData[DBM_Card_Data.columns.color] in jsonParsedSpawnData[CardModule.Properties.spawnData.battle.color_lives]){
+                                //check for series & rarity buff
+                                chance=100;
+                            } else {
+                                chance = 0;
+                            }
+
+                            var txtHeaderActions = ""; var txtDescriptionActions = "";
+                            var turnMechanics = jsonParsedSpawnData[CardModule.Properties.spawnData.battle.turn_mechanics];
+                            var actionsMechanics = jsonParsedSpawnData[CardModule.Properties.spawnData.battle.actions_mechanics];
+
+                            if(chance>=100||overrideChance){
+                                var actions = jsonParsedSpawnData[CardModule.Properties.spawnData.battle.actions];
+                                var parsedColorLives = jsonParsedSpawnData[CardModule.Properties.spawnData.battle.color_lives];
+                                var priorityBlock = false;
+
+                                if(!specialActivatedIndividual){
+                                    //for slomwmo actions grouping - check for priority block:
+                                    if(((turnMechanics==4&&actionsMechanics[TsunagarusModules.Properties.enemySpawnData.tsunagarus.barabaran.actions_mechanics.slowmo_punch]==2)||
+                                    turnMechanics==5&&actionsMechanics[TsunagarusModules.Properties.enemySpawnData.tsunagarus.barabaran.actions_mechanics.slowmo_punch]==3)){
+                                        priorityBlock = true;
+                                        txtHeaderActions = TsunagarusModules.Properties.enemySpawnData.tsunagarus.barabaran.actions.barbarpunch.name;
+                                    } else if((turnMechanics==10&&actionsMechanics[TsunagarusModules.Properties.enemySpawnData.tsunagarus.barabaran.actions_mechanics.slowmo_kick]==2)||
+                                    (turnMechanics==11&&actionsMechanics[TsunagarusModules.Properties.enemySpawnData.tsunagarus.barabaran.actions_mechanics.slowmo_kick]==3)||
+                                    (turnMechanics==12&&actionsMechanics[TsunagarusModules.Properties.enemySpawnData.tsunagarus.barabaran.actions_mechanics.slowmo_kick]==4)){
+                                        priorityBlock = true;
+                                        txtHeaderActions = TsunagarusModules.Properties.enemySpawnData.tsunagarus.barabaran.actions.barbarkick.name;
+                                    }
+
+                                    //check for turn mechanics
+                                    if(priorityBlock&&!partyBlock){
+                                        //check for slomo barbarpunch
+                                        txtHeaderActions = TsunagarusModules.Properties.enemySpawnData.tsunagarus.barabaran.actions.barbarpunch.name;
+                                        txtDescriptionActions = TsunagarusModules.Properties.enemySpawnData.tsunagarus.barabaran.actions.barbarpunch.description;
+
+                                        //add debuff
+                                        var randDebuff = [
+                                            CardModule.StatusEffect.debuffData.hp_down_1.value,
+                                            CardModule.StatusEffect.debuffData.hp_down_2.value,
+                                            CardModule.StatusEffect.debuffData.hp_down_3.value,
+                                            CardModule.StatusEffect.debuffData.hp_down_4.value,
+                                        ];
+                                        randDebuff = randDebuff[GlobalFunctions.randomNumber(0,randDebuff.length-1)];
+                                        await CardModule.StatusEffect.updateStatusEffect(userId,randDebuff);
+                                        hitted = false;
+                                    } else if(priorityBlock&&!partyBlock){
+                                        txtHeaderActions = TsunagarusModules.Properties.enemySpawnData.tsunagarus.barabaran.actions.barbarkick.name;
+                                        txtDescriptionActions = TsunagarusModules.Properties.enemySpawnData.tsunagarus.barabaran.actions.barbarkick.description;
+
+                                        //add debuff
+                                        var randDebuff = [
+                                            CardModule.StatusEffect.debuffData.hp_down_1.value,
+                                            CardModule.StatusEffect.debuffData.hp_down_2.value,
+                                            CardModule.StatusEffect.debuffData.hp_down_3.value,
+                                            CardModule.StatusEffect.debuffData.hp_down_4.value,
+                                        ];
+                                        randDebuff = randDebuff[GlobalFunctions.randomNumber(0,randDebuff.length-1)];
+                                        await CardModule.StatusEffect.updateStatusEffect(userId,randDebuff);
+                                        hitted = false;
+                                    } else if(priorityBlock&&partyBlock){
+                                        hitted = true;
+                                    } else if((TsunagarusModules.Properties.enemySpawnData.tsunagarus.barabaran.actions.white_force.value in actions||TsunagarusModules.Properties.enemySpawnData.tsunagarus.barabaran.actions.black_force.value in actions||
+                                    TsunagarusModules.Properties.enemySpawnData.tsunagarus.barabaran.actions.sunlight_force.value in actions||
+                                    TsunagarusModules.Properties.enemySpawnData.tsunagarus.barabaran.actions.moonlight_force.value in actions||
+                                    TsunagarusModules.Properties.enemySpawnData.tsunagarus.barabaran.actions.slowmo_punch_2.value in actions||
+                                    TsunagarusModules.Properties.enemySpawnData.tsunagarus.barabaran.actions.slowmo_punch_3.value in actions||
+                                    TsunagarusModules.Properties.enemySpawnData.tsunagarus.barabaran.actions.slowmo_kick_2.value in actions||TsunagarusModules.Properties.enemySpawnData.tsunagarus.barabaran.actions.slowmo_kick_3.value in actions||
+                                    TsunagarusModules.Properties.enemySpawnData.tsunagarus.barabaran.actions.slowmo_kick_4.value in actions||
+                                    TsunagarusModules.Properties.enemySpawnData.tsunagarus.barabaran.actions.forcepposite.value in actions)&&!priorityBlock){
+                                        //any attacks that cannot be blocked
+                                        if(partyBlock){
+                                            hitted = false;
+                                        } else {
+                                            //check for forcepposite:
+                                            if(TsunagarusModules.Properties.enemySpawnData.tsunagarus.barabaran.actions.forcepposite.value in actions){
+                                                //swap the sun/moon force color
+                                                var tempSunForce = jsonParsedSpawnData[CardModule.Properties.spawnData.battle.actions_mechanics][TsunagarusModules.Properties.enemySpawnData.tsunagarus.barabaran.actions_mechanics.sunlight_force];
+                                                
+                                                jsonParsedSpawnData[CardModule.Properties.spawnData.battle.actions_mechanics][TsunagarusModules.Properties.enemySpawnData.tsunagarus.barabaran.actions_mechanics.sunlight_force] = jsonParsedSpawnData[CardModule.Properties.spawnData.battle.actions_mechanics][TsunagarusModules.Properties.enemySpawnData.tsunagarus.barabaran.actions_mechanics.moonlight_force];
+
+                                                jsonParsedSpawnData[CardModule.Properties.spawnData.battle.actions_mechanics][TsunagarusModules.Properties.enemySpawnData.tsunagarus.barabaran.actions_mechanics.moonlight_force] = tempSunForce;
+                                            }
+
+                                            hitted = true;
+                                        }
+                                    } else if(TsunagarusModules.Properties.enemySpawnData.tsunagarus.barabaran.actions.white_beam.value in actions&&
+                                    actionsMechanics[TsunagarusModules.Properties.enemySpawnData.tsunagarus.barabaran.actions_mechanics.white_force].includes(cardData[DBM_Card_Data.columns.color])&&!partyBlock){
+                                        //check for white beam color force actions
+                                        parsedColorLives[cardData[DBM_Card_Data.columns.color]]+=atk;
+                                        if(parsedColorLives[cardData[DBM_Card_Data.columns.color]]>=hpMaxEnemy){ parsedColorLives[cardData[DBM_Card_Data.columns.color]] = hpMaxEnemy;}
+
+                                        txtHeaderActions = TsunagarusModules.Properties.enemySpawnData.tsunagarus.barabaran.actions.white_beam.name;
+                                        txtDescriptionActions += `${TsunagarusModules.Properties.enemySpawnData.tsunagarus.barabaran.actions.white_beam.description}\n`;
+                                        txtDescriptionActions += `Absorbed **${atk} ${cardData[DBM_Card_Data.columns.color]}** atk!`;
+                                        hitted = false;
+
+                                        //add debuff
+                                        var randDebuff = [
+                                            CardModule.StatusEffect.debuffData.hp_down_1.value,
+                                            CardModule.StatusEffect.debuffData.hp_down_2.value,
+                                            CardModule.StatusEffect.debuffData.hp_down_3.value,
+                                            CardModule.StatusEffect.debuffData.hp_down_4.value,
+                                        ];
+                                        randDebuff = randDebuff[GlobalFunctions.randomNumber(0,randDebuff.length-1)];
+                                        await CardModule.StatusEffect.updateStatusEffect(userId,randDebuff);
+                                        hitted = false;
+                                    } else if(TsunagarusModules.Properties.enemySpawnData.tsunagarus.barabaran.actions.black_beam.value in actions&&
+                                    actionsMechanics[TsunagarusModules.Properties.enemySpawnData.tsunagarus.barabaran.actions_mechanics.black_force].includes(cardData[DBM_Card_Data.columns.color])&&
+                                    !partyBlock){
+                                        //check for black beam color force actions
+                                        parsedColorLives[cardData[DBM_Card_Data.columns.color]]+=atk;
+                                        if(parsedColorLives[cardData[DBM_Card_Data.columns.color]]>=hpMaxEnemy){ parsedColorLives[cardData[DBM_Card_Data.columns.color]] = hpMaxEnemy;}
+
+                                        txtHeaderActions = TsunagarusModules.Properties.enemySpawnData.tsunagarus.barabaran.actions.black_beam.name;
+                                        txtDescriptionActions += `${TsunagarusModules.Properties.enemySpawnData.tsunagarus.barabaran.actions.white_beam.description}\n`;
+                                        txtDescriptionActions += `Absorbed **${atk} ${cardData[DBM_Card_Data.columns.color]}** atk!`;
+                                        hitted = false;
+
+                                        //add debuff
+                                        var randDebuff = [
+                                            CardModule.StatusEffect.debuffData.hp_down_1.value,
+                                            CardModule.StatusEffect.debuffData.hp_down_2.value,
+                                            CardModule.StatusEffect.debuffData.hp_down_3.value,
+                                            CardModule.StatusEffect.debuffData.hp_down_4.value,
+                                        ];
+                                        randDebuff = randDebuff[GlobalFunctions.randomNumber(0,randDebuff.length-1)];
+                                        await CardModule.StatusEffect.updateStatusEffect(userId,randDebuff);
+                                        hitted = false;
+                                    } else if(TsunagarusModules.Properties.enemySpawnData.tsunagarus.barabaran.actions.sun_beam.value in   actions&&
+                                    actionsMechanics[TsunagarusModules.Properties.enemySpawnData.tsunagarus.barabaran.actions_mechanics.sunlight_force].includes(cardData[DBM_Card_Data.columns.color])&&
+                                    !partyBlock){
+                                        //check for sun beam color force actions
+                                        parsedColorLives[cardData[DBM_Card_Data.columns.color]]+=atk;
+                                        if(parsedColorLives[cardData[DBM_Card_Data.columns.color]]>=hpMaxEnemy){ parsedColorLives[cardData[DBM_Card_Data.columns.color]] = hpMaxEnemy;}
+
+                                        txtHeaderActions = TsunagarusModules.Properties.enemySpawnData.tsunagarus.barabaran.actions.sun_beam.name;
+                                        txtDescriptionActions += `${TsunagarusModules.Properties.enemySpawnData.tsunagarus.barabaran.actions.sun_beam.description}\n`;
+                                        txtDescriptionActions += `Absorbed **${atk} ${cardData[DBM_Card_Data.columns.color]}** atk!`;
+                                        hitted = false;
+                                    } else if(TsunagarusModules.Properties.enemySpawnData.tsunagarus.barabaran.actions.moon_beam.value in actions&&
+                                    actionsMechanics[TsunagarusModules.Properties.enemySpawnData.tsunagarus.barabaran.actions_mechanics.moonlight_force].includes(cardData[DBM_Card_Data.columns.color])&&
+                                    !partyBlock){
+                                        //check for moon beam color force actions
+                                        parsedColorLives[cardData[DBM_Card_Data.columns.color]]+=atk;
+                                        if(parsedColorLives[cardData[DBM_Card_Data.columns.color]]>=hpMaxEnemy){ parsedColorLives[cardData[DBM_Card_Data.columns.color]] = hpMaxEnemy;}
+
+                                        txtHeaderActions = TsunagarusModules.Properties.enemySpawnData.tsunagarus.barabaran.actions.moon_beam.name;
+                                        txtDescriptionActions += `${TsunagarusModules.Properties.enemySpawnData.tsunagarus.barabaran.actions.moon_beam.description}\n`;
+                                        txtDescriptionActions += `Absorbed **${atk} ${cardData[DBM_Card_Data.columns.color]}** atk!`;
+                                        hitted = false;
+                                    } else if (TsunagarusModules.Properties.enemySpawnData.tsunagarus.barabaran.actions.white_beam.value in actions&&
+                                    !(actionsMechanics[TsunagarusModules.Properties.enemySpawnData.tsunagarus.barabaran.actions_mechanics.white_force].includes(cardData[DBM_Card_Data.columns.color]))&&partyBlock&&!priorityBlock){
+                                        txtHeaderActions = TsunagarusModules.Properties.enemySpawnData.tsunagarus.barabaran.actions.white_beam.name;
+                                        hitted = false;
+                                    } else if (TsunagarusModules.Properties.enemySpawnData.tsunagarus.barabaran.actions.black_beam.value in actions&&
+                                    !(actionsMechanics[TsunagarusModules.Properties.enemySpawnData.tsunagarus.barabaran.actions_mechanics.black_force].includes(cardData[DBM_Card_Data.columns.color]))&&partyBlock&&!priorityBlock){
+                                        txtHeaderActions = TsunagarusModules.Properties.enemySpawnData.tsunagarus.barabaran.actions.black_beam.name;
+                                        hitted = false;
+                                    } else if (TsunagarusModules.Properties.enemySpawnData.tsunagarus.barabaran.actions.sun_beam.value in   actions&&
+                                    !(actionsMechanics[TsunagarusModules.Properties.enemySpawnData.tsunagarus.barabaran.actions_mechanics.sunlight_force].includes(cardData[DBM_Card_Data.columns.color]))&&partyBlock&&!priorityBlock) {
+                                        txtHeaderActions = TsunagarusModules.Properties.enemySpawnData.tsunagarus.barabaran.actions.sun_beam.name;
+                                        hitted = false;
+                                    } 
+                                    else if (TsunagarusModules.Properties.enemySpawnData.tsunagarus.barabaran.actions.moon_beam.value in actions&&
+                                    !(actionsMechanics[TsunagarusModules.Properties.enemySpawnData.tsunagarus.barabaran.actions_mechanics.moonlight_force].includes(cardData[DBM_Card_Data.columns.color]))&&partyBlock&&!priorityBlock) {
+                                        txtHeaderActions = TsunagarusModules.Properties.enemySpawnData.tsunagarus.barabaran.actions.moon_beam.name;
+                                        hitted = false;
+                                    } 
+                                    else {
+                                        hitted = true;
+                                    }
+
+                                    if(txtHeaderActions==""){
+                                        //get default actions:
+                                        for (var key in actions){
+                                            txtHeaderActions = TsunagarusModules.Properties.enemySpawnData.tsunagarus.barabaran.actions[key].name;
+                                            txtDescriptionActions += `${TsunagarusModules.Properties.enemySpawnData.tsunagarus.barabaran.actions[key].description}`;
+                                        }
+                                    }
+                                }
+
+                                var minChance = jsonParsedSpawnData[CardModule.Properties.spawnData.battle.level];
+                                if(hp<minChance){
+                                    chance = GlobalFunctions.randomNumber(hp,100);
+                                } else {
+                                    chance = 100;
+                                }
+                                
+                                // minChance = 0;//for debugging purpose
+                                //process damage
+                                if((chance>=minChance&&hitted)||specialActivatedIndividual){
+                                    var parsedColorLivesDown = jsonParsedSpawnData[CardModule.Properties.spawnData.battle.color_lives_down];
+
+                                    parsedColorLives[cardData[DBM_Card_Data.columns.color]]-=atk;
+                                    if(specialActivatedIndividual){
+                                        parsedColorLives[cardData[DBM_Card_Data.columns.color]]-=9999;
+                                    }
+                                    
+                                    if(parsedColorLives[cardData[DBM_Card_Data.columns.color]]<=0){
+                                        parsedColorLives[cardData[DBM_Card_Data.columns.color]] = 0;
+    
+                                        //check for color taken down
+                                        if(!parsedColorLivesDown.includes(cardData[DBM_Card_Data.columns.color])){
+                                            livesDown = true;
+                                            parsedColorLivesDown.push(cardData[DBM_Card_Data.columns.color]);
+                                        }
+                                    }
+    
+                                    jsonParsedSpawnData[CardModule.Properties.spawnData.battle.color_lives] = parsedColorLives;
+                                    jsonParsedSpawnData[CardModule.Properties.spawnData.battle.color_lives_down] = parsedColorLivesDown;
+                                }
+                            }
+
+                            //check for color lives
+                            var colorLivesLeft = 0;
+                            for (var key in jsonParsedSpawnData[CardModule.Properties.spawnData.battle.color_lives]){
+                                if(jsonParsedSpawnData[CardModule.Properties.spawnData.battle.color_lives][key]>=1){
+                                    bossAlive = true; colorLivesLeft++;
+                                }
+                            }
+
+                            //announce actions embed
+                            if(bossAlive){
+                                try {
+                                    if(txtHeaderActions!=""){
+                                        if(!hitted&&partyBlock){
+                                            var objEmbedActions = await message.channel.send({embed:CardModule.Embeds.battleEnemyActions(enemyType,`Counter Fail!`,`**${txtHeaderActions}** cannot be countered/blocked!`,enemySpawnLink)});
+                                            setTimeout(function(){
+                                                objEmbedActions.delete();
+                                            }, 7000);
+                                        } else if(hitted&partyBlock) {
+                                            var objEmbedActions = await message.channel.send({embed:CardModule.Embeds.battleEnemyActionsBlock(cardData[DBM_Card_Data.columns.color],cardData[DBM_Card_Data.columns.pack],userUsername,userAvatarUrl,`Actions Blocked: ${txtHeaderActions}!`,`${userUsername} has successfully blocked: **${txtHeaderActions}** & counter the attacks!`)});
+                                            setTimeout(function(){
+                                                objEmbedActions.delete();
+                                            }, 7000);
+                                            jsonParsedSpawnData[CardModule.Properties.spawnData.battle.turn_mechanics]+=1;
+                                        } else {
+                                            var objEmbedActions = await message.channel.send({embed:CardModule.Embeds.battleEnemyActions(enemyType,txtHeaderActions,txtDescriptionActions,enemySpawnLink)});
+                                            setTimeout(function(){
+                                                objEmbedActions.delete();
+                                            }, 7000);
+                                            if(hitted){
+                                                jsonParsedSpawnData[CardModule.Properties.spawnData.battle.turn_mechanics]+=1;
+                                            }
+                                        }
+                                    } else {
+                                        jsonParsedSpawnData[CardModule.Properties.spawnData.battle.turn_mechanics]+=1;
+                                    }
+                                } catch(error){}
+                            }
+
+                            //update the turn
+                            // if(jsonParsedSpawnData[CardModule.Properties.spawnData.battle.turn]<=1){
+                                //auto add 1 turn for very first turn
+                                // jsonParsedSpawnData[CardModule.Properties.spawnData.battle.turn_mechanics]+=1;
+                            // }
+
+                            jsonParsedSpawnData[CardModule.Properties.spawnData.battle.turn]+=1;
+
+                            if(jsonParsedSpawnData[CardModule.Properties.spawnData.battle.turn]>=jsonParsedSpawnData[CardModule.Properties.spawnData.battle.turn_max]){
+                                //prevent turn>max turn
+                                jsonParsedSpawnData[CardModule.Properties.spawnData.battle.turn] = jsonParsedSpawnData[CardModule.Properties.spawnData.battle.turn_max];
+                            }
+                            if(jsonParsedSpawnData[CardModule.Properties.spawnData.battle.turn]>=jsonParsedSpawnData[CardModule.Properties.spawnData.battle.turn_max]&&bossAlive){
+                                //special attack: wipe out party
+                                teamBattleTurnOut = true;
+                                var txtDescription = TsunagarusModules.Properties.enemySpawnData.tsunagarus.barabaran.special_attack.rampage.description;
+                                await message.channel.send({embed:CardModule.Embeds.battleEnemyActions(enemyType,TsunagarusModules.Properties.enemySpawnData.tsunagarus.barabaran.special_attack.rampage.name,TsunagarusModules.Properties.enemySpawnData.tsunagarus.barabaran.special_attack.rampage.description)});
+
+                                var parsedDataUser = partyData.data_user;
+                                for (var key in parsedDataUser) {
+                                    var parameterSet = new Map();
+                                    parameterSet.set(DBM_Card_User_Data.columns.card_id_selected,null);
+                                    var parameterWhere = new Map();
+                                    parameterWhere.set(DBM_Card_User_Data.columns.id_user,key);
+                                    await DB.update(DBM_Card_User_Data.TABLENAME,parameterSet,parameterWhere);
+                                }
+                            } else if(jsonParsedSpawnData[CardModule.Properties.spawnData.battle.turn]<jsonParsedSpawnData[CardModule.Properties.spawnData.battle.turn_max]&&bossAlive) {
+                                //reset the actions
+                                jsonParsedSpawnData[CardModule.Properties.spawnData.battle.actions] = {};
+
+                                //randomize the attack
+                                var nextActions = null;
+                                var randomActions = null;
+
+                                var turnMechanics = jsonParsedSpawnData[CardModule.Properties.spawnData.battle.turn_mechanics];
+                                if(turnMechanics<=2){
+                                    //slowmo punch
+                                    var actionsMechanics = jsonParsedSpawnData[CardModule.Properties.spawnData.battle.actions_mechanics][TsunagarusModules.Properties.enemySpawnData.tsunagarus.barabaran.actions_mechanics.slowmo_punch];//get the slowmo punch turns
+
+                                    randomActions = TsunagarusModules.Properties.enemySpawnData.tsunagarus.barabaran.actions[`${TsunagarusModules.Properties.enemySpawnData.tsunagarus.barabaran.actions_mechanics.slowmo_punch}_${actionsMechanics}`];
+                                } else if(turnMechanics<=3){
+                                    //white force
+                                    var actionsMechanics = jsonParsedSpawnData[CardModule.Properties.spawnData.battle.actions_mechanics][TsunagarusModules.Properties.enemySpawnData.tsunagarus.barabaran.actions_mechanics.white_force];//get white force color
+
+                                    randomActions = TsunagarusModules.Properties.enemySpawnData.tsunagarus.barabaran.actions.white_force;
+                                    //replace xcolor:
+                                    randomActions.name = randomActions.name.replace("<xcolor>",actionsMechanics);
+                                    randomActions.description = randomActions.description.replace("<xcolor>",actionsMechanics);
+                                } else if(turnMechanics<=4){
+                                    //black force
+                                    var actionsMechanics = jsonParsedSpawnData[CardModule.Properties.spawnData.battle.actions_mechanics][TsunagarusModules.Properties.enemySpawnData.tsunagarus.barabaran.actions_mechanics.black_force];//get black force color
+
+                                    randomActions = TsunagarusModules.Properties.enemySpawnData.tsunagarus.barabaran.actions.black_force;
+                                    //replace xcolor:
+                                    randomActions.name = randomActions.name.replace("<xcolor>",actionsMechanics);
+                                    randomActions.description = randomActions.description.replace("<xcolor>",actionsMechanics);
+                                } else if(turnMechanics<=7) {
+                                    //white beam/black beam
+                                    var rndBeam = GlobalFunctions.randomNumber(0,1);
+                                    if(rndBeam==0){
+                                        //white beam
+                                        randomActions = TsunagarusModules.Properties.enemySpawnData.tsunagarus.barabaran.actions.white_beam;
+                                    } else {
+                                        randomActions = TsunagarusModules.Properties.enemySpawnData.tsunagarus.barabaran.actions.black_beam;
+                                    }
+                                } else if(turnMechanics<=8){
+                                    //slowmo kick
+                                    var actionsMechanics = jsonParsedSpawnData[CardModule.Properties.spawnData.battle.actions_mechanics][TsunagarusModules.Properties.enemySpawnData.tsunagarus.barabaran.actions_mechanics.slowmo_kick];//get the slowmo kick turns
+
+                                    randomActions = TsunagarusModules.Properties.enemySpawnData.tsunagarus.barabaran.actions[`${TsunagarusModules.Properties.enemySpawnData.tsunagarus.barabaran.actions_mechanics.slowmo_kick}_${actionsMechanics}`];
+                                } else if(turnMechanics<=9){
+                                    //sunlight force
+                                    var actionsMechanics = jsonParsedSpawnData[CardModule.Properties.spawnData.battle.actions_mechanics][TsunagarusModules.Properties.enemySpawnData.tsunagarus.barabaran.actions_mechanics.sunlight_force];//get sunlight force color
+
+                                    randomActions = TsunagarusModules.Properties.enemySpawnData.tsunagarus.barabaran.actions.sunlight_force;
+                                    //replace xcolor:
+                                    randomActions.name = randomActions.name.replace("<xcolor>",actionsMechanics);
+                                    randomActions.description = randomActions.description.replace("<xcolor>",actionsMechanics);
+
+                                } else if(turnMechanics<=10){
+                                    //moonlight force
+                                    var actionsMechanics = jsonParsedSpawnData[CardModule.Properties.spawnData.battle.actions_mechanics][TsunagarusModules.Properties.enemySpawnData.tsunagarus.barabaran.actions_mechanics.moonlight_force];//get moonlight force color
+
+                                    randomActions = TsunagarusModules.Properties.enemySpawnData.tsunagarus.barabaran.actions.moonlight_force;
+                                    //replace xcolor:
+                                    randomActions.name = randomActions.name.replace("<xcolor>",actionsMechanics);
+                                    randomActions.description = randomActions.description.replace("<xcolor>",actionsMechanics);
+                                } else {
+                                    //turn >=11: sun beam/moon beam/forcepossite
+                                    var rndMechanics = GlobalFunctions.randomNumber(0,3);
+                                    switch(rndMechanics){
+                                        case 0:
+                                            //sun beam
+                                            randomActions = TsunagarusModules.Properties.enemySpawnData.tsunagarus.barabaran.actions.sun_beam;
+                                            break;
+                                        case 1:
+                                            //moon beam
+                                            randomActions = TsunagarusModules.Properties.enemySpawnData.tsunagarus.barabaran.actions.moon_beam;
+                                            break;
+                                        case 2:
+                                        case 3:
+                                            //forcepposite
+                                            randomActions = TsunagarusModules.Properties.enemySpawnData.tsunagarus.barabaran.actions.forcepposite;
+                                            break;
+                                    }
+                                }
+
+                                jsonParsedSpawnData[CardModule.Properties.spawnData.battle.actions][`${randomActions.value}`] = "";
+                                txtActionsEmbed = `${randomActions.name}`;
+
+                                try{
+                                    nextActions = await message.channel.send({embed:CardModule.Embeds.battleEnemyActionsPrepare(enemyType,randomActions.name,txtActionsEmbed)});
+                                    setTimeout(function(){
+                                        nextActions.delete();
+                                    }, 7000);
+                                } catch(error){}
+                            }
+
+                            //update embeds
+                            try{
+                                var messageSpawn = await message.channel.messages
+                                .fetch(guildSpawnData[DBM_Card_Guild.columns.id_last_message_spawn]);
+                                var editedEmbed = new Discord.MessageEmbed(messageSpawn.embeds[0]);
+
+                                var txtHpEmbed = editedEmbed.fields[0].value.split("\n");
+                                var newtxtHpEmbed = "";
+                                var ctr = 0;
+                                for (var key in jsonParsedSpawnData[CardModule.Properties.spawnData.battle.color_lives]){
+                                    var splittedHp = txtHpEmbed[ctr].split("/");
+                                    splittedHp = splittedHp[0].split(": ");
+                                    newtxtHpEmbed+=`${splittedHp[0]}: ${jsonParsedSpawnData[CardModule.Properties.spawnData.battle.color_lives][key]}/${jsonParsedSpawnData[CardModule.Properties.spawnData.battle.hp_max]}\n`;
+                                    ctr++;
+                                }
+                                newtxtHpEmbed = newtxtHpEmbed.replace("/\n$/","");
+
+                                editedEmbed.fields[0].value = `${newtxtHpEmbed}`;
+                                editedEmbed.fields[2].value = `${txtActionsEmbed}`;
+                                editedEmbed.fields[3].value = `${jsonParsedSpawnData[CardModule.Properties.spawnData.battle.turn]}/${jsonParsedSpawnData[CardModule.Properties.spawnData.battle.turn_max]}`;
+                                try{
+                                    await messageSpawn.edit(editedEmbed);
+                                } catch(error){}
+                            } catch(error){}
+
+                            break;
                         case TsunagarusModules.Properties.enemySpawnData.tsunagarus.dibosu.term:
                             
                             var rarity = cardData[DBM_Card_Data.columns.rarity];
@@ -3747,7 +4330,7 @@ module.exports = {
                                 }
 
                                 var minChance = jsonParsedSpawnData[CardModule.Properties.spawnData.battle.level];
-                                if(hp<jsonParsedSpawnData[CardModule.Properties.spawnData.battle.level]){
+                                if(hp<minChance){
                                     chance = GlobalFunctions.randomNumber(hp,100);
                                 } else {
                                     chance = 100;
@@ -3812,6 +4395,10 @@ module.exports = {
 
                             //update the turn
                             jsonParsedSpawnData[CardModule.Properties.spawnData.battle.turn]+=1;
+                            if(jsonParsedSpawnData[CardModule.Properties.spawnData.battle.turn]>=jsonParsedSpawnData[CardModule.Properties.spawnData.battle.turn_max]){
+                                //prevent turn>max turn
+                                jsonParsedSpawnData[CardModule.Properties.spawnData.battle.turn] = jsonParsedSpawnData[CardModule.Properties.spawnData.battle.turn_max];
+                            }
                             if(jsonParsedSpawnData[CardModule.Properties.spawnData.battle.turn]>=jsonParsedSpawnData[CardModule.Properties.spawnData.battle.turn_max]&&bossAlive){
                                 //special attack: wipe out party
                                 teamBattleTurnOut = true;
@@ -3875,31 +4462,27 @@ module.exports = {
 
                             //update embeds
                             try{
-                                if(!teamBattleTurnOut&&bossAlive){
-                                    var messageSpawn = await message.channel.messages
-                                    .fetch(guildSpawnData[DBM_Card_Guild.columns.id_last_message_spawn]);
-                                    var editedEmbed = new Discord.MessageEmbed(messageSpawn.embeds[0]);
-    
-                                    var txtHpEmbed = editedEmbed.fields[0].value.split("\n");
-                                    var newtxtHpEmbed = "";
-                                    var ctr = 0;
-                                    for (var key in jsonParsedSpawnData[CardModule.Properties.spawnData.battle.color_lives]){
-                                        var splittedHp = txtHpEmbed[ctr].split("/");
-                                        splittedHp = splittedHp[0].split(": ");
-                                        newtxtHpEmbed+=`${splittedHp[0]}: ${jsonParsedSpawnData[CardModule.Properties.spawnData.battle.color_lives][key]}/${jsonParsedSpawnData[CardModule.Properties.spawnData.battle.hp_max]}\n`;
-                                        ctr++;
-                                    }
-                                    newtxtHpEmbed = newtxtHpEmbed.replace("/\n$/","");
-    
-                                    editedEmbed.fields[0].value = `${newtxtHpEmbed}`;
-                                    editedEmbed.fields[2].value = `${txtActionsEmbed}`;
-                                    editedEmbed.fields[3].value = `${jsonParsedSpawnData[CardModule.Properties.spawnData.battle.turn]}/${jsonParsedSpawnData[CardModule.Properties.spawnData.battle.turn_max]}`;
-                                    try{
-                                        await messageSpawn.edit(editedEmbed);
-                                    } catch(error){}
-                                    
+                                var messageSpawn = await message.channel.messages
+                                .fetch(guildSpawnData[DBM_Card_Guild.columns.id_last_message_spawn]);
+                                var editedEmbed = new Discord.MessageEmbed(messageSpawn.embeds[0]);
+
+                                var txtHpEmbed = editedEmbed.fields[0].value.split("\n");
+                                var newtxtHpEmbed = "";
+                                var ctr = 0;
+                                for (var key in jsonParsedSpawnData[CardModule.Properties.spawnData.battle.color_lives]){
+                                    var splittedHp = txtHpEmbed[ctr].split("/");
+                                    splittedHp = splittedHp[0].split(": ");
+                                    newtxtHpEmbed+=`${splittedHp[0]}: ${jsonParsedSpawnData[CardModule.Properties.spawnData.battle.color_lives][key]}/${jsonParsedSpawnData[CardModule.Properties.spawnData.battle.hp_max]}\n`;
+                                    ctr++;
                                 }
-                                
+                                newtxtHpEmbed = newtxtHpEmbed.replace("/\n$/","");
+
+                                editedEmbed.fields[0].value = `${newtxtHpEmbed}`;
+                                editedEmbed.fields[2].value = `${txtActionsEmbed}`;
+                                editedEmbed.fields[3].value = `${jsonParsedSpawnData[CardModule.Properties.spawnData.battle.turn]}/${jsonParsedSpawnData[CardModule.Properties.spawnData.battle.turn_max]}`;
+                                try{
+                                    await messageSpawn.edit(editedEmbed);
+                                } catch(error){}
                             } catch(error){}
     
                             break;
@@ -4267,6 +4850,21 @@ module.exports = {
                 } catch(error){}
 
                 if(teamBattle){
+                    //by default: buttagiru
+                    var objQtyRewards = {
+                        fragment:1,
+                        card:1
+                    };
+
+                    switch(enemyType){
+                        case TsunagarusModules.Properties.enemySpawnData.tsunagarus.barabaran.term:
+                            objQtyRewards = {
+                                fragment:3,
+                                card:3
+                            }
+                            break
+                    }
+
                     //team battle
                     if(bossAlive&&hitted&&!teamBattleTurnOut&&(!specialActivated||specialActivatedIndividual)){
                         var dataUser = partyData.data_user;
@@ -4310,7 +4908,7 @@ module.exports = {
 
                             for(var i=0;i<splittedUserId.length;i++){
                                 //add item rewards to all members
-                                await ItemModule.addNewItemInventory(splittedUserId[i],fragmentDropData[DBM_Item_Data.columns.id],1);
+                                await ItemModule.addNewItemInventory(splittedUserId[i],fragmentDropData[DBM_Item_Data.columns.id],objQtyRewards.fragment);
                             }
                         }
 
@@ -4362,17 +4960,32 @@ module.exports = {
                             case 3:
                             case 4:
                                 pointReward = 80;
+                                switch(enemyType){
+                                    case TsunagarusModules.Properties.enemySpawnData.tsunagarus.barabaran.term:
+                                        pointReward = 100;
+                                        break
+                                }
                                 break;
                             case 5:
                             case 6:
                             case 7:
                             case 8:
                                 pointReward = 90;
+                                switch(enemyType){
+                                    case TsunagarusModules.Properties.enemySpawnData.tsunagarus.barabaran.term:
+                                        pointReward = 120;
+                                        break
+                                }
                                 break;
                             case 1:
                             case 2:
                             default:
                                 pointReward = 70;
+                                switch(enemyType){
+                                    case TsunagarusModules.Properties.enemySpawnData.tsunagarus.barabaran.term:
+                                        pointReward = 150;
+                                        break
+                                }
                                 break;
                         }
 
@@ -4394,9 +5007,10 @@ module.exports = {
                         //check for item drop chance
                         var itemDropRareChance = GlobalFunctions.randomNumber(0,100);
                         var dropData = await DBConn.conn.promise().query(query,["misc_fragment","ingredient","ingredient_rare",itemDropRareChance]);
+
                         //fragment drop
                         var fragmentDropData = dropData[0][0];
-                        rewardsReceived+=`>**Fragment:** ${fragmentDropData[DBM_Item_Data.columns.name]} **(${fragmentDropData[DBM_Item_Data.columns.id]})**\n`;
+                        rewardsReceived+=`>**${objQtyRewards.fragment}x Fragment:** ${fragmentDropData[DBM_Item_Data.columns.name]} **(${fragmentDropData[DBM_Item_Data.columns.id]})**\n`;
 
                         // item drop
                         var itemDropData = dropData[0][1];
@@ -4427,7 +5041,7 @@ module.exports = {
                         var paramIdUser = []; var queryIdUser= "";
 
                         //add rewards to leader
-                        await ItemModule.addNewItemInventory(partyData.partyData[DBM_Card_Party.columns.id_user],fragmentDropData[DBM_Item_Data.columns.id],1);
+                        await ItemModule.addNewItemInventory(partyData.partyData[DBM_Card_Party.columns.id_user],fragmentDropData[DBM_Item_Data.columns.id],objQtyRewards.fragment);
                         await ItemModule.addNewItemInventory(partyData.partyData[DBM_Card_Party.columns.id_user],itemDropData[DBM_Item_Data.columns.id],1);
 
                         paramIdUser.push(partyData.partyData[DBM_Card_Party.columns.id_user]);
@@ -4436,7 +5050,7 @@ module.exports = {
                         var splittedUserId = partyData.partyData[DBM_Card_Party.columns.party_data].split(",");
                         for(var i=0;i<splittedUserId.length;i++){
                             //add rewards to all members
-                            await ItemModule.addNewItemInventory(splittedUserId[i],fragmentDropData[DBM_Item_Data.columns.id],1);
+                            await ItemModule.addNewItemInventory(splittedUserId[i],fragmentDropData[DBM_Item_Data.columns.id],objQtyRewards.fragment);
                             await ItemModule.addNewItemInventory(splittedUserId[i],itemDropData[DBM_Item_Data.columns.id],1);
 
                             paramIdUser.push(splittedUserId[i]);
@@ -4454,14 +5068,14 @@ module.exports = {
                         await DBConn.conn.promise().query(queryUpdateMultipleUserStatus,paramIdUser);
 
                         //battle win
-                        rewardsReceived+=`>Card: **${cardDataReward[DBM_Card_Data.columns.id_card]} - ${cardDataReward[DBM_Card_Data.columns.name]}**`;
+                        rewardsReceived+=`>${objQtyRewards.card}x Card: **${cardDataReward[DBM_Card_Data.columns.id_card]} - ${cardDataReward[DBM_Card_Data.columns.name]}**`;
 
                         //adds up the card to leader
                         var userCardRewardStock = await CardModule.getUserCardStock(partyData.partyData[DBM_Card_Party.columns.id_user],cardDataReward[DBM_Card_Data.columns.id_card]);
                         if(userCardRewardStock<=-1){
-                            await CardModule.addNewCardInventory(partyData.partyData[DBM_Card_Party.columns.id_user],cardDataReward[DBM_Card_Data.columns.id_card]);
+                            await CardModule.addNewCardInventory(partyData.partyData[DBM_Card_Party.columns.id_user],cardDataReward[DBM_Card_Data.columns.id_card],false,objQtyRewards.card);
                         } else if(userCardRewardStock<CardModule.Properties.maximumCard){
-                            await CardModule.addNewCardInventory(partyData.partyData[DBM_Card_Party.columns.id_user],cardDataReward[DBM_Card_Data.columns.id_card],true);
+                            await CardModule.addNewCardInventory(partyData.partyData[DBM_Card_Party.columns.id_user],cardDataReward[DBM_Card_Data.columns.id_card],true,objQtyRewards.card);
                         }
 
                         //check leader card pack completion:
@@ -4499,9 +5113,9 @@ module.exports = {
                         for(var i=0;i<splittedUserId.length;i++){
                             var userCardRewardStock = await CardModule.getUserCardStock(splittedUserId[i],cardDataReward[DBM_Card_Data.columns.id_card]);
                             if(userCardRewardStock<=-1){
-                                await CardModule.addNewCardInventory(splittedUserId[i],cardDataReward[DBM_Card_Data.columns.id_card]);
+                                await CardModule.addNewCardInventory(splittedUserId[i],cardDataReward[DBM_Card_Data.columns.id_card],false,objQtyRewards.card);
                             } else if(userCardRewardStock<CardModule.Properties.maximumCard){
-                                await CardModule.addNewCardInventory(splittedUserId[i],cardDataReward[DBM_Card_Data.columns.id_card],true);
+                                await CardModule.addNewCardInventory(splittedUserId[i],cardDataReward[DBM_Card_Data.columns.id_card],true,objQtyRewards.card);
                             }
 
                             //check all member card completion:
@@ -4685,7 +5299,7 @@ module.exports = {
                         parameterWhere.set(DBM_Card_Guild.columns.id_guild,guildId);
                         await DB.update(DBM_Card_Guild.TABLENAME,parameterSet,parameterWhere);
 
-                        var embedHit = await message.channel.send({embed:CardModule.Embeds.battleHitHpSuccess(cardData[DBM_Card_Data.columns.color],cardData[DBM_Card_Data.columns.pack],userUsername,userAvatarUrl,`**${userUsername}** has deals **${atk}** damage to **${enemyType}**!`,txtStatusEffectHit,txtRewards,`${hpEnemy}/${hpMaxEnemy}`)});
+                        var embedHit = await message.channel.send({embed:CardModule.Embeds.battleHitHpSuccess(cardData[DBM_Card_Data.columns.color],cardData[DBM_Card_Data.columns.pack],userUsername,userAvatarUrl,`**${userUsername}** has dealt **${atk}** damage to **${enemyType}**!`,txtStatusEffectHit,txtRewards,`${hpEnemy}/${hpMaxEnemy}`)});
 
                         try{
                             setTimeout(function() {
@@ -5554,7 +6168,7 @@ module.exports = {
                         }
                         break;
                 }
-
+                break;
             case "convert":
                 //get/view the card detail
                 var convertOptions = args[1];
@@ -6673,6 +7287,9 @@ module.exports = {
 
                 break;
             
+            case "wish":
+                
+                break;
             default:
                 break;
             

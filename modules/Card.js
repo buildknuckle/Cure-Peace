@@ -876,7 +876,9 @@ class Properties{
             damage_dealer:"damage_dealer",
             traits:"traits",
             actions:"actions",
-            turn:"turn",
+            turn:"turn",//battle attempt with limit
+            turn_mechanics:"turn_mechanics",//for mechanics
+            actions_mechanics:"actions_mechanics",
             turn_max:"turn_max",
             color_lives_down:"color_down"
         },
@@ -953,7 +955,7 @@ class Properties{
             total:102,
             skills:{
                 1:{
-                    cp_cost:50,
+                    cp_cost:100,
                     buff_data:StatusEffect.cureSkillsBuffData.reward_booster
                 }
             }
@@ -4174,6 +4176,51 @@ class Party {
 
 }
 
+class Title {
+    static cardTitleData = {
+        card_master: {
+            value:"card_master",
+            name:"Card Master",
+            description:"Complete all precure card."
+        },
+        master_of_pink: {
+            value:"master_of_pink",
+            name:"Master of Pink",
+            description:"Complete all pink precure card list."
+        },
+        master_of_yellow: {
+            value:"master_of_yellow",
+            name:"Master of Yellow",
+            description:"Complete all yellow precure card list."
+        },
+        master_of_green: {
+            value:"master_of_green",
+            name:"Master of Green",
+            description:"Complete all green precure card list."
+        },
+        master_of_blue: {
+            value:"master_of_blue",
+            name:"Master of Blue",
+            description:"Complete all blue precure card list."
+        },
+        master_of_purple: {
+            value:"master_of_purple",
+            name:"Master of Purple",
+            description:"Complete all purple precure card list."
+        },
+        master_of_red: {
+            value:"master_of_red",
+            name:"Master of Red",
+            description:"Complete all red precure card list."
+        },
+        master_of_white: {
+            value:"master_of_white",
+            name:"Master of White",
+            description:"Complete all white precure card list."
+        },
+    }
+}
+
 //get 1 card data
 async function getAllCardDataByPack(card_pack){
     var parameterWhere = new Map();
@@ -4920,140 +4967,6 @@ async function updateSeriesPoint(id_user,objSeries){
     await DBConn.conn.promise().query(query, [id_user]);
 }
 
-
-function getCardPack(id_card){
-    id_card = id_card.toLowerCase();
-    if(id_card.contains("agma")){
-        return "aguri";
-    } else if(id_card.contains("akhi")){
-        return "akane";
-    } else if(id_card.contains("akke")){
-        return "akira";
-    } else if(id_card.contains("aksh")){
-        return "ako";
-    } else if(id_card.contains("alyo")){
-        return "alice";
-    } else if(id_card.contains("amru")){
-        return "ruru";
-    } else if(id_card.contains("aota")){
-        return "aoi";
-    } else if(id_card.contains("chsa")){
-        return "chiyu";
-    } else if(id_card.contains("ciki")){
-        return "ciel";
-    } else if(id_card.contains("elam")){
-        return "elena";
-    } else if(id_card.contains("elku")){
-        return "ellen";
-    } else if(id_card.contains("emai")){
-        return "emiru";
-    } else if(id_card.contains("erku")){
-        return "erika";
-    } else if(id_card.contains("haha")){
-        return "haruka";
-    } else if(id_card.contains("hano")){
-        return "hana";
-    } else if(id_card.contains("hiar")){
-        return "himari";
-    } else if(id_card.contains("hihi")){
-        return "hinata";
-    } else if(id_card.contains("hiho")){
-        return "hibiki";
-    } else if(id_card.contains("hiku")){
-        return "hikari";
-    } else if(id_card.contains("hise")){
-        return "hikaru";
-    } else if(id_card.contains("hish")){
-        return "hime";
-    } else if(id_card.contains("hoka")){
-        return "homare";
-    } else if(id_card.contains("hoyu")){
-        return "honoka";
-    } else if(id_card.contains("icus")){
-        return "ichika";
-    } else if(id_card.contains("inya")){
-        return "inori";
-    } else if(id_card.contains("iohi")){
-        return "iona";
-    } else if(id_card.contains("itmy")){
-        return "itsuki";
-    } else if(id_card.contains("kami")){
-        return "kanade";
-    } else if(id_card.contains("kamin")){
-        return "karen";
-    } else if(id_card.contains("kiam")){
-        return "kirara";
-    } else if(id_card.contains("koak")){
-        return "komachi";
-    } else if(id_card.contains("koha")){
-        return "kotoha";
-    } else if(id_card.contains("kumi")){
-        return "kurumi";
-    } else if(id_card.contains("laha")){
-        return "lala";
-    } else if(id_card.contains("lomo")){
-        return "love";
-    } else if(id_card.contains("maai")){
-        return "mana";
-    } else if(id_card.contains("maka")){
-        return "madoka";
-    } else if(id_card.contains("make")){
-        return "makoto";
-    } else if(id_card.contains("mami")){
-        return "mai";
-    } else if(id_card.contains("meai")){
-        return "megumi";
-    } else if(id_card.contains("miao")){
-        return "miki";
-    } else if(id_card.contains("mias")){
-        return "mirai";
-    } else if(id_card.contains("miho")){
-        return "miyuki";
-    } else if(id_card.contains("mikai")){
-        return "minami";
-    } else if(id_card.contains("nami")){
-        return "nagisa";
-    } else if(id_card.contains("naomi")){
-        return "nao";
-    } else if(id_card.contains("noha")){
-        return "nodoka";
-    } else if(id_card.contains("nozomi")){
-        return "noyu";
-    } else if(id_card.contains("reao")){
-        return "reika";
-    } else if(id_card.contains("rihi")){
-        return "rikka";
-    } else if(id_card.contains("riiz")){
-        return "riko";
-    } else if(id_card.contains("rina")){
-        return "rin";
-    } else if(id_card.contains("sahy")){
-        return "saki";
-    } else if(id_card.contains("saya")){
-        return "saaya";
-    } else if(id_card.contains("sehi")){
-        return "setsuna";
-    } else if(id_card.contains("toak")){
-        return "towa";
-    } else if(id_card.contains("tsha")){
-        return "tsubomi";
-    } else if(id_card.contains("urka")){
-        return "urara";
-    } else if(id_card.contains("yaki")){
-        return "yayoi";
-    } else if(id_card.contains("yuko")){
-        return "yukari";
-    } else if(id_card.contains("yuni")){
-        return "yuni";
-    } else if(id_card.contains("yuom")){
-        return "yuko";
-    } else if(id_card.contains("yuts")){
-        return "yuri";
-    } else {
-        return null;
-    }
-}
-
 async function removeCardGuildSpawn(id_guild,removeSpawnType=true,removeSpawnId=true,removeSpawnData=true){
     //erase all card spawn information
     var parameterSet = new Map();
@@ -5183,7 +5096,7 @@ async function generateCardSpawn(id_guild,specificType=null,overwriteToken = tru
     }
 
     //for debugging purpose:
-    // cardSpawnType = "battle";
+    // cardSpawnType = "quiz";
 
     var query = "";
     //prepare the embed object
@@ -5264,7 +5177,7 @@ async function generateCardSpawn(id_guild,specificType=null,overwriteToken = tru
             var randomQuizType = GlobalFunctions.randomNumber(0,2);
             var query = ``;
             var resultData;
-            randomQuizType = 1;//for debugging purpose
+            // randomQuizType = 1;//for debugging purpose
             var subRandType = 0;
             switch(randomQuizType){
                 case 1:
@@ -5608,7 +5521,7 @@ async function generateCardSpawn(id_guild,specificType=null,overwriteToken = tru
             var enemyType = TsunagarusModules.Properties.enemySpawnData.tsunagarus.chokkins.term;//default enemy type
             var randomType = GlobalFunctions.randomNumber(0,10);
 
-            // randomType = 9;//for debug purpose only
+            // randomType = 10;//for debug purpose only
 
             if(specificType!=null&&
             (spawnData2==null||spawnData3==null)){
@@ -5644,7 +5557,184 @@ async function generateCardSpawn(id_guild,specificType=null,overwriteToken = tru
             var spawnSeries = enemyData[DBM_Card_Enemies.columns.series];
 
             var spawnData = "";
-            if(randomType>=9){
+            if(randomType>=10){
+                //barabaran
+                var query = `SELECT * 
+                FROM ${DBM_Card_Data.TABLENAME} 
+                WHERE ${DBM_Card_Data.columns.rarity}>=? 
+                ORDER BY rand() LIMIT 1`;
+
+                var cardRewardData = await DBConn.conn.promise().query(query,[6]);
+                cardRewardData = cardRewardData[0][0];
+
+                enemyType = TsunagarusModules.Properties.enemySpawnData.tsunagarus.barabaran.term;
+
+                var randomMinLives = 2;
+
+                //get the random series information
+                var query = `SELECT ${DBM_Card_Data.columns.series}, ${DBM_Card_Data.columns.pack}, ${DBM_Card_Data.columns.color} 
+                FROM ${DBM_Card_Data.TABLENAME} 
+                WHERE ${DBM_Card_Data.columns.series}=?  
+                GROUP BY ${DBM_Card_Data.columns.color} 
+                ORDER BY rand() 
+                LIMIT ${randomMinLives}`;
+                var cardDataSeriesWeakness = await DBConn.conn.promise().query(query,[enemyData[DBM_Card_Enemies.columns.series]]);
+                cardDataSeriesWeakness = cardDataSeriesWeakness[0];
+
+                var arrTempColor = [];
+                var dtColor = "{";
+                for(var i=0;i<cardDataSeriesWeakness.length;i++){
+                    dtColor+=`"${cardDataSeriesWeakness[i][DBM_Card_Data.columns.color]}":0,`;
+                    arrTempColor.push(cardDataSeriesWeakness[i][DBM_Card_Data.columns.color]);
+                }
+                dtColor = dtColor.replace(/,\s*$/, "");//remove last comma
+                dtColor += "}";
+
+                var spawnColorLivesParse = JSON.parse(dtColor);
+
+                var lvR = 50;
+                var randRarityMin = GlobalFunctions.randomNumber(5,6);
+                var txtRarity = "?";
+                if(GlobalFunctions.randomNumber(0,1)>0){
+                    txtRarity=randRarityMin;
+                }
+
+                //randomize hp
+                var baseHp = 20;//default hp
+                var turnMax = GlobalFunctions.randomNumber(7,9);
+                var colorGroup = arrTempColor.length;
+                var turnBonus = GlobalFunctions.randomNumber(7,10);
+
+                // var rndHp = baseHp;
+                rndHp = Status.getAtk(lvR,baseHp)*turnMax;
+                var dtTurn = `"${Properties.spawnData.battle.turn_mechanics}":${1},"${Properties.spawnData.battle.turn}":${1},"${Properties.spawnData.battle.turn_max}":${(turnMax*colorGroup)+turnBonus}`;
+
+                //======PREPARE THE ACTIONS MECHANICS============
+                //=====WHITE/BLACK FORCE START=====
+                var randomIndexColor = GlobalFunctions.randomNumber(0,1);
+                var dtActionsMechanics = `"${TsunagarusModules.Properties.enemySpawnData.tsunagarus.barabaran.actions_mechanics.white_force}":"${arrTempColor[randomIndexColor]}",`;
+                //invert the random color index
+                if(randomIndexColor==0){
+                    randomIndexColor = 1;
+                } else {
+                    randomIndexColor = 0;
+                }
+
+                //insert the second randomized color foce
+                dtActionsMechanics += `"${TsunagarusModules.Properties.enemySpawnData.tsunagarus.barabaran.actions_mechanics.black_force}":"${arrTempColor[randomIndexColor]}",`;
+                //=====WHITE/BLACK FORCE END=====
+                //=====SUNLIGHT/MOONLIGHT FORCE START=====
+                var randomIndexColor = GlobalFunctions.randomNumber(0,1);
+                dtActionsMechanics += `"${TsunagarusModules.Properties.enemySpawnData.tsunagarus.barabaran.actions_mechanics.sunlight_force}":"${arrTempColor[randomIndexColor]}",`;
+                //invert the random color index
+                if(randomIndexColor==0){
+                    randomIndexColor = 1;
+                } else {
+                    randomIndexColor = 0;
+                }
+                dtActionsMechanics += `"${TsunagarusModules.Properties.enemySpawnData.tsunagarus.barabaran.actions_mechanics.moonlight_force}":"${arrTempColor[randomIndexColor]}",`;
+                //=====SUNLIGHT/MOONLIGHT FORCE END=====
+                //=====DELAYED PUNCH START=====
+                var randPunch = GlobalFunctions.randomNumber(2,3);
+                dtActionsMechanics += `"${TsunagarusModules.Properties.enemySpawnData.tsunagarus.barabaran.actions_mechanics.slowmo_punch}":${randPunch},`;
+                //=====DELAYED KICK START=====
+                var randKick = GlobalFunctions.randomNumber(2,4);
+                dtActionsMechanics += `"${TsunagarusModules.Properties.enemySpawnData.tsunagarus.barabaran.actions_mechanics.slowmo_kick}":${randKick}`;
+
+                //======ACTIONS MECHANICS END============
+
+                for (var key in spawnColorLivesParse) {
+                    spawnColorLivesParse[key] = rndHp;
+                }
+
+                var dtHp = `"${Properties.spawnData.battle.color_lives}":${JSON.stringify(spawnColorLivesParse)},"${Properties.spawnData.battle.hp_max}":${rndHp}`;
+
+                //hiddenize the color lives
+                var textColor = arrTempColor.join(",");
+                for(var i=0;i<textColor.length;i++){
+                    if(i>0&&textColor[i]!=","){
+                        textColor = textColor.replace(textColor[i],"?");
+                    }
+                }
+
+                var splitted = textColor.split(",");
+                var txtHpDisplay = "";
+                splitted.forEach(item => {
+                    txtHpDisplay+=`${txtRarity}⭐ ${item} : ${rndHp}/${rndHp}\n`;
+                });
+
+                //hiddenize the rarity
+                //get the hint
+                var hiddenEnemy = TsunagarusModules.Properties.enemySpawnData[cardDataSeriesWeakness[0][DBM_Card_Data.columns.series]].term;
+                var resultWord = [];
+                var modWord = ``;
+                var maxModWord = 4;
+
+                //get vowel word
+                for(var i=0;i<hiddenEnemy.length;i++){
+                    resultWord.push(hiddenEnemy[i]);
+                }
+
+                var arrTaken = GlobalFunctions.getRandomArray(resultWord,maxModWord);
+
+                //start modify the word:
+                for(var i=0;i<resultWord.length;i++){
+                    if(arrTaken.includes(resultWord[i])){
+                        modWord+=`?`;
+                    } else {
+                        modWord+=`${resultWord[i]}`;
+                    }
+                }
+
+                //embed
+                objEmbed.thumbnail = {
+                    url:TsunagarusModules.Properties.enemySpawnData.tsunagarus.barabaran.image
+                }
+                objEmbed.title = `Lets settle this down shall we?`;
+                objEmbed.description = `Team up to defeat the **${GlobalFunctions.capitalize(enemyType)}**! \n\n**p!card <command> List:**\n⚔️ **battle**: Participate in team battle (10 CP)\n✨ **battle special [party]**: Use the fully charged special attack/team attack\n🛡️ **battle block**: Counter/Block any offensive actions (10 CP)\n⬆️ **battle charge**: Charge up team special point (10 PP)\n🔍 **battle scan <info>**: Scan & Reveal <info> (1 PP)\n\n**Traits:**\n>Can attack & counter cure with HP<${lvR}\n>Counter cure that doesn't possess its elemental weakness\n>Counter cure that has less than ${txtRarity}⭐\n>Counter cure that cannot hit the color`;
+                objEmbed.color = TsunagarusModules.Properties.enemySpawnData.tsunagarus[enemyType].embedColor;
+
+                objEmbed.fields = [
+                    {
+                        name:`💔Color Weakness & Hp:`,
+                        value:`${txtHpDisplay}`,
+                        inline:true
+                    },
+                    {
+                        name:`Element. Weakness:`,
+                        value:`${modWord}`,
+                        inline:true
+                    },
+                    {
+                        name:`Next Actions:`,
+                        value:`-`,
+                        inline:true
+                    },
+                    {
+                        name:`Turn:`,
+                        value:`${1}/${(turnMax*colorGroup)+turnBonus}`,
+                        inline:true
+                    }
+                ]
+
+                //randomize the special allowance
+                var randAllowSpecial = GlobalFunctions.randomNumber(0,10);
+                var dtAllowSpecial = `"${Properties.spawnData.battle.special_allow}":`;
+                if(randAllowSpecial>=8){
+                    dtAllowSpecial+="true";
+                    objEmbed.footer = {
+                        text:`Special Protection: ❌`
+                    }
+                } else {
+                    dtAllowSpecial+="false";
+                    objEmbed.footer = {
+                        text:`Special Protection: ✅`
+                    }
+                }
+
+                spawnData = `{"${Properties.spawnData.battle.category}":"${TsunagarusModules.Properties.enemySpawnData.tsunagarus.category.boss}","${Properties.spawnData.battle.type}":"${enemyType}","${Properties.spawnData.battle.id_enemy}":"${enemyData[DBM_Card_Enemies.columns.id]}","${Properties.spawnData.battle.level}":${lvR},${dtHp},"${Properties.spawnData.battle.color_lives_down}":[],"${Properties.spawnData.battle.id_card_reward}":"${cardRewardData[DBM_Card_Data.columns.id_card]}","${Properties.spawnData.battle.actions}":{},"${Properties.spawnData.battle.actions_mechanics}":{${dtActionsMechanics}},${dtTurn},"${Properties.spawnData.battle.rarity}":${randRarityMin},${dtAllowSpecial}}`;
+                
+            } else if(randomType>=9){
                 //dibosu
                 enemyType = TsunagarusModules.Properties.enemySpawnData.tsunagarus.dibosu.term;
                 var randRarityMin = 4;
@@ -6316,6 +6406,7 @@ async function addNewCardInventory(id_user,id_card,addStock = false,qty=1){
         var parameterSet = new Map();
         parameterSet.set(DBM_Card_Inventory.columns.id_user,id_user);
         parameterSet.set(DBM_Card_Inventory.columns.id_card,id_card);
+        parameterSet.set(DBM_Card_Inventory.columns.stock,qty);
 
         if(cardData[DBM_Card_Data.columns.rarity]>=6){
             parameterSet.set(DBM_Card_Inventory.columns.level_special,10);
@@ -6371,7 +6462,7 @@ async function limitizeUserPoints(){
 }
 
 module.exports = {latestVersion,Properties,PrecureStarTwinkle: PrecureStarTwinkleCore,Battle,Leveling,Quest,Shop,Status,StatusEffect,TradeBoard,Embeds,Party,Skills,getCardData,getCardInventoryUserData,getAllCardDataByPack,
-    getCardUserStatusData,getCardPack,checkUserHaveCard,getUserCardInventoryData,getUserCardStock,getUserTotalCard,
+    getCardUserStatusData,checkUserHaveCard,getUserCardInventoryData,getUserCardStock,getUserTotalCard,
     updateCatchAttempt,updateColorPoint,updateMofucoin,updateSeriesPoint,removeCardGuildSpawn,generateCardCureDuel,generateCardSpawn,addNewCardInventory,limitizeUserPoints, 
     embedCardLevelUp,embedCardCapture,embedCardDetail,embedBioPackList,embedCardPackList,getBonusCatchAttempt,getNextColorPoint,
     checkCardCompletion,leaderboardAddNew,getAverageLevel,updateMessageIdSpawn};

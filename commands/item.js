@@ -39,31 +39,44 @@ module.exports = {
                 var arrParameterized = [userId,0];
                 if(args[1]!=null){
                     var itemFilter = args[1].toLowerCase();
-                    if(itemFilter!="card"&&itemFilter!="food"&&
-                    itemFilter!="ingredient"&&itemFilter!="fragment"){
-                        objEmbed.description = ":x: Please enter the filter with: **card**/**food**/**ingredient**/**fragment**";
+                    var arrItemFilter = [
+                        ItemModule.Properties.categoryData.card.value_search,
+                        ItemModule.Properties.categoryData.food.value_search,
+                        ItemModule.Properties.categoryData.ingredient.value_search,
+                        ItemModule.Properties.categoryData.misc_fragment.value_search,
+                        ItemModule.Properties.categoryData.misc_gardening.value_search,
+                        ItemModule.Properties.categoryData.misc_plant.value_search
+                    ];
+                    if(!(arrItemFilter.includes(itemFilter))){
+                        objEmbed.description = ":x: I can't find that item category. List of available item category:\n>card\n>food\n>ingredient\n>fragment\n>gardening\n>plant";
                         objEmbed.thumbnail = {
                             url:ItemModule.Properties.imgResponse.imgError
                         };
                         return message.channel.send({embed:objEmbed});
                     }
 
+                    objEmbed.title = `Item Inventory - ${GlobalFunctions.capitalize(itemFilter)}:`;
                     switch(itemFilter){
-                        case "card":
+                        case ItemModule.Properties.categoryData.card.value_search:
+                        case ItemModule.Properties.categoryData.food.value_search:
                             queryFilterInventory+=` AND idat.${DBM_Item_Data.columns.category}=? `;
-                            arrParameterized.push("card");
+                            arrParameterized.push(ItemModule.Properties.categoryData[itemFilter].value);
                             break;
-                        case "food":
+                        case ItemModule.Properties.categoryData.misc_fragment.value_search:
                             queryFilterInventory+=` AND idat.${DBM_Item_Data.columns.category}=? `;
-                            arrParameterized.push("food");
+                            arrParameterized.push(ItemModule.Properties.categoryData.misc_fragment.value);
                             break;
-                        case "ingredient":
+                        case ItemModule.Properties.categoryData.misc_gardening.value_search:
+                            queryFilterInventory+=` AND idat.${DBM_Item_Data.columns.category}=? `;
+                            arrParameterized.push(ItemModule.Properties.categoryData.misc_gardening.value);
+                            break;
+                        case ItemModule.Properties.categoryData.misc_plant.value_search:
+                            queryFilterInventory+=` AND idat.${DBM_Item_Data.columns.category}=? `;
+                            arrParameterized.push(ItemModule.Properties.categoryData.misc_plant.value);
+                            break;
+                        case ItemModule.Properties.categoryData.ingredient.value_search:
                             queryFilterInventory+=` AND (idat.${DBM_Item_Data.columns.category}=? OR idat.${DBM_Item_Data.columns.category}=?) `;
-                            arrParameterized.push("ingredient","ingredient_rare");
-                            break;
-                        case "fragment":
-                            queryFilterInventory+=` AND idat.${DBM_Item_Data.columns.category}=? `;
-                            arrParameterized.push("misc_fragment");
+                            arrParameterized.push(ItemModule.Properties.categoryData.ingredient.value,ItemModule.Properties.categoryData.ingredient_rare.value);
                             break;
                     }
                 }
@@ -79,14 +92,13 @@ module.exports = {
                 order by inv.${DBM_Item_Inventory.columns.id_item}`;
                 arrParameterized.push(0);
                 
-                var arrPages = []; var itemList = "";
+                var arrPages = []; var itemList = ""; var descriptionList = "";
                 var inventoryUser = await DBConn.conn.promise().query(query, arrParameterized);
                 var ctr = 0; var maxCtr = 6; var pointerMaxData = inventoryUser[0].length;
                 
                 inventoryUser[0].forEach(entry => {
-                    
-                    itemList+=`**[${entry[DBM_Item_Data.columns.id]}] - ${entry[DBM_Item_Data.columns.name]}** x${entry[DBM_Item_Inventory.columns.stock]}: ${GlobalFunctions.cutText(entry[DBM_Item_Data.columns.description],20).replace(/\*\*/g, '')}\n`;
-
+                    itemList+=`**[${entry[DBM_Item_Data.columns.id]}] - ${entry[DBM_Item_Data.columns.name]}** x${entry[DBM_Item_Inventory.columns.stock]}\n`;
+                    descriptionList+=`${GlobalFunctions.cutText(entry[DBM_Item_Data.columns.description],20).replace(/\*\*/g, '')}\n`;
                     
                     //create pagination
                     if(pointerMaxData-1<=0||ctr>maxCtr){
@@ -95,11 +107,16 @@ module.exports = {
                                 name: `[ID] - Name - Stock:`,
                                 value: itemList,
                                 inline:true
-                            }
+                            },
+                            {
+                                name: `Description:`,
+                                value: descriptionList,
+                                inline:true
+                            },
                         ];
                         var msgEmbed = new Discord.MessageEmbed(objEmbed);
                         arrPages.push(msgEmbed);
-                        itemList = ""; ctr = 0;
+                        itemList = ""; descriptionList=""; ctr = 0;
                     } else {
                         ctr++;
                     }
@@ -107,7 +124,11 @@ module.exports = {
                 });
 
                 if(arrPages.length<=0){
-                    objEmbed.description = "You don't have any item yet...";
+                    objEmbed.description = "You don't have any item yet.";
+                    if(args[1]!=null){
+                        objEmbed.description = `You don't have any **${itemFilter}** yet.`;
+                    }
+                    
                     var msgEmbed = new Discord.MessageEmbed(objEmbed);
                     arrPages.push(msgEmbed);
                 }
@@ -195,7 +216,7 @@ module.exports = {
                         break;
                     default:
                         objEmbedFields[objEmbedFields.length] = {
-                            name:`Description`,
+                            name:`Description:`,
                             value:`${itemData[DBM_Item_Data.columns.description]}`,
                             inline:true
                         }
@@ -549,7 +570,7 @@ module.exports = {
                     objEmbed.thumbnail = {
                         url:CardModule.Properties.imgResponse.imgFailed
                     }
-                    objEmbed.description = `:x: Sorry, that item is not purchasable on the shop.`;
+                    objEmbed.description = `:x: Please enter the correct Item ID.`;
                     return message.channel.send({embed:objEmbed});
                 }
 

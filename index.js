@@ -4,6 +4,7 @@ const DBM_Card_Guild = require('./database/model/DBM_Card_Guild');
 const GlobalFunctions = require('./modules/GlobalFunctions');
 const CardModules = require('./modules/Card');
 const CardGuildModules = require('./modules/CardGuild');
+const WeatherModules = require('./modules/Weather');
 const { prefix, token } = require('./storage/config.json');
 
 const client = new Discord.Client();
@@ -32,6 +33,15 @@ client.once('ready', () => {
     console.log("All done!");
     return;
 */
+
+    //prepare the weather
+    //initialize the garden timer information:
+    WeatherModules.updateTimerRemaining();
+
+    // WeatherModules.timerWeatherInformation.timer = setInterval(function intervalCardSpawn(){
+    //     //randomize the weather 
+    //     WeatherModules.Properties.currentWeather = GlobalFunctions.randomProperty(WeatherModules.Properties.weatherData);
+    // }, parseInt(WeatherModules.Properties.interval)*60*1000);
 
     //same like guildAvailable
     client.guilds.cache.forEach(async guild => {

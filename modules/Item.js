@@ -5,7 +5,7 @@ const DBM_Item_Inventory = require('../database/model/DBM_Item_Inventory');
 const DBM_Item_Data = require('../database/model/DBM_Item_Data');
 
 class Properties{
-    static maxItem = 100;
+    static maxItem = 250;
     static embedColor = '#efcc2c';
 
     static imgResponse = {
@@ -17,24 +17,39 @@ class Properties{
     static categoryData = {
         card:{
             value:"card",
+            value_search:"card",
             name:"Card"
         },
         food:{
             value:"food",
+            value_search:"food",
             name:"Food"
         },
         ingredient:{
             value:"ingredient",
+            value_search:"ingredient",
             name:"Ingredient"
         },
         ingredient_rare:{
             value:"ingredient_rare",
+            value_search:"ingredient",
             name:"Rare Ingredient"
         },
         misc_fragment:{
             value:"misc_fragment",
+            value_search:"fragment",
             name:"Card Fragment",
         },
+        misc_gardening:{
+            value:"misc_gardening",
+            value_search:"gardening",
+            name:"Gardening",
+        },
+        misc_plant:{
+            value:"misc_plant",
+            value_search:"plant",
+            name:"Plant",
+        }
     }
 
     static saleData = {
@@ -104,7 +119,7 @@ async function addNewItemInventory(id_user,id_item,addStock = 1){
         }
 
         await DB.insert(DBM_Item_Inventory.TABLENAME,parameterSet);
-    } else {
+    } else if(addStock>=1){
         //update the stock
         var query = `UPDATE ${DBM_Item_Inventory.TABLENAME} 
         SET ${DBM_Item_Inventory.columns.stock}=${DBM_Item_Inventory.columns.stock}+${addStock} 
@@ -112,7 +127,6 @@ async function addNewItemInventory(id_user,id_item,addStock = 1){
         ${DBM_Item_Inventory.columns.id_item}=?`;
         await DBConn.conn.promise().query(query, [id_user,id_item]);
     }
-    
 }
 
 async function updateItemStock(id_user,id_item,value){

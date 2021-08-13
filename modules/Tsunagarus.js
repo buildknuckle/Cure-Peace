@@ -99,10 +99,116 @@ class Properties {
                     buttagislam:{
                         value:"buttagislam",
                         name:"💢Buttagislam!",
-                        description:"Deal 100% hp damage to all party members & ends the battle"
+                        description:"Instantly wipe out entire party members & ends the battle"
                     }
                 }
             },
+            barabaran:{
+                category:"boss",
+                term:"barabaran",
+                image:"https://media.discordapp.net/attachments/842662797941669888/844457642474340352/latest.png",
+                embedColor:"#FF9E28",
+                actions:{
+                    slowmo_punch_2:{
+                        value:"slowmo_punch_2",
+                        name:"🕑Slow Motion Punch 2",
+                        description:"Prepare for incoming attack in 2 turns.",
+                    },
+                    slowmo_punch_3:{
+                        value:"slowmo_punch_3",
+                        name:"🕒Slow Motion Punch 3",
+                        description:"Prepare for incoming attack in 3 turns.",
+                    },
+                    white_force:{
+                        value:"white_force",
+                        name:"⚪White Force - <xcolor>",
+                        description:"Renders white force field against: <xcolor>",
+                    },
+                    black_force:{
+                        value:"black_force",
+                        name:"⚫Black Force - <xcolor>",
+                        description:"Renders black force field against: <xcolor>",
+                    },
+                    barbarpunch:{
+                        value:"barbarpunch",
+                        name:"💥Slowmo afterhit: Barbar Punch!",
+                        description:"Inflict hp debuff after unsuccessful block.",
+                    },
+                    white_beam:{
+                        value:"white_beam",
+                        name:"⚪White Beam!",
+                        description:"Absorb attack against white force.",
+                    },
+                    black_beam:{
+                        value:"black_beam",
+                        name:"⚫Black Beam!",
+                        description:"Absorb attack against black force.",
+                    },
+                    slowmo_kick_2:{
+                        value:"slowmo_kick_2",
+                        name:"🕑Slow Motion Kick 2",
+                        description:"Prepare for incoming attack.",
+                    },
+                    slowmo_kick_3:{
+                        value:"slowmo_kick_3",
+                        name:"🕒Slow Motion Kick 3",
+                        description:"Prepare for incoming attack.",
+                    },
+                    slowmo_kick_4:{
+                        value:"slowmo_kick_4",
+                        name:"🕓Slow Motion Kick 4",
+                        description:"Prepare for incoming attack.",
+                    },
+                    sunlight_force:{
+                        value:"sunlight_force",
+                        name:"☀️Sunlight Force - <xcolor>",
+                        description:"Renders sunlight force field against: <xcolor>",
+                    },
+                    moonlight_force:{
+                        value:"moonlight_force",
+                        name:"🌙Moonlight Force - <xcolor>",
+                        description:"Renders moonlight force field against: <xcolor>",
+                    },
+                    barbarkick:{
+                        value:"barbarkick",
+                        name:"💥Slowmo afterhit: Barbar Kick!",
+                        description:"Inflict hp debuff after battle.",
+                    },
+                    forcepposite:{
+                        value:"forcepposite",
+                        name:"🔁Forcepposite",
+                        description:"Swaps the sun/moon force.",
+                    },
+                    sun_beam:{
+                        value:"sun_beam",
+                        name:"☀️Sun Beam!",
+                        description:"Absorb sunlight force attack.",
+                    },
+                    moon_beam:{
+                        value:"moon_beam",
+                        name:"🌙Moon Beam!",
+                        description:"Absorb moonlight force attack.",
+                    }
+                },
+                actions_last_lives:{
+                    
+                },
+                actions_mechanics:{
+                    slowmo_punch:"slowmo_punch",
+                    slowmo_kick:"slowmo_kick",
+                    white_force:"white_force",
+                    black_force:"black_force",
+                    sunlight_force:"sunlight_force",
+                    moonlight_force:"moonlight_force"
+                },
+                special_attack:{
+                    rampage:{
+                        value:"rampage",
+                        name:"💢Rampage!",
+                        description:"Instantly wipe out entire party members & ends the battle"
+                    }
+                }
+            }
         },
         "max heart":{
             term:"zakenna"
