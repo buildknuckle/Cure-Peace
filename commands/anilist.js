@@ -1,7 +1,9 @@
-const Discord = require('discord.js');
+const {MessageActionRow, MessageButton, MessageEmbed, Discord} = require('discord.js');
 const fetch = require('node-fetch');
-const paginationEmbed = require('discord.js-pagination');
+// const paginationEmbed = require('discord.js-pagination');
+const paginationEmbed = require('discordjs-button-pagination');
 const GlobalFunctions = require('../modules/GlobalFunctions');
+const DiscordStyles = require('../modules/DiscordStyles');
 
 function handleResponse(response) {
     return response.json().then(function (json) {
@@ -19,20 +21,94 @@ function handleError(error) {
 
 module.exports = {
 	name: 'anilist',
-    description: 'Contain all anilist category',
     args: true,
+    // type: 1,
+    description: "Anilist command",
+    options: [
+        {
+            name: "search",
+            description: "Anilist search command",
+            type: 2, // 2 is type SUB_COMMAND_GROUP
+            options: [
+                {
+                    name: "title",
+                    description: "Search for anime title",
+                    type: 1, // 1 is type SUB_COMMAND
+                    options: [
+                        {
+                            name: "anime-title",
+                            description: "Enter the anime title",
+                            type: 3,
+                            "required": true
+                        }
+                    ]
+                },
+                {
+                    name: "character",
+                    description: "Search for anime character",
+                    type: 1, // 1 is type SUB_COMMAND
+                    options: [
+                        {
+                            name: "anime-character",
+                            description: "Enter the anime character",
+                            type: 3,
+                            required: true
+                        },
+                        {
+                            name: "anime-title",
+                            description: "Enter the anime title",
+                            type: 3,
+                            required: false
+                        }
+                    ]
+                },
+                {
+                    name: "staff",
+                    description: "Search for anime/VA/studio staff",
+                    type: 1, // 1 is type SUB_COMMAND
+                    options: [
+                        {
+                            name: "staff-name",
+                            description: "Enter the staff name",
+                            type: 3,
+                            required: true
+                        },
+                        {
+                            name: "filter",
+                            description: "Search filter based on Staff(by default)/VA",
+                            type: 3,
+                            required: false,
+                            choices: [
+                                {
+                                    name: "staff",
+                                    value: "staff"
+                                },
+                                {
+                                    name: "voice-actor",
+                                    value: "voice-actor"
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        }
+    ],
 	async execute(message, args) {
-        // var guildId = message.guild.id;
-        // var userId = message.author.id;
-        
-        switch(args[0]) {
-            case "search": //give anilist link by title
-                var objEmbed = {
-                    color: '#efcc2c'
-                };
-                var _title = args.slice(1);
-                _title = _title.join(' ');
+	},
+    async execute(interaction) {
+        var objEmbed = {
+            color: DiscordStyles.Color.embedColor
+        };
 
+        var command = interaction.options;
+
+        // console.log(command);
+        switch(command._subcommand){
+            case "title":
+                //search for anime title
+                var _title = command._hoistedOptions[0].value;
+                
                 var query = `query ($title: String) {
                     Media (search: $title, sort: SEARCH_MATCH, type: ANIME, isAdult:false) {
                         id
@@ -67,21 +143,22 @@ module.exports = {
 
                 // Define the config we'll need for our Api request
                 var url = 'https://graphql.anilist.co',
-                    options = {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Accept': 'application/json',
-                        },
-                        body: JSON.stringify({
-                            query: query,
-                            variables: variables
-                        })
-                    };
+                options = {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        query: query,
+                        variables: variables
+                    })
+                };
 
+                //main anime info:
                 // Make the HTTP Api request
                 await fetch(url, options).then(handleResponse)
-                .then(function handleData(dt) {
+                .then(async function handleData(dt) {
                     if(dt.data!=null){
                         var replacedTitle = dt.data.Media.title.romaji;
                         // const regexSymbol = /[-$%^&*()_+|~=`{}\[\]:";'<>?,.\/]/;
@@ -89,13 +166,11 @@ module.exports = {
                         const regexWhitespace = /\s/g;
                         replacedTitle = replacedTitle.replace(regexSymbol,"");//replace all symbols
                         replacedTitle = replacedTitle.replace(regexWhitespace,"-");//replace white space with -
-                        // return message.channel.send({`Here is the top search result for: **${_title}** \n${dt.data.Media.siteUrl}/${replacedTitle}/`,});
 
                         objEmbed.description = GlobalFunctions.markupCleaner(dt.data.Media.description);
                         if(dt.data.Media.description!=null){
                             if(dt.data.Media.description.length>=1024){
                                 objEmbed.description = dt.data.Media.description.substring(0, 1024) + " ...";
-                                
                             }
                         }
 
@@ -125,17 +200,21 @@ module.exports = {
                         objEmbed.image = {
                             url: `https://img.anili.st/media/${dt.data.Media.id}`
                         }
-                        return message.channel.send({content:`Here is the top search result for: **${_title}**`,embed:objEmbed});
+                        await interaction.channel.send({
+                            content:`Top search results for: **${_title}**`,
+                            embeds:[new MessageEmbed(objEmbed)]
+                        });
                     }
                 })
-                .catch(function handleError(error) {
-                    console.error(error);
-                    return message.channel.send(`Sorry, I can't find that **title**. Try to put a more specific title/keyword.`);
+                .catch(async function handleError(error) {
+                    // console.error(error);
+                    return await interaction.reply(`:x: I can't find that **title**. Try to put more specific title/keyword.`);
                 });
 
+                //title list
                 //reset the embed objects:
                 objEmbed = {
-                    color: '#efcc2c'
+                    color: DiscordStyles.Color.embedColor
                 };
 
                 //send pagination too if exists
@@ -177,9 +256,8 @@ module.exports = {
                     })
                 };
 
-                
                 await fetch(url, options).then(handleResponse)
-                .then(function handleData(dt) {
+                .then(async function handleData(dt) {
                     if(dt.data.Page.media.length>=2){
                         var txtTitle = ""; var arrPages = [];
                         var ctr = 0; var maxCtr = 3; var pointerMaxData = dt.data.Page.media.length;
@@ -191,10 +269,11 @@ module.exports = {
                             txtTitle += `](${entry.siteUrl})\n`;
                             if(pointerMaxData-1<=0||ctr>maxCtr){
                                 objEmbed.fields = [{
+                                    name:"Top 25 Title Search Results:",
                                     value: txtTitle,
                                 }];
-                                var msgEmbed = new Discord.MessageEmbed(objEmbed);
-                                arrPages.push(msgEmbed);
+                                var msgEmbed = objEmbed;
+                                arrPages.push(new MessageEmbed(msgEmbed));
                                 txtTitle = ""; ctr = 0;
                             } else {
                                 ctr++;
@@ -202,33 +281,26 @@ module.exports = {
                             pointerMaxData--;
                         });
 
-                        for(var i=0;i<arrPages.length;i++){
-                            arrPages[i].fields[0]['name'] = `Top 25 Similar Titles:`;
-                        }
-
                         // var pages = arrPages;
-                        paginationEmbed(message,arrPages);
+                        // paginationEmbed.
+                        paginationEmbed(interaction,arrPages,DiscordStyles.Button.buttonList);
                     }
                 })
                 .catch(function handleError(error) {
-                    return message.channel.send(`Sorry, I can't find that **title**. Try to put a more specific title/keyword.`);
+                    // console.log(error);
+                    return interaction.reply(`:x: I can't find that **title**. Try to put a more specific title/keyword.`);
                 });
-            
-                break;
-            case "whois": //search for anime character
-            case "profile":
-                var objEmbed = {
-                    color: '#efcc2c'
-                };
-                var charName = args.slice(1);
-                charName = charName.join(' ');
-                var charId = -1;
-                //filter with title
-                if(charName.includes("from")){
-                    var arrSplit = charName.split("from");
-                    var titleKeyword = arrSplit[1].replace(/^\s+/,"");
-                    charName = arrSplit[0].toLowerCase();
 
+
+            break;
+            case "character":
+                //search for character
+                var charName = command._hoistedOptions[0].value; //param: char name
+                var _title = command._hoistedOptions.hasOwnProperty(1) ? command._hoistedOptions[1].value:false; //param(opt.): anime title
+                var charId = -1;
+                
+                //check if title parameter was given:
+                if(_title){    
                     var query = `query ($title: String) {
                         Media (search: $title, sort: SEARCH_MATCH, type: ANIME, isAdult:false) {
                             id
@@ -249,7 +321,7 @@ module.exports = {
     
                     // Define our query variables and values that will be used in the query request
                     var variables = {
-                        title:titleKeyword
+                        title:_title
                     };
     
                     // Define the config we'll need for our Api request
@@ -267,32 +339,32 @@ module.exports = {
                         };
     
                     // Make the HTTP Api request
-                    
+                    var arrTemp = null;
                     await fetch(url, options).then(handleResponse)
                     .then(function handleData(dt) {
                         if(dt.data!=null){
                             titleId = dt.data.Media.id;
                             var charNodes = dt.data.Media.characters.nodes;
-                            charNodes.forEach(function(entry){
-                                var altName = entry.name.alternative;
-                                if(charName.includes(entry.name.full.toLowerCase())){
-                                    charId = entry.id;
-                                } else if(charName.includes(entry.name.first.toLowerCase())){
-                                    charId = entry.id;
-                                } else if(altName[0]!=''){
-                                    var lowercasedName = altName.map(altName => altName.toLowerCase());
-                                    if(charName.includes(lowercasedName)){
-                                        charId = entry.id;
-                                    }
-                                }
+
+                            var filteredData = charNodes.filter(val => {
+                                // console.log(val)
+                                return Object.values(val.name).some(
+                                    first=>String(first).toLowerCase().includes(charName.toLowerCase())
+                                ) || Object.values(val.name).some(
+                                    last=>String(last).toLowerCase().includes(charName.toLowerCase())
+                                ) || Object.values(val.name).some(
+                                    full=>String(full).toLowerCase().includes(charName.toLowerCase())
+                                ) || Object.values(val.name).some(
+                                    alternative=>String(alternative).toLowerCase().includes(charName.toLowerCase())
+                                )
                             })
+                            charId = filteredData.hasOwnProperty(0) ? filteredData[0].id:-1;
                         }
                     })
                     .catch(function handleError(error) {
-                        return message.channel.send(`Sorry, I can't find that **title**. Try to put a more specific title/keyword.`);
+                        // console.log(error);
+                        return interaction.reply(`:x: I can't find that **character** on given **title**. Try to put a more specific keyword.`);
                     });
-                } else {
-                    title = "";
                 }
 
                 //default query:
@@ -369,8 +441,7 @@ module.exports = {
                                 }
                             }
                         }
-                        }
-                        `;
+                        }`;
                     variables.idChar = charId;
                 }
 
@@ -481,23 +552,19 @@ module.exports = {
                                 inline: false
                             }
                         }
-
-                        message.channel.send({embed:objEmbed});
+                        interaction.reply({embeds:[new MessageEmbed(objEmbed)]});
                     }
                 })
                 .catch(function handleError(error) {
                     // console.log(error);
-                    return message.channel.send(`Sorry, I can't find that **character**. Try to put a more specific keyword.`);
+                    return interaction.reply(`:x: I can't find that **character**. Try to put a more specific keyword.`);
                 });
 
                 break;
-            
             case "staff":
-                var objEmbed = {
-                    color: '#efcc2c'
-                };
-                var staffName = args.slice(1);
-                staffName = staffName.join(' ');
+                var staffName = command._hoistedOptions[0].value;
+
+                var filter = command._hoistedOptions.hasOwnProperty(1) ? command._hoistedOptions[1].value:"staff"; //param(opt.): staff/va
 
                 var query = `query ($keyword: String) {
                     Staff (search: $keyword) { 
@@ -555,17 +622,17 @@ module.exports = {
 
                 // Define the config we'll need for our Api request
                 var url = 'https://graphql.anilist.co',
-                    options = {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Accept': 'application/json',
-                        },
-                        body: JSON.stringify({
-                            query: query,
-                            variables: variables
-                        })
-                    };
+                options = {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        query: query,
+                        variables: variables
+                    })
+                };
 
                 // Make the HTTP Api request
                 fetch(url, options).then(handleResponse)
@@ -584,7 +651,7 @@ module.exports = {
 
                         var desc = dt.data.Staff.description;
                         if(desc==null){
-                            desc = "There are no description available for this staff.";
+                            desc = "No description available for this staff.";
                         }
 
                         if(desc!=null){
@@ -594,106 +661,105 @@ module.exports = {
                         }
 
                         objEmbed.description = GlobalFunctions.markupCleaner(desc);
-                        
 
                         //MAIN STAFF DATA
-                        var txtTitle = ""; var txtCharacter = ""; var arrPages = [];
+                        var txtCharacter = ""; var arrPages = [];
                         var ctr = 0; var maxCtr = 4; var pointerMaxData = staffMediaEdges.length;
                         objEmbed.fields = [];
-                        staffMediaEdges.forEach(function(entry){
-                            // var temp = "";
-                            var staffMediaNode = entry.node;
-                            // temp += `${staffMediaNode.title.romaji} : ${entry.staffRole}`;
-                            var txtTitle = `${staffMediaNode.title.romaji}`;
-                            if(staffMediaNode.seasonYear!=null){
-                                txtTitle+=` (${staffMediaNode.seasonYear})`;
-                            }
-
-                            objEmbed.fields[ctr] = {
-                                name:`${txtTitle}:`,
-                                value:entry.staffRole,
-                                inline:true
-                            }
-
-                            if(pointerMaxData-1<=0||ctr>maxCtr){
-                                var msgEmbed = new Discord.MessageEmbed(objEmbed);
-                                arrPages.push(msgEmbed);
-                                ctr = 0;
-                            } else {
-                                ctr++;
-                            }
-                            pointerMaxData--;
-                        })
-                        
-                        if(arrPages.length>=2){
-                            paginationEmbed(message,arrPages);
-                        } else {
-                            message.channel.send({embed:objEmbed});
-                        }
-                        
-                        // 
-
-                        objEmbed = {
-                            author: objEmbed.author,
-                            title: `Top 25 Known VA Works:`,
-                            color: '#efcc2c'
-                        };
-
-                        //VA DATA
-                        var charMedia = dt.data.Staff.characterMedia.edges;
-
-                        var txtTitle = ""; var txtCharacter = ""; var arrPages = [];
-                        var ctr = 0; var maxCtr = 4; var pointerMaxData = charMedia.length;
-                        objEmbed.fields = []; 
-                        // objEmbed.title = "Top 25 VA:";
-
-                        charMedia.forEach(function(entry){
-
-                            var charNodes = entry.characters;
-                            
-                            charNodes.forEach(function(entryCharacters){
-                                txtCharacter+=`[${entryCharacters.name.full}](${entryCharacters.siteUrl})\n`;
-                            })
-
-                            if(ctr==0){
-                                objEmbed.thumbnail = {
-                                    url: charNodes[0].image.large
-                                }
-                            }
-
-                            objEmbed.fields[ctr] = {
-                                name:`${entry.node.title.romaji} (${entry.node.seasonYear}):`,
-                                value:txtCharacter,
-                                inline:true
-                            }
-                            txtCharacter ="";
-
-                            if(pointerMaxData-1<=0||ctr>maxCtr){
+                        switch(filter){
+                            case "staff":
+                                staffMediaEdges.forEach(function(entry){
+                                    // var temp = "";
+                                    var staffMediaNode = entry.node;
+                                    // temp += `${staffMediaNode.title.romaji} : ${entry.staffRole}`;
+                                    var txtTitle = `${staffMediaNode.title.romaji}`;
+                                    if(staffMediaNode.seasonYear!=null){
+                                        txtTitle+=` (${staffMediaNode.seasonYear})`;
+                                    }
+        
+                                    objEmbed.fields[ctr] = {
+                                        name:`${txtTitle}:`,
+                                        value:entry.staffRole,
+                                        inline:true
+                                    }
+        
+                                    if(pointerMaxData-1<=0||ctr>maxCtr){
+                                        var msgEmbed = new MessageEmbed(objEmbed);
+                                        arrPages.push(msgEmbed);
+                                        ctr = 0;
+                                    } else {
+                                        ctr++;
+                                    }
+                                    pointerMaxData--;
+                                })
                                 
-                                var msgEmbed = new Discord.MessageEmbed(objEmbed);
-                                arrPages.push(msgEmbed);
-                                txtTitle = ""; txtCharacter = ""; ctr = 0;
-                            } else {
-                                ctr++;
-                            }
-                            pointerMaxData--;
-                        });
+                                if(arrPages.length>=2){
+                                    paginationEmbed(interaction,arrPages,DiscordStyles.Button.buttonList);
+                                } else {
+                                    interaction.reply({embeds:[new MessageEmbed(objEmbed)]});
+                                }
+                                break;
+                            case "voice-actor":
+                                //VA DATA
+                                objEmbed = {
+                                    author: objEmbed.author,
+                                    title: `Top 25 Known VA Works:`,
+                                    color: DiscordStyles.Color.embedColor
+                                };
 
-                        if(arrPages.length>=1){
-                            //VA
-                            paginationEmbed(message,arrPages);
+
+                                var charMedia = dt.data.Staff.characterMedia.edges;
+
+                                var txtTitle = ""; var txtCharacter = ""; var arrPages = [];
+                                var ctr = 0; var maxCtr = 4; var pointerMaxData = charMedia.length;
+                                objEmbed.fields = []; 
+                                // objEmbed.title = "Top 25 VA:";
+
+                                charMedia.forEach(function(entry){
+
+                                    var charNodes = entry.characters;
+                                    
+                                    charNodes.forEach(function(entryCharacters){
+                                        txtCharacter+=`[${entryCharacters.name.full}](${entryCharacters.siteUrl})\n`;
+                                    })
+
+                                    if(ctr==0){
+                                        objEmbed.thumbnail = {
+                                            url: charNodes[0].image.large
+                                        }
+                                    }
+
+                                    objEmbed.fields[ctr] = {
+                                        name:`${entry.node.title.romaji} (${entry.node.seasonYear}):`,
+                                        value:txtCharacter,
+                                        inline:true
+                                    }
+                                    txtCharacter ="";
+
+                                    if(pointerMaxData-1<=0||ctr>maxCtr){
+                                        var msgEmbed = new MessageEmbed(objEmbed);
+                                        arrPages.push(msgEmbed);
+                                        txtTitle = ""; txtCharacter = ""; ctr = 0;
+                                    } else {
+                                        ctr++;
+                                    }
+                                    pointerMaxData--;
+                                });
+
+                                if(arrPages.length>=1)
+                                    paginationEmbed(interaction,arrPages,DiscordStyles.Button.buttonList);
+                                else 
+                                    interaction.reply("I can't find this **Staff** based on **VA**");
+                                break;
                         }
-
                     }
                 })
                 .catch(function handleError(error) {
-                    return message.channel.send(`Sorry, I can't find that **staff** name. Try to put a more specific keyword.`);
+                    // console.log(error);
+                    return interaction.reply(`:x: I can't find this **staff**. Try to put more specific keyword.`);
                 });
 
                 break;
-            default:
-                break;
         }
-
 	},
 };

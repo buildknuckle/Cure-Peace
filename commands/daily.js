@@ -14,7 +14,97 @@ const DBM_Item_Data = require('../database/model/DBM_Item_Data');
 module.exports = {
 	name: 'daily',
     cooldown: 5,
-    description: 'Command to get daily color points. Can only be used every 24 hours.',
+    description: 'Card daily commands',
+    options:[
+        {
+            name: "check-in",
+            description: "Check in for daily rewards.",
+            type: 2, // 2 is type SUB_COMMAND_GROUP
+            options: [
+                {
+                    name: "color",
+                    description: "Check in for series & color point rewards",
+                    type: 1, // 1 is type SUB_COMMAND
+                    options: [
+                        {
+                            name: "selection",
+                            description: "Select the color check-in rewards",
+                            type: 3,
+                            required: true,
+                            choices: [
+                                {
+                                    name: "pink",
+                                    value: "pink"
+                                },
+                                {
+                                    name: "red",
+                                    value: "red"
+                                },
+                                {
+                                    name: "blue",
+                                    value: "blue"
+                                },
+                                {
+                                    name: "green",
+                                    value: "green"
+                                },
+                                {
+                                    name: "purple",
+                                    value: "purple"
+                                },
+                                {
+                                    name: "yellow",
+                                    value: "yellow"
+                                },
+                                {
+                                    name: "overall",
+                                    value: "overall"
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            name: "quest",
+            description: "Check in for daily quests",
+            type: 2,
+            options:[
+                {
+                    name: "receive-or-view",
+                    description: "Receive/view card quests",
+                    type: 1, // 1 is type SUB_COMMAND
+                    options: [
+                        {
+                            name: "confirm",
+                            description: "Confirmation",
+                            type: 3,
+                            choices:[
+                                {
+                                name:"confirm",
+                                value:"confirm",
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    name: "submit",
+                    description: "Submit the card quests",
+                    type: 1, // 1 is type SUB_COMMAND
+                    options: [
+                        {
+                            name: "card-id",
+                            description: "Enter the card id",
+                            type: 3,
+                            required:true
+                        }
+                    ]
+                },
+            ]
+        }
+    ],
 	async execute(message, args) {
 		const guildId = message.guild.id;
         var userId = message.author.id;
@@ -448,4 +538,7 @@ module.exports = {
 
         return message.channel.send({embed:objEmbed});
 	},
+    async execute(interaction){
+
+    }
 };
