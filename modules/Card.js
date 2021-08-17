@@ -1,4 +1,4 @@
-const Discord = require('discord.js');
+const {MessageActionRow, MessageButton, MessageEmbed, Discord} = require('discord.js');
 const DB = require('../database/DatabaseCore');
 const DBConn = require('../storage/dbconn');
 const GlobalFunctions = require('../modules/GlobalFunctions.js');
@@ -3016,6 +3016,101 @@ class Properties{
         }
     }
 
+
+    static interactionSeriesList = [
+        {
+            name: "max-heart",
+            value: "max heart"
+        },
+        {
+            name: "splash-star",
+            value: "splash star"
+        },
+        {
+            name: "yes-precure-5-gogo",
+            value: "yes! precure 5 gogo!"
+        },
+        {
+            name: "fresh",
+            value: "fresh"
+        },
+        {
+            name: "heartcatch",
+            value: "heartcatch"
+        },
+        {
+            name: "suite",
+            value: "suite"
+        },
+        {
+            name: "smile",
+            value: "smile"
+        },
+        {
+            name: "doki-doki",
+            value: "doki doki!"
+        },
+        {
+            name: "happiness",
+            value: "happiness"
+        },
+        {
+            name: "go-princess",
+            value: "go! princess"
+        },
+        {
+            name: "mahou-tsukai",
+            value: "mahou tsukai"
+        },
+        {
+            name: "kirakira",
+            value: "kirakira"
+        },
+        {
+            name: "hugtto",
+            value: "hugtto"
+        },
+        {
+            name: "star-twinkle",
+            value: "star twinkle"
+        },
+        {
+            name: "healin-good",
+            value: "healin' good"
+        }
+    ];
+
+    static interactionColorList = [
+        {
+            name: "pink",
+            value: "pink"
+        },
+        {
+            name: "blue",
+            value: "blue"
+        },
+        {
+            name: "yellow",
+            value: "yellow"
+        },
+        {
+            name: "purple",
+            value: "purple"
+        },
+        {
+            name: "red",
+            value: "red"
+        },
+        {
+            name: "green",
+            value: "green"
+        },
+        {
+            name: "white",
+            value: "white"
+        }
+    ];
+
 }
 
 class PrecureStarTwinkleCore{
@@ -3511,7 +3606,7 @@ class Embeds{
                 break;
         }
         
-        return objEmbed;
+        return new MessageEmbed(objEmbed);
     }
 
     static battleSpecialActivated(embedColor,userUsername,userAvatarUrl,packName,
@@ -4286,12 +4381,12 @@ function embedCardLevelUp(embedColor,id_card,packName,
             },
             {
                 name:"❤️HP:",
-                value:Status.getHp(level,max_hp),
+                value:`${String(Status.getHp(level,max_hp))}`,
                 inline:true
             },
             {
                 name:"⚔️Atk:",
-                value:`${Status.getAtk(level,max_atk)}`,
+                value:`${String(Status.getAtk(level,max_atk))}`,
                 inline:true
             },
             {
@@ -4313,7 +4408,8 @@ function embedCardLevelUp(embedColor,id_card,packName,
             break;
     }
 
-    return objEmbed;
+
+    return new MessageEmbed(objEmbed);
 }
 
 function embedCardCapture(embedColor,id_card,packName,
@@ -4461,7 +4557,7 @@ function embedCardDetail(embedColor,id_card,packName,
         objEmbed.footer.text+= ` | Stock:${stock}`;
     }
 
-    return objEmbed;
+    return new MessageEmbed(objEmbed);
 }
 
 const embedBioPackList = {
@@ -4811,7 +4907,7 @@ async function leaderboardAddNew(id_guild,id_user,imgAvatarUrl,_color,category,c
             case "color":
                 //color completed
                 objEmbed.title = `Card Color Set ${GlobalFunctions.capitalize(completion)} Completed!`;
-                objEmbed.description = `<@${id_user}> has become new master of cure **${completion}**!`;
+                objEmbed.description = `<@${id_user}> has become the new master of cure **${completion}**!`;
                 break;
             case "pack":
                 //pack completed
@@ -4821,7 +4917,7 @@ async function leaderboardAddNew(id_guild,id_user,imgAvatarUrl,_color,category,c
             case "color_gold":
                 //color completed
                 objEmbed.title = `Gold ${GlobalFunctions.capitalize(completion)} Set Completed!`;
-                objEmbed.description = `<@${id_user}> has become new master of gold cure **${completion}**!`;
+                objEmbed.description = `<@${id_user}> has become the new master of gold cure **${completion}**!`;
                 break;
             case "pack_gold":
                 //pack completed
@@ -4845,7 +4941,7 @@ async function leaderboardAddNew(id_guild,id_user,imgAvatarUrl,_color,category,c
             text:`Completed at: ${completionDate}`
         };
 
-        return objEmbed;
+        return new MessageEmbed(objEmbed);
 
     } else {
         return null;

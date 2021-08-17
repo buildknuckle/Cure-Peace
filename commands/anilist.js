@@ -283,7 +283,7 @@ module.exports = {
 
                         // var pages = arrPages;
                         // paginationEmbed.
-                        paginationEmbed(interaction,arrPages,DiscordStyles.Button.buttonList);
+                        paginationEmbed(interaction,arrPages,DiscordStyles.Button.pagingButtonList);
                     }
                 })
                 .catch(function handleError(error) {
@@ -694,7 +694,7 @@ module.exports = {
                                 })
                                 
                                 if(arrPages.length>=2){
-                                    paginationEmbed(interaction,arrPages,DiscordStyles.Button.buttonList);
+                                    paginationEmbed(interaction,arrPages,DiscordStyles.Button.pagingButtonList);
                                 } else {
                                     interaction.reply({embeds:[new MessageEmbed(objEmbed)]});
                                 }
@@ -747,7 +747,7 @@ module.exports = {
                                 });
 
                                 if(arrPages.length>=1)
-                                    paginationEmbed(interaction,arrPages,DiscordStyles.Button.buttonList);
+                                    paginationEmbed(interaction,arrPages,DiscordStyles.Button.pagingButtonList);
                                 else 
                                     interaction.reply("I can't find this **Staff** based on **VA**");
                                 break;

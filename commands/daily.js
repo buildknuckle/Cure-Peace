@@ -1,4 +1,4 @@
-const Discord = require('discord.js');
+const {MessageActionRow, MessageButton, MessageEmbed, Discord} = require('discord.js');
 const DB = require('../database/DatabaseCore');
 const DBConn = require('../storage/dbconn');
 const CardModule = require('../modules/Card');
@@ -37,24 +37,28 @@ module.exports = {
                                     value: "pink"
                                 },
                                 {
-                                    name: "red",
-                                    value: "red"
-                                },
-                                {
                                     name: "blue",
                                     value: "blue"
                                 },
                                 {
-                                    name: "green",
-                                    value: "green"
+                                    name: "yellow",
+                                    value: "yellow"
                                 },
                                 {
                                     name: "purple",
                                     value: "purple"
                                 },
                                 {
-                                    name: "yellow",
-                                    value: "yellow"
+                                    name: "red",
+                                    value: "red"
+                                },
+                                {
+                                    name: "green",
+                                    value: "green"
+                                },
+                                {
+                                    name: "white",
+                                    value: "white"
                                 },
                                 {
                                     name: "overall",
@@ -115,7 +119,6 @@ module.exports = {
         var userCardData = await CardModule.getCardUserStatusData(userId);
         var optionalColor = null;
         
-
         var optionalArgs = args[0];
         
         if(optionalArgs!=null){
@@ -539,6 +542,175 @@ module.exports = {
         return message.channel.send({embed:objEmbed});
 	},
     async execute(interaction){
+        var command = interaction.options._subcommand;
+        const guildId = interaction.guild.id;
+        var userId = interaction.user.id;
+        var userUsername = interaction.user.username;
+        var userAvatarUrl = interaction.user.avatarURL();
+
+        // console.log(interaction.options._hoistedOptions[0]);
+
+        switch(command){
+            //check in for daily rewards + get bonus cards for newbie:
+            case "check-in":
+                // var color = interaction.options._hoistedOptions[0].value;
+                var optionalColor = interaction.options._hoistedOptions[0].value != "overall"  ? 
+                interaction.options._hoistedOptions[0].value : "overall";
+
+                var objEmbed = {
+                    color: CardModule.Properties.embedColor,
+                    thumbnail : {
+                        url: CardModule.Properties.imgResponse.imgOk
+                    },
+                };
+        
+                var query = "";
+                var basePoint = GlobalFunctions.randomNumber(60,70);
+                var seriesPoint = Math.round(basePoint/2);
+                var arrParameterized = [];
+                var assignedSeriesCurrency = CardModule.Properties.seriesCardCore[userCardData[DBM_Card_User_Data.columns.series_set]].currency;
+                var bonusReward = "";
+                //check for newbie claim reward
+                if(!userCardData[DBM_Card_User_Data.columns.newbie_reward_claim]){
+                    //check if user already own 10 cards
+                    var query = `SELECT COUNT(*) as total
+                    FROM ${DBM_Card_Inventory.TABLENAME} 
+                    WHERE ${DBM_Card_Inventory.columns.id_user}=?`;
+                    var totalCard = await DBConn.conn.promise().query(query,[userId]);
+                    totalCard = totalCard[0][0]["total"];
+                    if(totalCard<10){
+                        var query = `(SELECT * 
+                            FROM ${DBM_Card_Data.TABLENAME} 
+                            WHERE ${DBM_Card_Data.columns.rarity}=6 
+                            ORDER BY rand() 
+                            LIMIT 1)
+                            UNION ALL 
+                            (SELECT * 
+                            FROM ${DBM_Card_Data.TABLENAME} 
+                            WHERE ${DBM_Card_Data.columns.rarity}=5 
+                            ORDER BY rand() 
+                            LIMIT 1)
+                            UNION ALL 
+                            (SELECT * 
+                            FROM ${DBM_Card_Data.TABLENAME} 
+                            WHERE ${DBM_Card_Data.columns.rarity}=4 
+                            ORDER BY rand() 
+                            LIMIT 1)
+                            UNION ALL 
+                            (SELECT * 
+                            FROM ${DBM_Card_Data.TABLENAME} 
+                            WHERE ${DBM_Card_Data.columns.rarity}=3 
+                            ORDER BY rand() 
+                            LIMIT 2)
+                            UNION ALL 
+                            (SELECT * 
+                            FROM ${DBM_Card_Data.TABLENAME} 
+                            WHERE ${DBM_Card_Data.columns.rarity}=2 
+                            ORDER BY rand() 
+                            LIMIT 2)
+                            UNION ALL 
+                            (SELECT * 
+                            FROM ${DBM_Card_Data.TABLENAME} 
+                            WHERE ${DBM_Card_Data.columns.rarity}=1 
+                            ORDER BY rand() 
+                        LIMIT 3)`;
+                        var cardRewardData = await DBConn.conn.promise().query(query);
+                        cardRewardData = cardRewardData[0];
+                        for(var i=0;i<cardRewardData.length;i++){
+                            bonusReward+=`>${cardRewardData[i][DBM_Card_Data.columns.id_card]} - ${cardRewardData[i][DBM_Card_Data.columns.name]}\n`;
+                            var userCardStock = await CardModule.getUserCardStock(userId,cardRewardData[i][DBM_Card_Data.columns.id_card]);
+                            if(userCardStock<=-1){
+                                await CardModule.addNewCardInventory(userId,cardRewardData[i][DBM_Card_Data.columns.id_card]);
+                            } else {
+                                await CardModule.addNewCardInventory(userId,cardRewardData[i][DBM_Card_Data.columns.id_card],true);
+                            }
+                        }
+                    }
+                    
+                    //update the newbie claim reward
+                    var query = `UPDATE ${DBM_Card_User_Data.TABLENAME} 
+                    SET ${DBM_Card_User_Data.columns.newbie_reward_claim}=? 
+                    WHERE ${DBM_Card_User_Data.columns.id_user}=?`;
+                    await DBConn.conn.promise().query(query,[1,userId]);
+                }
+
+                switch(optionalColor){
+                    case "pink":
+                    case "red":
+                    case "blue":
+                    case "green":
+                    case "yellow":
+                    case "purple":
+                        //double the color point
+                        basePoint*=2;
+                        seriesPoint = Math.round(basePoint/2);
+                        query = `UPDATE ${DBM_Card_User_Data.TABLENAME} 
+                        SET ${DBM_Card_User_Data.columns.daily_last} = ?, color_point_${optionalColor} = color_point_${optionalColor} + ?,
+                        ${DBM_Card_User_Data.columns.mofucoin} = ${DBM_Card_User_Data.columns.mofucoin}+?, 
+                        ${userCardData[DBM_Card_User_Data.columns.series_set]} = ${userCardData[DBM_Card_User_Data.columns.series_set]} + ?
+                        WHERE ${DBM_Card_User_Data.columns.id_user}=?`;
+                        arrParameterized = [dateToken,basePoint,basePoint,seriesPoint,userId];
+                        objEmbed.description = `<@${userId}> has successfully checked in for the daily!`;
+                        objEmbed.fields = [
+                            {
+                                name:"Daily Rewards:",
+                                value:`>${basePoint} ${optionalColor} color points (Double points!)\n>${basePoint} mofucoin\n>${seriesPoint} ${assignedSeriesCurrency}`
+                            }
+                        ]
+                        break;
+                    case "overall":
+                        query = `UPDATE ${DBM_Card_User_Data.TABLENAME} 
+                        SET ${DBM_Card_User_Data.columns.daily_last} = ?, 
+                        ${DBM_Card_User_Data.columns.color_point_pink} = ${DBM_Card_User_Data.columns.color_point_pink}+${basePoint}, 
+                        ${DBM_Card_User_Data.columns.color_point_blue} = ${DBM_Card_User_Data.columns.color_point_blue}+${basePoint}, 
+                        ${DBM_Card_User_Data.columns.color_point_green} = ${DBM_Card_User_Data.columns.color_point_green}+${basePoint}, 
+                        ${DBM_Card_User_Data.columns.color_point_purple} = ${DBM_Card_User_Data.columns.color_point_purple}+${basePoint}, 
+                        ${DBM_Card_User_Data.columns.color_point_red} = ${DBM_Card_User_Data.columns.color_point_red}+${basePoint}, 
+                        ${DBM_Card_User_Data.columns.color_point_white} = ${DBM_Card_User_Data.columns.color_point_white}+${basePoint}, 
+                        ${DBM_Card_User_Data.columns.color_point_yellow} = ${DBM_Card_User_Data.columns.color_point_yellow}+${basePoint},
+                        ${DBM_Card_User_Data.columns.mofucoin} = ${DBM_Card_User_Data.columns.mofucoin}+${basePoint}, 
+                        ${DBM_Card_User_Data.columns.sp001} = ${DBM_Card_User_Data.columns.sp001}+${seriesPoint},
+                        ${DBM_Card_User_Data.columns.sp002} = ${DBM_Card_User_Data.columns.sp002}+${seriesPoint},
+                        ${DBM_Card_User_Data.columns.sp003} = ${DBM_Card_User_Data.columns.sp003}+${seriesPoint},
+                        ${DBM_Card_User_Data.columns.sp004} = ${DBM_Card_User_Data.columns.sp004}+${seriesPoint},
+                        ${DBM_Card_User_Data.columns.sp005} = ${DBM_Card_User_Data.columns.sp005}+${seriesPoint},
+                        ${DBM_Card_User_Data.columns.sp006} = ${DBM_Card_User_Data.columns.sp006}+${seriesPoint},
+                        ${DBM_Card_User_Data.columns.sp007} = ${DBM_Card_User_Data.columns.sp001}+${seriesPoint},
+                        ${DBM_Card_User_Data.columns.sp008} = ${DBM_Card_User_Data.columns.sp008}+${seriesPoint},
+                        ${DBM_Card_User_Data.columns.sp009} = ${DBM_Card_User_Data.columns.sp009}+${seriesPoint},
+                        ${DBM_Card_User_Data.columns.sp010} = ${DBM_Card_User_Data.columns.sp010}+${seriesPoint},
+                        ${DBM_Card_User_Data.columns.sp011} = ${DBM_Card_User_Data.columns.sp011}+${seriesPoint},
+                        ${DBM_Card_User_Data.columns.sp012} = ${DBM_Card_User_Data.columns.sp012}+${seriesPoint},
+                        ${DBM_Card_User_Data.columns.sp013} = ${DBM_Card_User_Data.columns.sp013}+${seriesPoint},
+                        ${DBM_Card_User_Data.columns.sp014} = ${DBM_Card_User_Data.columns.sp014}+${seriesPoint},
+                        ${DBM_Card_User_Data.columns.sp015} = ${DBM_Card_User_Data.columns.sp015}+${seriesPoint} 
+                        WHERE ${DBM_Card_User_Data.columns.id_user}=?`;
+                        arrParameterized = [dateToken,userId];
+                        objEmbed.description = `<@${userId}> has successfully checked in for the daily!`;
+                        objEmbed.fields = [
+                            {
+                                name:"Daily Rewards:",
+                                value:`>${basePoint} overall color points\n>${basePoint} mofucoin\n>${seriesPoint} overall series points.`
+                            }
+                        ]
+                        break;
+                }
+
+                if(bonusReward!=""){
+                    objEmbed.fields[1] = {
+                        name:"Received 10 Bonus Newbie Card!",
+                        value:bonusReward
+                    }
+                }
+        
+                //update the token & color point data
+                await DBConn.conn.promise().query(query, arrParameterized);
+                //limit all points
+                await CardModule.limitizeUserPoints();
+                return message.channel.send({embeds:[new MessageEmbed(objEmbed)]});
+
+                break;
+        }
 
     }
 };

@@ -15,7 +15,7 @@ class Button{
     .setLabel('⏩')
     .setStyle('SUCCESS');
 
-    static buttonList = [this.prev,this.next];
+    static pagingButtonList = [this.prev,this.next];
 }
 
 module.exports = {Color,Button}

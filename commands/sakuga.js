@@ -112,7 +112,7 @@ module.exports = {
             // return;
 
             if(arrPages.length>0){
-                paginationEmbed(interaction,arrPages,DiscordStyles.Button.buttonList);
+                paginationEmbed(interaction,arrPages,DiscordStyles.Button.pagingButtonList);
             } else {
                 return interaction.reply(`:x: I can't find that **keyword**. Try to put more specific keyword.`);
             }
