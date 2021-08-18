@@ -1,5 +1,7 @@
-const Discord = require('discord.js');
-const paginationEmbed = require('discord.js-pagination');
+const {MessageActionRow, MessageButton, MessageEmbed, Discord, Message} = require('discord.js');
+const DiscordStyles = require('../modules/DiscordStyles');
+// const paginationEmbed = require('discord.js-pagination');
+const paginationEmbed = require('discordjs-button-pagination');
 const DB = require('../database/DatabaseCore');
 const DBConn = require('../storage/dbconn');
 const ItemModule = require('../modules/Item');
@@ -17,8 +19,40 @@ const DBM_Card_Data = require('../database/model/DBM_Card_Data');
 module.exports = {
     name: 'garden',
     cooldown: 5,
-    description: 'Contains all garden command categories',
+    description: 'Contains all gardening command categories',
     args: true,
+    options:[
+        {
+            name: "shop",
+            description: "Garden shop command",
+            type: 2,
+            options: [
+                {
+                    name: "view",
+                    description: "Open garden shop menu",
+                    type: 1
+                },
+                {
+                    name: "buy",
+                    description: "Purchase the item",
+                    type: 1,
+                    options:[
+                        {
+                            name:"item-id",
+                            description:"Enter the item ID that you want to purchase. Example: ca001",
+                            type:3,
+                            required:true
+                        },
+                        {
+                            name:"qty",
+                            description:"Enter the amount of item that you want to purchase.",
+                            type:4
+                        },
+                    ]
+                }
+            ]
+        },
+    ],
 	async execute(message, args) {
         const guildId = message.guild.id;
         var userId = message.author.id;
@@ -1364,6 +1398,148 @@ module.exports = {
                     },
                 }});
 
+                break;
+        }
+    },
+    async execute(interaction){
+        var command = interaction.options._group;
+        var commandSubcommand = interaction.options._subcommand;
+        const guildId = interaction.guild.id;
+        var userId = interaction.user.id;
+        var userUsername = interaction.user.username;
+        var userAvatarUrl = interaction.user.avatarURL();
+
+        switch(command){
+            case "shop":
+                var userData = await CardModule.getCardUserStatusData(userId);
+                var allowedItem = `'${ItemModule.Properties.categoryData.misc_gardening.value}'`;
+
+                var objEmbed = {
+                    color:CardModule.Properties.embedColor,
+                    author: {
+                        name: "Hanasaki Garden Shop",
+                        icon_url: "https://cdn.discordapp.com/attachments/793415946738860072/853166970030260235/Prettycure.png"
+                    }
+                }
+
+                switch(commandSubcommand){
+                    case "view":
+                        var query = `SELECT * 
+                        FROM ${DBM_Item_Data.TABLENAME} 
+                        WHERE ${DBM_Item_Data.columns.category} IN (${allowedItem}) AND 
+                        ${DBM_Item_Data.columns.is_purchasable_shop}=?`;
+                        var result = await DBConn.conn.promise().query(query,[1]);
+                        result = result[0];
+                        
+                        var arrPages = [];
+                        var itemList1 = ""; var itemList2 = ""; var itemList3 = ""; var ctr = 0;
+                        var maxCtr = 8; var pointerMaxData = result.length;
+                        objEmbed.description = `Welcome to Hanasaki Garden Shop!\nYour Mofucoin: **${userData[DBM_Card_User_Data.columns.mofucoin]}**`;
+
+                        result.forEach(item => {
+                            itemList1+=`**${item[DBM_Item_Data.columns.id]}** - ${item[DBM_Item_Data.columns.name]}\n`;
+                            itemList2+=`${item[DBM_Item_Data.columns.price_mofucoin]}\n`;                        
+                            itemList3+=`${GlobalFunctions.cutText(item[DBM_Item_Data.columns.description],30)}\n`;
+                            
+                            //create pagination
+                            if(pointerMaxData-1<=0||ctr>maxCtr){
+                                objEmbed.fields = [
+                                    {
+                                        name:`ID - Name:`,
+                                        value: itemList1,
+                                        inline:true,
+                                    },
+                                    {
+                                        name:`MC:`,
+                                        value: itemList2,
+                                        inline:true,
+                                    },
+                                    {
+                                        name:`Description:`,
+                                        value: itemList3,
+                                        inline:true,
+                                    }
+                                ];
+                                var msgEmbed = new MessageEmbed(objEmbed);
+                                arrPages.push(msgEmbed);
+                                itemList1 = ""; itemList2 = ""; itemList3 = ""; ctr = 0;
+                            } else {
+                                ctr++;
+                            }
+                            pointerMaxData--;
+                        });
+
+                        return paginationEmbed(interaction,arrPages,DiscordStyles.Button.pagingButtonList);
+                        break;
+                    case "buy":
+                        objEmbed = {
+                            color:GardenModule.Properties.embedColor,
+                            author : {
+                                name: userUsername,
+                                icon_url: userAvatarUrl
+                            }
+                        }
+
+                        var itemId = interaction.options._hoistedOptions[0].value;
+                        var qty = interaction.options._hoistedOptions.hasOwnProperty(1) ? 
+                        interaction.options._hoistedOptions[1].value:1;
+                        if(qty<=0||qty>=99){
+                            objEmbed.description = `:x: Please enter valid quantity`;
+                            return interaction.reply({embeds:[new MessageEmbed(objEmbed)]});
+                        } 
+                        
+                        //get current user stock
+                        var currentStock = await ItemModule.getUserItemStock(userId,itemId);
+                        var query = `SELECT * 
+                        FROM ${DBM_Item_Data.TABLENAME} 
+                        WHERE ${DBM_Item_Data.columns.category} IN (${allowedItem}) AND 
+                        ${DBM_Item_Data.columns.id}=? AND ${DBM_Item_Data.columns.is_purchasable_shop}=? 
+                        LIMIT 1`;
+                        var itemData = await DBConn.conn.promise().query(query,[itemId,1]);
+                        itemData = itemData[0][0];
+                        
+                        if(itemData==null){
+                            objEmbed.thumbnail = {
+                                url:CardModule.Properties.imgResponse.imgFailed
+                            }
+                            objEmbed.description = `:x: Please enter the correct Item ID.`;
+                            return interaction.reply({embeds:[new MessageEmbed(objEmbed)]});
+                        }
+
+                        var mofucoin = userData[DBM_Card_User_Data.columns.mofucoin];
+
+                        var itemDataPrice = itemData[DBM_Item_Data.columns.price_mofucoin]*qty;
+                        var itemDataId = itemData[DBM_Item_Data.columns.id];
+                        var itemDataName = itemData[DBM_Item_Data.columns.name];
+
+                        if(currentStock+qty>=ItemModule.Properties.maxItem){
+                            objEmbed.thumbnail = {
+                                url:CardModule.Properties.imgResponse.imgFailed
+                            }
+                            objEmbed.description = `:x: You cannot purchase **${itemDataId} - ${itemDataName}** anymore.`;
+                            return interaction.reply({embeds:[new MessageEmbed(objEmbed)]});
+                        } else if(mofucoin<itemDataPrice){
+                            objEmbed.thumbnail = {
+                                url:CardModule.Properties.imgResponse.imgFailed
+                            }
+                            objEmbed.description = `:x: You need **${itemDataPrice} mofucoin** to purchase ${qty}x: **${itemDataId} - ${itemDataName}**`;
+                            return interaction.reply({embeds:[new MessageEmbed(objEmbed)]});
+                        }
+
+                        objEmbed.thumbnail = {
+                            url:"https://cdn.discordapp.com/attachments/793415946738860072/853166970030260235/Prettycure.png"
+                        }
+                        objEmbed.description = `You have purchased ${qty}x: **${itemDataId} - ${itemDataName}** with **${itemDataPrice} mofucoin**.`;
+                        
+                        //update the mofucoin
+                        await CardModule.updateMofucoin(userId,-itemDataPrice);
+
+                        // //add the item inventory
+                        await ItemModule.addNewItemInventory(userId,itemId,qty);
+                        return message.channel.send({embed:objEmbed});
+
+                        break;
+                }
                 break;
         }
     }

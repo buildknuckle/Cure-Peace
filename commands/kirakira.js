@@ -1,5 +1,7 @@
-const Discord = require('discord.js');
-const paginationEmbed = require('discord.js-pagination');
+const {MessageActionRow, MessageButton, MessageEmbed, Discord, Message} = require('discord.js');
+const DiscordStyles = require('../modules/DiscordStyles');
+// const paginationEmbed = require('discord.js-pagination');
+const paginationEmbed = require('discordjs-button-pagination');
 const DB = require('../database/DatabaseCore');
 const DBConn = require('../storage/dbconn');
 const KirakiraModule = require('../modules/Kirakira');
@@ -15,13 +17,81 @@ module.exports = {
     cooldown: 5,
     description: 'Contains all kirakira categories',
     args: true,
+    options:[
+        {
+            name: "recipe",
+            description: "Open kirakira recipe menu",
+            type: 2,
+            options: [
+                {
+                    name: "open-recipe-menu",
+                    description: "Open kirakira recipe menu",
+                    type: 1
+                }
+            ]
+        },
+        {
+            name: "detail",
+            description: "View detail of the kirakira recipe",
+            type: 2,
+            options: [
+                {
+                    name: "recipe",
+                    description: "View detail of the kirakira recipe",
+                    type: 1,
+                    options:[
+                        {
+                            name:"id-recipe",
+                            description:"Enter the recipe Id. Example: fo001",
+                            type:3,
+                            required:true
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            name: "craft",
+            description: "Craft kirakira recipe",
+            type: 2,
+            options:[
+                {
+                    name: "recipe",
+                    description: "Craft kirakira recipe",
+                    type: 1,
+                    options:[
+                        {
+                            name:"id-recipe",
+                            description:"Enter the recipe Id. Example: fo001",
+                            type:3,
+                            required:true
+                        },
+                        {
+                            name:"qty",
+                            description:"Enter the amount of food that you want to create",
+                            type:4
+                        }
+                    ]
+                }
+            ]
+        }
+    ],
 	async execute(message, args) {
-        const guildId = message.guild.id;
-        var userId = message.author.id;
-        var userUsername = message.author.username;
-        var userAvatarUrl = message.author.avatarURL();
+    },
+    async execute(interaction){
+        var command = interaction.options._group;
+        var commandSubcommand = interaction.options._subcommand;
+        const guildId = interaction.guild.id;
+        var userId = interaction.user.id;
+        var userUsername = interaction.user.username;
+        var userAvatarUrl = interaction.user.avatarURL();
 
-        switch(args[0]) {
+        //default embed:
+        var objEmbed = {
+            color: KirakiraModule.Properties.embedColor
+        };
+
+        switch(command){
             case "recipe":
                 var textVal = ""; var textVal2 = "";
 
@@ -45,7 +115,7 @@ module.exports = {
                         url:KirakiraModule.Properties.imgResponse.imgPekorin
                     },
                     title: "Kirakira Recipe",
-                    description:`Here are the available recipe that you can create with **p!kirakira create <recipe id>** command:`,
+                    description:`Here are the available recipe that you can create with **kirakira craft** command:`,
                     fields:[
                         {
                             name:"Recipe List:",
@@ -58,21 +128,10 @@ module.exports = {
                     ]
                 };
 
-                return message.channel.send({embed:objEmbed});
+                return interaction.reply({embeds:[new MessageEmbed(objEmbed)]});
                 break;
             case "detail":
-                var recipeId = args[1];
-                objEmbed = {
-                    color:KirakiraModule.Properties.embedColor
-                }
-                if(recipeId==null){
-                    objEmbed.thumbnail = {
-                        url:KirakiraModule.Properties.imgResponse.imgError
-                    }
-                    objEmbed.description = ":x: Please enter the recipe ID.";
-                    return message.channel.send({embed:objEmbed});
-                }
-
+                var recipeId = interaction.options._hoistedOptions[0].value;
                 var recipeData = await KirakiraModule.getRecipeData(recipeId);
 
                 //check if recipe ID exists/not
@@ -80,8 +139,8 @@ module.exports = {
                     objEmbed.thumbnail = {
                         url:KirakiraModule.Properties.imgResponse.imgError
                     }
-                    objEmbed.description = ":x: Sorry, I can't find that recipe ID.";
-                    return message.channel.send({embed:objEmbed});
+                    objEmbed.description = ":x: I can't find that recipe ID.";
+                    return interaction.reply({embeds:[new MessageEmbed(objEmbed)]});
                 }
 
                 //list all the ingredient & information
@@ -131,36 +190,19 @@ module.exports = {
                     text:`Recipe ID: ${recipeId}`
                 }
 
-                return message.channel.send({embed:objEmbed});
+                return interaction.reply({embeds:[new MessageEmbed(objEmbed)]});
                 break;
-            case "create":
             case "craft":
-            case "synthesize":
-                var recipeId = args[1];
-                objEmbed = {
-                    color:KirakiraModule.Properties.embedColor
-                }
+                var recipeId = interaction.options._hoistedOptions[0].value;
+                var qty = interaction.options._hoistedOptions.hasOwnProperty(1) ? 
+                interaction.options._hoistedOptions[1].value : 1; //check for qty parameter
 
-                //check for qty parameter
-                var qty = args[2];
-                if(qty==null){
-                    qty = 1;
-                } else if(isNaN(qty)){
+                if(qty<1){
                     objEmbed.thumbnail = {
                         url:KirakiraModule.Properties.imgResponse.imgError
                     }
-                    objEmbed.description = ":x: Please enter the valid qty number from 1-99.";
-                    return message.channel.send({embed:objEmbed});
-                } else {
-                    qty = parseInt(args[2]);
-                }
-
-                if(recipeId==null){
-                    objEmbed.thumbnail = {
-                        url:KirakiraModule.Properties.imgResponse.imgError
-                    }
-                    objEmbed.description = ":x: Please enter the recipe ID.";
-                    return message.channel.send({embed:objEmbed});
+                    objEmbed.description = ":x: Please enter the valid qty parameter.";
+                    return interaction.reply({embeds:[new MessageEmbed(objEmbed)]});
                 }
 
                 var recipeData = await KirakiraModule.getRecipeData(recipeId);
@@ -170,8 +212,8 @@ module.exports = {
                     objEmbed.thumbnail = {
                         url:KirakiraModule.Properties.imgResponse.imgError
                     }
-                    objEmbed.description = ":x: Sorry, I can't find that recipe ID.";
-                    return message.channel.send({embed:objEmbed});
+                    objEmbed.description = ":x: I can't find that recipe ID.";
+                    return interaction.reply({embeds:[new MessageEmbed(objEmbed)]});
                 }
 
                 //list all the ingredient & information
@@ -213,7 +255,7 @@ module.exports = {
                     }
 
                     objEmbed.title = foodData[DBM_Item_Data.columns.name];
-                    objEmbed.description = ":x: Looks like you don't have the required ingredients to create this recipe.";
+                    objEmbed.description = ":x: You don't have the required ingredients to create this recipe.";
 
                     objEmbed.fields = [
                         {
@@ -226,7 +268,7 @@ module.exports = {
                         url:KirakiraModule.Properties.imgResponse.imgFailed
                     }
 
-                    return message.channel.send({embed:objEmbed});
+                    return interaction.reply({embeds:[new MessageEmbed(objEmbed)]});
                 }
 
                 //get current food user stock
@@ -235,8 +277,8 @@ module.exports = {
                     objEmbed.thumbnail = {
                         url:ItemModule.Properties.imgResponse.imgFailed
                     }
-                    objEmbed.description = `:x: Sorry, you cannot create **${foodData[DBM_Item_Data.columns.id]} - ${foodData[DBM_Item_Data.columns.name]}** anymore.`;
-                    return message.channel.send({embed:objEmbed});
+                    objEmbed.description = `:x: You cannot create **${foodData[DBM_Item_Data.columns.id]} - ${foodData[DBM_Item_Data.columns.name]}** anymore.`;
+                    return interaction.reply({embeds:[new MessageEmbed(objEmbed)]});
                 }
 
                 //remove the ingredient
@@ -254,9 +296,11 @@ module.exports = {
                 if(foodData[DBM_Item_Data.columns.img_url]!=null){
                     imgUrl = foodData[DBM_Item_Data.columns.img_url];
                 }
-                await message.channel.send({embed:KirakiraModule.Embeds.synthesizeComplete(userUsername,userAvatarUrl,foodData[DBM_Item_Data.columns.id],foodData[DBM_Item_Data.columns.name],foodData[DBM_Item_Data.columns.description],qty,imgUrl)});
-
+                await interaction.reply({embeds:[
+                    new MessageEmbed(KirakiraModule.Embeds.synthesizeComplete(userUsername,userAvatarUrl,foodData[DBM_Item_Data.columns.id],foodData[DBM_Item_Data.columns.name],foodData[DBM_Item_Data.columns.description],qty,imgUrl))
+                ]});
                 break;
         }
+
     }
 }

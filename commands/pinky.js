@@ -1,5 +1,7 @@
-const Discord = require('discord.js');
-const paginationEmbed = require('discord.js-pagination');
+const {MessageActionRow, MessageButton, MessageEmbed, Discord, Message} = require('discord.js');
+const DiscordStyles = require('../modules/DiscordStyles');
+// const paginationEmbed = require('discord.js-pagination');
+const paginationEmbed = require('discordjs-button-pagination');
 const DB = require('../database/DatabaseCore');
 const DBConn = require('../storage/dbconn');
 const CardModule = require('../modules/Card');
@@ -20,6 +22,40 @@ module.exports = {
     cooldown: 5,
     description: 'Contains all pinky categories',
     args: true,
+    options:[
+        {
+            name: "collet",
+            description: "Open dream collet inventory",
+            type: 2,
+            options: [
+                {
+                    name: "open-collet-inventory",
+                    description: "Open dream collet inventory",
+                    type: 1
+                }
+            ]
+        },
+        {
+            name: "detail",
+            description: "View pinky information detail",
+            type: 2,
+            options: [
+                {
+                    name: "open-detail",
+                    description: "View pinky information detail",
+                    type: 1,
+                    options: [
+                        {
+                            name: "pinky-id",
+                            description: "Enter the pinky id. Example: pi001",
+                            type: 3,
+                            required:true
+                        },
+                    ]
+                }
+            ]
+        },
+    ],
 	async execute(message, args) {
         const guildId = message.guild.id;
         var userId = message.author.id;
@@ -28,77 +64,6 @@ module.exports = {
 
         // var members = message.guild.members;
         switch(args[0]) {
-            case "collet":
-            case "inventory":
-                var pack = args[1];
-                if(pack!=null){
-                    pack = pack.toLowerCase();
-                }
-
-                var objEmbed ={
-                    color: CardModule.Properties.embedColor
-                };
-
-                //end user parameter validator
-                objEmbed.title = `Dream Collet`;
-
-                var pinkyList = "";
-                var query = `select pd.${DBM_Pinky_Data.columns.id_pinky},pd.${DBM_Pinky_Data.columns.name},pd.${DBM_Pinky_Data.columns.img_url},inv.${DBM_Pinky_Inventory.columns.id_user}  
-                from ${DBM_Pinky_Data.TABLENAME} pd 
-                left join ${DBM_Pinky_Inventory.TABLENAME} inv 
-                on pd.${DBM_Pinky_Data.columns.id_pinky}=inv.${DBM_Pinky_Inventory.columns.id_pinky} and 
-                inv.${DBM_Pinky_Inventory.columns.id_guild}=?`;
-                var arrParameterized = [guildId];
-                
-                var arrPages = [];
-                var pinkyDataInventory = await DBConn.conn.promise().query(query, arrParameterized);
-                // var cardDataInventory = await CardModule.getAllCardDataByPack(pack);
-                var progressTotal = 0; var ctr = 0; var maxCtr = 3; var pointerMaxData = pinkyDataInventory[0].length;
-                pinkyDataInventory[0].forEach(function(entry){
-                    var icon = "❌ ";
-                    //checkmark if card is owned
-                    if(entry[DBM_Pinky_Inventory.columns.id_user]!=null){
-                        icon = "✅ "; progressTotal++;
-                    }
-                    pinkyList+=`[${icon}${entry[DBM_Pinky_Data.columns.id_pinky]} - ${entry[DBM_Card_Data.columns.name]}](${entry[DBM_Card_Data.columns.img_url]})`;
-                    if(entry[DBM_Pinky_Inventory.columns.id_user]!=null){
-                        pinkyList+=` : <@${entry[DBM_Pinky_Inventory.columns.id_user]}>`;
-                    }
-                    pinkyList+="\n";
-
-                    objEmbed.thumbnail = {
-                        url:`https://static.wikia.nocookie.net/prettycure/images/1/1c/Dreamcol1.png`
-                    };
-                    
-                    //create pagination
-                    if(pointerMaxData-1<=0||ctr>maxCtr){
-                        objEmbed.fields = [{
-                            // name: `Progress: ${progressTotal}/${CardModule.Properties.dataCardCore[pack].total}`,
-                            value: pinkyList,
-                        }];
-                        var msgEmbed = new Discord.MessageEmbed(objEmbed);
-                        arrPages.push(msgEmbed);
-                        pinkyList = ""; ctr = 0;
-                    } else {
-                        ctr++;
-                    }
-                    pointerMaxData--;
-                });
-
-                for(var i=0;i<arrPages.length;i++){
-                    arrPages[i].fields[0]['name'] = `Progress: ${progressTotal}/${PinkyModule.Properties.maxPinky}`;
-                }
-
-                if(progressTotal<PinkyModule.Properties.maxPinky){
-                    arrPages[0].description = `Help Coco & Natts to capture all the missing pinky!`;
-                } else {
-                    arrPages[0].description = `All the pinky has been captured! Thank you for restoring the Palmier Kingdom.`;
-                }
-                
-                pages = arrPages;
-
-                paginationEmbed(message,pages);
-                break;
             case "capture":
             case "catch":
                 //get card spawn information
@@ -254,19 +219,84 @@ module.exports = {
                 }
 
                 break;
+
+        }
+    },
+    async execute(interaction){
+        var command = interaction.options._group;
+        var commandSubcommand = interaction.options._subcommand;
+        const guildId = interaction.guild.id;
+        var userId = interaction.user.id;
+        var userUsername = interaction.user.username;
+        var userAvatarUrl = interaction.user.avatarURL();
+
+        //default embed:
+        var objEmbed = {
+            color: CardModule.Properties.embedColor
+        };
+
+        switch(command){
+            case "collet":
+                objEmbed.title = `Dream Collet`;
+
+                var pinkyList = "";
+                var query = `select pd.${DBM_Pinky_Data.columns.id_pinky},pd.${DBM_Pinky_Data.columns.name},pd.${DBM_Pinky_Data.columns.img_url},inv.${DBM_Pinky_Inventory.columns.id_user}  
+                from ${DBM_Pinky_Data.TABLENAME} pd 
+                left join ${DBM_Pinky_Inventory.TABLENAME} inv 
+                on pd.${DBM_Pinky_Data.columns.id_pinky}=inv.${DBM_Pinky_Inventory.columns.id_pinky} and 
+                inv.${DBM_Pinky_Inventory.columns.id_guild}=?`;
+                var arrParameterized = [guildId];
+                
+                var arrPages = [];
+                var pinkyDataInventory = await DBConn.conn.promise().query(query, arrParameterized);
+                // var cardDataInventory = await CardModule.getAllCardDataByPack(pack);
+                var progressTotal = 0; var ctr = 0; var maxCtr = 3; var pointerMaxData = pinkyDataInventory[0].length;
+                pinkyDataInventory[0].forEach(function(entry){
+                    var icon = "❌ ";
+                    //checkmark if card is owned
+                    if(entry[DBM_Pinky_Inventory.columns.id_user]!=null){
+                        icon = "✅ "; progressTotal++;
+                    }
+                    pinkyList+=`[${icon}${entry[DBM_Pinky_Data.columns.id_pinky]} - ${entry[DBM_Card_Data.columns.name]}](${entry[DBM_Card_Data.columns.img_url]})`;
+                    if(entry[DBM_Pinky_Inventory.columns.id_user]!=null){
+                        pinkyList+=` : <@${entry[DBM_Pinky_Inventory.columns.id_user]}>`;
+                    }
+                    pinkyList+="\n";
+
+                    objEmbed.thumbnail = {
+                        url:`https://static.wikia.nocookie.net/prettycure/images/1/1c/Dreamcol1.png`
+                    };
+                    
+                    //create pagination
+                    if(pointerMaxData-1<=0||ctr>maxCtr){
+                        objEmbed.fields = [{
+                            name: `Progress: ${progressTotal}/${PinkyModule.Properties.maxPinky}`,
+                            value: pinkyList,
+                        }];
+                        var msgEmbed = new MessageEmbed(objEmbed);
+                        arrPages.push(msgEmbed);
+                        pinkyList = ""; ctr = 0;
+                    } else {
+                        ctr++;
+                    }
+                    pointerMaxData--;
+                });
+
+                for(var i=0;i<arrPages.length;i++){
+                    arrPages[i].fields[0]['name'] = `Progress: ${progressTotal}/${PinkyModule.Properties.maxPinky}`;
+                }
+
+                if(progressTotal<PinkyModule.Properties.maxPinky){
+                    arrPages[0].description = `Help Coco & Natts to capture all missing pinky!`;
+                } else {
+                    arrPages[0].description = `All the pinky has been captured! Thank you for restoring the Palmier Kingdom.`;
+                }
+
+                paginationEmbed(interaction,arrPages,DiscordStyles.Button.pagingButtonList);
+                break;
             case "detail":
                 //get/view the card detail
-                var pinkyId = args[1];
-                objEmbed = {
-                    color:CardModule.Properties.embedColor
-                }
-                if(pinkyId==null){
-                    objEmbed.thumbnail = {
-                        url:CardModule.Properties.imgResponse.imgError
-                    }
-                    objEmbed.description = ":x: Please enter the pinky ID.";
-                    return message.channel.send({embed:objEmbed});
-                }
+                var pinkyId = interaction.options._hoistedOptions[0].value.toLowerCase();
 
                 //check if card ID exists/not
                 var pinkyData = await PinkyModule.getPinkyData(pinkyId);
@@ -275,9 +305,8 @@ module.exports = {
                     objEmbed.thumbnail = {
                         url:CardModule.Properties.imgResponse.imgError
                     }
-                    objEmbed.description = ":x: Sorry, I can't find that pinky ID.";
-
-                    return message.channel.send({embed:objEmbed});
+                    objEmbed.description = ":x: I can't find that pinky ID.";
+                    return interaction.reply({embeds:[new MessageEmbed(objEmbed)]});
                 }
 
                 //check if pinky captured/not
@@ -286,8 +315,8 @@ module.exports = {
                     objEmbed.thumbnail = {
                         url:CardModule.Properties.imgResponse.imgError
                     }
-                    objEmbed.description = `:x: Sorry, Pinky: **${pinkyData[DBM_Pinky_Data.columns.name]}** need to be captured first.`;
-                    return message.channel.send({embed:objEmbed});
+                    objEmbed.description = `:x: Pinky: **${pinkyData[DBM_Pinky_Data.columns.name]}** need to be captured first.`;
+                    return interaction.reply({embeds:[new MessageEmbed(objEmbed)]});
                 }
 
                 objEmbed.title = `${pinkyData[DBM_Pinky_Data.columns.name]}`;
@@ -315,8 +344,9 @@ module.exports = {
                     text:`Captured at: ${GlobalFunctions.convertDateTime(pinkyInventoryData[DBM_Pinky_Inventory.columns.created_at])}`
                 }
 
-                return message.channel.send({embed:objEmbed});
+                return interaction.reply({embeds:[new MessageEmbed(objEmbed)]});
                 break;
         }
+
     }
 }

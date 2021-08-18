@@ -4897,10 +4897,7 @@ async function leaderboardAddNew(id_guild,id_user,imgAvatarUrl,_color,category,c
         completionDate = dd + '/' + mm + '/' + yyyy;
 
         var objEmbed = {
-            color: _color,
-            thumbnail : {
-                url:imgAvatarUrl
-            }
+            color: _color
         }
         
         switch(category){
@@ -4908,31 +4905,52 @@ async function leaderboardAddNew(id_guild,id_user,imgAvatarUrl,_color,category,c
                 //color completed
                 objEmbed.title = `Card Color Set ${GlobalFunctions.capitalize(completion)} Completed!`;
                 objEmbed.description = `<@${id_user}> has become the new master of cure **${completion}**!`;
+                objEmbed.thumbnail = {
+                    url:imgAvatarUrl
+                }
                 break;
             case "pack":
                 //pack completed
                 objEmbed.title = `${GlobalFunctions.capitalize(completion)} Card Pack Completed!`;
                 objEmbed.description = `<@${id_user}> has completed the card pack: **${completion}**!`;
-                break;
-            case "color_gold":
-                //color completed
-                objEmbed.title = `Gold ${GlobalFunctions.capitalize(completion)} Set Completed!`;
-                objEmbed.description = `<@${id_user}> has become the new master of gold cure **${completion}**!`;
-                break;
-            case "pack_gold":
-                //pack completed
-                objEmbed.title = `Gold ${GlobalFunctions.capitalize(completion)} Pack Completed!`;
-                objEmbed.description = `<@${id_user}> has completed the gold card pack: **${completion}**!`;
+                objEmbed.thumbnail = {
+                    url:Properties.dataCardCore[completion].icon
+                }
                 break;
             case "series":
                 //pack completed
                 objEmbed.title = `Card Series ${GlobalFunctions.capitalize(completion)} Completed!`;
                 objEmbed.description = `<@${id_user}> has completed the card series: **${completion}**!`;
+                objEmbed.thumbnail = {
+                    url:Properties.seriesCardCore[completion].icon
+                }
+                break;
+            case "color_gold":
+                //color completed
+                objEmbed.color = Properties.cardCategory.gold.color;
+                objEmbed.title = `Gold ${GlobalFunctions.capitalize(completion)} Set Completed!`;
+                objEmbed.description = `<@${id_user}> has become the new master of gold cure **${completion}**!✨`;
+                objEmbed.thumbnail = {
+                    url:imgAvatarUrl
+                }
+                break;
+            case "pack_gold":
+                //pack completed
+                objEmbed.color = Properties.cardCategory.gold.color;
+                objEmbed.title = `Gold ${GlobalFunctions.capitalize(completion)} Pack Completed!`;
+                objEmbed.description = `<@${id_user}> has completed the gold card pack: **${completion}**!✨`;
+                objEmbed.thumbnail = {
+                    url:Properties.dataCardCore[completion].icon
+                }
                 break;
             case "series_gold":
                 //pack completed
+                objEmbed.color = Properties.cardCategory.gold.color;
                 objEmbed.title = `Gold Series ${GlobalFunctions.capitalize(completion)} Completed!`;
-                objEmbed.description = `<@${id_user}> has completed the gold series: **${completion}**!`;
+                objEmbed.description = `<@${id_user}> has completed the gold series: **${completion}**!✨`;
+                objEmbed.thumbnail = {
+                    url:Properties.seriesCardCore[completion].icon
+                }
                 break;
         }
 

@@ -4602,213 +4602,6 @@ module.exports = {
 
                 break;
             
-            case "verify":
-                //verify for card completion
-                var option = args[1];
-                if(option!=null){
-                    option = option.toLowerCase();
-                }
-                
-                var objEmbed ={
-                    color: CardModule.Properties.embedColor
-                };
-
-                if(option==null||(option!="color"&&option!="pack"&&option!="series")){
-                    var objEmbed = {
-                        color: CardModule.Properties.embedColor,
-                        description : `-Use **p!card verify color <pink/purple/green/yellow/white/blue/red>** to verify the color completion.\n-Use **p!card verify pack <pack>** to verify the pack completion.\n-Use **p!card verify series <series>** to verify the series completion.`
-                    };
-                    return message.channel.send({embed:objEmbed});
-                }
-
-                var embedCompletion = null;
-                var verifyValue = args[2];
-                switch(option){
-                    case "color":
-                        var txtCompletionVerifyValue = "";
-                        var txtCompletionVerifyValueGold = "";
-
-                        for(var i=0;i<CardModule.Properties.arrColor.length;i++){
-                            var verifyValue = CardModule.Properties.arrColor[i];
-                            var checkCardCompletionColor = await CardModule.checkCardCompletion(guildId,userId,"color",verifyValue);
-                            if(checkCardCompletionColor){
-                                txtCompletionVerifyValue+=`${verifyValue},`;
-                                await CardModule.leaderboardAddNew(guildId,userId,userAvatarUrl,CardModule.Properties.dataColorCore[verifyValue].color,"color",verifyValue);
-                            }
-
-                            var checkCardCompletionColorGold = await CardModule.checkCardCompletion(guildId,userId,"color_gold",verifyValue);
-                            if(checkCardCompletionColorGold){
-                                txtCompletionVerifyValueGold+=`${verifyValue},`;
-                                await CardModule.leaderboardAddNew(guildId,userId,userAvatarUrl,CardModule.Properties.dataColorCore[verifyValue].color,"color_gold",verifyValue);
-                            }
-                        }
-
-                        txtCompletionVerifyValue = txtCompletionVerifyValue.replace(/,\s*$/, "");
-                        txtCompletionVerifyValueGold = txtCompletionVerifyValueGold.replace(/,\s*$/, "");
-
-                        if(txtCompletionVerifyValue!=""){
-                            await message.channel.send({embed:{
-                                author:{
-                                    name: userUsername,
-                                    icon_url: userAvatarUrl
-                                },
-                                thumbnail:{
-                                    url:userAvatarUrl
-                                },
-                                color: CardModule.Properties.embedColor,
-                                title: `Card Color Verification!`,
-                                description: `<@${userId}> has become the new master of cure: **${txtCompletionVerifyValue}**`,
-                                footer:{
-                                    iconURL:userAvatarUrl,
-                                    text:`Completed at: ${GlobalFunctions.getCurrentDateFooterPrint()}`
-                                }
-                            }});
-                        }
-
-                        if(txtCompletionVerifyValueGold!=""){
-                            await message.channel.send({embed:{
-                                author:{
-                                    name: userUsername,
-                                    icon_url: userAvatarUrl
-                                },
-                                thumbnail:{
-                                    url:userAvatarUrl
-                                },
-                                color: CardModule.Properties.embedColor,
-                                title: `Gold Card Color Verification!`,
-                                description: `<@${userId}> has become the new master of gold cure: **${txtCompletionVerifyValueGold}**`,
-                                footer:{
-                                    iconURL:userAvatarUrl,
-                                    text:`Completed at: ${GlobalFunctions.getCurrentDateFooterPrint()}`
-                                }
-                            }});
-                        }
-
-                        await message.channel.send({embed:{
-                            color: CardModule.Properties.embedColor,
-                            title: `Color Card Verification`,
-                            author: {
-                                name: userUsername,
-                                icon_url: userAvatarUrl
-                            },
-                            description: `:white_check_mark: All of your card color has been verified for the completion.`
-                        }});
-
-                        return;
-                        break;
-                    case "pack":
-                        //validation if pack exists/not
-                        var parameterWhere = new Map();
-                        parameterWhere.set(DBM_Card_Data.columns.pack,verifyValue);
-                        var checkData = await DB.select(DBM_Card_Data.TABLENAME,parameterWhere);
-                        checkData = checkData[0][0];
-                        if(checkData==null){
-                            var objEmbed = CardModule.embedCardPackList;
-                            return message.channel.send({content:`:x: I can't find that pack. Use **p!card verify pack <pack>** to verify the pack completion.`,embed:objEmbed});
-                        }
-
-                        var query = `SELECT ${DBM_Card_Data.columns.pack},${DBM_Card_Data.columns.color}  
-                        FROM ${DBM_Card_Data.TABLENAME} 
-                        WHERE ${DBM_Card_Data.columns.pack}=? 
-                        LIMIT 1`;
-                        var cardData = await DBConn.conn.promise().query(query, [verifyValue]);
-                        cardData = cardData[0][0];
-
-                        var checkCardCompletionPack = await CardModule.checkCardCompletion(guildId,userId,"pack",verifyValue);
-                        var checkCardCompletionPackGold = await CardModule.checkCardCompletion(guildId,userId,"pack_gold",verifyValue);
-
-                        if(checkCardCompletionPack){
-                            //card pack completion
-                            embedCompletion = await CardModule.leaderboardAddNew(guildId,userId,userAvatarUrl,CardModule.Properties.dataColorCore[cardData[DBM_Card_Data.columns.color]].color,"pack",cardData[DBM_Card_Data.columns.pack]);
-                            if(embedCompletion!=null){
-                                message.channel.send({embed:embedCompletion});
-                            }
-                        }
-
-                        if(checkCardCompletionPackGold){
-                            //card pack completion
-                            embedCompletion = await CardModule.leaderboardAddNew(guildId,userId,userAvatarUrl,CardModule.Properties.dataColorCore[cardData[DBM_Card_Data.columns.color]].color,"pack_gold",cardData[DBM_Card_Data.columns.pack]);
-                            if(embedCompletion!=null){
-                                message.channel.send({embed:embedCompletion});
-                            }
-                        }
-
-                        objEmbed.title = `Card Pack Verification: ${GlobalFunctions.capitalize(verifyValue)}`;
-                        objEmbed.author = {
-                            name: userUsername,
-                            icon_url: userAvatarUrl
-                        }
-                        objEmbed.description = `Your card pack: **${GlobalFunctions.capitalize(verifyValue)}** has been verified for the completion.`;
-                        await message.channel.send({embed:objEmbed});
-                        break;
-                    case "series":
-                        //normal completion
-                        var txtCompletionVerifyValue = "";
-                        var txtCompletionVerifyValueGold = "";
-                        for(var i=0;i<CardModule.Properties.arrSeriesName.length;i++){
-                            var verifyValue = CardModule.Properties.arrSeriesName[i];
-                            var checkCardCompletionPack = await CardModule.checkCardCompletion(guildId,userId,"series",verifyValue);
-                            
-                            if(checkCardCompletionPack){
-                                txtCompletionVerifyValue+=`>${verifyValue}\n`;
-                                embedCompletion = await CardModule.leaderboardAddNew(guildId,userId,userAvatarUrl,CardModule.Properties.embedColor,"series",verifyValue);
-                            }
-                        }
-
-                        if(txtCompletionVerifyValue!=""){
-                            await message.channel.send({embed:{
-                                author:{
-                                    name: userUsername,
-                                    icon_url: userAvatarUrl
-                                },
-                                color: CardModule.Properties.embedColor,
-                                title: `Card Series Verification!`,
-                                description: `<@${userId}> has completed the card series:\n${txtCompletionVerifyValue}`,
-                            }});
-                        }
-
-                        //gold completion
-                        for(var i=0;i<CardModule.Properties.arrSeriesName.length;i++){
-                            var verifyValue = CardModule.Properties.arrSeriesName[i];
-                            var checkCardCompletionPack = await CardModule.checkCardCompletion(guildId,userId,"series_gold",verifyValue);
-                            
-                            if(checkCardCompletionPack){
-                                txtCompletionVerifyValueGold+=`>${verifyValue}\n`;
-
-                                embedCompletion = await CardModule.leaderboardAddNew(guildId,userId,userAvatarUrl,CardModule.Properties.embedColor,"series_gold",verifyValue);
-                            }
-                        }
-
-                        if(txtCompletionVerifyValueGold!=""){
-                            message.channel.send({embed:{
-                                author:{
-                                    name: userUsername,
-                                    icon_url: userAvatarUrl
-                                },
-                                thumbnail:{
-                                    url:userAvatarUrl
-                                },
-                                color: CardModule.Properties.embedColor,
-                                title: `Gold Card Series Verification!`,
-                                description: `<@${userId}> has completed the gold card series:\n${txtCompletionVerifyValueGold}`,
-                            }});
-                        }
-
-                        await message.channel.send({embed:{
-                            color: CardModule.Properties.embedColor,
-                            author: {
-                                name: userUsername,
-                                icon_url: userAvatarUrl
-                            },
-                            title: `Card Series Verification`,
-                            description: `:white_check_mark: Your card series has been verified for the completion.`
-                        }});
-
-                        // await CardModule.generateCardCureDuel(userId);
-
-                        break;
-                }
-            
             case "wish":
                 
                 break;
@@ -7335,8 +7128,171 @@ module.exports = {
                 }
                 break;
             case "verify":
+                switch(commandSubcommand){
+                    case "color-completion":
+                        var txtCompletionVerifyValue = "";
+                        var txtCompletionVerifyValueGold = "";
+
+                        for(var i=0;i<CardModule.Properties.arrColor.length;i++){
+                            var verifyValue = CardModule.Properties.arrColor[i];
+                            var checkCardCompletionColor = await CardModule.checkCardCompletion(guildId,userId,"color",verifyValue);
+                            if(checkCardCompletionColor){
+                                txtCompletionVerifyValue+=`${verifyValue},`;
+                                await CardModule.leaderboardAddNew(guildId,userId,userAvatarUrl,CardModule.Properties.dataColorCore[verifyValue].color,"color",verifyValue);
+                            }
+
+                            var checkCardCompletionColorGold = await CardModule.checkCardCompletion(guildId,userId,"color_gold",verifyValue);
+                            if(checkCardCompletionColorGold){
+                                txtCompletionVerifyValueGold+=`${verifyValue},`;
+                                await CardModule.leaderboardAddNew(guildId,userId,userAvatarUrl,CardModule.Properties.dataColorCore[verifyValue].color,"color_gold",verifyValue);
+                            }
+                        }
+
+                        txtCompletionVerifyValue = txtCompletionVerifyValue.replace(/,\s*$/, "");
+                        txtCompletionVerifyValueGold = txtCompletionVerifyValueGold.replace(/,\s*$/, "");
+
+                        if(txtCompletionVerifyValue!=""){
+                            objEmbed.thumbnail = {
+                                url:userAvatarUrl
+                            };
+                            objEmbed.title = `Card Color Verification`;
+                            objEmbed.description = `<@${userId}> has become the new master of cure: **${txtCompletionVerifyValue}**`;
+                            objEmbed.footer = {
+                                iconURL:userAvatarUrl,
+                                text:`Completed at: ${GlobalFunctions.getCurrentDateFooterPrint()}`
+                            };
+                            await interaction.channel.send({embeds:[new MessageEmbed(objEmbed)]});
+                        }
+
+                        if(txtCompletionVerifyValueGold!=""){
+                            objEmbed.thumbnail = {
+                                url:userAvatarUrl
+                            };
+                            objEmbed.color = CardModule.Properties.cardCategory.gold.color;
+                            objEmbed.title = `Gold Card Color Verification`;
+                            objEmbed.description = `✨<@${userId}> has become the new master of gold cure: **${txtCompletionVerifyValueGold}**`;
+                            objEmbed.footer = {
+                                iconURL:userAvatarUrl,
+                                text:`Completed at: ${GlobalFunctions.getCurrentDateFooterPrint()}`
+                            };
+                            await interaction.channel.send({embeds:[new MessageEmbed(objEmbed)]});
+                        }
+
+                        return await interaction.reply({embeds:[
+                            new MessageEmbed({
+                                color: CardModule.Properties.embedColor,
+                                title: `Color Card Verification`,
+                                author: {
+                                    name: userUsername,
+                                    icon_url: userAvatarUrl
+                                },
+                                description: `:white_check_mark: Your color card has been verified for the completion.`
+                            })
+                        ]});
+                        break;
+                    case "pack-completion":
+                        //validation if pack exists/not
+                        var verifyValue = interaction.options._hoistedOptions[0].value;
+                        var parameterWhere = new Map();
+                        parameterWhere.set(DBM_Card_Data.columns.pack,verifyValue);
+                        var checkData = await DB.select(DBM_Card_Data.TABLENAME,parameterWhere);
+                        checkData = checkData[0][0];
+                        if(checkData==null){
+                            return interaction.reply({
+                                content:":x: I can't find that card pack. Here are the list of all available card pack:",
+                                embeds:[new MessageEmbed(CardModule.embedCardPackList)]});
+                        }
+
+                        var query = `SELECT ${DBM_Card_Data.columns.pack},${DBM_Card_Data.columns.color}  
+                        FROM ${DBM_Card_Data.TABLENAME} 
+                        WHERE ${DBM_Card_Data.columns.pack}=? 
+                        LIMIT 1`;
+                        var cardData = await DBConn.conn.promise().query(query, [verifyValue]);
+                        cardData = cardData[0][0];
+
+                        var checkCardCompletionPack = await CardModule.checkCardCompletion(guildId,userId,"pack",verifyValue);
+                        var checkCardCompletionPackGold = await CardModule.checkCardCompletion(guildId,userId,"pack_gold",verifyValue);
+
+                        if(checkCardCompletionPack){
+                            //card pack completion
+                            embedCompletion = await CardModule.leaderboardAddNew(guildId,userId,userAvatarUrl,CardModule.Properties.dataColorCore[cardData[DBM_Card_Data.columns.color]].color,"pack",cardData[DBM_Card_Data.columns.pack]);
+                            if(embedCompletion!=null)
+                                await interaction.channel.send({embeds:[new MessageEmbed(embedCompletion)]});
+                        }
+
+                        if(checkCardCompletionPackGold){
+                            //card pack completion
+                            embedCompletion = await CardModule.leaderboardAddNew(guildId,userId,userAvatarUrl,CardModule.Properties.dataColorCore[cardData[DBM_Card_Data.columns.color]].color,"pack_gold",cardData[DBM_Card_Data.columns.pack]);
+                            if(embedCompletion!=null){
+                                await interaction.channel.send({embeds:[new MessageEmbed(embedCompletion)]});
+                            }
+                        }
+
+                        objEmbed.footer = null;
+                        objEmbed.title = `Card Pack Verification: ${GlobalFunctions.capitalize(verifyValue)}`;
+                        objEmbed.description = `Your card pack: **${GlobalFunctions.capitalize(verifyValue)}** has been verified for the completion.`;
+                        await interaction.reply({embeds:[new MessageEmbed(objEmbed)]});
+                        break;
+                    case "series-completion":
+                        //normal completion
+                        var txtCompletionVerifyValue = "",
+                        txtCompletionVerifyValueGold = "";
+                        for(var i=0;i<CardModule.Properties.arrSeriesName.length;i++){
+                            var verifyValue = CardModule.Properties.arrSeriesName[i];
+                            var checkCardCompletionPack = await CardModule.checkCardCompletion(guildId,userId,"series",verifyValue);
+                            
+                            if(checkCardCompletionPack){
+                                txtCompletionVerifyValue+=`>${verifyValue}\n`;
+                                embedCompletion = await CardModule.leaderboardAddNew(guildId,userId,userAvatarUrl,CardModule.Properties.embedColor,"series",verifyValue);
+                            }
+                        }
+
+                        if(txtCompletionVerifyValue!=""){
+                            objEmbed.thumbnail = {
+                                url:userAvatarUrl
+                            };
+                            objEmbed.title = `Card Series Verification`;
+                            objEmbed.description = `**<@${userId}> has completed the card series:**\n${txtCompletionVerifyValue}`;
+                            objEmbed.footer = {
+                                iconURL:userAvatarUrl,
+                                text:`Completed at: ${GlobalFunctions.getCurrentDateFooterPrint()}`
+                            };
+                            await interaction.channel.send({embeds:[new MessageEmbed(objEmbed)]});
+                        }
+
+                        //gold completion
+                        for(var i=0;i<CardModule.Properties.arrSeriesName.length;i++){
+                            var verifyValue = CardModule.Properties.arrSeriesName[i];
+                            var checkCardCompletionPack = await CardModule.checkCardCompletion(guildId,userId,"series_gold",verifyValue);
+                            
+                            if(checkCardCompletionPack){
+                                txtCompletionVerifyValueGold+=`>${verifyValue}\n`;
+
+                                embedCompletion = await CardModule.leaderboardAddNew(guildId,userId,userAvatarUrl,CardModule.Properties.embedColor,"series_gold",verifyValue);
+                            }
+                        }
+
+                        if(txtCompletionVerifyValueGold!=""){
+                            objEmbed.color = CardModule.Properties.cardCategory.gold.color;
+                            objEmbed.thumbnail = {
+                                url:userAvatarUrl
+                            };
+                            objEmbed.title = `Gold Card Series Verification`;
+                            objEmbed.description = `**✨<@${userId}> has completed the gold card series:**\n${txtCompletionVerifyValueGold}`;
+                            objEmbed.footer = {
+                                iconURL:userAvatarUrl,
+                                text:`Completed at: ${GlobalFunctions.getCurrentDateFooterPrint()}`
+                            };
+                            await interaction.channel.send({embeds:[new MessageEmbed(objEmbed)]});
+                        }
+
+                        objEmbed.title = `Card Series Verification`;
+                        objEmbed.description = `:white_check_mark: Your card series has been verified for the completion.`;
+                        objEmbed.footer = null;
+                        await interaction.reply({embeds:[new MessageEmbed(objEmbed)]});
+                        break;
+                }
                 break;
-                
         }
     }
 };
