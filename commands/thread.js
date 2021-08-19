@@ -25,7 +25,7 @@ module.exports = {
             type: 1
         }
     ],
-    async execute(message, args) {
+    async executeMessage(message, args) {
 	},
     async execute(interaction) {
         var command = interaction.options;

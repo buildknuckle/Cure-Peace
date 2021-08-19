@@ -76,7 +76,7 @@ module.exports = {
             ]
         }
     ],
-	async execute(message, args) {
+	async executeMessage(message, args) {
     },
     async execute(interaction){
         var command = interaction.options._group;

@@ -94,9 +94,10 @@ module.exports = {
             ]
         }
     ],
-	async execute(message, args) {
+	async executeMessage(message, args) {
 	},
     async execute(interaction) {
+        
         var objEmbed = {
             color: DiscordStyles.Color.embedColor
         };

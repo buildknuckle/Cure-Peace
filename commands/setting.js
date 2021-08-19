@@ -6,15 +6,54 @@ const DBM_Card_Guild = require('../database/model/DBM_Card_Guild');
 
 module.exports = {
 	name: 'setting',
-    description: 'Contain all card setting category',
+    description: 'Contains all precure card catcher setting command.',
     args: true,
-	async execute(message, args) {
+    options:[
+        {
+            name: "precure-card-spawn",
+            description: "Assign the channel for precure card spawn",
+            type: 1,
+            options:[
+                {
+                    name:"channel-spawn",
+                    description:"Choose the channel for precure card spawn",
+                    type:7,
+                    required:true
+                },
+                {
+                    name:"spawn-interval",
+                    description:"Enter the spawn interval(minutes) between 5-1440",
+                    type:4,
+                    required:true
+                },
+            ]
+        },
+        {
+            name: "cardcatcher-role",
+            description: "Assign the cardcatcher mention role.",
+            type: 1,
+            options:[
+                {
+                    name:"set-mention-role",
+                    description:"Choose the role",
+                    type:8,
+                    required:true
+                }
+            ],
+        },
+        {
+            name: "remove-precure-spawn",
+            description: "Remove precure card spawn",
+            type: 1,
+        }
+    ],
+	async executeMessage(message, args) {
         var guildId = message.guild.id;
         var userId = message.author.id;
 
         //check if user is moderator
         if (!message.guild.members.cache.find(member => member.id === userId).hasPermission('KICK_MEMBERS')) {
-            return message.channel.send("Sorry, you need to be moderator to use this command.");
+            return message.channel.send("You need to be moderator to use this command.");
         }
         
         //init & get card guild data
@@ -188,6 +227,90 @@ module.exports = {
             default:
                 break;
         }
-
 	},
+    async execute(interaction) {
+        var command = interaction.options._group;
+        var commandSubcommand = interaction.options._subcommand;
+        const guildId = interaction.guild.id;
+        var userId = interaction.user.id;
+        var userUsername = interaction.user.username;
+        var userAvatarUrl = interaction.user.avatarURL();
+
+        //check if user is moderator
+        var temp = await interaction.guild.members.fetch(userId).members;
+        console.log(temp);
+        return;
+        if (!interaction.guild.members.cache.find(member => member.id === userId).hasPermission('KICK_MEMBERS')) {
+            return interaction.reply({content:`:x: You need to be moderator to use this command.`});
+        }
+
+        console.log(command);
+        console.log(commandSubcommand);
+
+        switch(command){
+            case "precure-card-spawn":
+                var assignedChannel = interaction.options._hoistedOptions[0].value;
+                var intervalMinutes = parseInt(interaction.options._hoistedOptions[1].value);
+                //check channel format
+                if(!Number.isNaN(intervalMinutes)){
+                    if(intervalMinutes>=5 && intervalMinutes<=1440){
+                        //update card interval
+                        var columnSet = new Map();
+                        columnSet.set(DBM_Card_Guild.columns.spawn_interval, intervalMinutes);
+                        var columnWhere = new Map();
+                        columnWhere.set(DBM_Card_Guild.columns.id_guild, guildId);
+
+                        //check if channel exists
+                        const channelExists = message.guild.channels.cache.find(ch => ch.id === assignedChannel)
+                        if(!channelExists){
+                            //channel not exists
+                            return message.channel.send(`Please mention the correct channel name.`);
+                        } else {
+                            columnSet.set(DBM_Card_Guild.columns.id_channel_spawn, assignedChannel);
+                            //clear & set new card spawn
+                            clearInterval(CardGuildModules.arrTimerCardSpawn[guildId]);
+                            CardGuildModules.arrTimerCardSpawn[guildId] = setInterval(async function intervalCardSpawn(){
+                                //get the card guild data to get the role of card catcher
+                                cardGuildData = await CardGuildModules.getCardGuildData(guildId);
+                                var objEmbed = await CardModules.generateCardSpawn(guildId);
+
+                                var finalSend = {}; 
+                                if(cardGuildData[DBM_Card_Guild.columns.id_cardcatcher]!=null){
+                                    finalSend = {
+                                        content:`<@&${cardGuildData[DBM_Card_Guild.columns.id_cardcatcher]}>`,
+                                        embed:objEmbed
+                                    }
+                                } else {
+                                    finalSend = {
+                                        embed:objEmbed
+                                    }
+                                }
+
+                                // var msgObject = await interaction.guild.channels.cache.find(ch => ch.id === assignedChannel)
+                                // .send(finalSend);
+                                interaction.reply({embeds:[new embed(finalSend)]});
+                                // await CardModules.updateMessageIdSpawn(guildId,msgObject.id);
+                            }, parseInt(intervalMinutes)*60*1000);
+                        }
+
+                        await DB.update(DBM_Card_Guild.TABLENAME,
+                            columnSet,
+                            columnWhere
+                        );
+
+                        //update the time remaining information:
+                        await CardGuildModules.updateTimerRemaining(guildId);
+
+                        return interaction.reply(`Card spawn interval has been set into **${intervalMinutes}** minutes at <#${assignedChannel}>.`);
+                    } else {
+                        return interaction.reply("Please enter interval(in minutes) between 5-1440.");
+                    }
+                } else {
+                    return interaction.reply("Please enter interval(in minutes) with number format between 5-1440.");
+                }
+
+                break;
+        }
+
+    }
 };

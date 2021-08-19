@@ -633,7 +633,7 @@ module.exports = {
             ]
         }
     ],
-	async execute(message, args) {
+	async executeMessage(message, args) {
         const guildId = message.guild.id;
         var userId = message.author.id;
         var userUsername = message.author.username;

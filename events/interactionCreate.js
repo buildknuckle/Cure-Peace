@@ -9,8 +9,12 @@ module.exports = {
 	async execute(interaction) {
         if (!interaction.isCommand()) return;
 
-        const command = interaction.client.commands.get(interaction.commandName);
-        await command.execute(interaction);
+		try{
+			const command = interaction.client.commands.get(interaction.commandName);
+			await command.execute(interaction);
+		} catch(error){
+			console.log(error);
+		}
 
 		// console.log(`${interaction.user.tag} in #${interaction.channel.name} triggered an interaction.`);
 	},

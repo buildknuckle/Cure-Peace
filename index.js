@@ -45,53 +45,53 @@ var cooldown = false;
 //end
 
 //message:
-client.on('messageCreate', async message => {
-    if (!message.content.startsWith(prefix) || message.author.bot) return;
+// client.on('messageCreate', async message => {
+//     if (!message.content.startsWith(prefix) || message.author.bot) return;
 
-    const args = message.content.slice(prefix.length).trim().split(/ +/);
-    const commandName = args.shift().toLowerCase();
+//     const args = message.content.slice(prefix.length).trim().split(/ +/);
+//     const commandName = args.shift().toLowerCase();
 
-    if (!client.commands.has(commandName)) return;
-    const command = client.commands.get(commandName);
+//     if (!client.commands.has(commandName)) return;
+//     const command = client.commands.get(commandName);
     
-    if (command.args && !args.length) {
-        return message.reply(`I don't know what you're talking about. Can you give me some arguments?`);
-    }
+//     if (command.args && !args.length) {
+//         return message.reply(`I don't know what you're talking about. Can you give me some arguments?`);
+//     }
 
-    try {
-        if(!cooldown){
-            cooldown = true;
-            // message.channel.startTyping();
-            var msgRet = await command.execute(message, args);
-            // message.channel.stopTyping();
-            cooldown = false;
-        }
-        // message.channel.stopTyping();
-    } catch (error) {
-        console.error(error);
-        cooldown = false;
-        GlobalFunctions.errorLogger(error);
-        message.reply("I'm having trouble doing what you're asking me to do, help!");
-        // message.channel.stopTyping();
-    }
+//     try {
+//         if(!cooldown){
+//             cooldown = true;
+//             // message.channel.startTyping();
+//             var msgRet = await command.execute(message, args);
+//             // message.channel.stopTyping();
+//             cooldown = false;
+//         }
+//         // message.channel.stopTyping();
+//     } catch (error) {
+//         console.error(error);
+//         cooldown = false;
+//         GlobalFunctions.errorLogger(error);
+//         message.reply("I'm having trouble doing what you're asking me to do, help!");
+//         // message.channel.stopTyping();
+//     }
 
-    if (!cooldowns.has(command.name)) {
-        cooldowns.set(command.name, new Discord.Collection());
-    }
+//     if (!cooldowns.has(command.name)) {
+//         cooldowns.set(command.name, new Discord.Collection());
+//     }
     
-    const now = Date.now();
-    const timestamps = cooldowns.get(command.name);
-    const cooldownAmount = (command.cooldown || 3) * 1000;
+//     const now = Date.now();
+//     const timestamps = cooldowns.get(command.name);
+//     const cooldownAmount = (command.cooldown || 3) * 1000;
     
-    if (timestamps.has(message.author.id)) {
-        const expirationTime = timestamps.get(message.author.id) + cooldownAmount;
+//     if (timestamps.has(message.author.id)) {
+//         const expirationTime = timestamps.get(message.author.id) + cooldownAmount;
 
-	    if (now < expirationTime) {
-		    const timeLeft = (expirationTime - now) / 1000;
-		    return message.reply(`I can't keep up! Wait ${timeLeft.toFixed(1)} more second(s) before using the \`${command.name}\` command again!`);
-	    }
-    }
+// 	    if (now < expirationTime) {
+// 		    const timeLeft = (expirationTime - now) / 1000;
+// 		    return message.reply(`I can't keep up! Wait ${timeLeft.toFixed(1)} more second(s) before using the \`${command.name}\` command again!`);
+// 	    }
+//     }
     
-});
+// });
 
 client.login(token)
