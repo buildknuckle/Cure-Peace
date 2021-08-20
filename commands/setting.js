@@ -1,3 +1,5 @@
+const {Permissions, MessageEmbed} = require('discord.js');
+const DiscordStyles = require('../modules/DiscordStyles');
 const DB = require('../database/DatabaseCore');
 const CardModules = require('../modules/Card');
 const CardGuildModules = require('../modules/CardGuild');
@@ -42,9 +44,26 @@ module.exports = {
             ],
         },
         {
-            name: "remove-precure-spawn",
-            description: "Remove precure card spawn",
+            name: "remove",
+            description: "Remove settings menu",
             type: 1,
+            options:[
+                {
+                    name:"settings",
+                    description:"Choose the settings that you want to remove",
+                    type:3,
+                    choices:[
+                        {
+                            name:"card-spawn",
+                            value:"card-spawn"
+                        },
+                        {
+                            name:"role-cardcatcher",
+                            value:"role-cardcatcher"
+                        }
+                    ]
+                }
+            ]
         }
     ],
 	async executeMessage(message, args) {
@@ -236,79 +255,105 @@ module.exports = {
         var userUsername = interaction.user.username;
         var userAvatarUrl = interaction.user.avatarURL();
 
-        //check if user is moderator
-        var temp = await interaction.guild.members.fetch(userId).members;
-        console.log(temp);
-        return;
-        if (!interaction.guild.members.cache.find(member => member.id === userId).hasPermission('KICK_MEMBERS')) {
-            return interaction.reply({content:`:x: You need to be moderator to use this command.`});
+        //check if user has manage channels permission
+        var hasPermission = await interaction.guild.members.cache.find(member => member.id === userId).permissions.has("MANAGE_CHANNELS");
+        if (!hasPermission) {
+            return interaction.reply(`:x: You need **Manage Channels** permissions to use this command.`);
         }
 
-        console.log(command);
-        console.log(commandSubcommand);
+        //default embeds:
+        var objEmbed = new MessageEmbed({
+            color:DiscordStyles.Color.embedColor
+        });
 
-        switch(command){
+        switch(commandSubcommand){
             case "precure-card-spawn":
                 var assignedChannel = interaction.options._hoistedOptions[0].value;
                 var intervalMinutes = parseInt(interaction.options._hoistedOptions[1].value);
                 //check channel format
                 if(!Number.isNaN(intervalMinutes)){
-                    if(intervalMinutes>=5 && intervalMinutes<=1440){
+                    if(intervalMinutes>=1 && intervalMinutes<=1440){
                         //update card interval
                         var columnSet = new Map();
                         columnSet.set(DBM_Card_Guild.columns.spawn_interval, intervalMinutes);
+                        columnSet.set(DBM_Card_Guild.columns.id_channel_spawn, assignedChannel);
                         var columnWhere = new Map();
                         columnWhere.set(DBM_Card_Guild.columns.id_guild, guildId);
-
-                        //check if channel exists
-                        const channelExists = message.guild.channels.cache.find(ch => ch.id === assignedChannel)
-                        if(!channelExists){
-                            //channel not exists
-                            return message.channel.send(`Please mention the correct channel name.`);
-                        } else {
-                            columnSet.set(DBM_Card_Guild.columns.id_channel_spawn, assignedChannel);
-                            //clear & set new card spawn
-                            clearInterval(CardGuildModules.arrTimerCardSpawn[guildId]);
-                            CardGuildModules.arrTimerCardSpawn[guildId] = setInterval(async function intervalCardSpawn(){
-                                //get the card guild data to get the role of card catcher
-                                cardGuildData = await CardGuildModules.getCardGuildData(guildId);
-                                var objEmbed = await CardModules.generateCardSpawn(guildId);
-
-                                var finalSend = {}; 
-                                if(cardGuildData[DBM_Card_Guild.columns.id_cardcatcher]!=null){
-                                    finalSend = {
-                                        content:`<@&${cardGuildData[DBM_Card_Guild.columns.id_cardcatcher]}>`,
-                                        embed:objEmbed
-                                    }
-                                } else {
-                                    finalSend = {
-                                        embed:objEmbed
-                                    }
-                                }
-
-                                // var msgObject = await interaction.guild.channels.cache.find(ch => ch.id === assignedChannel)
-                                // .send(finalSend);
-                                interaction.reply({embeds:[new embed(finalSend)]});
-                                // await CardModules.updateMessageIdSpawn(guildId,msgObject.id);
-                            }, parseInt(intervalMinutes)*60*1000);
-                        }
-
                         await DB.update(DBM_Card_Guild.TABLENAME,
                             columnSet,
                             columnWhere
                         );
 
-                        //update the time remaining information:
-                        await CardGuildModules.updateTimerRemaining(guildId);
-
-                        return interaction.reply(`Card spawn interval has been set into **${intervalMinutes}** minutes at <#${assignedChannel}>.`);
+                        await CardGuildModules.updateCardSpawnInstance(guildId,interaction);
+                        objEmbed.setTitle("Precure Card Spawn Updated!");
+                        objEmbed.setDescription(`Next precure card will be spawned at: <#${assignedChannel}>/**${intervalMinutes}** minutes.`);
+                        return interaction.reply({embeds:[objEmbed]});
                     } else {
-                        return interaction.reply("Please enter interval(in minutes) between 5-1440.");
+                        return interaction.reply("Please enter valid interval(minutes) between 5-1440.");
                     }
                 } else {
-                    return interaction.reply("Please enter interval(in minutes) with number format between 5-1440.");
+                    return interaction.reply("Please enter valid interval(minutes) between 5-1440.");
                 }
 
+                break;
+            case "cardcatcher-role":
+                var assignedRole = interaction.options._hoistedOptions[0].value;
+
+                //check if channel exists
+                // roleExists = message.guild.roles.cache.has(assignedRole);
+
+                //set new card catcher role ID
+                var columnSet = new Map();
+                columnSet.set(DBM_Card_Guild.columns.id_cardcatcher, assignedRole);
+                var columnWhere = new Map();
+                columnWhere.set(DBM_Card_Guild.columns.id_guild, guildId);
+                await DB.update(DBM_Card_Guild.TABLENAME,
+                    columnSet,
+                    columnWhere
+                );
+
+                await CardGuildModules.updateCardSpawnInstance(guildId,interaction);
+                objEmbed.setTitle("Precure Cardcatcher Role Updated!");
+                objEmbed.setDescription(`<@&${assignedRole}> has been assigned as new cardcatcher role.`);
+                return interaction.reply({embeds:[objEmbed]});
+                break;
+            case "remove":
+                var choices = interaction.options._hoistedOptions[0].value;
+                switch(choices){
+                    case "card-spawn":
+                        //update database
+                        var parameterSet = new Map();
+                        parameterSet.set(DBM_Card_Guild.columns.id_channel_spawn,null);
+                        parameterSet.set(DBM_Card_Guild.columns.spawn_interval,null);
+                        var parameterWhere = new Map();
+                        parameterWhere.set(DBM_Card_Guild.columns.id_guild,guildId);
+                        await DB.update(DBM_Card_Guild.TABLENAME,parameterSet,parameterWhere);
+
+                        //update spawn instance
+                        await CardGuildModules.updateCardSpawnInstance(guildId,interaction);
+
+                        //send embeds
+                        objEmbed.setTitle("Precure Card Spawn Removed");
+                        objEmbed.setDescription(`Precure card will no longer spawning.`);
+                        return interaction.reply({embeds:[objEmbed]});
+                        break;
+                    case "role-cardcatcher":
+                        //update database
+                        var columnSet = new Map();
+                        columnSet.set(DBM_Card_Guild.columns.id_cardcatcher, null);
+                        var columnWhere = new Map();
+                        columnWhere.set(DBM_Card_Guild.columns.id_guild,guildId);
+                        await DB.update(DBM_Card_Guild.TABLENAME,columnSet,columnWhere);
+
+                        //update spawn instance
+                        await CardGuildModules.updateCardSpawnInstance(guildId,interaction);
+
+                        //send embeds
+                        objEmbed.setTitle("Precure Cardcatcher Mentions Removed");
+                        objEmbed.setDescription(`${interaction.client.user.username} will no longer mentions during card spawn.`);
+                        return interaction.reply({embeds:[objEmbed]});
+                        break;
+                }
                 break;
         }
 

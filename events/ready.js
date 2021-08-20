@@ -28,9 +28,6 @@ module.exports = {
 
         client.guilds.cache.forEach(async guild => {
             console.log(`connected to: ${guild.id} - ${guild.name}`);
-            
-            //guild.channels.cache.find(ch => ch.name === 'testing-ground').send('Hello world.');
-    
             (async () => {
                 try {
                     // console.log('Started refreshing application (/) commands.');
@@ -50,32 +47,28 @@ module.exports = {
             //set card spawn interval
             if(cardGuildData[DBM_Card_Guild.columns.id_channel_spawn]!=null){
                 //check if channel exists/not
-                const channelExists = guild.channels.cache.find(ch => ch.id === cardGuildData[DBM_Card_Guild.columns.id_channel_spawn])
+                var channelExists = guild.channels.cache.find(ch => ch.id === cardGuildData[DBM_Card_Guild.columns.id_channel_spawn])
                 if(channelExists){
-                    CardGuildModules.arrTimerCardSpawn[guild.id] = setInterval(async function intervalCardSpawn(){
-                        var objEmbed = await CardModules.generateCardSpawn(guild.id);
-                        //check if cardcatcher role exists/not
-                        var finalSend = {}; 
-                        if(cardGuildData[DBM_Card_Guild.columns.id_cardcatcher]!=null){
-                            finalSend = {
-                                content:`<@&${cardGuildData[DBM_Card_Guild.columns.id_cardcatcher]}>`,
-                                embed:objEmbed
-                            }
-                        } else {
-                            finalSend = {
-                                embed:objEmbed
-                            }
-                        }
+
+                    await CardGuildModules.updateCardSpawnInstance(guild.id,guild);
+
+                    // CardGuildModules.arrTimerCardSpawn[guild.id] = setInterval(async function intervalCardSpawn() {
+                    //     var objEmbed = await CardModules.generateCardSpawn(guild.id);
+                    //     //check if cardcatcher role exists/not
+                    //     var sendParam = {embeds:[objEmbed]};
+                    //     if(cardGuildData[DBM_Card_Guild.columns.id_cardcatcher]!=null){
+                    //         sendParam.content = `<@&${cardGuildData[DBM_Card_Guild.columns.id_cardcatcher]}>`;
+                    //     }
     
-                        var msgObject = await guild.channels.cache.find(ch => ch.id === cardGuildData[DBM_Card_Guild.columns.id_channel_spawn])
-                        .send(finalSend);
-                        //update the last message id
-                        await CardModules.updateMessageIdSpawn(guild.id,msgObject.id);
+                    //     var msgObject = await guild.channels.cache.find(ch => ch.id === cardGuildData[DBM_Card_Guild.columns.id_channel_spawn])
+                    //     .send(sendParam);
+                    //     //update the last message id
+                    //     await CardModules.updateMessageIdSpawn(guild.id,msgObject.id);
     
-                    }, parseInt(cardGuildData[DBM_Card_Guild.columns.spawn_interval])*60*1000);
+                    // }, parseInt(cardGuildData[DBM_Card_Guild.columns.spawn_interval])*60*1000);
                 }
                 //update the time remaining information:
-                await CardGuildModules.updateTimerRemaining(guild.id);
+                // await CardGuildModules.updateTimerRemaining(guild.id);
             }
             
         });

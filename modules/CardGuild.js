@@ -1,5 +1,4 @@
 const DB = require('../database/DatabaseCore');
-const CardModule = require('../modules/Card');
 const DBM_Card_Guild = require('../database/model/DBM_Card_Guild');
 
 var arrTimerCardSpawn = {};//timer for each guild
@@ -57,7 +56,45 @@ async function updateTimerRemaining(id_guild){
 
 async function getTimerRemaining(id_guild){
     var cardGuildData = await getCardGuildData(id_guild);
-
 }
 
-module.exports = {arrTimerCardSpawn,getCardGuildData,arrTimerGuildInformation,updateTimerRemaining,getTimerRemaining};
+async function updateCardSpawnInstance(guildId,client){
+    if(arrTimerGuildInformation.hasOwnProperty(guildId)){
+        clearInterval(arrTimerGuildInformation[guildId].timer);//clear the timer remaining information
+        clearInterval(arrTimerCardSpawn[guildId]);
+    }
+
+    var cardGuildData = await getCardGuildData(guildId);
+
+    if(cardGuildData[DBM_Card_Guild.columns.id_channel_spawn]!=null){
+        var assignedChannel = cardGuildData[DBM_Card_Guild.columns.id_channel_spawn];
+        const CardModule = require('../modules/Card');
+
+        arrTimerCardSpawn[guildId] = setInterval(async function intervalCardSpawn(){
+            if(arrTimerGuildInformation.hasOwnProperty(guildId)){
+                var cardGuildData = await getCardGuildData(guildId);
+                var objEmbed = await CardModule.generateCardSpawn(guildId);
+        
+                var sendParam = {embeds:[objEmbed]}; 
+                if(cardGuildData[DBM_Card_Guild.columns.id_cardcatcher]!=null){
+                    sendParam.content = `<@&${cardGuildData[DBM_Card_Guild.columns.id_cardcatcher]}>`;
+                }
+                
+                var msgObject = await client.guild.channels.cache.find(ch => ch.id === assignedChannel)
+                    .send(sendParam);
+    
+                await CardModule.updateMessageIdSpawn(guildId,msgObject.id);
+            } else {
+                clearInterval(arrTimerGuildInformation[guildId].timer);//clear the timer remaining information
+                clearInterval(arrTimerCardSpawn[guildId]);
+            }
+            
+        }, parseInt(cardGuildData[DBM_Card_Guild.columns.spawn_interval])*60*1000);
+
+        //update the time remaining information:
+        await updateTimerRemaining(guildId);
+    }
+}
+
+module.exports = {arrTimerCardSpawn,getCardGuildData,arrTimerGuildInformation,
+    updateTimerRemaining,getTimerRemaining,updateCardSpawnInstance};

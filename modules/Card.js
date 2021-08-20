@@ -1,4 +1,5 @@
-const {MessageActionRow, MessageButton, MessageEmbed, Discord} = require('discord.js');
+const {MessageActionRow, MessageSelectMenu, MessageButton, MessageEmbed, Discord} = require('discord.js');
+const DiscordStyles = require('../modules/DiscordStyles');
 const DB = require('../database/DatabaseCore');
 const DBConn = require('../storage/dbconn');
 const GlobalFunctions = require('../modules/GlobalFunctions.js');
@@ -749,7 +750,7 @@ class StatusEffect{
                 }
                 break;
         }
-        return {
+        return new MessageEmbed({
             color: Properties.embedColor,
             author: {
                 name: userUsername,
@@ -760,7 +761,7 @@ class StatusEffect{
             },
             title: parTitle,
             description: SEDescription,
-        }
+        })
     }
 
 }
@@ -3953,7 +3954,7 @@ class Embeds{
         if(seriesPoint==0){
             seriesPoint = pointReward;
         }
-        return {
+        return new MessageEmbed({
             color:Properties.dataColorCore[embedColor].color,
             author:{
                 iconURL:avatarImgUrl,
@@ -3970,7 +3971,7 @@ class Embeds{
                     value:`>**New Card: **${id_card} - ${cardName}\n>${pointReward} ${embedColor} points\n>${seriesPoint} ${seriesCurrency}`
                 }
             ]
-        };
+        });
     }
 
     static embedCardCaptureDuplicate(embedColor,id_card,
@@ -3978,7 +3979,7 @@ class Embeds{
         if(seriesPoint==0){
             seriesPoint = pointReward;
         }
-        return {
+        return new MessageEmbed({
             color:Properties.dataColorCore[embedColor].color,
             author:{
                 iconURL:avatarImgUrl,
@@ -3995,7 +3996,7 @@ class Embeds{
                     value:`>**${cardQty}x Dup Card: **${id_card} - ${cardName}\n>${pointReward} ${embedColor} points\n>${seriesPoint} ${seriesCurrency}`
                 }
             ]
-        };
+        });
     }
 
     static embedCardCaptureDuplicateMaxCard(embedColor,id_card,
@@ -4003,7 +4004,7 @@ class Embeds{
         if(seriesPoint==0){
             seriesPoint = pointReward;
         }
-        return {
+        return new MessageEmbed({
             color:Properties.dataColorCore[embedColor].color,
             author:{
                 iconURL:avatarImgUrl,
@@ -4017,7 +4018,7 @@ class Embeds{
                     value:`>**Overcapped Dup Card: **${id_card} - ${cardName}\n>${pointReward} ${embedColor} points\n>${seriesPoint} ${seriesCurrency}`
                 }
             ]
-        };
+        });
     }
 
 }
@@ -4441,12 +4442,12 @@ function embedCardCapture(embedColor,id_card,packName,
             },
             {
                 name:"Rarity:",
-                value:`${rarity} :star:`,
+                value:`${String(rarity)} :star:`,
                 inline:true
             },
             {
                 name:"HP:",
-                value:`${max_hp}`,
+                value:`${String(max_hp)}`,
                 inline:true
             },
             {
@@ -4474,7 +4475,7 @@ function embedCardCapture(embedColor,id_card,packName,
         }
     }
 
-    return objEmbed;
+    return new MessageEmbed(objEmbed);
 }
 
 function embedCardDetail(embedColor,id_card,packName,
@@ -4525,12 +4526,12 @@ function embedCardDetail(embedColor,id_card,packName,
             },
             {
                 name:`❤️HP:`,
-                value:`${Status.getHp(level,max_hp)}`,
+                value:`${String(Status.getHp(level,max_hp))}`,
                 inline:true
             },
             {
                 name:"⚔️Atk:",
-                value:`${Status.getAtk(level,max_atk)}`,
+                value:`${String(Status.getAtk(level,max_atk))}`,
                 inline:true
             },
             {
@@ -5210,7 +5211,7 @@ async function generateCardSpawn(id_guild,specificType=null,overwriteToken = tru
     }
 
     //for debugging purpose:
-    // cardSpawnType = "quiz";
+    cardSpawnType = "battle";
 
     var query = "";
     //prepare the embed object
@@ -5218,9 +5219,9 @@ async function generateCardSpawn(id_guild,specificType=null,overwriteToken = tru
     //     color: Properties.embedColor
     // }
 
-    var objEmbed = new Discord.MessageEmbed(objEmbed);
+    var objFinalSend = {};
+    var objEmbed = new MessageEmbed(objEmbed);
     objEmbed.color = Properties.embedColor;
-
     //get color total
     // var colorTotal = 0; 
     // for ( var {} in Properties.dataColorCore ) { colorTotal++; }
@@ -5239,20 +5240,23 @@ async function generateCardSpawn(id_guild,specificType=null,overwriteToken = tru
                 url:Properties.spawnData.color.embed_img
             }
             objEmbed.title = "Color Card";
-            objEmbed.description = `A **color** card has appeared! Use: **p!card catch** to capture the card based from your assigned color.`;
+            objEmbed.description = `A **color** card has appeared! Press **✨Catch!** button to capture this color card!`;
             objEmbed.footer = {
                 text:`⭐ Rarity: 1-3 | ⬆️ Bonus Catch Rate+10%`
             }
+            objFinalSend.components =[DiscordStyles.Button.basic("card.catch_color","✨Catch!","PRIMARY")];
+
             break;
         case "series":
             objEmbed.image = {
                 url:Properties.spawnData.color.embed_img
             }
             objEmbed.title = "Series Card";
-            objEmbed.description = `A **series** card has appeared! Use: **p!card catch** to capture the card based from your assigned series.`;
+            objEmbed.description = `A **series** card has appeared! Press **✨Catch!** button to capture this series card!`;
             objEmbed.footer = {
                 text:`⭐ Rarity: 1-3 | ⬆️ Bonus Catch Rate+10%`
             }
+            objFinalSend.components =[DiscordStyles.Button.basic("card.catch_series","✨Catch!","PRIMARY")];
             break;
         case "number": //number spawn type
             //get color total:
@@ -5270,20 +5274,37 @@ async function generateCardSpawn(id_guild,specificType=null,overwriteToken = tru
             objEmbed.color = Properties.dataColorCore[resultData[0][0][DBM_Card_Data.columns.color]].color;
             var selectedColor = resultData[0][0][DBM_Card_Data.columns.color];
 
-            if(cardSpawnType=="number"){
-                objEmbed.author = {
-                    name:`Number Card: ${GlobalFunctions.capitalize(selectedColor)} Edition`
-                }
-                objEmbed.title = ":game_die: It's Lucky Numbers Time!";
-                objEmbed.description = `Guess whether the hidden number**(1-12)** will be **lower** or **higher** than the current number: **${rndNumber}** with: **p!card guess <lower/higher>**`;
-                objEmbed.image = {
-                    url:Properties.dataColorCore[selectedColor].imgMysteryUrl
-                }
+            objEmbed.author = {
+                name:`Number Card: ${GlobalFunctions.capitalize(selectedColor)} Edition`
             }
-            
+            objEmbed.title = ":game_die: It's Lucky Numbers Time!";
+            objEmbed.description = `Guess whether the hidden number**(1-12)** will be **lower** or **higher** than the current number: **${rndNumber}**`;
+            objEmbed.image = {
+                url:Properties.dataColorCore[selectedColor].imgMysteryUrl
+            }
+
             objEmbed.footer = {
                 text:`⭐ Rarity: 4-5 | ⏫ Catch Rate: 100%`
             }
+
+            //select menu start
+            var arrOptions = [
+                {
+                    label: `Lower`,
+                    value: `lower`,
+                    description: `Hidden number is lower than ${rndNumber}`
+                },
+                {
+                    label: `Higher`,
+                    value: `higher`,
+                    description: `Hidden number is higher than ${rndNumber}`
+                }
+            ];
+
+            objFinalSend.components = [
+                DiscordStyles.SelectMenus.basic("card.guess_number","Guess it lower/higher",arrOptions)
+            ];
+            //select menu end
             
             break;
         
@@ -5354,6 +5375,7 @@ async function generateCardSpawn(id_guild,specificType=null,overwriteToken = tru
 
             switch(randomQuizType){
                 case 0:
+                    //default quiz:
                     var alterEgo = Properties.dataCardCore[cardSpawnPack].alter_ego;
                     //get the other pack answer
                     var queryAnotherQuestion = `SELECT ${DBM_Card_Data.columns.pack},${DBM_Card_Data.columns.series}, ${DBM_Card_Data.columns.color} 
@@ -5385,6 +5407,34 @@ async function generateCardSpawn(id_guild,specificType=null,overwriteToken = tru
                             answer = "d";
                             break;
                     }
+
+                    //select menu start
+                    var arrOptions = [];
+                    for(var i=0;i<arrAnswerList.length;i++){
+                        arrOptions.push({
+                            label: `${arrAnswerList[i].toString()}`,
+                            description: `Answers with: ${arrAnswerList[i]}`
+                        });
+                        switch(i){
+                            case 0:
+                                arrOptions[i].value = "a";
+                                break;
+                            case 1:
+                                arrOptions[i].value = "b";
+                                break;
+                            case 2:
+                                arrOptions[i].value = "c";
+                                break;
+                            case 3:
+                                arrOptions[i].value = "d";
+                                break;
+                        }
+                    }
+
+                    objFinalSend.components = [
+                        DiscordStyles.SelectMenus.basic("card.answer_quiz","Select the answers",arrOptions)
+                    ];
+                    //select menu end
         
                     parameterSet.set(DBM_Card_Guild.columns.spawn_data,
                     `{"${Properties.spawnData.quiz.type}":"${Properties.spawnData.quiz.typeNormal}","${Properties.spawnData.quiz.answer}":"${answer}","${Properties.spawnData.quiz.id_card}":"${cardSpawnId}"}`);
@@ -5395,10 +5445,6 @@ async function generateCardSpawn(id_guild,specificType=null,overwriteToken = tru
                     }
                     objEmbed.title = `:grey_question: It's Quiz Time!`;
                     objEmbed.description = `The series theme/motif was about: **${Properties.spawnHintSeries[cardSpawnSeries]}** and I'm known as **${alterEgo}**. Who am I?`;
-                    objEmbed.fields = [{
-                        name:`Answer command:\np!card answer <a/b/c/d>`,
-                        value:`**A. ${Properties.dataCardCore[arrAnswerList[0]].fullname}\nB. ${Properties.dataCardCore[arrAnswerList[1]].fullname}\nC. ${Properties.dataCardCore[arrAnswerList[2]].fullname}\nD. ${Properties.dataCardCore[arrAnswerList[3]].fullname}**`
-                    }]
                     objEmbed.image ={
                         url:Properties.spawnData.quiz.embed_img
                     }
@@ -5447,6 +5493,34 @@ async function generateCardSpawn(id_guild,specificType=null,overwriteToken = tru
                             answer = "d";
                             break;
                     }
+
+                    //select menu start
+                    var arrOptions = [];
+                    for(var i=0;i<arrAnswerList.length;i++){
+                        arrOptions.push({
+                            label: `${arrAnswerList[i].toString()}`,
+                            description: `Answers with: ${arrAnswerList[i]}`
+                        });
+                        switch(i){
+                            case 0:
+                                arrOptions[i].value = "a";
+                                break;
+                            case 1:
+                                arrOptions[i].value = "b";
+                                break;
+                            case 2:
+                                arrOptions[i].value = "c";
+                                break;
+                            case 3:
+                                arrOptions[i].value = "d";
+                                break;
+                        }
+                    }
+
+                    objFinalSend.components = [
+                        DiscordStyles.SelectMenus.basic("card.answer_quiz","Select the answers",arrOptions)
+                    ];
+                    //select menu end
         
                     parameterSet.set(DBM_Card_Guild.columns.spawn_data,
                     `{"${Properties.spawnData.quiz.type}":"${Properties.spawnData.quiz.typeTsunagarus}","${Properties.spawnData.quiz.answer}":"${answer}","${Properties.spawnData.quiz.id_card}":"${cardSpawnId}"}`);
@@ -5460,10 +5534,6 @@ async function generateCardSpawn(id_guild,specificType=null,overwriteToken = tru
                         url:Properties.imgResponse.imgFailed
                     }
                     objEmbed.description = `**${GlobalFunctions.capitalize(TsunagarusModules.Properties.enemySpawnData.tsunagarus.chiridjirin.term)}** has take over the quiz time!\nRearrange this provided hint: **${name}** and choose the correct branch!`;
-                    objEmbed.fields = [{
-                        name:`Branch command:\np!card choose <a/b/c/d>`,
-                        value:`**A. ${arrAnswerList[0]}\nB. ${arrAnswerList[1]}\nC. ${arrAnswerList[2]}\nD. ${arrAnswerList[3]}**`
-                    }]
                     objEmbed.image ={
                         url:TsunagarusModules.Properties.enemySpawnData.tsunagarus.chiridjirin.image
                     }
@@ -5514,6 +5584,32 @@ async function generateCardSpawn(id_guild,specificType=null,overwriteToken = tru
                             arrAnswerList = arrAnswerList.sort((a, b) => a - b); // For ascending sort
                             answer = arrAnswerList.indexOf(totalStars);
 
+                            var arrOptions = [];
+                            for(var i=0;i<arrAnswerList.length;i++){
+                                arrOptions.push({
+                                    label: `${arrAnswerList[i].toString()}`,
+                                    description: `Answers with ${arrAnswerList[i]} stars`
+                                });
+                                switch(i){
+                                    case 0:
+                                        arrOptions[i].value = "a";
+                                        break;
+                                    case 1:
+                                        arrOptions[i].value = "b";
+                                        break;
+                                    case 2:
+                                        arrOptions[i].value = "c";
+                                        break;
+                                    case 3:
+                                        arrOptions[i].value = "d";
+                                        break;
+                                }
+                            }
+
+                            objFinalSend.components = [
+                                DiscordStyles.SelectMenus.basic("card.answer_quiz","Select the answers",arrOptions)
+                            ];
+
                             switch(answer){
                                 case 0:
                                     answer = "a";
@@ -5532,10 +5628,6 @@ async function generateCardSpawn(id_guild,specificType=null,overwriteToken = tru
                             parameterSet.set(DBM_Card_Guild.columns.spawn_data,
                             `{"${Properties.spawnData.quiz.type}":"${Properties.spawnData.quiz.typeStarTwinkleStarsCount}","${Properties.spawnData.quiz.answer}":"${answer}","${Properties.spawnData.quiz.id_card}":"${cardSpawnId}","${Properties.spawnData.quiz.totalStars}":${totalStars}}`);
                             
-                            objEmbed.fields = [{
-                                name:`Answer command:\np!card answer <a/b/c/d>`,
-                                value:`**A.** ${arrAnswerList[0]}\n**B.** ${arrAnswerList[1]}\n**C.** ${arrAnswerList[2]}\n**D.** ${arrAnswerList[3]}`
-                            }];
                             objEmbed.image ={
                                 url:Properties.spawnData.quiz.embed_img
                             }
@@ -5577,6 +5669,34 @@ async function generateCardSpawn(id_guild,specificType=null,overwriteToken = tru
                             arrAnswerList = arrAnswerList.sort((a, b) => a - b); // For ascending sort
                             answer = arrAnswerList.indexOf(answer);
 
+                            //select menu start
+                            var arrOptions = [];
+                            for(var i=0;i<arrAnswerList.length;i++){
+                                arrOptions.push({
+                                    label: `${arrAnswerList[i].toString()}`,
+                                    description: `Answers with: ${arrAnswerList[i]}`
+                                });
+                                switch(i){
+                                    case 0:
+                                        arrOptions[i].value = "a";
+                                        break;
+                                    case 1:
+                                        arrOptions[i].value = "b";
+                                        break;
+                                    case 2:
+                                        arrOptions[i].value = "c";
+                                        break;
+                                    case 3:
+                                        arrOptions[i].value = "d";
+                                        break;
+                                }
+                            }
+
+                            objFinalSend.components = [
+                                DiscordStyles.SelectMenus.basic("card.answer_quiz","Select the answers",arrOptions)
+                            ];
+                            //select menu end
+
                             switch(answer){
                                 case 0:
                                     answer = "a";
@@ -5596,11 +5716,6 @@ async function generateCardSpawn(id_guild,specificType=null,overwriteToken = tru
                             `{"${Properties.spawnData.quiz.type}":"${Properties.spawnData.quiz.typeStarTwinkleConstellation}","${Properties.spawnData.quiz.answer}":"${answer}","${Properties.spawnData.quiz.id_card}":"${cardSpawnId}"}`);
 
                             objEmbed.fields = [
-                                {
-                                    name:`Answer command:\np!card answer <a/b/c/d>`,
-                                    value:`**A.** ${arrAnswerList[0]}\n**B.** ${arrAnswerList[1]}\n**C.** ${arrAnswerList[2]}\n**D.** ${arrAnswerList[3]}`,
-                                    inline:true
-                                },
                                 {
                                     name:`Image Link`,
                                     value:`[Image Link](${randomImg})`,
@@ -5622,9 +5737,6 @@ async function generateCardSpawn(id_guild,specificType=null,overwriteToken = tru
                             
                             break;
                     }
-
-                    
-
                     break;
             }
             
@@ -5635,7 +5747,7 @@ async function generateCardSpawn(id_guild,specificType=null,overwriteToken = tru
             var enemyType = TsunagarusModules.Properties.enemySpawnData.tsunagarus.chokkins.term;//default enemy type
             var randomType = GlobalFunctions.randomNumber(0,10);
 
-            // randomType = 10;//for debug purpose only
+            randomType = 1;//for debug purpose only
 
             if(specificType!=null&&
             (spawnData2==null||spawnData3==null)){
@@ -6416,6 +6528,31 @@ async function generateCardSpawn(id_guild,specificType=null,overwriteToken = tru
                     }
                 ];
 
+                //select menu start
+                var arrOptions = [];
+                arrOptions.push(
+                    {
+                        label: `⚔️fight`,
+                        description: `Attack the chokkins. CP Cost: 10 CP`,
+                        value:`fight`
+                    },
+                    {
+                        label: `✨special attack`,
+                        description: `Unleash precure special attack.`,
+                        value:`special`
+                    },
+                    {
+                        label: `⬆️charge up`,
+                        description: `Charge up your special attack. CP Cost: 50 CP`,
+                        value:`charge`
+                    },
+                );
+
+                objFinalSend.components = [
+                    DiscordStyles.SelectMenus.basic("card.battle_normal","Battle Command",arrOptions)
+                ];
+                //select menu end
+
                 //randomize the special allowance
                 var randAllowSpecial = GlobalFunctions.randomNumber(0,10);
                 var dtAllowSpecial = `"${Properties.spawnData.battle.special_allow}":`;
@@ -6457,10 +6594,14 @@ async function generateCardSpawn(id_guild,specificType=null,overwriteToken = tru
             }
             objEmbed.title = resultData[0][0][DBM_Card_Data.columns.name];
 
+            var tempSend = [
+                DiscordStyles.Button.basic("card.catch_normal","✨Catch!","PRIMARY")
+            ];
+
             objEmbed.fields = [
                 {
-                    name:"Capture Command:",
-                    value:`Use: **p!card catch** to capture the card.`,
+                    name:"Precure Card Spawned!",
+                    value:`Press **✨Catch!** button to capture this card!`,
                     inline:false
                 }
             ];
@@ -6478,13 +6619,16 @@ async function generateCardSpawn(id_guild,specificType=null,overwriteToken = tru
                 limit 1`;
                 var resultDataPinky = await DBConn.conn.promise().query(queryPinky,[id_guild]);
                 if(resultDataPinky[0][0]!=null){
-                    objEmbed.fields[1] = [
+                    objEmbed.fields.push(
                         {
                             name:"🦋 Special Capture Command:",
-                            value:`Use: **p!pinky catch** to capture the pinky.`,
+                            value:`Press **🦋Catch!** button to capture this pinky!`,
                             inline:false
                         }
-                    ];
+                    );
+
+                    tempSend.push(DiscordStyles.Button.basic("card.catch_pinky","🦋Catch!","PRIMARY"));
+                    
                     objEmbed.thumbnail = {
                         url:resultDataPinky[0][0][DBM_Pinky_Data.columns.img_url]
                     }
@@ -6500,6 +6644,8 @@ async function generateCardSpawn(id_guild,specificType=null,overwriteToken = tru
             objEmbed.footer = {
                 text:`${cardRarity} ⭐ | ID: ${cardSpawnId} | ✔️ Catch Rate: ${captureChance}%`
             }
+
+            objFinalSend.components = tempSend;
             break;
     }
     
@@ -6509,7 +6655,9 @@ async function generateCardSpawn(id_guild,specificType=null,overwriteToken = tru
     await CardGuildModules.updateTimerRemaining(id_guild);
 
     // console.log(objEmbed);
-    return objEmbed;
+    objFinalSend.embeds = [objEmbed];
+
+    return objFinalSend;
 }
 
 async function addNewCardInventory(id_user,id_card,addStock = false,qty=1){

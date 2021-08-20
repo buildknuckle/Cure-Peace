@@ -1,21 +1,54 @@
-const { MessageEmbed , MessageButton} = require('discord.js');
+const { MessageActionRow, MessageEmbed, MessageSelectMenu, MessageButton} = require('discord.js');
 
 class Color{
     static embedColor = "#efcc2c";//default embed color for bot
 }
 
 class Button{
-    static prev = new MessageButton()
-    .setCustomId('previousbtn')
-    .setLabel('⏪')
-    .setStyle('DANGER');
+    // static prevButton = new MessageButton()
+    // .setCustomId('previousbtn')
+    // .setLabel('⏪')
+    // .setStyle('DANGER');
 
-    static next = new MessageButton()
-    .setCustomId('nextbtn')
-    .setLabel('⏩')
-    .setStyle('SUCCESS');
+    // static nextButton = new MessageButton()
+    // .setCustomId('nextbtn')
+    // .setLabel('⏩')
+    // .setStyle('SUCCESS');
 
-    static pagingButtonList = [this.prev,this.next];
+    static pagingButtonList = [
+        new MessageButton()
+        .setCustomId('previousbtn')
+        .setLabel('⏪')
+        .setStyle('DANGER'),
+        new MessageButton()
+        .setCustomId('nextbtn')
+        .setLabel('⏩')
+        .setStyle('SUCCESS')
+    ];
+
+    static basic(id,label,style){
+        return new MessageActionRow()
+        .addComponents(
+            new MessageButton()
+            .setCustomId(id)
+            .setLabel(label)
+            .setStyle(style)
+        );
+    }
+
 }
 
-module.exports = {Color,Button}
+class SelectMenus {
+    static basic(id,placeholder,arrOptions){
+        return new MessageActionRow()
+        .addComponents(
+            new MessageSelectMenu()
+                .setCustomId(id)
+                .setPlaceholder(placeholder)
+                .addOptions(arrOptions)
+        );
+    } 
+    
+}
+
+module.exports = {Color, Button, SelectMenus}
