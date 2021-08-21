@@ -267,6 +267,10 @@ class Properties {
 
 }
 
+class Mechanics {
+    
+}
+
 function introduction(id_guild,name){
     var objEmbed = new Discord.MessageEmbed({
         color:Properties.dataTsunagarusExecutivesCore[name].embed_color,
@@ -282,4 +286,4 @@ function introduction(id_guild,name){
 }
 
 
-module.exports = {Properties,introduction}
+module.exports = {Properties, Mechanics, introduction}

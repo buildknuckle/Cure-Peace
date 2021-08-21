@@ -726,26 +726,24 @@ class StatusEffect{
     }
 
     static async embedStatusEffectActivated(userUsername,userAvatarUrl,status_effect,statusType="buff",teamBattle=false){
-        var icon = "⬆️";//default icon
         var SEDescription = ""; var parTitle = "";
         var imgThumbnail = Properties.imgResponse.imgOk;
         switch(statusType){
             case "skills":
-                parTitle = `${icon} Skills Activated!`;
+                parTitle = `✨ Skills Activated!`;
                 SEDescription = `**${this.cureSkillsBuffData[status_effect].name}**:\n${this.cureSkillsBuffData[status_effect].description}`;
                 break;
             case "debuff":
-                icon = "⬇️";
-                parTitle = `${icon} Debuff inflicted!`;
+                parTitle = `💥 Debuff inflicted!`;
                 SEDescription = `**${this.debuffData[status_effect].name}**:\n${this.debuffData[status_effect].description}`;
                 imgThumbnail = Properties.imgResponse.imgFailed;
                 break;
             case "buff":
                 if(!teamBattle){
-                    parTitle = `${icon} Status Effect Activated!`;
+                    parTitle = `✨ Status Effect Activated!`;
                     SEDescription = `**${this.buffData[status_effect].name}**:\n${this.buffData[status_effect].description}`;
                 } else {
-                    parTitle = `${icon} Status Effect Activated!`;
+                    parTitle = `✨ Status Effect Activated!`;
                     SEDescription = `**${this.partyBuffData[status_effect].name}**:\n${this.partyBuffData[status_effect].description}`;
                 }
                 break;
@@ -3247,6 +3245,77 @@ class Battle{
         }
     }
 
+    static componentsSelectMenuCommand(enemyType){
+        switch(enemyType){
+            case TsunagarusModules.Properties.enemySpawnData.tsunagarus.chokkins.term:
+            case TsunagarusModules.Properties.enemySpawnData.tsunagarus.gizzagizza.term:
+            case TsunagarusModules.Properties.enemySpawnData.tsunagarus.chiguhaguu.term:
+            case TsunagarusModules.Properties.enemySpawnData.tsunagarus.dibosu.term:
+                return [
+                    DiscordStyles.SelectMenus.basic("card.battle_normal","Battle Command",
+                    [{
+                        label: `⚔️Fight`,
+                        description: `Attack the tsunagarus. CP Cost: 10 CP`,
+                        value:`fight`
+                    },
+                    {
+                        label: `✨Special attack`,
+                        description: `Unleash precure special attack. SP Cost: 100%`,
+                        value:`special`
+                    },
+                    {
+                        label: `⬆️Charge up`,
+                        description: `Charge up your special attack. CP Cost: 50 CP`,
+                        value:`charge`
+                    }])];
+                break;
+            case TsunagarusModules.Properties.enemySpawnData.tsunagarus.buttagiru.term:
+            case TsunagarusModules.Properties.enemySpawnData.tsunagarus.barabaran.term:
+                return [
+                    DiscordStyles.SelectMenus.basic("card.battle_boss","Team Battle Main Command",
+                    [{
+                        label: `⚔️Fight`,
+                        description: `Participate in team battle. CP Cost: 10 CP`,
+                        value:`fight`
+                    },
+                    {
+                        label: `🛡️Block`,
+                        description: `Block any offensive attack. CP Cost: 10 CP`,
+                        value:`block`
+                    },
+                    {
+                        label: `✨Special attack`,
+                        description: `Unleash your special attack. SP Cost: 100%`,
+                        value:`special`
+                    },
+                    {
+                        label: `💖Party special attack`,
+                        description: `Unleash party special attack. Party SP Cost: 100%`,
+                        value:`special_party`
+                    }]),
+
+                    DiscordStyles.SelectMenus.basic("card.battle_boss_scan","Team Battle Scan Command",
+                    [{
+                        label: `🔎Scan color`,
+                        description: `Scan color weaknesses for this enemy. PP Cost: 1`,
+                        value:`color`
+                    },
+                    {
+                        label: `🔎Scan type`,
+                        description: `Scan type weaknesses for this enemy. PP Cost: 1`,
+                        value:`type`
+                    },
+                    {
+                        label: `🔎Scan rarity`,
+                        description: `Scan rarity weaknesses for this enemy. PP Cost: 1`,
+                        value:`rarity`
+                    },
+                    ])
+                ];
+                break;
+        }
+    }
+
 }
 
 class Leveling {
@@ -3612,7 +3681,7 @@ class Embeds{
 
     static battleSpecialActivated(embedColor,userUsername,userAvatarUrl,packName,
         level_special,rewardsReceived){
-        return {
+        return new MessageEmbed({
             color: Properties.dataColorCore[embedColor].color,
             author: {
                 name: userUsername,
@@ -3633,11 +3702,11 @@ class Embeds{
             image:{
                 url:Properties.dataCardCore[packName].img_special_attack
             },
-        }
+        });
     }
 
     static teamBattleSpecialActivated(embedColor,userUsername,userAvatarUrl,seriesName,packName,teamName,rewardsReceived){
-        return {
+        return new MessageEmbed({
             color: Properties.dataColorCore[embedColor].color,
             author: {
                 name: userUsername,
@@ -3658,11 +3727,11 @@ class Embeds{
             image:{
                 url:Properties.seriesCardCore[seriesName].img_team_attack
             },
-        }
+        });
     }
 
     static teamBattleSpecialActivatedHitOne(embedColor,userUsername,userAvatarUrl,packName,rewardsReceived){
-        return {
+        return new MessageEmbed({
             color: Properties.dataColorCore[embedColor].color,
             author: {
                 name: userUsername,
@@ -3683,7 +3752,7 @@ class Embeds{
             image:{
                 url:Properties.dataCardCore[packName].img_special_attack
             },
-        }
+        });
     }
 
     static battleSpecialReady(userUsername,userAvatarUrl,individual=true){
@@ -3691,7 +3760,7 @@ class Embeds{
         if(!individual){
             txtDescription = `Your party special point has been fully charged!.`;
         }
-        return {
+        return new MessageEmbed({
             color: Properties.embedColor,
             author: {
                 name: userUsername,
@@ -3702,7 +3771,7 @@ class Embeds{
             thumbnail:{
                 url:Properties.imgResponse.imgOk
             }
-        }
+        });
     }
 
     static battleHitHpSuccess(embedColor,packName,userUsername,userAvatarUrl,txtDescription,txtBuffDebuff,txtReward,txtHp){
@@ -3733,7 +3802,7 @@ class Embeds{
             ]
         }
 
-        return objEmbed;
+        return new MessageEmbed(objEmbed);
     }
 
     static battleEnemyActions(enemyType,txtHeader,txtDescription,txtSpawnLink=""){
@@ -3753,7 +3822,7 @@ class Embeds{
             }
         }
 
-        return objEmbed;
+        return new MessageEmbed(objEmbed);
     }
 
     static battleEnemyActionsBlock(embedColor,packName,userUsername,userAvatarUrl,txtHeader,txtDescription){
@@ -3770,7 +3839,7 @@ class Embeds{
             description: `${txtDescription}`
         }
         
-        return objEmbed;
+        return new MessageEmbed(objEmbed);
     }
 
     static battleEnemyActionsPrepare(enemyType,txtHeader,txtDescription){
@@ -3783,7 +3852,7 @@ class Embeds{
             description: `${enemyType} will prepare: **${txtDescription}** for the next actions!`
         }
 
-        return objEmbed;
+        return new MessageEmbed(objEmbed);
     }
 
     static battleHitHpFail(embedColor,enemyType,userUsername,userAvatarUrl,txtHeader,txtDescription,txtHp){
@@ -3806,11 +3875,11 @@ class Embeds{
             ]
         }
 
-        return objEmbed;
+        return new MessageEmbed(objEmbed);
     }
 
     static battleWin(embedColor,userUsername,userAvatarUrl,packName,rewardsReceived){
-        return {
+        return new MessageEmbed({
             color: Properties.dataColorCore[embedColor].color,
             author: {
                 name: userUsername,
@@ -3831,7 +3900,7 @@ class Embeds{
             image:{
                 url:Properties.dataCardCore[packName].img_special_attack
             }
-        }
+        })
     }
 
     static battleLost(userUsername,userAvatarUrl,_description,rewardsReceived,debuff_data="",txtSpawnLink){
@@ -3869,11 +3938,11 @@ class Embeds{
             inline:true
         }
         
-        return objEmbed;
+        return new MessageEmbed(objEmbed);
     }
 
     static teamBattleWin(packName,seriesName,partyName,txtReward){
-        return {
+        return new MessageEmbed({
             color: Properties.embedColor,
             title: `Tsunagarus Defeated!`,
             thumbnail:{
@@ -3889,7 +3958,7 @@ class Embeds{
             image:{
                 url:Properties.seriesCardCore[seriesName].img_team_attack
             }
-        }
+        })
     }
 
     static teamBattleHit(embedColor,packName,userUsername,userAvatarUrl,txtDescription,txtBuffDebuff,txtReward,txtSpawnLink){
@@ -3920,7 +3989,7 @@ class Embeds{
             ]
         }
         
-        return objEmbed;
+        return new MessageEmbed(objEmbed);
     }
 
     static teamBattleLivesDown(embedColor,packName,userUsername,userAvatarUrl,txtReward){
@@ -3946,7 +4015,7 @@ class Embeds{
             }
         }
         
-        return objEmbed;
+        return new MessageEmbed(objEmbed);
     }
 
     static embedCardCaptureNew(embedColor,id_card,
@@ -5747,7 +5816,7 @@ async function generateCardSpawn(id_guild,specificType=null,overwriteToken = tru
             var enemyType = TsunagarusModules.Properties.enemySpawnData.tsunagarus.chokkins.term;//default enemy type
             var randomType = GlobalFunctions.randomNumber(0,10);
 
-            randomType = 1;//for debug purpose only
+            randomType = 7;//for debug purpose only
 
             if(specificType!=null&&
             (spawnData2==null||spawnData3==null)){
@@ -5777,12 +5846,14 @@ async function generateCardSpawn(id_guild,specificType=null,overwriteToken = tru
             //get random enemy
             var query = `SELECT * 
             FROM ${DBM_Card_Enemies.TABLENAME} 
+            WHERE ${DBM_Card_Enemies.columns.series}='heartcatch' 
             ORDER BY rand() LIMIT 1`;
             var enemyData = await DBConn.conn.promise().query(query);
             enemyData = enemyData[0][0];
             var spawnSeries = enemyData[DBM_Card_Enemies.columns.series];
 
             var spawnData = "";
+
             if(randomType>=10){
                 //barabaran
                 var query = `SELECT * 
@@ -6035,7 +6106,7 @@ async function generateCardSpawn(id_guild,specificType=null,overwriteToken = tru
                     url:TsunagarusModules.Properties.enemySpawnData.tsunagarus.dibosu.image
                 }
                 objEmbed.title = `Tsunagarus Lv.${lvR} has appeared!`;
-                objEmbed.description = `${GlobalFunctions.capitalize(enemyType)} has manifest the **series cure card** and possesses **${TsunagarusModules.Properties.enemySpawnData[spawnSeries].term}** powers!\n\n**Available Command:**\n⚔️ **p!card battle**: Participate in battle. (10 CP)\n✨ **p!card battle special**: Use the special attack.\n⬆️ **p!card battle charge**: Charge up your special attack. (20 CP)\n\n**Traits:**\n>Can attack\n>Weak against cure that can hit this monster type\n>Counter cure that has incorrect rarity\n>Counter cure with tricky color information`;
+                objEmbed.description = `${GlobalFunctions.capitalize(enemyType)} has manifest the **series cure card** and possesses **${TsunagarusModules.Properties.enemySpawnData[spawnSeries].term}** powers!\nDefeat it with your precure avatar to get the cure card!\n\n**Traits:**\n>Can attack\n>Weak against cure that can hit this monster type\n>Counter cure that has incorrect rarity\n>Counter cure with tricky color information`;
                 objEmbed.color = TsunagarusModules.Properties.enemySpawnData.tsunagarus[enemyType].embedColor;
                 objEmbed.fields = [
                     {
@@ -6053,6 +6124,7 @@ async function generateCardSpawn(id_guild,specificType=null,overwriteToken = tru
                         inline:true
                     }
                 ]
+                
 
                 //randomize the special allowance
                 var randAllowSpecial = GlobalFunctions.randomNumber(0,10);
@@ -6176,7 +6248,7 @@ async function generateCardSpawn(id_guild,specificType=null,overwriteToken = tru
                     url:TsunagarusModules.Properties.enemySpawnData.tsunagarus.buttagiru.image
                 }
                 objEmbed.title = `Tsunagarus Lv.${lvR} has appeared!`;
-                objEmbed.description = `It's a Big Monster! Team up to defeat the **${GlobalFunctions.capitalize(enemyType)}**! \n\n**p!card <command> List:**\n⚔️ **battle**: Participate in team battle (10 CP)\n✨ **battle special [party]**: Use the fully charged special attack/team attack\n🛡️ **battle block**: Counter/Block any offensive actions (10 CP)\n⬆️ **battle charge**: Charge up team special point (10 PP)\n🔍 **battle scan <info>**: Scan & Reveal <info> (1 PP)\n\n**Traits:**\n>Can attack & counter cure with HP<${lvR}\n>Counter cure that cannot hit this monster type\n>Counter cure that has less than ${txtRarity}⭐\n>Counter cure that cannot hit the color`;
+                objEmbed.description = `It's a Big Monster! Team up to defeat the **${GlobalFunctions.capitalize(enemyType)}**! \n\n**Traits:**\n>Can attack & counter cure with HP<${lvR}\n>Counter cure that cannot hit this monster type\n>Counter cure that has less than ${txtRarity}⭐\n>Counter cure that cannot hit the color`;
                 objEmbed.color = TsunagarusModules.Properties.enemySpawnData.tsunagarus[enemyType].embedColor;
 
                 objEmbed.fields = [
@@ -6314,7 +6386,7 @@ async function generateCardSpawn(id_guild,specificType=null,overwriteToken = tru
                     url:TsunagarusModules.Properties.enemySpawnData.tsunagarus.chiguhaguu.image
                 }
                 objEmbed.title = `Tsunagarus LvR. ${lvR} has appeared!`;
-                objEmbed.description = `${GlobalFunctions.capitalize(enemyType)} has the ${cardRewardData[DBM_Card_Data.columns.rarity]}⭐ cure card and possesses **${TsunagarusModules.Properties.enemySpawnData[cardDataSeriesWeakness[DBM_Card_Data.columns.series]].term}** powers!\n\n**Available Command:**\n⚔️ **p!card battle**: Participate in battle. (10 CP)\n✨ **p!card battle special**: Use the special attack.\n⬆️ **p!card battle charge**: Charge up your special attack. (20 CP)\n\n**Traits:**\n>Cannot attack\n>Counter cure that cannot hit this monster type\n>Counter cure that has less than ${randRarityMin}⭐\n>Counter cure with tricky catchphrase information`;
+                objEmbed.description = `${GlobalFunctions.capitalize(enemyType)} has the ${cardRewardData[DBM_Card_Data.columns.rarity]}⭐ cure card and possesses **${TsunagarusModules.Properties.enemySpawnData[cardDataSeriesWeakness[DBM_Card_Data.columns.series]].term}** powers!\nDefeat it with your precure avatar to get the cure card!\n\n**Traits:**\n>Cannot attack\n>Counter cure that cannot hit this monster type\n>Counter cure that has less than ${randRarityMin}⭐\n>Counter cure with tricky catchphrase information`;
                 objEmbed.color = TsunagarusModules.Properties.enemySpawnData.tsunagarus[enemyType].embedColor;
                 objEmbed.fields = [
                     {
@@ -6436,7 +6508,7 @@ async function generateCardSpawn(id_guild,specificType=null,overwriteToken = tru
                     url:TsunagarusModules.Properties.enemySpawnData.tsunagarus.gizzagizza.image
                 }
                 objEmbed.title = `Tsunagarus LvR. ${lvR} has appeared!`;
-                objEmbed.description = `${GlobalFunctions.capitalize(enemyType)} has the ${cardRewardData[DBM_Card_Data.columns.rarity]}⭐ cure card and possesses **${TsunagarusModules.Properties.enemySpawnData[spawnSeries].term}** powers!\n\n**Available Command:**\n⚔️ **p!card battle**: Participate in battle. (10 CP)\n✨ **p!card battle special**: Use the special attack.\n⬆️ **p!card battle charge**: Charge up your special attack. (20 CP)\n\n**Traits:**\n>Cannot attack\n>Counter cure that cannot hit this monster type\n>Counter cure that has less than ${randRarityMin}⭐\n>Counter cure with tricky color information`;
+                objEmbed.description = `${GlobalFunctions.capitalize(enemyType)} has the ${cardRewardData[DBM_Card_Data.columns.rarity]}⭐ cure card and possesses **${TsunagarusModules.Properties.enemySpawnData[spawnSeries].term}** powers!\nDefeat it with your precure avatar to get the cure card!\n\n**Traits:**\n>Cannot attack\n>Counter cure that cannot hit this monster type\n>Counter cure that has less than ${randRarityMin}⭐\n>Counter cure with tricky color information`;
                 objEmbed.color = TsunagarusModules.Properties.enemySpawnData.tsunagarus[enemyType].embedColor;
                 objEmbed.fields = [
                     {
@@ -6508,7 +6580,7 @@ async function generateCardSpawn(id_guild,specificType=null,overwriteToken = tru
                     url:TsunagarusModules.Properties.enemySpawnData.tsunagarus.chokkins.image
                 }
                 objEmbed.title = `Tsunagarus Lv. ${lvR} has appeared!`;
-                objEmbed.description = `${GlobalFunctions.capitalize(enemyType)} has the ${cardRewardData[DBM_Card_Data.columns.rarity]}⭐ cure card and possesses **${TsunagarusModules.Properties.enemySpawnData[spawnSeries].term}** powers!\n\n**Available Command:**\n⚔️ **p!card battle**: Participate in battle. (10 CP)\n✨ **p!card battle special**: Use the special attack.\n⬆️ **p!card battle charge**: Charge up your special attack. (20 CP)\n\n**Traits:**\n>Can attack\n>Weak against cure that can hit this monster type`;
+                objEmbed.description = `${GlobalFunctions.capitalize(enemyType)} has the ${cardRewardData[DBM_Card_Data.columns.rarity]}⭐ cure card and possesses **${TsunagarusModules.Properties.enemySpawnData[spawnSeries].term}** powers! Defeat it with your precure avatar to get the cure card!\n\n**Traits:**\n>Can attack\n>Weak against cure that can hit this monster type`;
                 objEmbed.color = TsunagarusModules.Properties.enemySpawnData.tsunagarus[enemyType].embedColor;
                 objEmbed.fields = [
                     {
@@ -6528,31 +6600,6 @@ async function generateCardSpawn(id_guild,specificType=null,overwriteToken = tru
                     }
                 ];
 
-                //select menu start
-                var arrOptions = [];
-                arrOptions.push(
-                    {
-                        label: `⚔️fight`,
-                        description: `Attack the chokkins. CP Cost: 10 CP`,
-                        value:`fight`
-                    },
-                    {
-                        label: `✨special attack`,
-                        description: `Unleash precure special attack.`,
-                        value:`special`
-                    },
-                    {
-                        label: `⬆️charge up`,
-                        description: `Charge up your special attack. CP Cost: 50 CP`,
-                        value:`charge`
-                    },
-                );
-
-                objFinalSend.components = [
-                    DiscordStyles.SelectMenus.basic("card.battle_normal","Battle Command",arrOptions)
-                ];
-                //select menu end
-
                 //randomize the special allowance
                 var randAllowSpecial = GlobalFunctions.randomNumber(0,10);
                 var dtAllowSpecial = `"${Properties.spawnData.battle.special_allow}":`;
@@ -6570,6 +6617,10 @@ async function generateCardSpawn(id_guild,specificType=null,overwriteToken = tru
 
                 spawnData = `{"${Properties.spawnData.battle.category}":"${TsunagarusModules.Properties.enemySpawnData.tsunagarus.category.normal}","${Properties.spawnData.battle.type}":"${enemyType}","${Properties.spawnData.battle.id_enemy}":"${enemyData[DBM_Card_Enemies.columns.id]}","${Properties.spawnData.battle.level}":${lvR},${dtColor},"${Properties.spawnData.battle.id_card_reward}":"${cardRewardData[DBM_Card_Data.columns.id_card]}",${dtAllowSpecial},${dtHp},"${Properties.spawnData.battle.damage_dealer}":{}}`;
             }
+
+            //select menu start
+            objFinalSend.components = Battle.componentsSelectMenuCommand(enemyType);
+            //select menu end
 
             parameterSet.set(DBM_Card_Guild.columns.spawn_data,spawnData);
             break;

@@ -328,7 +328,7 @@ module.exports = {
                         //check for daily quest if already requested/not
                         var objQuestData = "{";
                         requestedCards = ""; requestedRewards = "";
-                        //get 3 randomized card
+                        //get 4 randomized card
                         var query = `SELECT * FROM 
                         (
                             SELECT cd.${DBM_Card_Data.columns.id_card},cd.${DBM_Card_Data.columns.name},cd.${DBM_Card_Data.columns.pack},cd.${DBM_Card_Data.columns.rarity},idat.${DBM_Item_Data.columns.id} as id_item,idat.${DBM_Item_Data.columns.name} as item_name 
@@ -336,16 +336,16 @@ module.exports = {
                                 WHERE cd.${DBM_Card_Data.columns.rarity}<=? AND 
                                 idat.${DBM_Item_Data.columns.category} in ('card','ingredient','ingredient_rare') 
                                 GROUP BY cd.${DBM_Card_Data.columns.id_card},idat.${DBM_Item_Data.columns.id} 
-                                ORDER BY rand() LIMIT 3 
+                                ORDER BY rand() LIMIT 4 
                         ) T1 
                         ORDER BY T1.rarity`;
-                        var randomizedCardData = await DBConn.conn.promise().query(query, [4]);
+                        var randomizedCardData = await DBConn.conn.promise().query(query, [3]);
                         
                         randomizedCardData[0].forEach(entry => {
                             // idCard+=`${entry[DBM_Card_Data.columns.id_card]},`;
                             objQuestData+=`"${entry[DBM_Card_Data.columns.id_card]}":"${entry["id_item"]}",`;
                             //randomize the reward:
-                            requestedCards+=`-**[${entry[DBM_Card_Data.columns.pack]}] ${entry[DBM_Card_Data.columns.id_card]}** - ${GlobalFunctions.cutText(entry[DBM_Card_Data.columns.name],23)}\n`;
+                            requestedCards+=`-**[${entry[DBM_Card_Data.columns.pack]}] ${entry[DBM_Card_Data.columns.id_card]}** - ${GlobalFunctions.cutText(entry[DBM_Card_Data.columns.name],12)}\n`;
                             requestedRewards+=`**${entry["id_item"]}**: ${GlobalFunctions.cutText(entry["item_name"],12)} & ${CardModule.Quest.getQuestReward(entry[DBM_Card_Data.columns.rarity])} MC&SP\n`;
                         });
     
@@ -387,7 +387,7 @@ module.exports = {
                             var ctr = 0;//for item data
                             for(var key in cardData[0]){
                                 var entry = cardData[0][key];
-                                requestedCards+=`-**[${entry[DBM_Card_Data.columns.pack]}] ${entry[DBM_Card_Data.columns.id_card]}** - ${GlobalFunctions.cutText(entry[DBM_Card_Data.columns.name],23)}\n`;
+                                requestedCards+=`-**[${entry[DBM_Card_Data.columns.pack]}] ${entry[DBM_Card_Data.columns.id_card]}** - ${GlobalFunctions.cutText(entry[DBM_Card_Data.columns.name],17)}\n`;
     
                                 //get the item reward
                                 var itemData = await ItemModule.getItemData(arrItemReward[ctr]); ctr++;
