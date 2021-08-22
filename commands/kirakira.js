@@ -298,7 +298,7 @@ module.exports = {
                 }
                 await interaction.reply({embeds:[
                     new MessageEmbed(KirakiraModule.Embeds.synthesizeComplete(userUsername,userAvatarUrl,foodData[DBM_Item_Data.columns.id],foodData[DBM_Item_Data.columns.name],foodData[DBM_Item_Data.columns.description],qty,imgUrl))
-                ]});
+                ],ephemeral:true});
                 break;
         }
 

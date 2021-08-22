@@ -39,6 +39,7 @@ module.exports = {
 
 		switch(commandSubcommand){
 			case "search":
+				await interaction.deferReply();
 				var imageUrl = interaction.options._hoistedOptions[0].value;
 				var url = `https://api.trace.moe/search?url=${imageUrl}`;
 				options = {
@@ -75,7 +76,7 @@ module.exports = {
 	
 						//anilist start:
 						var query = `query ($idsearch: Int) {
-						Media (id: $idsearch, sort: SEARCH_MATCH, type: ANIME, isAdult:false) {
+						Media (id: $idsearch, sort: SEARCH_MATCH, type: ANIME) {
 							id
 							description
 							staff(perPage:6){
@@ -95,6 +96,7 @@ module.exports = {
 							english
 							native
 							}
+							isAdult
 							bannerImage
 							siteUrl
 						}
@@ -115,13 +117,45 @@ module.exports = {
 							})
 						};
 		
-						objEmbed.title = topResult.filename,20;
 						await fetch(urlAnilist, options).then(handleResponse)
 						.then(async function handleData(dtAnilist) {
-							objEmbed.author.iconURL = dtAnilist.data.Media.bannerImage;
-							objEmbed.title = dtAnilist.data.Media.title.romaji;
-							objEmbed.description = GlobalFunctions.cutText(GlobalFunctions.markupCleaner(dtAnilist.data.Media.description),150);
-							objEmbed.description+=`\n\n[View more on Anilist](https://anilist.co/anime/${topResult.anilist})`;
+							if(!dtAnilist.data.Media.isAdult){
+								objEmbed.title = topResult.filename,20;
+								objEmbed.author.iconURL = dtAnilist.data.Media.bannerImage;
+								objEmbed.title = dtAnilist.data.Media.title.romaji;
+								objEmbed.description = GlobalFunctions.cutText(GlobalFunctions.markupCleaner(dtAnilist.data.Media.description),150);
+								objEmbed.description+=`\n\n[View more on Anilist](https://anilist.co/anime/${topResult.anilist})`;
+								
+								var fromText = new Date(Math.round(topResult.from) * 1000).toISOString().substr(14, 5);
+								var toText = new Date(Math.round(topResult.to) * 1000).toISOString().substr(14, 5);
+								objEmbed.fields = [
+									{
+										name:`Episode:`,
+										value:`${String(topResult.episode)}`,
+										inline:true
+									},
+									{
+										name:`From:`,
+										value:`${String(fromText)}`,
+										inline:true
+									},
+									{
+										name:`To:`,
+										value:`${String(toText)}`,
+										inline:true
+									}
+								];
+			
+								objEmbed.thumbnail = {
+									url:topResult.image
+								}
+		
+								objEmbed.image = {
+									url:`https://img.anili.st/media/${topResult.anilist}`
+								}
+							} else {
+								objEmbed.description = ":x: I can't find that title.";
+							}
 						})
 						.catch(async function handleError(errorAnilist) {
 							// console.error(errorAnilist);
@@ -129,44 +163,15 @@ module.exports = {
 						});
 						//anilist end
 	
-						var fromText = new Date(Math.round(topResult.from) * 1000).toISOString().substr(14, 5);
-						var toText = new Date(Math.round(topResult.to) * 1000).toISOString().substr(14, 5);
-						
-						objEmbed.fields = [
-							{
-								name:`Episode:`,
-								value:`${String(topResult.episode)}`,
-								inline:true
-							},
-							{
-								name:`From:`,
-								value:`${String(fromText)}`,
-								inline:true
-							},
-							{
-								name:`To:`,
-								value:`${String(toText)}`,
-								inline:true
-							}
-						];
-	
-						objEmbed.thumbnail = {
-							url:topResult.image
-						}
-
-						objEmbed.image = {
-							url:`https://img.anili.st/media/${topResult.anilist}`
-						}
-	
-						return interaction.reply({embeds:[new MessageEmbed(objEmbed)]});
+						return interaction.editReply({embeds:[new MessageEmbed(objEmbed)]});
 					})
 					.catch(async function handleError(err) {
-						return await interaction.reply({content:err.error});
+						return await interaction.editReply({content:err.error});
 						// return await interaction.reply(`:x: Error on searching the image.`);
 					});
 				} catch(err){
 					// console.log(err);
-					// return await interaction.reply(`:x: Error on searching the image. Please try again or wait for a while.`);
+					return await interaction.reply(`:x: Error on searching the image. Please try again or wait for cooldown.`);
 				}
 
 				break;

@@ -5280,7 +5280,7 @@ async function generateCardSpawn(id_guild,specificType=null,overwriteToken = tru
     }
 
     //for debugging purpose:
-    cardSpawnType = "battle";
+    // cardSpawnType = "normal";
 
     var query = "";
     //prepare the embed object
@@ -5816,7 +5816,7 @@ async function generateCardSpawn(id_guild,specificType=null,overwriteToken = tru
             var enemyType = TsunagarusModules.Properties.enemySpawnData.tsunagarus.chokkins.term;//default enemy type
             var randomType = GlobalFunctions.randomNumber(0,10);
 
-            randomType = 7;//for debug purpose only
+            // randomType = 10;//for debug purpose only
 
             if(specificType!=null&&
             (spawnData2==null||spawnData3==null)){
@@ -5846,7 +5846,6 @@ async function generateCardSpawn(id_guild,specificType=null,overwriteToken = tru
             //get random enemy
             var query = `SELECT * 
             FROM ${DBM_Card_Enemies.TABLENAME} 
-            WHERE ${DBM_Card_Enemies.columns.series}='heartcatch' 
             ORDER BY rand() LIMIT 1`;
             var enemyData = await DBConn.conn.promise().query(query);
             enemyData = enemyData[0][0];
@@ -5988,7 +5987,7 @@ async function generateCardSpawn(id_guild,specificType=null,overwriteToken = tru
                     url:TsunagarusModules.Properties.enemySpawnData.tsunagarus.barabaran.image
                 }
                 objEmbed.title = `Lets settle this down shall we?`;
-                objEmbed.description = `Team up to defeat the **${GlobalFunctions.capitalize(enemyType)}**! \n\n**p!card <command> List:**\n⚔️ **battle**: Participate in team battle (10 CP)\n✨ **battle special [party]**: Use the fully charged special attack/team attack\n🛡️ **battle block**: Counter/Block any offensive actions (10 CP)\n⬆️ **battle charge**: Charge up team special point (10 PP)\n🔍 **battle scan <info>**: Scan & Reveal <info> (1 PP)\n\n**Traits:**\n>Can attack & counter cure with HP<${lvR}\n>Counter cure that doesn't possess its elemental weakness\n>Counter cure that has less than ${txtRarity}⭐\n>Counter cure that cannot hit the color`;
+                objEmbed.description = `Team up to defeat **${GlobalFunctions.capitalize(enemyType)}**!\n\n**Traits:**\n>Can attack & counter cure with HP<${lvR}\n>Counter cure that doesn't possess its elemental weakness\n>Counter cure that has less than ${txtRarity}⭐\n>Counter cure that cannot hit the color`;
                 objEmbed.color = TsunagarusModules.Properties.enemySpawnData.tsunagarus[enemyType].embedColor;
 
                 objEmbed.fields = [
@@ -6248,7 +6247,7 @@ async function generateCardSpawn(id_guild,specificType=null,overwriteToken = tru
                     url:TsunagarusModules.Properties.enemySpawnData.tsunagarus.buttagiru.image
                 }
                 objEmbed.title = `Tsunagarus Lv.${lvR} has appeared!`;
-                objEmbed.description = `It's a Big Monster! Team up to defeat the **${GlobalFunctions.capitalize(enemyType)}**! \n\n**Traits:**\n>Can attack & counter cure with HP<${lvR}\n>Counter cure that cannot hit this monster type\n>Counter cure that has less than ${txtRarity}⭐\n>Counter cure that cannot hit the color`;
+                objEmbed.description = `It's a Big Monster! Team up to defeat **${GlobalFunctions.capitalize(enemyType)}**! \n\n**Traits:**\n>Can attack & counter cure with HP<${lvR}\n>Counter cure that cannot hit this monster type\n>Counter cure that has less than ${txtRarity}⭐\n>Counter cure that cannot hit the color`;
                 objEmbed.color = TsunagarusModules.Properties.enemySpawnData.tsunagarus[enemyType].embedColor;
 
                 objEmbed.fields = [

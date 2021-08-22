@@ -543,7 +543,8 @@ module.exports = {
                     }
                 }
                 
-                return interaction.reply({embeds:[new MessageEmbed(objEmbed)]});
+                await interaction.reply({embeds:[new MessageEmbed(objEmbed)],ephemeral:true});
+                return;
                 break;
             case "shop":
                 var userCardData = await CardModule.getCardUserStatusData(userId);
