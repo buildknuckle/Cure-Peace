@@ -47,7 +47,7 @@ class DBM_Card_User_Data {
         sp013: "sp013",
         sp014: "sp014",
         sp015: "sp015",
-        battle_points: "battle_points",
+        wish_data: "wish_data",
         newbie_reward_claim: "newbie_reward_claim",
         hp: "hp",
         created_at: "created_at",

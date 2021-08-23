@@ -954,7 +954,7 @@ class Properties{
             total:102,
             skills:{
                 1:{
-                    cp_cost:100,
+                    cp_cost:500,
                     buff_data:StatusEffect.cureSkillsBuffData.reward_booster
                 }
             }
