@@ -50,25 +50,8 @@ module.exports = {
                 var channelExists = guild.channels.cache.find(ch => ch.id === cardGuildData[DBM_Card_Guild.columns.id_channel_spawn])
                 if(channelExists){
 
-                    await CardGuildModules.updateCardSpawnInstance(guild.id,guild);
-
-                    // CardGuildModules.arrTimerCardSpawn[guild.id] = setInterval(async function intervalCardSpawn() {
-                    //     var objEmbed = await CardModules.generateCardSpawn(guild.id);
-                    //     //check if cardcatcher role exists/not
-                    //     var sendParam = {embeds:[objEmbed]};
-                    //     if(cardGuildData[DBM_Card_Guild.columns.id_cardcatcher]!=null){
-                    //         sendParam.content = `<@&${cardGuildData[DBM_Card_Guild.columns.id_cardcatcher]}>`;
-                    //     }
-    
-                    //     var msgObject = await guild.channels.cache.find(ch => ch.id === cardGuildData[DBM_Card_Guild.columns.id_channel_spawn])
-                    //     .send(sendParam);
-                    //     //update the last message id
-                    //     await CardModules.updateMessageIdSpawn(guild.id,msgObject.id);
-    
-                    // }, parseInt(cardGuildData[DBM_Card_Guild.columns.spawn_interval])*60*1000);
+                    await CardGuildModules.initCardSpawnInstance(guild.id,guild);
                 }
-                //update the time remaining information:
-                // await CardGuildModules.updateTimerRemaining(guild.id);
             }
             
         });

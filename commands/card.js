@@ -3378,12 +3378,14 @@ module.exports = {
                     mipple:{
                         color:"#FAF0FB",
                         imgOk:"https://cdn.discordapp.com/attachments/879277780599210005/879278899027132436/mipple_happy.png",
-                        imgFailed:"https://cdn.discordapp.com/attachments/879277780599210005/879278935974764584/mipple_sad.png"
+                        imgFailed:"https://cdn.discordapp.com/attachments/879277780599210005/879278935974764584/mipple_sad.png",
+                        textPhrase:"Mipple"
                     },
                     mepple:{
                         color:"#FFFAC7",
                         imgOk:"https://cdn.discordapp.com/attachments/879277780599210005/879278983559139389/mepple_happy.png",
-                        imgFailed:"https://cdn.discordapp.com/attachments/879277780599210005/879279017382014996/mepple_sad.png"
+                        imgFailed:"https://cdn.discordapp.com/attachments/879277780599210005/879279017382014996/mepple_sad.png",
+                        textPhrase:"Mepple"
                     }
                 }
 
@@ -3484,15 +3486,15 @@ module.exports = {
                     objEmbed.thumbnail = {
                         url:embedData.imgOk
                     }
-                    objEmbed.title = `Card Wished Up!`;
-                    objEmbed.description = `🌠 Your **${cardData[DBM_Card_Data.columns.name]}** has been wished up! You have received another duplicate of this card.`;
+                    objEmbed.title = `Card Wished Up Successfully!`;
+                    objEmbed.description = `🌠 ${embedData.textPhrase}! Your **${cardData[DBM_Card_Data.columns.name]}** has been wished up! You have received another duplicate of this card.`;
                 } else {
                     //fail
                     objEmbed.thumbnail = {
                         url:embedData.imgFailed
                     }
-                    objEmbed.title = `Card Wish Failed...`;
-                    objEmbed.description = `:x: Sorry, the wishing process for **${cardData[DBM_Card_Data.columns.name]}** has failed this time.`;
+                    objEmbed.title = `Card Wishing Has Failed`;
+                    objEmbed.description = `:x: ${embedData.textPhrase}... Sorry, the wishing process for **${cardData[DBM_Card_Data.columns.name]}** has failed this time.`;
                 }
 
                 //reload card user data & update wish data

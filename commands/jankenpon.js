@@ -30,7 +30,7 @@ module.exports = {
         },
         {
             name: "score",
-            description: "Peace will tell Rock-Paper-Score!",
+            description: "Peace will shows the Rock-Paper-Score scoreboard!",
             type: 3,
             required:false,
             choices: [
