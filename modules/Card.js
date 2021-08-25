@@ -761,7 +761,6 @@ class StatusEffect{
             description: SEDescription,
         })
     }
-
 }
 
 class Properties{
@@ -3112,301 +3111,11 @@ class Properties{
 
 }
 
-class PrecureStarTwinkleCore{
-    static fuwaConstellationData = {
-        aries:{
-            name:"Aries Fuwa",
-            img_url:["https://cdn.discordapp.com/attachments/841371817704947722/841519710062247936/image0.png","https://cdn.discordapp.com/attachments/841371817704947722/841519710285332490/image1.png"]
-        },
-        taurus:{
-            name:"Taurus Fuwa",
-            img_url:["https://cdn.discordapp.com/attachments/841371817704947722/841519957682552832/image0.png","https://cdn.discordapp.com/attachments/841371817704947722/841519957934342144/image1.png"]
-        },
-        gemini:{
-            name:"Gemini Fuwa",
-            img_url:[
-                "https://cdn.discordapp.com/attachments/841371817704947722/841520642935226388/image0.png","https://cdn.discordapp.com/attachments/841371817704947722/841520643178889246/image1.png"
-            ]
-        },
-        cancer:{
-            name:"Cancer Fuwa",
-            img_url:[
-                "https://cdn.discordapp.com/attachments/841371817704947722/841521681398497320/image0.png","https://cdn.discordapp.com/attachments/841371817704947722/841521681628528680/image1.png"
-            ]
-        },
-        leo:{
-            name:"Leo Fuwa",
-            img_url:[
-                "https://cdn.discordapp.com/attachments/841371817704947722/841522187881414706/image0.png","https://cdn.discordapp.com/attachments/841371817704947722/841522188099780628/image1.png"
-            ]
-        },
-        virgo:{
-            name:"Virgo Fuwa",
-            img_url:[
-                "https://cdn.discordapp.com/attachments/841371817704947722/841523045402279956/image0.png","https://cdn.discordapp.com/attachments/841371817704947722/841523045638471710/image1.png"
-            ]
-        },
-        libra:{
-            name:"Libra Fuwa",
-            img_url:[
-                "https://cdn.discordapp.com/attachments/841371817704947722/841524914317951086/image0.png","https://cdn.discordapp.com/attachments/841371817704947722/841524914543788053/image1.png"
-            ]
-        },
-        scorpio:{
-            name:"Scorpio Fuwa",
-            img_url:[
-                "https://cdn.discordapp.com/attachments/841371817704947722/841525434931085332/image0.png","https://cdn.discordapp.com/attachments/841371817704947722/841525435221016586/image1.png"
-            ]
-        },
-        sagittarius:{
-            name:"Sagittarius Fuwa",
-            img_url:[
-                "https://cdn.discordapp.com/attachments/841371817704947722/841525834703437835/image0.png","https://cdn.discordapp.com/attachments/841371817704947722/841525835013423134/image1.png"
-            ]
-        },
-        capricorn:{
-            name:"Capricorn Fuwa",
-            img_url:[
-                "https://cdn.discordapp.com/attachments/841371817704947722/841526112294797312/image0.png","https://cdn.discordapp.com/attachments/841371817704947722/841526112533741588/image1.png"
-            ]
-        },
-        aquarius:{
-            name:"Aquarius Fuwa",
-            img_url:[
-                "https://cdn.discordapp.com/attachments/841371817704947722/841526881769881630/image0.png","https://cdn.discordapp.com/attachments/841371817704947722/841526881987723284/image1.png"
-            ]
-        },
-        pisces:{
-            name:"Pisces Fuwa",
-            img_url:[
-                "https://cdn.discordapp.com/attachments/841371817704947722/841527139165798400/image0.png","https://cdn.discordapp.com/attachments/841371817704947722/841527139496099850/image1.png"
-            ]
-        }
-    }
-}
+const Battle = require('../modules/Card/Battle');
 
-class Battle{
-    //contain the values of battle type
-    static type = {
-        normal:"normal",//tsunagarus
-        raid:"raid"//not implemented yet but for upcoming updates
-    }
+const Leveling = require('../modules/Card/Leveling');
 
-    static async getEnemyData(id_enemy){
-        var parameterWhere = new Map();
-        parameterWhere.set(DBM_Card_Enemies.columns.id,id_enemy);
-        var result = await DB.select(DBM_Card_Enemies.TABLENAME,parameterWhere);
-        return result[0][0];
-    }
-
-    static embedBossViewer(enemy_type,level,color_lives,type,rarity,atk,hp,_special_protection){
-        var special_protection = "❌";
-        
-        if(_special_protection){
-            special_protection = `✅`;
-        }
-
-        return {
-            color: TsunagarusModules.Properties.enemySpawnData.tsunagarus[enemy_type].embedColor,
-            author: {
-                name: userUsername,
-                icon_url: userAvatarUrl
-            },
-            title: `Tsunagarus Lv.${level}`,
-            description: transformQuotes,
-            fields:[
-                {
-                    name:`Color Lives:`,
-                    value:color_lives,
-                    inline:true
-                },
-                {
-                    name:`Enemy Type:`,
-                    value:type,
-                    inline:true
-                },
-                {
-                    name:`Min. Rarity:`,
-                    value:rarity,
-                    inline:true
-                },
-                {
-                    name:`Party Atk:`,
-                    value:atk,
-                    inline:true
-                }
-            ],
-            image:{
-                url:TsunagarusModules.Properties.enemySpawnData.tsunagarus[enemy_type].image
-            },
-            footer:{
-                text:`Special Protection: ${special_protection}`
-            }
-        }
-    }
-
-    static componentsSelectMenuCommand(enemyType){
-        switch(enemyType){
-            case TsunagarusModules.Properties.enemySpawnData.tsunagarus.chokkins.term:
-            case TsunagarusModules.Properties.enemySpawnData.tsunagarus.gizzagizza.term:
-            case TsunagarusModules.Properties.enemySpawnData.tsunagarus.chiguhaguu.term:
-            case TsunagarusModules.Properties.enemySpawnData.tsunagarus.dibosu.term:
-                return [
-                    DiscordStyles.SelectMenus.basic("card.battle_normal","Battle Command",
-                    [{
-                        label: `⚔️Fight`,
-                        description: `Attack the tsunagarus. CP Cost: 10 CP`,
-                        value:`fight`
-                    },
-                    {
-                        label: `✨Special attack`,
-                        description: `Unleash precure special attack. SP Cost: 100%`,
-                        value:`special`
-                    },
-                    {
-                        label: `⬆️Charge up`,
-                        description: `Charge up your special attack. CP Cost: 50 CP`,
-                        value:`charge`
-                    }])];
-                break;
-            case TsunagarusModules.Properties.enemySpawnData.tsunagarus.buttagiru.term:
-            case TsunagarusModules.Properties.enemySpawnData.tsunagarus.barabaran.term:
-                return [
-                    DiscordStyles.SelectMenus.basic("card.battle_boss","Team Battle Main Command",
-                    [{
-                        label: `⚔️Fight`,
-                        description: `Participate in team battle. CP Cost: 10 CP`,
-                        value:`fight`
-                    },
-                    {
-                        label: `🛡️Block`,
-                        description: `Block any offensive attack. CP Cost: 10 CP`,
-                        value:`block`
-                    },
-                    {
-                        label: `✨Special attack`,
-                        description: `Unleash your special attack. SP Cost: 100%`,
-                        value:`special`
-                    },
-                    {
-                        label: `💖Party special attack`,
-                        description: `Unleash party special attack. Party SP Cost: 100%`,
-                        value:`special_party`
-                    }]),
-
-                    DiscordStyles.SelectMenus.basic("card.battle_boss_scan","Team Battle Scan Command",
-                    [{
-                        label: `🔎Scan color`,
-                        description: `Scan color weaknesses for this enemy. PP Cost: 1`,
-                        value:`color`
-                    },
-                    {
-                        label: `🔎Scan type`,
-                        description: `Scan type weaknesses for this enemy. PP Cost: 1`,
-                        value:`type`
-                    },
-                    {
-                        label: `🔎Scan rarity`,
-                        description: `Scan rarity weaknesses for this enemy. PP Cost: 1`,
-                        value:`rarity`
-                    },
-                    ])
-                ];
-                break;
-        }
-    }
-
-}
-
-class Leveling {
-    // 1 star was Lv.20, 2 star was Lv.25, 3 star was Lv.35, 4 star and Cure Cards was Lv.40 and 5 star and Premium Cure Cards was Lv.50
-    static getMaxLevel(rarity){
-        switch(rarity){
-            case 1:
-                return 20;
-                break;
-            case 2:
-                return 25;
-                break;
-            case 3:
-                return 35;
-                break;
-            case 4:
-                return 40;
-                break;
-            default:
-                return 50;
-                break;
-        }
-    }
-
-    static getNextCardExp(level,qty=1){
-        var tempExp = 0;
-        if(qty<=1){
-            tempExp+=(level+1)*10;
-        } else {
-            //parameter:3: level 1->4
-            for(var i=0;i<qty;i++){
-                tempExp+=(level+1)*10;
-                level+=1;
-            }
-        }
-        
-        return tempExp;
-    }
-
-    static getNextCardSpecialTotal(level){
-        //get the card stock requirement to level up the specials
-        switch(level){
-            case 1:
-                return 1;
-            case 2:
-                return 2;
-            default:
-                return 4;
-        }
-    }
-    
-}
-
-class Shop {
-    static async embedShopList() {
-        var itemList = ""; var itemList2 = ""; var itemList3 = "";
-        var result = await DB.selectAll(DBM_Item_Data.TABLENAME);
-        result[0].forEach(item => {
-            itemList += `**${item[DBM_Item_Data.columns.id]}** - ${item[DBM_Item_Data.columns.name]}\n`
-            itemList2 += `${item[DBM_Item_Data.columns.price_mofucoin]}\n`;
-            itemList3 += `${item[DBM_Item_Data.columns.description]}\n`;
-        });
-
-        return {
-            color: Properties.embedColor,
-            author: {
-                name: "Mofu shop",
-                icon_url: "https://waa.ai/JEwn.png"
-            },
-            title: `Item Shop List:`,
-            description: `Welcome to Mofushop! Here are the available item list that you can purchase:\nUse **p!card shop buy <item id> [qty]** to purchase the item.`,
-            fields:[
-                {
-                    name:`ID - Name:`,
-                    value:itemList,
-                    inline:true
-                },
-                {
-                    name:`Price (MC):`,
-                    value:itemList2,
-                    inline:true
-                },
-                {
-                    name:`Description`,
-                    value:itemList3,
-                    inline:true
-                }
-            ],
-        }
-    }
-}
+const Shop = require('../modules/Card/Shop');
 
 class Status {
     static getHp(level,base_hp){
@@ -3511,81 +3220,13 @@ class Status {
 
 }
 
-class Skills {
-    static skillCoreData = {
-        card_duplicator: {
-            cp_cost:100
-        },
-        atk_boost_s: {
-            cp_cost:30
-        },
-        hp_boost_s: {
-            cp_cost:30
-        },
-        rarity_boost_s: {
-            cp_cost:30
-        },
-        recover:{
-            cp_cost:20
-        }
-    }
-}
+const Skills = require('../modules/Card/Skills');
 
-class TradeBoard {
-    static async getTradeboardData(id_guild,id_user){
-        var parameterWhere = new Map();
-        parameterWhere.set(DBM_Card_Tradeboard.columns.id_guild,id_guild);
-        parameterWhere.set(DBM_Card_Tradeboard.columns.id_user,id_user);
-        var resultCheckExist = await DB.select(DBM_Card_Tradeboard.TABLENAME,parameterWhere);
-        if(resultCheckExist[0][0]==null){
-            //insert if not found
-            var parameter = new Map();
-            parameter.set(DBM_Card_Tradeboard.columns.id_guild,id_guild);
-            parameter.set(DBM_Card_Tradeboard.columns.id_user,id_user);
-            await DB.insert(DBM_Card_Tradeboard.TABLENAME,parameter);
-            //reselect after insert new data
-            parameterWhere = new Map();
-            parameterWhere.set(DBM_Card_Tradeboard.columns.id_guild,id_guild);
-            parameterWhere.set(DBM_Card_Tradeboard.columns.id_user,id_user);
-            var resultCheckExist = await DB.select(DBM_Card_Tradeboard.TABLENAME,parameterWhere);
-            return await resultCheckExist[0][0];
-        } else {
-            return await resultCheckExist[0][0];
-        }
-    }
+const TradeBoard = require('../modules/Card/TradeBoard');
 
-    static async removeListing(id_guild,id_user){
-        var parameterSet = new Map();
-        parameterSet.set(DBM_Card_Tradeboard.columns.id_card_want,null);
-        parameterSet.set(DBM_Card_Tradeboard.columns.id_card_have,null);
-        parameterSet.set(DBM_Card_Tradeboard.columns.last_update,null);
-        var parameterWhere = new Map();
-        parameterWhere.set(DBM_Card_Tradeboard.columns.id_guild,id_guild);
-        parameterWhere.set(DBM_Card_Tradeboard.columns.id_user,id_user);
-        await DB.update(DBM_Card_Tradeboard.TABLENAME,parameterSet,parameterWhere);
-    }
-}
+const Quest = require('../modules/Card/Quest');
 
-class Quest {
-    static questData = {
-        last_daily_quest:"last_daily_quest",
-        dataQuest:"dataQuest"
-    }
-
-    static async setQuestData(idUser,objReward){
-        var todayDate = new Date().getDate();
-        var questData = `{"${this.questData.last_daily_quest}":${todayDate},"${this.questData.dataQuest}":${objReward}}`;
-        var parameterSet = new Map();
-        parameterSet.set(DBM_Card_User_Data.columns.daily_quest,questData);
-        var parameterWhere = new Map();
-        parameterWhere.set(DBM_Card_User_Data.columns.id_user,idUser);
-        await DB.update(DBM_Card_User_Data.TABLENAME,parameterSet,parameterWhere);
-    }
-
-    static getQuestReward(cardRarity){
-        return cardRarity*30;
-    }
-}
+const PrecureStarTwinkleCore = require('../modules/Card/PrecureStarTwinkleCore');
 
 class Embeds{
     static precureAvatarView(embedColor,userUsername,userAvatarUrl,packName,
@@ -4341,50 +3982,7 @@ class Party {
 
 }
 
-class Title {
-    static cardTitleData = {
-        card_master: {
-            value:"card_master",
-            name:"Card Master",
-            description:"Complete all precure card."
-        },
-        master_of_pink: {
-            value:"master_of_pink",
-            name:"Master of Pink",
-            description:"Complete all pink precure card list."
-        },
-        master_of_yellow: {
-            value:"master_of_yellow",
-            name:"Master of Yellow",
-            description:"Complete all yellow precure card list."
-        },
-        master_of_green: {
-            value:"master_of_green",
-            name:"Master of Green",
-            description:"Complete all green precure card list."
-        },
-        master_of_blue: {
-            value:"master_of_blue",
-            name:"Master of Blue",
-            description:"Complete all blue precure card list."
-        },
-        master_of_purple: {
-            value:"master_of_purple",
-            name:"Master of Purple",
-            description:"Complete all purple precure card list."
-        },
-        master_of_red: {
-            value:"master_of_red",
-            name:"Master of Red",
-            description:"Complete all red precure card list."
-        },
-        master_of_white: {
-            value:"master_of_white",
-            name:"Master of White",
-            description:"Complete all white precure card list."
-        },
-    }
-}
+const Title = require('../modules/Card/Title');
 
 //get 1 card data
 async function getAllCardDataByPack(card_pack){
@@ -4630,6 +4228,7 @@ function embedCardDetail(embedColor,id_card,packName,
     return new MessageEmbed(objEmbed);
 }
 
+//deprecated
 const embedBioPackList = {
     color: Properties.embedColor,
     title : `Character List`,
@@ -4670,6 +4269,7 @@ const embedBioPackList = {
     }]
 }
 
+//deprecated
 const embedCardPackList = {
     color: Properties.embedColor,
     title : `Card Pack List`,
@@ -5280,7 +4880,7 @@ async function generateCardSpawn(id_guild,specificType=null,overwriteToken = tru
     }
 
     //for debugging purpose:
-    // cardSpawnType = "normal";
+    cardSpawnType = "normal";
 
     var query = "";
     //prepare the embed object
@@ -6627,7 +6227,8 @@ async function generateCardSpawn(id_guild,specificType=null,overwriteToken = tru
             //get 1 card id
             query = `SELECT * 
             FROM ${DBM_Card_Data.TABLENAME} 
-            WHERE ${DBM_Card_Data.columns.rarity}<=? 
+            WHERE ${DBM_Card_Data.columns.rarity}<=? AND 
+            series='yes! precure 5 gogo!'
             ORDER BY RAND() LIMIT 1`;
             var resultData = await DBConn.conn.promise().query(query,[3]); //for testing only
             var cardSpawnId = resultData[0][0][DBM_Card_Data.columns.id_card];
@@ -6677,7 +6278,7 @@ async function generateCardSpawn(id_guild,specificType=null,overwriteToken = tru
                         }
                     );
 
-                    tempSend.push(DiscordStyles.Button.basic("card.catch_pinky","🦋Catch!","PRIMARY"));
+                    tempSend.push(DiscordStyles.Button.basic("pinky.catch_pinky","🦋Catch!","PRIMARY"));
                     
                     objEmbed.thumbnail = {
                         url:resultDataPinky[0][0][DBM_Pinky_Data.columns.img_url]

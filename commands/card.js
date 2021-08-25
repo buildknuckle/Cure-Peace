@@ -7572,8 +7572,6 @@ module.exports = {
 
                 }
                 break;
-            case "":
-                break;
         }
     }
 };

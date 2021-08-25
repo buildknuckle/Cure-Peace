@@ -16,6 +16,7 @@ const DBM_Card_Guild = require('../database/model/DBM_Card_Guild');
 const DBM_Pinky_Data = require('../database/model/DBM_Pinky_Data');
 const DBM_Pinky_Inventory = require('../database/model/DBM_Pinky_Inventory');
 const DBM_Item_Data = require('../database/model/DBM_Item_Data');
+const { executeComponentButton } = require('./card');
 
 module.exports = {
     name: 'pinky',
@@ -348,5 +349,169 @@ module.exports = {
                 break;
         }
 
+    },
+    async executeComponentButton(interaction){
+        var customId = interaction.customId;
+        const guildId = interaction.guild.id;
+        var userId = interaction.user.id;
+        var userUsername = interaction.user.username;
+        var userAvatarUrl = interaction.user.avatarURL();
+
+        //default embed:
+        var objEmbed = {
+            color: CardModule.Properties.embedColor,
+            author: {
+                iconURL:userAvatarUrl,
+                name:userUsername
+            }
+        };
+        var arrEmbedsSend = [];
+
+        switch(customId){
+            case "catch_pinky":
+                //get card spawn information
+                var userCardData = await CardModule.getCardUserStatusData(userId);
+                var guildSpawnData = await CardGuildModule.getCardGuildData(guildId);
+
+                //get the spawn token & prepare the card color
+                var userData = {
+                    token:userCardData[DBM_Card_User_Data.columns.spawn_token],
+                    color:userCardData[DBM_Card_User_Data.columns.color]
+                }
+                var spawnedCardData = {
+                    token:guildSpawnData[DBM_Card_Guild.columns.spawn_token],
+                    type:guildSpawnData[DBM_Card_Guild.columns.spawn_type],
+                    data:guildSpawnData[DBM_Card_Guild.columns.spawn_data],
+                    id:guildSpawnData[DBM_Card_Guild.columns.spawn_id]
+                }
+
+                //card catcher validator, check if card is still spawning/not
+                if(spawnedCardData.type==null||
+                spawnedCardData.token==null||
+                (spawnedCardData.type=="normal" && spawnedCardData.data==null)){
+                    objEmbed.thumbnail = {
+                        url: CardModule.Properties.imgResponse.imgError
+                    }
+                    objEmbed.description = ":x: There are no Pinky detected right now.";
+                    return interaction.reply({embeds:[new MessageEmbed(objEmbed)]});
+                } else if(userData.token==spawnedCardData.token) {
+                    //user already capture the card on this turn
+                    objEmbed.thumbnail = {
+                        url: CardModule.Properties.imgResponse.imgError
+                    }
+                    objEmbed.description = ":x: You already used the capture command.";
+                    return interaction.reply({embeds:[new MessageEmbed(objEmbed)]});
+                }
+
+                //reward & validator
+                switch(spawnedCardData.type){
+                    case "number":
+                        //check if card spawn is number
+                        objEmbed.thumbnail = {
+                            url: CardModule.Properties.imgResponse.imgError
+                        }
+                        objEmbed.description = ":x: Current card spawn type is **number**. You need to use: **p!card guess <lower/higher>** to guess the next hidden number and capture the card.";
+                        return interaction.reply({embeds:[new MessageEmbed(objEmbed)]});
+                    case "battle":
+                        //check if card spawn is number
+                        objEmbed.thumbnail = {
+                            url: CardModule.Properties.imgResponse.imgFailed
+                        }
+                        objEmbed.description = ":x: Tsunagarus are still wandering around! You need to battle it.";
+                        return interaction.reply({embeds:[new MessageEmbed(objEmbed)]});
+                    case "color":
+                    case "quiz":
+                        objEmbed.thumbnail = {
+                            url: CardModule.Properties.imgResponse.imgError
+                        }
+                        objEmbed.description = `:x: Current card spawn type was **${spawnedCardData.type}**.`;
+                        return interaction.reply({embeds:[new MessageEmbed(objEmbed)]});
+                }
+
+                var jsonParsedSpawnData = JSON.parse(guildSpawnData[DBM_Card_Guild.columns.spawn_data]);
+
+                var idPinky = jsonParsedSpawnData.id_pinky;
+                var pinkyData = await PinkyModule.getPinkyData(idPinky);
+                var cardData = await CardModule.getCardData(jsonParsedSpawnData.id_card);
+
+                var colorPointReward = cardData[DBM_Card_Data.columns.rarity]*10;
+                var textReward = `>${colorPointReward} ${cardData[DBM_Card_Data.columns.color]} color point\n`;
+                var mofuCoinReward = cardData[DBM_Card_Data.columns.rarity]*10;
+
+                var seriesPointReward = cardData[DBM_Card_Data.columns.rarity]*10;
+
+                textReward += `>${mofuCoinReward} mofucoin\n`;
+                textReward += `>${seriesPointReward} ${CardModule.Properties.seriesCardCore.sp003.currency}\n`;
+
+                //update the item
+                var query = `SELECT * 
+                FROM ${DBM_Item_Data.TABLENAME} 
+                WHERE ${DBM_Item_Data.columns.category}<>? 
+                ORDER BY rand() 
+                LIMIT 1`;
+                var itemDropData = await DBConn.conn.promise().query(query,["misc_fragment"]);
+                if(itemDropData[0][0]!=null){
+                    textReward+=`>Item: ${itemDropData[0][0][DBM_Item_Data.columns.name]} **(${itemDropData[0][0][DBM_Item_Data.columns.id]})**\n`;
+                    await ItemModule.addNewItemInventory(userId,itemDropData[0][0][DBM_Item_Data.columns.id]);
+                }
+                
+                objEmbed.author = {
+                    iconURL:userAvatarUrl,
+                    name:userUsername
+                },
+                objEmbed.title = "Pinky Captured!";
+                objEmbed.description = `<@${userId}> has captured the pinky: **${pinkyData[DBM_Pinky_Data.columns.name]}**!`;
+                objEmbed.fields = [
+                    {
+                        name:"Rewards Received:",
+                        value:textReward,
+                        inline:true
+                    }
+                ]
+                objEmbed.thumbnail = {
+                    url:pinkyData[DBM_Pinky_Data.columns.img_url]
+                }
+
+                //add to pinky inventory
+                await PinkyModule.addPinkyInventory(guildId,userId,idPinky);
+                //get latest pinky total
+                var currentPinky = await PinkyModule.getPinkyTotal(guildId);
+                //update user mofucoin
+                await CardModule.updateMofucoin(userId,mofuCoinReward);
+                //update user token
+                await CardModule.updateCatchAttempt(userId,spawnedCardData.token);
+                //update color point
+                var colorMap = new Map();
+                colorMap.set(`color_point_${cardData[DBM_Card_Data.columns.color]}`,colorPointReward);
+                await CardModule.updateColorPoint(userId,colorMap);
+                //update series point
+                var seriesMap = new Map();
+                seriesMap.set(CardModule.Properties.seriesCardCore.sp003.value,seriesPointReward);
+                await CardModule.updateSeriesPoint(userId,seriesMap);
+                //erase pinky spawn data
+                if(spawnedCardData.id==null){
+                    await CardModule.removeCardGuildSpawn(guildId);
+                } else {
+                    await CardModule.removeCardGuildSpawn(guildId,false,false,true);
+                }
+
+                objEmbed.footer = {
+                    text:`ID: ${idPinky} | Captured By: ${userUsername}(${currentPinky}/${PinkyModule.Properties.maxPinky})`
+                }
+
+                arrEmbedsSend.push(new MessageEmbed(objEmbed));
+
+                //check for completionist status
+                if(currentPinky>=PinkyModule.Properties.maxPinky){
+                    var completion = await PinkyModule.pinkyCompletion(guildId);
+                    if(completion!=null){
+                        arrEmbedsSend.push(new MessageEmbed(completion));
+                    }
+                }
+
+                await interaction.reply({embeds:arrEmbedsSend});
+
+                break;
+        }
     }
 }
