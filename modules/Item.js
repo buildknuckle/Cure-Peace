@@ -18,37 +18,44 @@ class Properties{
         card:{
             value:"card",
             value_search:"card",
-            name:"Card"
+            name:"Card",
+            choices_text:"card"
         },
         food:{
             value:"food",
             value_search:"food",
-            name:"Food"
+            name:"Food",
+            choices_text:"food"
         },
         ingredient:{
             value:"ingredient",
             value_search:"ingredient",
-            name:"Ingredient"
+            name:"Ingredient",
+            choices_text:"ingredient"
         },
         ingredient_rare:{
             value:"ingredient_rare",
             value_search:"ingredient",
-            name:"Rare Ingredient"
+            name:"Rare Ingredient",
+            choices_text:"rare-ingredient"
         },
         misc_fragment:{
             value:"misc_fragment",
-            value_search:"fragment",
+            value_search:"misc_fragment",
             name:"Card Fragment",
+            choices_text:"card-fragment"
         },
         misc_gardening:{
             value:"misc_gardening",
-            value_search:"gardening",
+            value_search:"misc_gardening",
             name:"Gardening",
+            choices_text:"gardening"
         },
         misc_plant:{
             value:"misc_plant",
-            value_search:"plant",
+            value_search:"misc_plant",
             name:"Plant",
+            choices_text:"plant"
         }
     }
 

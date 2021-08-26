@@ -1,4 +1,5 @@
-const Discord = require('discord.js');
+const {MessageActionRow, MessageSelectMenu, MessageButton, MessageEmbed, Discord} = require('discord.js');
+const DiscordStyles = require('../modules/DiscordStyles');
 const DB = require('../database/DatabaseCore');
 const DBConn = require('../storage/dbconn');
 const GlobalFunctions = require('../modules/GlobalFunctions.js');
@@ -725,31 +726,29 @@ class StatusEffect{
     }
 
     static async embedStatusEffectActivated(userUsername,userAvatarUrl,status_effect,statusType="buff",teamBattle=false){
-        var icon = "⬆️";//default icon
         var SEDescription = ""; var parTitle = "";
         var imgThumbnail = Properties.imgResponse.imgOk;
         switch(statusType){
             case "skills":
-                parTitle = `${icon} Skills Activated!`;
+                parTitle = `✨ Skills Activated!`;
                 SEDescription = `**${this.cureSkillsBuffData[status_effect].name}**:\n${this.cureSkillsBuffData[status_effect].description}`;
                 break;
             case "debuff":
-                icon = "⬇️";
-                parTitle = `${icon} Debuff inflicted!`;
+                parTitle = `💥 Debuff inflicted!`;
                 SEDescription = `**${this.debuffData[status_effect].name}**:\n${this.debuffData[status_effect].description}`;
                 imgThumbnail = Properties.imgResponse.imgFailed;
                 break;
             case "buff":
                 if(!teamBattle){
-                    parTitle = `${icon} Status Effect Activated!`;
+                    parTitle = `✨ Status Effect Activated!`;
                     SEDescription = `**${this.buffData[status_effect].name}**:\n${this.buffData[status_effect].description}`;
                 } else {
-                    parTitle = `${icon} Status Effect Activated!`;
+                    parTitle = `✨ Status Effect Activated!`;
                     SEDescription = `**${this.partyBuffData[status_effect].name}**:\n${this.partyBuffData[status_effect].description}`;
                 }
                 break;
         }
-        return {
+        return new MessageEmbed({
             color: Properties.embedColor,
             author: {
                 name: userUsername,
@@ -760,9 +759,8 @@ class StatusEffect{
             },
             title: parTitle,
             description: SEDescription,
-        }
+        })
     }
-
 }
 
 class Properties{
@@ -799,10 +797,7 @@ class Properties{
     
 
     // original:
-    static spawnType = ["normal","battle","number","quiz","color","series"
-        //golden_week
-        //virus
-    ];
+    static spawnType = ["normal","battle","number","quiz","color","series"];
 
 
     static imgResponse = {
@@ -955,7 +950,7 @@ class Properties{
             total:102,
             skills:{
                 1:{
-                    cp_cost:100,
+                    cp_cost:500,
                     buff_data:StatusEffect.cureSkillsBuffData.reward_booster
                 }
             }
@@ -973,7 +968,37 @@ class Properties{
         },
         all:{
             imgMysteryUrl:"https://waa.ai/JEyE.png"
-        }
+        },
+        interactionColorList:[
+            {
+                name: "pink",
+                value: "pink"
+            },
+            {
+                name: "blue",
+                value: "blue"
+            },
+            {
+                name: "yellow",
+                value: "yellow"
+            },
+            {
+                name: "purple",
+                value: "purple"
+            },
+            {
+                name: "red",
+                value: "red"
+            },
+            {
+                name: "green",
+                value: "green"
+            },
+            {
+                name: "white",
+                value: "white"
+            }
+        ]
     };
     
     //the constant of all available/required card
@@ -3016,234 +3041,79 @@ class Properties{
         }
     }
 
-}
 
-class PrecureStarTwinkleCore{
-    static fuwaConstellationData = {
-        aries:{
-            name:"Aries Fuwa",
-            img_url:["https://cdn.discordapp.com/attachments/841371817704947722/841519710062247936/image0.png","https://cdn.discordapp.com/attachments/841371817704947722/841519710285332490/image1.png"]
+    static interactionSeriesList = [
+        {
+            name: "max-heart",
+            value: "max heart"
         },
-        taurus:{
-            name:"Taurus Fuwa",
-            img_url:["https://cdn.discordapp.com/attachments/841371817704947722/841519957682552832/image0.png","https://cdn.discordapp.com/attachments/841371817704947722/841519957934342144/image1.png"]
+        {
+            name: "splash-star",
+            value: "splash star"
         },
-        gemini:{
-            name:"Gemini Fuwa",
-            img_url:[
-                "https://cdn.discordapp.com/attachments/841371817704947722/841520642935226388/image0.png","https://cdn.discordapp.com/attachments/841371817704947722/841520643178889246/image1.png"
-            ]
+        {
+            name: "yes-precure-5-gogo",
+            value: "yes! precure 5 gogo!"
         },
-        cancer:{
-            name:"Cancer Fuwa",
-            img_url:[
-                "https://cdn.discordapp.com/attachments/841371817704947722/841521681398497320/image0.png","https://cdn.discordapp.com/attachments/841371817704947722/841521681628528680/image1.png"
-            ]
+        {
+            name: "fresh",
+            value: "fresh"
         },
-        leo:{
-            name:"Leo Fuwa",
-            img_url:[
-                "https://cdn.discordapp.com/attachments/841371817704947722/841522187881414706/image0.png","https://cdn.discordapp.com/attachments/841371817704947722/841522188099780628/image1.png"
-            ]
+        {
+            name: "heartcatch",
+            value: "heartcatch"
         },
-        virgo:{
-            name:"Virgo Fuwa",
-            img_url:[
-                "https://cdn.discordapp.com/attachments/841371817704947722/841523045402279956/image0.png","https://cdn.discordapp.com/attachments/841371817704947722/841523045638471710/image1.png"
-            ]
+        {
+            name: "suite",
+            value: "suite"
         },
-        libra:{
-            name:"Libra Fuwa",
-            img_url:[
-                "https://cdn.discordapp.com/attachments/841371817704947722/841524914317951086/image0.png","https://cdn.discordapp.com/attachments/841371817704947722/841524914543788053/image1.png"
-            ]
+        {
+            name: "smile",
+            value: "smile"
         },
-        scorpio:{
-            name:"Scorpio Fuwa",
-            img_url:[
-                "https://cdn.discordapp.com/attachments/841371817704947722/841525434931085332/image0.png","https://cdn.discordapp.com/attachments/841371817704947722/841525435221016586/image1.png"
-            ]
+        {
+            name: "doki-doki",
+            value: "doki doki!"
         },
-        sagittarius:{
-            name:"Sagittarius Fuwa",
-            img_url:[
-                "https://cdn.discordapp.com/attachments/841371817704947722/841525834703437835/image0.png","https://cdn.discordapp.com/attachments/841371817704947722/841525835013423134/image1.png"
-            ]
+        {
+            name: "happiness",
+            value: "happiness"
         },
-        capricorn:{
-            name:"Capricorn Fuwa",
-            img_url:[
-                "https://cdn.discordapp.com/attachments/841371817704947722/841526112294797312/image0.png","https://cdn.discordapp.com/attachments/841371817704947722/841526112533741588/image1.png"
-            ]
+        {
+            name: "go-princess",
+            value: "go! princess"
         },
-        aquarius:{
-            name:"Aquarius Fuwa",
-            img_url:[
-                "https://cdn.discordapp.com/attachments/841371817704947722/841526881769881630/image0.png","https://cdn.discordapp.com/attachments/841371817704947722/841526881987723284/image1.png"
-            ]
+        {
+            name: "mahou-tsukai",
+            value: "mahou tsukai"
         },
-        pisces:{
-            name:"Pisces Fuwa",
-            img_url:[
-                "https://cdn.discordapp.com/attachments/841371817704947722/841527139165798400/image0.png","https://cdn.discordapp.com/attachments/841371817704947722/841527139496099850/image1.png"
-            ]
+        {
+            name: "kirakira",
+            value: "kirakira"
+        },
+        {
+            name: "hugtto",
+            value: "hugtto"
+        },
+        {
+            name: "star-twinkle",
+            value: "star twinkle"
+        },
+        {
+            name: "healin-good",
+            value: "healin' good"
         }
-    }
-}
-
-class Battle{
-    //contain the values of battle type
-    static type = {
-        normal:"normal",//tsunagarus
-        raid:"raid"//not implemented yet but for upcoming updates
-    }
-
-    static async getEnemyData(id_enemy){
-        var parameterWhere = new Map();
-        parameterWhere.set(DBM_Card_Enemies.columns.id,id_enemy);
-        var result = await DB.select(DBM_Card_Enemies.TABLENAME,parameterWhere);
-        return result[0][0];
-    }
-
-    static embedBossViewer(enemy_type,level,color_lives,type,rarity,atk,hp,_special_protection){
-        var special_protection = "❌";
-        
-        if(_special_protection){
-            special_protection = `✅`;
-        }
-
-        return {
-            color: TsunagarusModules.Properties.enemySpawnData.tsunagarus[enemy_type].embedColor,
-            author: {
-                name: userUsername,
-                icon_url: userAvatarUrl
-            },
-            title: `Tsunagarus Lv.${level}`,
-            description: transformQuotes,
-            fields:[
-                {
-                    name:`Color Lives:`,
-                    value:color_lives,
-                    inline:true
-                },
-                {
-                    name:`Enemy Type:`,
-                    value:type,
-                    inline:true
-                },
-                {
-                    name:`Min. Rarity:`,
-                    value:rarity,
-                    inline:true
-                },
-                {
-                    name:`Party Atk:`,
-                    value:atk,
-                    inline:true
-                }
-            ],
-            image:{
-                url:TsunagarusModules.Properties.enemySpawnData.tsunagarus[enemy_type].image
-            },
-            footer:{
-                text:`Special Protection: ${special_protection}`
-            }
-        }
-    }
+    ];
 
 }
 
-class Leveling {
-    // 1 star was Lv.20, 2 star was Lv.25, 3 star was Lv.35, 4 star and Cure Cards was Lv.40 and 5 star and Premium Cure Cards was Lv.50
-    static getMaxLevel(rarity){
-        switch(rarity){
-            case 1:
-                return 20;
-                break;
-            case 2:
-                return 25;
-                break;
-            case 3:
-                return 35;
-                break;
-            case 4:
-                return 40;
-                break;
-            default:
-                return 50;
-                break;
-        }
-    }
+const Battle = require('../modules/Card/Battle');
 
-    static getNextCardExp(level,qty=1){
-        var tempExp = 0;
-        if(qty<=1){
-            tempExp+=(level+1)*10;
-        } else {
-            //parameter:3: level 1->4
-            for(var i=0;i<qty;i++){
-                tempExp+=(level+1)*10;
-                level+=1;
-            }
-        }
-        
-        return tempExp;
-    }
+const Leveling = require('../modules/Card/Leveling');
 
-    static getNextCardSpecialTotal(level){
-        //get the card stock requirement to level up the specials
-        switch(level){
-            case 1:
-                return 1;
-            case 2:
-                return 2;
-            default:
-                return 4;
-        }
-    }
-    
-}
+const Shop = require('../modules/Card/Shop');
 
-class Shop {
-    static async embedShopList() {
-        var itemList = ""; var itemList2 = ""; var itemList3 = "";
-        var result = await DB.selectAll(DBM_Item_Data.TABLENAME);
-        result[0].forEach(item => {
-            itemList += `**${item[DBM_Item_Data.columns.id]}** - ${item[DBM_Item_Data.columns.name]}\n`
-            itemList2 += `${item[DBM_Item_Data.columns.price_mofucoin]}\n`;
-            itemList3 += `${item[DBM_Item_Data.columns.description]}\n`;
-        });
-
-        return {
-            color: Properties.embedColor,
-            author: {
-                name: "Mofu shop",
-                icon_url: "https://waa.ai/JEwn.png"
-            },
-            title: `Item Shop List:`,
-            description: `Welcome to Mofushop! Here are the available item list that you can purchase:\nUse **p!card shop buy <item id> [qty]** to purchase the item.`,
-            fields:[
-                {
-                    name:`ID - Name:`,
-                    value:itemList,
-                    inline:true
-                },
-                {
-                    name:`Price (MC):`,
-                    value:itemList2,
-                    inline:true
-                },
-                {
-                    name:`Description`,
-                    value:itemList3,
-                    inline:true
-                }
-            ],
-        }
-    }
-}
-
-class Status {
+const Status = class Status {
     static getHp(level,base_hp){
         return level+base_hp;
     }
@@ -3312,115 +3182,37 @@ class Status {
         return specialCharged;
     }
 
-    static async updatePartySpecialPoint(id_party,value){
-        var specialCharged = false;
-        var maxPoint = 100;
-        var partyStatusData = await Party.getPartyStatusDataByIdParty(id_party);
-    
-        var querySpecialPoint = "";
-    
-        if(value>=1){
-            //addition
-            if(partyStatusData[DBM_Card_Party.columns.special_point]+value>=maxPoint){
-                querySpecialPoint += ` ${DBM_Card_Party.columns.special_point} = ${maxPoint} `;
-                specialCharged = true;
-            } else {
-                querySpecialPoint += ` ${DBM_Card_Party.columns.special_point} = ${DBM_Card_Party.columns.special_point}+${value} `;
-            }
-        } else {
-            //substract
-            if(partyStatusData[DBM_Card_Party.columns.special_point]-value<=0){
-                querySpecialPoint += ` ${DBM_Card_Party.columns.special_point} = 0 `;
-            } else {
-                querySpecialPoint += ` ${DBM_Card_Party.columns.special_point} = ${DBM_Card_Party.columns.special_point}${value} `;
-            }
+    static async getAverageLevel(id_user,arrColorLevel=null){
+        if(arrColorLevel==null){
+            //if arrColorLevel provided we dont need to read it from db
+            var userData = await getCardUserStatusData(id_user);
+            arrColorLevel = [
+                userData[DBM_Card_User_Data.columns.color_level_blue],
+                userData[DBM_Card_User_Data.columns.color_level_green],
+                userData[DBM_Card_User_Data.columns.color_level_pink],
+                userData[DBM_Card_User_Data.columns.color_level_purple],
+                userData[DBM_Card_User_Data.columns.color_level_red],
+                userData[DBM_Card_User_Data.columns.color_level_white],
+                userData[DBM_Card_User_Data.columns.color_level_yellow]
+            ]
         }
-    
-        var query = `UPDATE ${DBM_Card_Party.TABLENAME} 
-        SET ${querySpecialPoint} 
-        WHERE ${DBM_Card_Party.columns.id}=?`;
-    
-        await DBConn.conn.promise().query(query, [id_party]);
-        return specialCharged;
-    }
 
-}
-
-class Skills {
-    static skillCoreData = {
-        card_duplicator: {
-            cp_cost:100
-        },
-        atk_boost_s: {
-            cp_cost:30
-        },
-        hp_boost_s: {
-            cp_cost:30
-        },
-        rarity_boost_s: {
-            cp_cost:30
-        },
-        recover:{
-            cp_cost:20
+        var total = 0;
+        for(var i = 0; i < arrColorLevel.length; i++) {
+            total += arrColorLevel[i];
         }
+        return Math.ceil(total / arrColorLevel.length);
     }
+
 }
 
-class TradeBoard {
-    static async getTradeboardData(id_guild,id_user){
-        var parameterWhere = new Map();
-        parameterWhere.set(DBM_Card_Tradeboard.columns.id_guild,id_guild);
-        parameterWhere.set(DBM_Card_Tradeboard.columns.id_user,id_user);
-        var resultCheckExist = await DB.select(DBM_Card_Tradeboard.TABLENAME,parameterWhere);
-        if(resultCheckExist[0][0]==null){
-            //insert if not found
-            var parameter = new Map();
-            parameter.set(DBM_Card_Tradeboard.columns.id_guild,id_guild);
-            parameter.set(DBM_Card_Tradeboard.columns.id_user,id_user);
-            await DB.insert(DBM_Card_Tradeboard.TABLENAME,parameter);
-            //reselect after insert new data
-            parameterWhere = new Map();
-            parameterWhere.set(DBM_Card_Tradeboard.columns.id_guild,id_guild);
-            parameterWhere.set(DBM_Card_Tradeboard.columns.id_user,id_user);
-            var resultCheckExist = await DB.select(DBM_Card_Tradeboard.TABLENAME,parameterWhere);
-            return await resultCheckExist[0][0];
-        } else {
-            return await resultCheckExist[0][0];
-        }
-    }
+const Skills = require('../modules/Card/Skills');
 
-    static async removeListing(id_guild,id_user){
-        var parameterSet = new Map();
-        parameterSet.set(DBM_Card_Tradeboard.columns.id_card_want,null);
-        parameterSet.set(DBM_Card_Tradeboard.columns.id_card_have,null);
-        parameterSet.set(DBM_Card_Tradeboard.columns.last_update,null);
-        var parameterWhere = new Map();
-        parameterWhere.set(DBM_Card_Tradeboard.columns.id_guild,id_guild);
-        parameterWhere.set(DBM_Card_Tradeboard.columns.id_user,id_user);
-        await DB.update(DBM_Card_Tradeboard.TABLENAME,parameterSet,parameterWhere);
-    }
-}
+const TradeBoard = require('../modules/Card/TradeBoard');
 
-class Quest {
-    static questData = {
-        last_daily_quest:"last_daily_quest",
-        dataQuest:"dataQuest"
-    }
+const Quest = require('../modules/Card/Quest');
 
-    static async setQuestData(idUser,objReward){
-        var todayDate = new Date().getDate();
-        var questData = `{"${this.questData.last_daily_quest}":${todayDate},"${this.questData.dataQuest}":${objReward}}`;
-        var parameterSet = new Map();
-        parameterSet.set(DBM_Card_User_Data.columns.daily_quest,questData);
-        var parameterWhere = new Map();
-        parameterWhere.set(DBM_Card_User_Data.columns.id_user,idUser);
-        await DB.update(DBM_Card_User_Data.TABLENAME,parameterSet,parameterWhere);
-    }
-
-    static getQuestReward(cardRarity){
-        return cardRarity*30;
-    }
-}
+const PrecureStarTwinkleCore = require('../modules/Card/PrecureStarTwinkleCore');
 
 class Embeds{
     static precureAvatarView(embedColor,userUsername,userAvatarUrl,packName,
@@ -3511,12 +3303,12 @@ class Embeds{
                 break;
         }
         
-        return objEmbed;
+        return new MessageEmbed(objEmbed);
     }
 
     static battleSpecialActivated(embedColor,userUsername,userAvatarUrl,packName,
         level_special,rewardsReceived){
-        return {
+        return new MessageEmbed({
             color: Properties.dataColorCore[embedColor].color,
             author: {
                 name: userUsername,
@@ -3537,11 +3329,11 @@ class Embeds{
             image:{
                 url:Properties.dataCardCore[packName].img_special_attack
             },
-        }
+        });
     }
 
     static teamBattleSpecialActivated(embedColor,userUsername,userAvatarUrl,seriesName,packName,teamName,rewardsReceived){
-        return {
+        return new MessageEmbed({
             color: Properties.dataColorCore[embedColor].color,
             author: {
                 name: userUsername,
@@ -3562,11 +3354,11 @@ class Embeds{
             image:{
                 url:Properties.seriesCardCore[seriesName].img_team_attack
             },
-        }
+        });
     }
 
     static teamBattleSpecialActivatedHitOne(embedColor,userUsername,userAvatarUrl,packName,rewardsReceived){
-        return {
+        return new MessageEmbed({
             color: Properties.dataColorCore[embedColor].color,
             author: {
                 name: userUsername,
@@ -3587,7 +3379,7 @@ class Embeds{
             image:{
                 url:Properties.dataCardCore[packName].img_special_attack
             },
-        }
+        });
     }
 
     static battleSpecialReady(userUsername,userAvatarUrl,individual=true){
@@ -3595,7 +3387,7 @@ class Embeds{
         if(!individual){
             txtDescription = `Your party special point has been fully charged!.`;
         }
-        return {
+        return new MessageEmbed({
             color: Properties.embedColor,
             author: {
                 name: userUsername,
@@ -3606,7 +3398,7 @@ class Embeds{
             thumbnail:{
                 url:Properties.imgResponse.imgOk
             }
-        }
+        });
     }
 
     static battleHitHpSuccess(embedColor,packName,userUsername,userAvatarUrl,txtDescription,txtBuffDebuff,txtReward,txtHp){
@@ -3637,7 +3429,7 @@ class Embeds{
             ]
         }
 
-        return objEmbed;
+        return new MessageEmbed(objEmbed);
     }
 
     static battleEnemyActions(enemyType,txtHeader,txtDescription,txtSpawnLink=""){
@@ -3657,7 +3449,7 @@ class Embeds{
             }
         }
 
-        return objEmbed;
+        return new MessageEmbed(objEmbed);
     }
 
     static battleEnemyActionsBlock(embedColor,packName,userUsername,userAvatarUrl,txtHeader,txtDescription){
@@ -3674,7 +3466,7 @@ class Embeds{
             description: `${txtDescription}`
         }
         
-        return objEmbed;
+        return new MessageEmbed(objEmbed);
     }
 
     static battleEnemyActionsPrepare(enemyType,txtHeader,txtDescription){
@@ -3687,7 +3479,7 @@ class Embeds{
             description: `${enemyType} will prepare: **${txtDescription}** for the next actions!`
         }
 
-        return objEmbed;
+        return new MessageEmbed(objEmbed);
     }
 
     static battleHitHpFail(embedColor,enemyType,userUsername,userAvatarUrl,txtHeader,txtDescription,txtHp){
@@ -3710,11 +3502,11 @@ class Embeds{
             ]
         }
 
-        return objEmbed;
+        return new MessageEmbed(objEmbed);
     }
 
     static battleWin(embedColor,userUsername,userAvatarUrl,packName,rewardsReceived){
-        return {
+        return new MessageEmbed({
             color: Properties.dataColorCore[embedColor].color,
             author: {
                 name: userUsername,
@@ -3735,7 +3527,7 @@ class Embeds{
             image:{
                 url:Properties.dataCardCore[packName].img_special_attack
             }
-        }
+        })
     }
 
     static battleLost(userUsername,userAvatarUrl,_description,rewardsReceived,debuff_data="",txtSpawnLink){
@@ -3773,11 +3565,11 @@ class Embeds{
             inline:true
         }
         
-        return objEmbed;
+        return new MessageEmbed(objEmbed);
     }
 
     static teamBattleWin(packName,seriesName,partyName,txtReward){
-        return {
+        return new MessageEmbed({
             color: Properties.embedColor,
             title: `Tsunagarus Defeated!`,
             thumbnail:{
@@ -3793,7 +3585,7 @@ class Embeds{
             image:{
                 url:Properties.seriesCardCore[seriesName].img_team_attack
             }
-        }
+        })
     }
 
     static teamBattleHit(embedColor,packName,userUsername,userAvatarUrl,txtDescription,txtBuffDebuff,txtReward,txtSpawnLink){
@@ -3824,7 +3616,7 @@ class Embeds{
             ]
         }
         
-        return objEmbed;
+        return new MessageEmbed(objEmbed);
     }
 
     static teamBattleLivesDown(embedColor,packName,userUsername,userAvatarUrl,txtReward){
@@ -3850,7 +3642,7 @@ class Embeds{
             }
         }
         
-        return objEmbed;
+        return new MessageEmbed(objEmbed);
     }
 
     static embedCardCaptureNew(embedColor,id_card,
@@ -3858,7 +3650,7 @@ class Embeds{
         if(seriesPoint==0){
             seriesPoint = pointReward;
         }
-        return {
+        return new MessageEmbed({
             color:Properties.dataColorCore[embedColor].color,
             author:{
                 iconURL:avatarImgUrl,
@@ -3875,7 +3667,7 @@ class Embeds{
                     value:`>**New Card: **${id_card} - ${cardName}\n>${pointReward} ${embedColor} points\n>${seriesPoint} ${seriesCurrency}`
                 }
             ]
-        };
+        });
     }
 
     static embedCardCaptureDuplicate(embedColor,id_card,
@@ -3883,7 +3675,7 @@ class Embeds{
         if(seriesPoint==0){
             seriesPoint = pointReward;
         }
-        return {
+        return new MessageEmbed({
             color:Properties.dataColorCore[embedColor].color,
             author:{
                 iconURL:avatarImgUrl,
@@ -3900,7 +3692,7 @@ class Embeds{
                     value:`>**${cardQty}x Dup Card: **${id_card} - ${cardName}\n>${pointReward} ${embedColor} points\n>${seriesPoint} ${seriesCurrency}`
                 }
             ]
-        };
+        });
     }
 
     static embedCardCaptureDuplicateMaxCard(embedColor,id_card,
@@ -3908,7 +3700,7 @@ class Embeds{
         if(seriesPoint==0){
             seriesPoint = pointReward;
         }
-        return {
+        return new MessageEmbed({
             color:Properties.dataColorCore[embedColor].color,
             author:{
                 iconURL:avatarImgUrl,
@@ -3922,7 +3714,226 @@ class Embeds{
                     value:`>**Overcapped Dup Card: **${id_card} - ${cardName}\n>${pointReward} ${embedColor} points\n>${seriesPoint} ${seriesCurrency}`
                 }
             ]
-        };
+        });
+    }
+
+    static embedCardDetail(embedColor,id_card,packName,
+        cardName,imgUrl,series,rarity,avatarImgUrl,receivedDate,
+        level,max_hp,max_atk,special_level,stock=0,ability1,type=Properties.cardCategory.normal.value){
+        //embedColor in string and will be readed on Properties class: object variable
+        //received date readed from db, will be converted here
+    
+        var customReceivedDate = new Date(receivedDate);
+        customReceivedDate = `${("0" + receivedDate.getDate()).slice(-2)}/${("0" + (receivedDate.getMonth() + 1)).slice(-2)}/${customReceivedDate.getFullYear()}`;
+    
+        var txtPartyAbility = "-";
+        if(ability1 in StatusEffect.partyBuffData){
+            txtPartyAbility = `**${StatusEffect.partyBuffData[ability1].name}:**\n${StatusEffect.partyBuffData[ability1].description}`;
+        }
+    
+        var skillsData = Properties.dataColorCore[embedColor].skills[1];
+        var skillsCpCost = Properties.dataColorCore[embedColor].skills[1].cp_cost;
+        var skillsName = skillsData.buff_data.name;
+        var skillsDescription = skillsData.buff_data.description;
+    
+        var objEmbed = {
+            color:Properties.dataColorCore[embedColor].color,
+            author:{
+                iconURL:Properties.dataCardCore[packName].icon,
+                name:`Level ${level}/${Leveling.getMaxLevel(rarity)} | Next CP: ${Leveling.getNextCardExp(level)}`
+            },
+            title:`${cardName}`,
+            description:`**Party Ability:**\n>${txtPartyAbility}\n\n**Battle Skills:**\n>**${skillsName} (${skillsCpCost} CP)**:\n${skillsDescription}`,
+            image:{
+                url:imgUrl
+            },
+            fields:[
+                {
+                    name:"ID:",
+                    value:id_card,
+                    inline:true
+                },
+                {
+                    name:"Series:",
+                    value:series,
+                    inline:true
+                },
+                {
+                    name:"Rarity:",
+                    value:`${rarity+Properties.cardCategory[type].rarityBoost} :star:`,
+                    inline:true
+                },
+                {
+                    name:`❤️HP:`,
+                    value:`${String(Status.getHp(level,max_hp))}`,
+                    inline:true
+                },
+                {
+                    name:"⚔️Atk:",
+                    value:`${String(Status.getAtk(level,max_atk))}`,
+                    inline:true
+                },
+                {
+                    name:`Special:`,
+                    value:`${Properties.dataCardCore[packName].special_attack} Lv.${special_level}`,
+                    inline:true
+                }
+            ],
+            footer:{
+                iconURL:avatarImgUrl,
+                text:`Received at: ${customReceivedDate}`
+            }
+        }
+    
+        //modify the card
+        switch(type){
+            case Properties.cardCategory.gold.value:
+                objEmbed.color = Properties.cardCategory.gold.color;
+                objEmbed.title = `${cardName} ✨`;
+                break;
+        }
+    
+        if(stock>=1){
+            objEmbed.footer.text+= ` | Stock:${stock}`;
+        }
+    
+        return new MessageEmbed(objEmbed);
+    }
+
+    static embedCardCapture(embedColor,id_card,packName,
+        cardName,imgUrl,series,rarity,avatarImgUrl,username,currentCardTotal,
+        max_hp,max_atk,cardStock=0){
+        //embedColor in string and will be readed on Properties class: object variable
+        //received date readed from db, will be converted here
+    
+        var objEmbed = {
+            color:Properties.dataColorCore[embedColor].color,
+            author:{
+                iconURL:Properties.dataCardCore[packName].icon,
+                name:`${GlobalFunctions.capitalize(packName)} Card Pack`
+            },
+            title:cardName,
+            image:{
+                url:imgUrl
+            },
+            fields:[
+                {
+                    name:"ID:",
+                    value:id_card,
+                    inline:true
+                },
+                {
+                    name:"Series:",
+                    value:series,
+                    inline:true
+                },
+                {
+                    name:"Rarity:",
+                    value:`${String(rarity)} :star:`,
+                    inline:true
+                },
+                {
+                    name:"HP:",
+                    value:`${String(max_hp)}`,
+                    inline:true
+                },
+                {
+                    name:"Atk:",
+                    value:`${Status.getAtk(1,max_atk)}`,
+                    inline:true
+                },
+                {
+                    name:`Special:`,
+                    value:Properties.dataCardCore[packName].special_attack,
+                    inline:true
+                }
+            ]
+        }
+    
+        if(cardStock>=1){
+            objEmbed["footer"] = {
+                iconURL:avatarImgUrl,
+                text:`Captured By: ${username} (${currentCardTotal}/${Properties.dataCardCore[packName].total}) x${cardStock}`
+            }
+        } else {
+            objEmbed["footer"] = {
+                iconURL:avatarImgUrl,
+                text:`Captured By: ${username} (${currentCardTotal}/${Properties.dataCardCore[packName].total})`
+            }
+        }
+    
+        return new MessageEmbed(objEmbed);
+    }
+
+    static embedCardLevelUp(embedColor,id_card,packName,
+        cardName,imgUrl,series,rarity,avatarImgUrl,username,
+        level,max_hp,max_atk,special_level,type=Properties.cardCategory.normal.value){
+        //embedColor in string and will be readed on Properties class: object variable
+        //received date readed from db, will be converted here
+    
+        var hpHeader = "HP: "; var modifiedHp = "";
+        if(Status.getModifiedHp(level,max_hp)>0){
+            hpHeader += Status.getHp(level,max_hp);
+            modifiedHp = `(+${Status.getModifiedHp(level,max_hp)})`;
+        }
+    
+        var objEmbed = {
+            color:Properties.dataColorCore[embedColor].color,
+            author:{
+                iconURL:Properties.dataCardCore[packName].icon,
+                name:`Level ${level}/${Leveling.getMaxLevel(rarity)}`
+            },
+            title:cardName,
+            thumbnail:{
+                url:imgUrl
+            },
+            fields:[
+                {
+                    name:"ID:",
+                    value:id_card,
+                    inline:true
+                },
+                {
+                    name:"Series:",
+                    value:series,
+                    inline:true
+                },
+                {
+                    name:"Rarity:",
+                    value:`${rarity+Properties.cardCategory[type].rarityBoost} :star:`,
+                    inline:true
+                },
+                {
+                    name:"❤️HP:",
+                    value:`${String(Status.getHp(level,max_hp))}`,
+                    inline:true
+                },
+                {
+                    name:"⚔️Atk:",
+                    value:`${String(Status.getAtk(level,max_atk))}`,
+                    inline:true
+                },
+                {
+                    name:`Special:`,
+                    value:`${Properties.dataCardCore[packName].special_attack} Lv.${special_level}`,
+                    inline:true
+                }
+            ],
+            footer:{
+                iconURL:avatarImgUrl,
+                text:`${username}`
+            }
+        }
+    
+        switch(type){
+            case Properties.cardCategory.gold.value:
+                objEmbed.color = Properties.cardCategory[type].color;
+                objEmbed.title = `${cardName} ✨`;
+                break;
+        }
+    
+    
+        return new MessageEmbed(objEmbed);
     }
 
 }
@@ -4174,52 +4185,41 @@ class Party {
         await DBConn.conn.promise().query(query, [id_party]);
     }
 
+    static async updatePartySpecialPoint(id_party,value){
+        var specialCharged = false;
+        var maxPoint = 100;
+        var partyStatusData = await Party.getPartyStatusDataByIdParty(id_party);
+    
+        var querySpecialPoint = "";
+    
+        if(value>=1){
+            //addition
+            if(partyStatusData[DBM_Card_Party.columns.special_point]+value>=maxPoint){
+                querySpecialPoint += ` ${DBM_Card_Party.columns.special_point} = ${maxPoint} `;
+                specialCharged = true;
+            } else {
+                querySpecialPoint += ` ${DBM_Card_Party.columns.special_point} = ${DBM_Card_Party.columns.special_point}+${value} `;
+            }
+        } else {
+            //substract
+            if(partyStatusData[DBM_Card_Party.columns.special_point]-value<=0){
+                querySpecialPoint += ` ${DBM_Card_Party.columns.special_point} = 0 `;
+            } else {
+                querySpecialPoint += ` ${DBM_Card_Party.columns.special_point} = ${DBM_Card_Party.columns.special_point}${value} `;
+            }
+        }
+    
+        var query = `UPDATE ${DBM_Card_Party.TABLENAME} 
+        SET ${querySpecialPoint} 
+        WHERE ${DBM_Card_Party.columns.id}=?`;
+    
+        await DBConn.conn.promise().query(query, [id_party]);
+        return specialCharged;
+    }
+
 }
 
-class Title {
-    static cardTitleData = {
-        card_master: {
-            value:"card_master",
-            name:"Card Master",
-            description:"Complete all precure card."
-        },
-        master_of_pink: {
-            value:"master_of_pink",
-            name:"Master of Pink",
-            description:"Complete all pink precure card list."
-        },
-        master_of_yellow: {
-            value:"master_of_yellow",
-            name:"Master of Yellow",
-            description:"Complete all yellow precure card list."
-        },
-        master_of_green: {
-            value:"master_of_green",
-            name:"Master of Green",
-            description:"Complete all green precure card list."
-        },
-        master_of_blue: {
-            value:"master_of_blue",
-            name:"Master of Blue",
-            description:"Complete all blue precure card list."
-        },
-        master_of_purple: {
-            value:"master_of_purple",
-            name:"Master of Purple",
-            description:"Complete all purple precure card list."
-        },
-        master_of_red: {
-            value:"master_of_red",
-            name:"Master of Red",
-            description:"Complete all red precure card list."
-        },
-        master_of_white: {
-            value:"master_of_white",
-            name:"Master of White",
-            description:"Complete all white precure card list."
-        },
-    }
-}
+const Title = require('../modules/Card/Title');
 
 //get 1 card data
 async function getAllCardDataByPack(card_pack){
@@ -4246,224 +4246,7 @@ async function getCardInventoryUserData(id_user,id_card) {
     return result[0][0];
 }
 
-function embedCardLevelUp(embedColor,id_card,packName,
-    cardName,imgUrl,series,rarity,avatarImgUrl,username,
-    level,max_hp,max_atk,special_level,type=Properties.cardCategory.normal.value){
-    //embedColor in string and will be readed on Properties class: object variable
-    //received date readed from db, will be converted here
-
-    var hpHeader = "HP: "; var modifiedHp = "";
-    if(Status.getModifiedHp(level,max_hp)>0){
-        hpHeader += Status.getHp(level,max_hp);
-        modifiedHp = `(+${Status.getModifiedHp(level,max_hp)})`;
-    }
-
-    var objEmbed = {
-        color:Properties.dataColorCore[embedColor].color,
-        author:{
-            iconURL:Properties.dataCardCore[packName].icon,
-            name:`Level ${level}/${Leveling.getMaxLevel(rarity)}`
-        },
-        title:cardName,
-        thumbnail:{
-            url:imgUrl
-        },
-        fields:[
-            {
-                name:"ID:",
-                value:id_card,
-                inline:true
-            },
-            {
-                name:"Series:",
-                value:series,
-                inline:true
-            },
-            {
-                name:"Rarity:",
-                value:`${rarity+Properties.cardCategory[type].rarityBoost} :star:`,
-                inline:true
-            },
-            {
-                name:"❤️HP:",
-                value:Status.getHp(level,max_hp),
-                inline:true
-            },
-            {
-                name:"⚔️Atk:",
-                value:`${Status.getAtk(level,max_atk)}`,
-                inline:true
-            },
-            {
-                name:`Special:`,
-                value:`${Properties.dataCardCore[packName].special_attack} Lv.${special_level}`,
-                inline:true
-            }
-        ],
-        footer:{
-            iconURL:avatarImgUrl,
-            text:`${username}`
-        }
-    }
-
-    switch(type){
-        case Properties.cardCategory.gold.value:
-            objEmbed.color = Properties.cardCategory[type].color;
-            objEmbed.title = `${cardName} ✨`;
-            break;
-    }
-
-    return objEmbed;
-}
-
-function embedCardCapture(embedColor,id_card,packName,
-    cardName,imgUrl,series,rarity,avatarImgUrl,username,currentCardTotal,
-    max_hp,max_atk,cardStock=0){
-    //embedColor in string and will be readed on Properties class: object variable
-    //received date readed from db, will be converted here
-
-    var objEmbed = {
-        color:Properties.dataColorCore[embedColor].color,
-        author:{
-            iconURL:Properties.dataCardCore[packName].icon,
-            name:`${GlobalFunctions.capitalize(packName)} Card Pack`
-        },
-        title:cardName,
-        image:{
-            url:imgUrl
-        },
-        fields:[
-            {
-                name:"ID:",
-                value:id_card,
-                inline:true
-            },
-            {
-                name:"Series:",
-                value:series,
-                inline:true
-            },
-            {
-                name:"Rarity:",
-                value:`${rarity} :star:`,
-                inline:true
-            },
-            {
-                name:"HP:",
-                value:`${max_hp}`,
-                inline:true
-            },
-            {
-                name:"Atk:",
-                value:`${Status.getAtk(1,max_atk)}`,
-                inline:true
-            },
-            {
-                name:`Special:`,
-                value:Properties.dataCardCore[packName].special_attack,
-                inline:true
-            }
-        ]
-    }
-
-    if(cardStock>=1){
-        objEmbed["footer"] = {
-            iconURL:avatarImgUrl,
-            text:`Captured By: ${username} (${currentCardTotal}/${Properties.dataCardCore[packName].total}) x${cardStock}`
-        }
-    } else {
-        objEmbed["footer"] = {
-            iconURL:avatarImgUrl,
-            text:`Captured By: ${username} (${currentCardTotal}/${Properties.dataCardCore[packName].total})`
-        }
-    }
-
-    return objEmbed;
-}
-
-function embedCardDetail(embedColor,id_card,packName,
-    cardName,imgUrl,series,rarity,avatarImgUrl,receivedDate,
-    level,max_hp,max_atk,special_level,stock=0,ability1,type=Properties.cardCategory.normal.value){
-    //embedColor in string and will be readed on Properties class: object variable
-    //received date readed from db, will be converted here
-
-    var customReceivedDate = new Date(receivedDate);
-    customReceivedDate = `${("0" + receivedDate.getDate()).slice(-2)}/${("0" + (receivedDate.getMonth() + 1)).slice(-2)}/${customReceivedDate.getFullYear()}`;
-
-    var txtPartyAbility = "-";
-    if(ability1 in StatusEffect.partyBuffData){
-        txtPartyAbility = `**${StatusEffect.partyBuffData[ability1].name}:**\n${StatusEffect.partyBuffData[ability1].description}`;
-    }
-
-    var skillsData = Properties.dataColorCore[embedColor].skills[1];
-    var skillsCpCost = Properties.dataColorCore[embedColor].skills[1].cp_cost;
-    var skillsName = skillsData.buff_data.name;
-    var skillsDescription = skillsData.buff_data.description;
-
-    var objEmbed = {
-        color:Properties.dataColorCore[embedColor].color,
-        author:{
-            iconURL:Properties.dataCardCore[packName].icon,
-            name:`Level ${level}/${Leveling.getMaxLevel(rarity)} | Next CP: ${Leveling.getNextCardExp(level)}`
-        },
-        title:`${cardName}`,
-        description:`**Party Ability:**\n>${txtPartyAbility}\n\n**Battle Skills:**\n>**${skillsName} (${skillsCpCost} CP)**:\n${skillsDescription}`,
-        image:{
-            url:imgUrl
-        },
-        fields:[
-            {
-                name:"ID:",
-                value:id_card,
-                inline:true
-            },
-            {
-                name:"Series:",
-                value:series,
-                inline:true
-            },
-            {
-                name:"Rarity:",
-                value:`${rarity+Properties.cardCategory[type].rarityBoost} :star:`,
-                inline:true
-            },
-            {
-                name:`❤️HP:`,
-                value:`${Status.getHp(level,max_hp)}`,
-                inline:true
-            },
-            {
-                name:"⚔️Atk:",
-                value:`${Status.getAtk(level,max_atk)}`,
-                inline:true
-            },
-            {
-                name:`Special:`,
-                value:`${Properties.dataCardCore[packName].special_attack} Lv.${special_level}`,
-                inline:true
-            }
-        ],
-        footer:{
-            iconURL:avatarImgUrl,
-            text:`Received at: ${customReceivedDate}`
-        }
-    }
-
-    //modify the card
-    switch(type){
-        case Properties.cardCategory.gold.value:
-            objEmbed.color = Properties.cardCategory.gold.color;
-            objEmbed.title = `${cardName} ✨`;
-            break;
-    }
-
-    if(stock>=1){
-        objEmbed.footer.text+= ` | Stock:${stock}`;
-    }
-
-    return objEmbed;
-}
-
+//deprecated
 const embedBioPackList = {
     color: Properties.embedColor,
     title : `Character List`,
@@ -4504,6 +4287,7 @@ const embedBioPackList = {
     }]
 }
 
+//deprecated
 const embedCardPackList = {
     color: Properties.embedColor,
     title : `Card Pack List`,
@@ -4611,27 +4395,6 @@ async function getUserTotalCard(id_user,pack){
     var arrParameterized = [id_user,pack];
     var cardDataInventory = await DBConn.conn.promise().query(query, arrParameterized);
     return cardDataInventory[0][0].total;
-}
-
-async function getAverageLevel(id_user,arrColorLevel=null){
-    if(arrColorLevel==null){
-        //if arrColorLevel provided we dont need to read it from db
-        var userData = await getCardUserStatusData(id_user);
-        arrColorLevel = [
-            userData[DBM_Card_User_Data.columns.color_level_blue],
-            userData[DBM_Card_User_Data.columns.color_level_green],
-            userData[DBM_Card_User_Data.columns.color_level_pink],
-            userData[DBM_Card_User_Data.columns.color_level_purple],
-            userData[DBM_Card_User_Data.columns.color_level_red],
-            userData[DBM_Card_User_Data.columns.color_level_white],
-            userData[DBM_Card_User_Data.columns.color_level_yellow]
-        ]
-    }
-    var total = 0;
-    for(var i = 0; i < arrColorLevel.length; i++) {
-        total += arrColorLevel[i];
-    }
-    return Math.ceil(total / arrColorLevel.length);
 }
 
 async function updateCatchAttempt(id_user,spawn_token,objColor=null,objSeries=null){
@@ -4801,42 +4564,60 @@ async function leaderboardAddNew(id_guild,id_user,imgAvatarUrl,_color,category,c
         completionDate = dd + '/' + mm + '/' + yyyy;
 
         var objEmbed = {
-            color: _color,
-            thumbnail : {
-                url:imgAvatarUrl
-            }
+            color: _color
         }
         
         switch(category){
             case "color":
                 //color completed
                 objEmbed.title = `Card Color Set ${GlobalFunctions.capitalize(completion)} Completed!`;
-                objEmbed.description = `<@${id_user}> has become new master of cure **${completion}**!`;
+                objEmbed.description = `<@${id_user}> has become the new master of cure **${completion}**!`;
+                objEmbed.thumbnail = {
+                    url:imgAvatarUrl
+                }
                 break;
             case "pack":
                 //pack completed
                 objEmbed.title = `${GlobalFunctions.capitalize(completion)} Card Pack Completed!`;
                 objEmbed.description = `<@${id_user}> has completed the card pack: **${completion}**!`;
-                break;
-            case "color_gold":
-                //color completed
-                objEmbed.title = `Gold ${GlobalFunctions.capitalize(completion)} Set Completed!`;
-                objEmbed.description = `<@${id_user}> has become new master of gold cure **${completion}**!`;
-                break;
-            case "pack_gold":
-                //pack completed
-                objEmbed.title = `Gold ${GlobalFunctions.capitalize(completion)} Pack Completed!`;
-                objEmbed.description = `<@${id_user}> has completed the gold card pack: **${completion}**!`;
+                objEmbed.thumbnail = {
+                    url:Properties.dataCardCore[completion].icon
+                }
                 break;
             case "series":
                 //pack completed
                 objEmbed.title = `Card Series ${GlobalFunctions.capitalize(completion)} Completed!`;
                 objEmbed.description = `<@${id_user}> has completed the card series: **${completion}**!`;
+                objEmbed.thumbnail = {
+                    url:Properties.seriesCardCore[completion].icon
+                }
+                break;
+            case "color_gold":
+                //color completed
+                objEmbed.color = Properties.cardCategory.gold.color;
+                objEmbed.title = `Gold ${GlobalFunctions.capitalize(completion)} Set Completed!`;
+                objEmbed.description = `<@${id_user}> has become the new master of gold cure **${completion}**!✨`;
+                objEmbed.thumbnail = {
+                    url:imgAvatarUrl
+                }
+                break;
+            case "pack_gold":
+                //pack completed
+                objEmbed.color = Properties.cardCategory.gold.color;
+                objEmbed.title = `Gold ${GlobalFunctions.capitalize(completion)} Pack Completed!`;
+                objEmbed.description = `<@${id_user}> has completed the gold card pack: **${completion}**!✨`;
+                objEmbed.thumbnail = {
+                    url:Properties.dataCardCore[completion].icon
+                }
                 break;
             case "series_gold":
                 //pack completed
+                objEmbed.color = Properties.cardCategory.gold.color;
                 objEmbed.title = `Gold Series ${GlobalFunctions.capitalize(completion)} Completed!`;
-                objEmbed.description = `<@${id_user}> has completed the gold series: **${completion}**!`;
+                objEmbed.description = `<@${id_user}> has completed the gold series: **${completion}**!✨`;
+                objEmbed.thumbnail = {
+                    url:Properties.seriesCardCore[completion].icon
+                }
                 break;
         }
 
@@ -4845,7 +4626,7 @@ async function leaderboardAddNew(id_guild,id_user,imgAvatarUrl,_color,category,c
             text:`Completed at: ${completionDate}`
         };
 
-        return objEmbed;
+        return new MessageEmbed(objEmbed);
 
     } else {
         return null;
@@ -4998,63 +4779,14 @@ async function updateMessageIdSpawn(id_guild,id_message){
     await DB.update(DBM_Card_Guild.TABLENAME,parameterSet,parameterWhere);
 }
 
-async function getCardBattleInstanceData(userId){
-    var parameterWhere = new Map();
-    parameterWhere.set(DBM_Card_Battle_Instance.columns.id_user,userId);
-    var cardInstanceData = await DB.select(DBM_Card_Battle_Instance.TABLENAME,parameterWhere);
-    cardInstanceData = cardInstanceData[0];
-    if(cardInstanceData.length<=0){
-        return null;
-    }
-    return cardInstanceData;
-}
-
-async function generateCardCureDuel(userId,overwriteToken = true,update=false){
-    var battleInstanceData = await getCardBattleInstanceData(userId);
-    var dtBattle = "{";
-    if(battleInstanceData==null&&!update){
-        
-    }
-    
-    dtBattle += "}";
-
-    var query = `SELECT * FROM ${DBM_Card_Data.TABLENAME} WHERE ${DBM_Card_Data.columns.rarity}=(
-        SELECT max(${DBM_Card_Data.columns.rarity}) FROM ${DBM_Card_Data.TABLENAME} 
-            where pack=? 
-    ) and series=? and pack=?`;
-}
-
 async function generateCardSpawn(id_guild,specificType=null,overwriteToken = true,spawnData2=null,spawnData3=null){
     var cardGuildData = await CardGuildModules.getCardGuildData(id_guild);
     //reset guild timer information
     //update & erase last spawn information if overwriteToken param is provided
-    if(overwriteToken){
-        await removeCardGuildSpawn(id_guild);
-    }
-    
-    // var rndIndex = GlobalFunctions.randomNumber(0,Properties.spawnType.length-1); 
-    // // var cardSpawnType = Properties.spawnType[rndIndex].toLowerCase();
-    // // if(specificType!=null){
-    // //     cardSpawnType = specificType;
-    // // }
+    if(overwriteToken) await removeCardGuildSpawn(id_guild);
 
     //start randomize the spawn
-    var cardSpawnType = "";
-
-    // for (const key in Properties.objSpawnType) {
-    //     if(cardSpawnType==""){
-    //         var rnd = GlobalFunctions.randomNumber(0,100);
-    //         var minRnd = 100-Properties.objSpawnType[key];//get the minimum random number
-    //         if(rnd>=minRnd){
-    //             cardSpawnType = key;
-    //         }
-    //     }
-    // }
-
-    //if card spawn is empty set to default:normal
-    if(cardSpawnType==""){
-        cardSpawnType = "color";
-    }
+    var cardSpawnType = "normal";
 
     var rnd = GlobalFunctions.randomNumber(1,100);
     // battle:25,//25
@@ -5066,54 +4798,27 @@ async function generateCardSpawn(id_guild,specificType=null,overwriteToken = tru
     if(rnd<Properties.objSpawnType.battle){
         cardSpawnType = "battle";
     } else if(rnd<Properties.objSpawnType.battle+Properties.objSpawnType.normal+Properties.objSpawnType.quiz){
-        var rnd = GlobalFunctions.randomNumber(0,1);
-        switch(rnd){
-            case 0:
-                cardSpawnType = "normal";
-                break;
-            case 1:
-                cardSpawnType = "quiz";
-                break;
-        }
+        cardSpawnType = GlobalFunctions.randomNumber(0,1) == 0 ? "normal":"quiz";
     } else if(rnd<Properties.objSpawnType.battle+Properties.objSpawnType.normal+Properties.objSpawnType.quiz+Properties.objSpawnType.number){
         cardSpawnType = "number";
     } else if(rnd<Properties.objSpawnType.battle+Properties.objSpawnType.normal+Properties.objSpawnType.quiz+Properties.objSpawnType.number+Properties.objSpawnType.color+Properties.objSpawnType.quiz+Properties.objSpawnType.number+Properties.objSpawnType.series){
-        var rnd = GlobalFunctions.randomNumber(0,1);
-        switch(rnd){
-            case 0:
-                cardSpawnType = "series";
-                break;
-            case 1:
-                cardSpawnType = "color";
-                break;
-        }
+        cardSpawnType = GlobalFunctions.randomNumber(0,1) == 0 ? "series":"color";
     } else {
         cardSpawnType = "battle";
     }
 
-    if(specificType!=null){
-        cardSpawnType=specificType;
-    }
+    if(specificType!=null) cardSpawnType=specificType;
 
     //for debugging purpose:
-    // cardSpawnType = "quiz";
+    // cardSpawnType = "normal";
 
     var query = "";
-    //prepare the embed object
-    // var objEmbed = {
-    //     color: Properties.embedColor
-    // }
-
-    var objEmbed = new Discord.MessageEmbed(objEmbed);
+    var objFinalSend = {};
+    var objEmbed = new MessageEmbed(objEmbed);
     objEmbed.color = Properties.embedColor;
-
-    //get color total
-    // var colorTotal = 0; 
-    // for ( var {} in Properties.dataColorCore ) { colorTotal++; }
 
     var parameterWhere = new Map();
     parameterWhere.set(DBM_Card_Guild.columns.id_guild,id_guild);
-
     var parameterSet = new Map();
     parameterSet.set(DBM_Card_Guild.columns.spawn_type,cardSpawnType); //set the spawn type
     if(overwriteToken){
@@ -5125,20 +4830,23 @@ async function generateCardSpawn(id_guild,specificType=null,overwriteToken = tru
                 url:Properties.spawnData.color.embed_img
             }
             objEmbed.title = "Color Card";
-            objEmbed.description = `A **color** card has appeared! Use: **p!card catch** to capture the card based from your assigned color.`;
+            objEmbed.description = `A **color** card has appeared! Press **✨Catch!** button to capture this color card!`;
             objEmbed.footer = {
                 text:`⭐ Rarity: 1-3 | ⬆️ Bonus Catch Rate+10%`
             }
+            objFinalSend.components =[DiscordStyles.Button.basic("card.catch_color","✨Catch!","PRIMARY")];
+
             break;
         case "series":
             objEmbed.image = {
                 url:Properties.spawnData.color.embed_img
             }
             objEmbed.title = "Series Card";
-            objEmbed.description = `A **series** card has appeared! Use: **p!card catch** to capture the card based from your assigned series.`;
+            objEmbed.description = `A **series** card has appeared! Press **✨Catch!** button to capture this series card!`;
             objEmbed.footer = {
                 text:`⭐ Rarity: 1-3 | ⬆️ Bonus Catch Rate+10%`
             }
+            objFinalSend.components =[DiscordStyles.Button.basic("card.catch_series","✨Catch!","PRIMARY")];
             break;
         case "number": //number spawn type
             //get color total:
@@ -5156,20 +4864,37 @@ async function generateCardSpawn(id_guild,specificType=null,overwriteToken = tru
             objEmbed.color = Properties.dataColorCore[resultData[0][0][DBM_Card_Data.columns.color]].color;
             var selectedColor = resultData[0][0][DBM_Card_Data.columns.color];
 
-            if(cardSpawnType=="number"){
-                objEmbed.author = {
-                    name:`Number Card: ${GlobalFunctions.capitalize(selectedColor)} Edition`
-                }
-                objEmbed.title = ":game_die: It's Lucky Numbers Time!";
-                objEmbed.description = `Guess whether the hidden number**(1-12)** will be **lower** or **higher** than the current number: **${rndNumber}** with: **p!card guess <lower/higher>**`;
-                objEmbed.image = {
-                    url:Properties.dataColorCore[selectedColor].imgMysteryUrl
-                }
+            objEmbed.author = {
+                name:`Number Card: ${GlobalFunctions.capitalize(selectedColor)} Edition`
             }
-            
+            objEmbed.title = ":game_die: It's Lucky Numbers Time!";
+            objEmbed.description = `Guess whether the hidden number**(1-12)** will be **lower** or **higher** than the current number: **${rndNumber}**`;
+            objEmbed.image = {
+                url:Properties.dataColorCore[selectedColor].imgMysteryUrl
+            }
+
             objEmbed.footer = {
                 text:`⭐ Rarity: 4-5 | ⏫ Catch Rate: 100%`
             }
+
+            //select menu start
+            var arrOptions = [
+                {
+                    label: `Lower`,
+                    value: `lower`,
+                    description: `Hidden number is lower than ${rndNumber}`
+                },
+                {
+                    label: `Higher`,
+                    value: `higher`,
+                    description: `Hidden number is higher than ${rndNumber}`
+                }
+            ];
+
+            objFinalSend.components = [
+                DiscordStyles.SelectMenus.basic("card.guess_number","Guess it lower/higher",arrOptions)
+            ];
+            //select menu end
             
             break;
         
@@ -5240,6 +4965,7 @@ async function generateCardSpawn(id_guild,specificType=null,overwriteToken = tru
 
             switch(randomQuizType){
                 case 0:
+                    //default quiz:
                     var alterEgo = Properties.dataCardCore[cardSpawnPack].alter_ego;
                     //get the other pack answer
                     var queryAnotherQuestion = `SELECT ${DBM_Card_Data.columns.pack},${DBM_Card_Data.columns.series}, ${DBM_Card_Data.columns.color} 
@@ -5258,33 +4984,41 @@ async function generateCardSpawn(id_guild,specificType=null,overwriteToken = tru
                     //get the answer
                     var answer = arrAnswerList.indexOf(cardSpawnPack);
                     switch(answer){
-                        case 0:
-                            answer = "a";
-                            break;
-                        case 1:
-                            answer = "b";
-                            break;
-                        case 2:
-                            answer = "c";
-                            break;
-                        case 3:
-                            answer = "d";
-                            break;
+                        case 0: answer = "a"; break;
+                        case 1: answer = "b"; break;
+                        case 2: answer = "c"; break;
+                        case 3: answer = "d"; break;
                     }
+
+                    //select menu start
+                    var arrOptions = [];
+                    for(var i=0;i<arrAnswerList.length;i++){
+                        arrOptions.push({
+                            label: `${arrAnswerList[i].toString()}`,
+                            description: `Answers with: ${arrAnswerList[i]}`
+                        });
+                        switch(i){
+                            case 0: arrOptions[i].value = "a"; break;
+                            case 1: arrOptions[i].value = "b"; break;
+                            case 2: arrOptions[i].value = "c"; break;
+                            case 3: arrOptions[i].value = "d"; break;
+                        }
+                    }
+
+                    objFinalSend.components = [
+                        DiscordStyles.SelectMenus.basic("card.answer_quiz","Select the answers",arrOptions)
+                    ];
+                    //select menu end
         
                     parameterSet.set(DBM_Card_Guild.columns.spawn_data,
                     `{"${Properties.spawnData.quiz.type}":"${Properties.spawnData.quiz.typeNormal}","${Properties.spawnData.quiz.answer}":"${answer}","${Properties.spawnData.quiz.id_card}":"${cardSpawnId}"}`);
         
                     //prepare the embed:
+                    objEmbed.title = `:grey_question: It's Quiz Time!`;
+                    objEmbed.description = `The series theme/motif was about: **${Properties.spawnHintSeries[cardSpawnSeries]}** and I'm known as **${alterEgo}**. Who am I?`;
                     objEmbed.author = {
                         name:`Quiz Card`,
                     }
-                    objEmbed.title = `:grey_question: It's Quiz Time!`;
-                    objEmbed.description = `The series theme/motif was about: **${Properties.spawnHintSeries[cardSpawnSeries]}** and I'm known as **${alterEgo}**. Who am I?`;
-                    objEmbed.fields = [{
-                        name:`Answer command:\np!card answer <a/b/c/d>`,
-                        value:`**A. ${Properties.dataCardCore[arrAnswerList[0]].fullname}\nB. ${Properties.dataCardCore[arrAnswerList[1]].fullname}\nC. ${Properties.dataCardCore[arrAnswerList[2]].fullname}\nD. ${Properties.dataCardCore[arrAnswerList[3]].fullname}**`
-                    }]
                     objEmbed.image ={
                         url:Properties.spawnData.quiz.embed_img
                     }
@@ -5320,24 +5054,37 @@ async function generateCardSpawn(id_guild,specificType=null,overwriteToken = tru
                     //get the answer
                     var answer = arrAnswerList.indexOf(tempAnswer);
                     switch(answer){
-                        case 0:
-                            answer = "a";
-                            break;
-                        case 1:
-                            answer = "b";
-                            break;
-                        case 2:
-                            answer = "c";
-                            break;
-                        case 3:
-                            answer = "d";
-                            break;
+                        case 0: answer = "a"; break;
+                        case 1: answer = "b"; break;
+                        case 2: answer = "c"; break;
+                        case 3: answer = "d"; break;
                     }
+
+                    //select menu start
+                    var arrOptions = [];
+                    for(var i=0;i<arrAnswerList.length;i++){
+                        arrOptions.push({
+                            label: `${arrAnswerList[i].toString()}`,
+                            description: `Answers with: ${arrAnswerList[i]}`
+                        });
+                        switch(i){
+                            case 0: arrOptions[i].value = "a"; break;
+                            case 1: arrOptions[i].value = "b"; break;
+                            case 2: arrOptions[i].value = "c"; break;
+                            case 3: arrOptions[i].value = "d"; break;
+                        }
+                    }
+
+                    objFinalSend.components = [
+                        DiscordStyles.SelectMenus.basic("card.answer_quiz","Select the answers",arrOptions)
+                    ];
+                    //select menu end
         
                     parameterSet.set(DBM_Card_Guild.columns.spawn_data,
                     `{"${Properties.spawnData.quiz.type}":"${Properties.spawnData.quiz.typeTsunagarus}","${Properties.spawnData.quiz.answer}":"${answer}","${Properties.spawnData.quiz.id_card}":"${cardSpawnId}"}`);
     
                     //prepare the embed:
+                    objEmbed.description = `**${GlobalFunctions.capitalize(TsunagarusModules.Properties.enemySpawnData.tsunagarus.chiridjirin.term)}** has take over the quiz time!\nRearrange this provided hint: **${name}** and choose the correct branch!`;
                     objEmbed.color = TsunagarusModules.Properties.enemySpawnData.tsunagarus.chiridjirin.embedColor;
                     objEmbed.author = {
                         name:`Quiztaccked!`,
@@ -5345,11 +5092,6 @@ async function generateCardSpawn(id_guild,specificType=null,overwriteToken = tru
                     objEmbed.thumbnail = {
                         url:Properties.imgResponse.imgFailed
                     }
-                    objEmbed.description = `**${GlobalFunctions.capitalize(TsunagarusModules.Properties.enemySpawnData.tsunagarus.chiridjirin.term)}** has take over the quiz time!\nRearrange this provided hint: **${name}** and choose the correct branch!`;
-                    objEmbed.fields = [{
-                        name:`Branch command:\np!card choose <a/b/c/d>`,
-                        value:`**A. ${arrAnswerList[0]}\nB. ${arrAnswerList[1]}\nC. ${arrAnswerList[2]}\nD. ${arrAnswerList[3]}**`
-                    }]
                     objEmbed.image ={
                         url:TsunagarusModules.Properties.enemySpawnData.tsunagarus.chiridjirin.image
                     }
@@ -5382,13 +5124,7 @@ async function generateCardSpawn(id_guild,specificType=null,overwriteToken = tru
                             var answer = "";
                             arrAnswerList.push(totalStars);
                             for(var i=0;i<=2;i++){
-                                var tempAnswer = 0;
-                                var randomEquation = GlobalFunctions.randomNumber(0,1);
-                                if(randomEquation==0){
-                                    tempAnswer = totalStars-GlobalFunctions.randomNumber(1,2+i);
-                                } else {
-                                    tempAnswer = totalStars+GlobalFunctions.randomNumber(1,2+i);
-                                }
+                                var tempAnswer = GlobalFunctions.randomNumber(0,1) == 0 ? totalStars-GlobalFunctions.randomNumber(1,2+i) : totalStars+GlobalFunctions.randomNumber(1,2+i);
 
                                 if(arrAnswerList.includes(tempAnswer)){
                                     i-=1;
@@ -5399,6 +5135,24 @@ async function generateCardSpawn(id_guild,specificType=null,overwriteToken = tru
 
                             arrAnswerList = arrAnswerList.sort((a, b) => a - b); // For ascending sort
                             answer = arrAnswerList.indexOf(totalStars);
+
+                            var arrOptions = [];
+                            for(var i=0;i<arrAnswerList.length;i++){
+                                arrOptions.push({
+                                    label: `${arrAnswerList[i].toString()}`,
+                                    description: `Answers with ${arrAnswerList[i]} stars`
+                                });
+                                switch(i){
+                                    case 0: arrOptions[i].value = "a"; break;
+                                    case 1: arrOptions[i].value = "b"; break;
+                                    case 2: arrOptions[i].value = "c"; break;
+                                    case 3: arrOptions[i].value = "d"; break;
+                                }
+                            }
+
+                            objFinalSend.components = [
+                                DiscordStyles.SelectMenus.basic("card.answer_quiz","Select the answers",arrOptions)
+                            ];
 
                             switch(answer){
                                 case 0:
@@ -5418,10 +5172,6 @@ async function generateCardSpawn(id_guild,specificType=null,overwriteToken = tru
                             parameterSet.set(DBM_Card_Guild.columns.spawn_data,
                             `{"${Properties.spawnData.quiz.type}":"${Properties.spawnData.quiz.typeStarTwinkleStarsCount}","${Properties.spawnData.quiz.answer}":"${answer}","${Properties.spawnData.quiz.id_card}":"${cardSpawnId}","${Properties.spawnData.quiz.totalStars}":${totalStars}}`);
                             
-                            objEmbed.fields = [{
-                                name:`Answer command:\np!card answer <a/b/c/d>`,
-                                value:`**A.** ${arrAnswerList[0]}\n**B.** ${arrAnswerList[1]}\n**C.** ${arrAnswerList[2]}\n**D.** ${arrAnswerList[3]}`
-                            }];
                             objEmbed.image ={
                                 url:Properties.spawnData.quiz.embed_img
                             }
@@ -5435,12 +5185,6 @@ async function generateCardSpawn(id_guild,specificType=null,overwriteToken = tru
                         case 1:
                         default:
                             //star twinkle constellation
-                            // libra:{
-                            //     name:"Libra Fuwa",
-                            //     img_url:[
-                            //         "https://cdn.discordapp.com/attachments/841371817704947722/841524914317951086/image0.png","https://cdn.discordapp.com/attachments/841371817704947722/841524914543788053/image1.png"
-                            //     ]
-                            // },
                             objEmbed.author = {
                                 name:`Star Twinkle Quiz Time!`,
                             }
@@ -5463,30 +5207,37 @@ async function generateCardSpawn(id_guild,specificType=null,overwriteToken = tru
                             arrAnswerList = arrAnswerList.sort((a, b) => a - b); // For ascending sort
                             answer = arrAnswerList.indexOf(answer);
 
+                            //select menu start
+                            var arrOptions = [];
+                            for(var i=0;i<arrAnswerList.length;i++){
+                                arrOptions.push({
+                                    label: `${arrAnswerList[i].toString()}`,
+                                    description: `Answers with: ${arrAnswerList[i]}`
+                                });
+                                switch(i){
+                                    case 0: arrOptions[i].value = "a"; break;
+                                    case 1: arrOptions[i].value = "b"; break;
+                                    case 2: arrOptions[i].value = "c"; break;
+                                    case 3: arrOptions[i].value = "d"; break;
+                                }
+                            }
+
+                            objFinalSend.components = [
+                                DiscordStyles.SelectMenus.basic("card.answer_quiz","Select the answers",arrOptions)
+                            ];
+                            //select menu end
+
                             switch(answer){
-                                case 0:
-                                    answer = "a";
-                                    break;
-                                case 1:
-                                    answer = "b";
-                                    break;
-                                case 2:
-                                    answer = "c";
-                                    break;
-                                case 3:
-                                    answer = "d";
-                                    break;
+                                case 0: answer = "a"; break;
+                                case 1: answer = "b"; break;
+                                case 2: answer = "c"; break;
+                                case 3: answer = "d"; break;
                             }
 
                             parameterSet.set(DBM_Card_Guild.columns.spawn_data,
                             `{"${Properties.spawnData.quiz.type}":"${Properties.spawnData.quiz.typeStarTwinkleConstellation}","${Properties.spawnData.quiz.answer}":"${answer}","${Properties.spawnData.quiz.id_card}":"${cardSpawnId}"}`);
 
                             objEmbed.fields = [
-                                {
-                                    name:`Answer command:\np!card answer <a/b/c/d>`,
-                                    value:`**A.** ${arrAnswerList[0]}\n**B.** ${arrAnswerList[1]}\n**C.** ${arrAnswerList[2]}\n**D.** ${arrAnswerList[3]}`,
-                                    inline:true
-                                },
                                 {
                                     name:`Image Link`,
                                     value:`[Image Link](${randomImg})`,
@@ -5508,20 +5259,16 @@ async function generateCardSpawn(id_guild,specificType=null,overwriteToken = tru
                             
                             break;
                     }
-
-                    
-
                     break;
             }
             
             break;
         case "battle":
-
-            //randomize the enemy type:
+            //battle: randomize the enemy type:
             var enemyType = TsunagarusModules.Properties.enemySpawnData.tsunagarus.chokkins.term;//default enemy type
             var randomType = GlobalFunctions.randomNumber(0,10);
 
-            // randomType = 10;//for debug purpose only
+            // randomType = 1;//for debug purpose only
 
             if(specificType!=null&&
             (spawnData2==null||spawnData3==null)){
@@ -5557,6 +5304,7 @@ async function generateCardSpawn(id_guild,specificType=null,overwriteToken = tru
             var spawnSeries = enemyData[DBM_Card_Enemies.columns.series];
 
             var spawnData = "";
+
             if(randomType>=10){
                 //barabaran
                 var query = `SELECT * 
@@ -5691,7 +5439,7 @@ async function generateCardSpawn(id_guild,specificType=null,overwriteToken = tru
                     url:TsunagarusModules.Properties.enemySpawnData.tsunagarus.barabaran.image
                 }
                 objEmbed.title = `Lets settle this down shall we?`;
-                objEmbed.description = `Team up to defeat the **${GlobalFunctions.capitalize(enemyType)}**! \n\n**p!card <command> List:**\n⚔️ **battle**: Participate in team battle (10 CP)\n✨ **battle special [party]**: Use the fully charged special attack/team attack\n🛡️ **battle block**: Counter/Block any offensive actions (10 CP)\n⬆️ **battle charge**: Charge up team special point (10 PP)\n🔍 **battle scan <info>**: Scan & Reveal <info> (1 PP)\n\n**Traits:**\n>Can attack & counter cure with HP<${lvR}\n>Counter cure that doesn't possess its elemental weakness\n>Counter cure that has less than ${txtRarity}⭐\n>Counter cure that cannot hit the color`;
+                objEmbed.description = `Team up to defeat **${GlobalFunctions.capitalize(enemyType)}**!\n\n**Traits:**\n>Can attack & counter cure with HP<${lvR}\n>Counter cure that doesn't possess its elemental weakness\n>Counter cure that has less than ${txtRarity}⭐\n>Counter cure that cannot hit the color`;
                 objEmbed.color = TsunagarusModules.Properties.enemySpawnData.tsunagarus[enemyType].embedColor;
 
                 objEmbed.fields = [
@@ -5809,7 +5557,7 @@ async function generateCardSpawn(id_guild,specificType=null,overwriteToken = tru
                     url:TsunagarusModules.Properties.enemySpawnData.tsunagarus.dibosu.image
                 }
                 objEmbed.title = `Tsunagarus Lv.${lvR} has appeared!`;
-                objEmbed.description = `${GlobalFunctions.capitalize(enemyType)} has manifest the **series cure card** and possesses **${TsunagarusModules.Properties.enemySpawnData[spawnSeries].term}** powers!\n\n**Available Command:**\n⚔️ **p!card battle**: Participate in battle. (10 CP)\n✨ **p!card battle special**: Use the special attack.\n⬆️ **p!card battle charge**: Charge up your special attack. (20 CP)\n\n**Traits:**\n>Can attack\n>Weak against cure that can hit this monster type\n>Counter cure that has incorrect rarity\n>Counter cure with tricky color information`;
+                objEmbed.description = `${GlobalFunctions.capitalize(enemyType)} has manifest the **series cure card** and possesses **${TsunagarusModules.Properties.enemySpawnData[spawnSeries].term}** powers!\nDefeat it with your precure avatar to get the cure card!\n\n**Traits:**\n>Can attack\n>Weak against cure that can hit this monster type\n>Counter cure that has incorrect rarity\n>Counter cure with tricky color information`;
                 objEmbed.color = TsunagarusModules.Properties.enemySpawnData.tsunagarus[enemyType].embedColor;
                 objEmbed.fields = [
                     {
@@ -5827,6 +5575,7 @@ async function generateCardSpawn(id_guild,specificType=null,overwriteToken = tru
                         inline:true
                     }
                 ]
+                
 
                 //randomize the special allowance
                 var randAllowSpecial = GlobalFunctions.randomNumber(0,10);
@@ -5950,7 +5699,7 @@ async function generateCardSpawn(id_guild,specificType=null,overwriteToken = tru
                     url:TsunagarusModules.Properties.enemySpawnData.tsunagarus.buttagiru.image
                 }
                 objEmbed.title = `Tsunagarus Lv.${lvR} has appeared!`;
-                objEmbed.description = `It's a Big Monster! Team up to defeat the **${GlobalFunctions.capitalize(enemyType)}**! \n\n**p!card <command> List:**\n⚔️ **battle**: Participate in team battle (10 CP)\n✨ **battle special [party]**: Use the fully charged special attack/team attack\n🛡️ **battle block**: Counter/Block any offensive actions (10 CP)\n⬆️ **battle charge**: Charge up team special point (10 PP)\n🔍 **battle scan <info>**: Scan & Reveal <info> (1 PP)\n\n**Traits:**\n>Can attack & counter cure with HP<${lvR}\n>Counter cure that cannot hit this monster type\n>Counter cure that has less than ${txtRarity}⭐\n>Counter cure that cannot hit the color`;
+                objEmbed.description = `It's a Big Monster! Team up to defeat **${GlobalFunctions.capitalize(enemyType)}**! \n\n**Traits:**\n>Can attack & counter cure with HP<${lvR}\n>Counter cure that cannot hit this monster type\n>Counter cure that has less than ${txtRarity}⭐\n>Counter cure that cannot hit the color`;
                 objEmbed.color = TsunagarusModules.Properties.enemySpawnData.tsunagarus[enemyType].embedColor;
 
                 objEmbed.fields = [
@@ -6088,7 +5837,7 @@ async function generateCardSpawn(id_guild,specificType=null,overwriteToken = tru
                     url:TsunagarusModules.Properties.enemySpawnData.tsunagarus.chiguhaguu.image
                 }
                 objEmbed.title = `Tsunagarus LvR. ${lvR} has appeared!`;
-                objEmbed.description = `${GlobalFunctions.capitalize(enemyType)} has the ${cardRewardData[DBM_Card_Data.columns.rarity]}⭐ cure card and possesses **${TsunagarusModules.Properties.enemySpawnData[cardDataSeriesWeakness[DBM_Card_Data.columns.series]].term}** powers!\n\n**Available Command:**\n⚔️ **p!card battle**: Participate in battle. (10 CP)\n✨ **p!card battle special**: Use the special attack.\n⬆️ **p!card battle charge**: Charge up your special attack. (20 CP)\n\n**Traits:**\n>Cannot attack\n>Counter cure that cannot hit this monster type\n>Counter cure that has less than ${randRarityMin}⭐\n>Counter cure with tricky catchphrase information`;
+                objEmbed.description = `${GlobalFunctions.capitalize(enemyType)} has the ${cardRewardData[DBM_Card_Data.columns.rarity]}⭐ cure card and possesses **${TsunagarusModules.Properties.enemySpawnData[cardDataSeriesWeakness[DBM_Card_Data.columns.series]].term}** powers!\nDefeat it with your precure avatar to get the cure card!\n\n**Traits:**\n>Cannot attack\n>Counter cure that cannot hit this monster type\n>Counter cure that has less than ${randRarityMin}⭐\n>Counter cure with tricky catchphrase information`;
                 objEmbed.color = TsunagarusModules.Properties.enemySpawnData.tsunagarus[enemyType].embedColor;
                 objEmbed.fields = [
                     {
@@ -6210,7 +5959,7 @@ async function generateCardSpawn(id_guild,specificType=null,overwriteToken = tru
                     url:TsunagarusModules.Properties.enemySpawnData.tsunagarus.gizzagizza.image
                 }
                 objEmbed.title = `Tsunagarus LvR. ${lvR} has appeared!`;
-                objEmbed.description = `${GlobalFunctions.capitalize(enemyType)} has the ${cardRewardData[DBM_Card_Data.columns.rarity]}⭐ cure card and possesses **${TsunagarusModules.Properties.enemySpawnData[spawnSeries].term}** powers!\n\n**Available Command:**\n⚔️ **p!card battle**: Participate in battle. (10 CP)\n✨ **p!card battle special**: Use the special attack.\n⬆️ **p!card battle charge**: Charge up your special attack. (20 CP)\n\n**Traits:**\n>Cannot attack\n>Counter cure that cannot hit this monster type\n>Counter cure that has less than ${randRarityMin}⭐\n>Counter cure with tricky color information`;
+                objEmbed.description = `${GlobalFunctions.capitalize(enemyType)} has the ${cardRewardData[DBM_Card_Data.columns.rarity]}⭐ cure card and possesses **${TsunagarusModules.Properties.enemySpawnData[spawnSeries].term}** powers!\nDefeat it with your precure avatar to get the cure card!\n\n**Traits:**\n>Cannot attack\n>Counter cure that cannot hit this monster type\n>Counter cure that has less than ${randRarityMin}⭐\n>Counter cure with tricky color information`;
                 objEmbed.color = TsunagarusModules.Properties.enemySpawnData.tsunagarus[enemyType].embedColor;
                 objEmbed.fields = [
                     {
@@ -6282,7 +6031,7 @@ async function generateCardSpawn(id_guild,specificType=null,overwriteToken = tru
                     url:TsunagarusModules.Properties.enemySpawnData.tsunagarus.chokkins.image
                 }
                 objEmbed.title = `Tsunagarus Lv. ${lvR} has appeared!`;
-                objEmbed.description = `${GlobalFunctions.capitalize(enemyType)} has the ${cardRewardData[DBM_Card_Data.columns.rarity]}⭐ cure card and possesses **${TsunagarusModules.Properties.enemySpawnData[spawnSeries].term}** powers!\n\n**Available Command:**\n⚔️ **p!card battle**: Participate in battle. (10 CP)\n✨ **p!card battle special**: Use the special attack.\n⬆️ **p!card battle charge**: Charge up your special attack. (20 CP)\n\n**Traits:**\n>Can attack\n>Weak against cure that can hit this monster type`;
+                objEmbed.description = `${GlobalFunctions.capitalize(enemyType)} has the ${cardRewardData[DBM_Card_Data.columns.rarity]}⭐ cure card and possesses **${TsunagarusModules.Properties.enemySpawnData[spawnSeries].term}** powers! Defeat it with your precure avatar to get the cure card!\n\n**Traits:**\n>Can attack\n>Weak against cure that can hit this monster type`;
                 objEmbed.color = TsunagarusModules.Properties.enemySpawnData.tsunagarus[enemyType].embedColor;
                 objEmbed.fields = [
                     {
@@ -6320,6 +6069,10 @@ async function generateCardSpawn(id_guild,specificType=null,overwriteToken = tru
                 spawnData = `{"${Properties.spawnData.battle.category}":"${TsunagarusModules.Properties.enemySpawnData.tsunagarus.category.normal}","${Properties.spawnData.battle.type}":"${enemyType}","${Properties.spawnData.battle.id_enemy}":"${enemyData[DBM_Card_Enemies.columns.id]}","${Properties.spawnData.battle.level}":${lvR},${dtColor},"${Properties.spawnData.battle.id_card_reward}":"${cardRewardData[DBM_Card_Data.columns.id_card]}",${dtAllowSpecial},${dtHp},"${Properties.spawnData.battle.damage_dealer}":{}}`;
             }
 
+            //select menu start
+            objFinalSend.components = Battle.componentsSelectMenuCommand(enemyType);
+            //select menu end
+
             parameterSet.set(DBM_Card_Guild.columns.spawn_data,spawnData);
             break;
         default: // normal spawn type
@@ -6334,22 +6087,29 @@ async function generateCardSpawn(id_guild,specificType=null,overwriteToken = tru
             var cardSpawnPack = resultData[0][0][DBM_Card_Data.columns.pack];
             var cardRarity = resultData[0][0][DBM_Card_Data.columns.rarity];
             var captureChance = `${100-(parseInt(cardRarity)*10)}`;
-
             parameterSet.set(DBM_Card_Guild.columns.spawn_id,cardSpawnId);
+            //prepare the embeds:
+            objEmbed.title = resultData[0][0][DBM_Card_Data.columns.name];
             objEmbed.color = Properties.dataColorCore[resultData[0][0][DBM_Card_Data.columns.color]].color;
             objEmbed.author = {
                 name:`${GlobalFunctions.capitalize(cardSpawnSeries)} Card - ${GlobalFunctions.capitalize(resultData[0][0][DBM_Card_Data.columns.pack])}`,
                 iconURL:Properties.dataCardCore[cardSpawnPack].icon,
             }
-            objEmbed.title = resultData[0][0][DBM_Card_Data.columns.name];
-
             objEmbed.fields = [
                 {
-                    name:"Capture Command:",
-                    value:`Use: **p!card catch** to capture the card.`,
+                    name:"Precure Card Spawned!",
+                    value:`Press **✨Catch!** button to capture this card!`,
                     inline:false
                 }
             ];
+            objEmbed.image ={
+                url:resultData[0][0][DBM_Card_Data.columns.img_url]
+            }
+            objEmbed.footer = {
+                text:`${cardRarity} ⭐ | ID: ${cardSpawnId} | ✔️ Catch Rate: ${captureChance}%`
+            }
+
+            var tempSend = [DiscordStyles.Button.basic("card.catch_normal","✨Catch!","PRIMARY")];
 
             var randomPinky = GlobalFunctions.randomNumber(0,100);
             if(randomPinky<=20 && cardSpawnSeries=="yes! precure 5 gogo!"){
@@ -6364,28 +6124,25 @@ async function generateCardSpawn(id_guild,specificType=null,overwriteToken = tru
                 limit 1`;
                 var resultDataPinky = await DBConn.conn.promise().query(queryPinky,[id_guild]);
                 if(resultDataPinky[0][0]!=null){
-                    objEmbed.fields[1] = [
+                    objEmbed.fields.push(
                         {
                             name:"🦋 Special Capture Command:",
-                            value:`Use: **p!pinky catch** to capture the pinky.`,
+                            value:`Press **🦋Catch!** button to capture this pinky!`,
                             inline:false
                         }
-                    ];
+                    );
                     objEmbed.thumbnail = {
                         url:resultDataPinky[0][0][DBM_Pinky_Data.columns.img_url]
                     }
+
+                    tempSend.push(DiscordStyles.Button.basic("pinky.catch_pinky","🦋Catch!","PRIMARY"));
                     parameterSet.set(DBM_Card_Guild.columns.spawn_data,
                         `{"id_pinky":"${resultDataPinky[0][0][DBM_Pinky_Data.columns.id_pinky]}","id_card":"${cardSpawnId}"}`
                     );
                 }
             }
 
-            objEmbed.image ={
-                url:resultData[0][0][DBM_Card_Data.columns.img_url]
-            }
-            objEmbed.footer = {
-                text:`${cardRarity} ⭐ | ID: ${cardSpawnId} | ✔️ Catch Rate: ${captureChance}%`
-            }
+            objFinalSend.components = tempSend;
             break;
     }
     
@@ -6395,7 +6152,9 @@ async function generateCardSpawn(id_guild,specificType=null,overwriteToken = tru
     await CardGuildModules.updateTimerRemaining(id_guild);
 
     // console.log(objEmbed);
-    return objEmbed;
+    objFinalSend.embeds = [objEmbed];
+
+    return objFinalSend;
 }
 
 async function addNewCardInventory(id_user,id_card,addStock = false,qty=1){
@@ -6463,6 +6222,5 @@ async function limitizeUserPoints(){
 
 module.exports = {latestVersion,Properties,PrecureStarTwinkle: PrecureStarTwinkleCore,Battle,Leveling,Quest,Shop,Status,StatusEffect,TradeBoard,Embeds,Party,Skills,getCardData,getCardInventoryUserData,getAllCardDataByPack,
     getCardUserStatusData,checkUserHaveCard,getUserCardInventoryData,getUserCardStock,getUserTotalCard,
-    updateCatchAttempt,updateColorPoint,updateMofucoin,updateSeriesPoint,removeCardGuildSpawn,generateCardCureDuel,generateCardSpawn,addNewCardInventory,limitizeUserPoints, 
-    embedCardLevelUp,embedCardCapture,embedCardDetail,embedBioPackList,embedCardPackList,getBonusCatchAttempt,getNextColorPoint,
-    checkCardCompletion,leaderboardAddNew,getAverageLevel,updateMessageIdSpawn};
+    updateCatchAttempt,updateColorPoint,updateMofucoin,updateSeriesPoint,removeCardGuildSpawn,generateCardSpawn,addNewCardInventory,limitizeUserPoints,embedBioPackList,embedCardPackList,getBonusCatchAttempt,getNextColorPoint,
+    checkCardCompletion,leaderboardAddNew,updateMessageIdSpawn};

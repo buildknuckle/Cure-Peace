@@ -1,5 +1,7 @@
-const Discord = require('discord.js');
-const paginationEmbed = require('discord.js-pagination');
+const {MessageActionRow, MessageButton, MessageEmbed, Discord, Message} = require('discord.js');
+const DiscordStyles = require('../modules/DiscordStyles');
+// const paginationEmbed = require('discord.js-pagination');
+const paginationEmbed = require('discordjs-button-pagination');
 const DB = require('../database/DatabaseCore');
 const DBConn = require('../storage/dbconn');
 const CardModule = require('../modules/Card');
@@ -14,32 +16,68 @@ const DBM_Card_Guild = require('../database/model/DBM_Card_Guild');
 const DBM_Pinky_Data = require('../database/model/DBM_Pinky_Data');
 const DBM_Pinky_Inventory = require('../database/model/DBM_Pinky_Inventory');
 const DBM_Item_Data = require('../database/model/DBM_Item_Data');
+const { executeComponentButton } = require('./card');
 
 module.exports = {
     name: 'pinky',
     cooldown: 5,
     description: 'Contains all pinky categories',
     args: true,
-	async execute(message, args) {
+    options:[
+        {
+            name: "collet",
+            description: "Open dream collet inventory",
+            type: 2,
+            options: [
+                {
+                    name: "open-collet-inventory",
+                    description: "Open dream collet inventory",
+                    type: 1
+                }
+            ]
+        },
+        {
+            name: "detail",
+            description: "View pinky information detail",
+            type: 2,
+            options: [
+                {
+                    name: "open-detail",
+                    description: "View pinky information detail",
+                    type: 1,
+                    options: [
+                        {
+                            name: "pinky-id",
+                            description: "Enter the pinky id. Example: pi001",
+                            type: 3,
+                            required:true
+                        },
+                    ]
+                }
+            ]
+        },
+    ],
+	async executeMessage(message, args) {
         const guildId = message.guild.id;
         var userId = message.author.id;
         var userUsername = message.author.username;
         var userAvatarUrl = message.author.avatarURL();
+    },
+    async execute(interaction){
+        var command = interaction.options._group;
+        var commandSubcommand = interaction.options._subcommand;
+        const guildId = interaction.guild.id;
+        var userId = interaction.user.id;
+        var userUsername = interaction.user.username;
+        var userAvatarUrl = interaction.user.avatarURL();
 
-        // var members = message.guild.members;
-        switch(args[0]) {
+        //default embed:
+        var objEmbed = {
+            color: CardModule.Properties.embedColor
+        };
+
+        switch(command){
             case "collet":
-            case "inventory":
-                var pack = args[1];
-                if(pack!=null){
-                    pack = pack.toLowerCase();
-                }
-
-                var objEmbed ={
-                    color: CardModule.Properties.embedColor
-                };
-
-                //end user parameter validator
                 objEmbed.title = `Dream Collet`;
 
                 var pinkyList = "";
@@ -73,10 +111,10 @@ module.exports = {
                     //create pagination
                     if(pointerMaxData-1<=0||ctr>maxCtr){
                         objEmbed.fields = [{
-                            // name: `Progress: ${progressTotal}/${CardModule.Properties.dataCardCore[pack].total}`,
+                            name: `Progress: ${progressTotal}/${PinkyModule.Properties.maxPinky}`,
                             value: pinkyList,
                         }];
-                        var msgEmbed = new Discord.MessageEmbed(objEmbed);
+                        var msgEmbed = new MessageEmbed(objEmbed);
                         arrPages.push(msgEmbed);
                         pinkyList = ""; ctr = 0;
                     } else {
@@ -90,23 +128,90 @@ module.exports = {
                 }
 
                 if(progressTotal<PinkyModule.Properties.maxPinky){
-                    arrPages[0].description = `Help Coco & Natts to capture all the missing pinky!`;
+                    arrPages[0].description = `Help Coco & Natts to capture all missing pinky!`;
                 } else {
                     arrPages[0].description = `All the pinky has been captured! Thank you for restoring the Palmier Kingdom.`;
                 }
-                
-                pages = arrPages;
 
-                paginationEmbed(message,pages);
+                paginationEmbed(interaction,arrPages,DiscordStyles.Button.pagingButtonList);
                 break;
-            case "capture":
-            case "catch":
+            case "detail":
+                //get/view the card detail
+                var pinkyId = interaction.options._hoistedOptions[0].value.toLowerCase();
+
+                //check if card ID exists/not
+                var pinkyData = await PinkyModule.getPinkyData(pinkyId);
+
+                if(pinkyData==null){
+                    objEmbed.thumbnail = {
+                        url:CardModule.Properties.imgResponse.imgError
+                    }
+                    objEmbed.description = ":x: I can't find that pinky ID.";
+                    return interaction.reply({embeds:[new MessageEmbed(objEmbed)]});
+                }
+
+                //check if pinky captured/not
+                var pinkyInventoryData = await PinkyModule.getPinkyInventoryData(guildId,pinkyId);
+                if(pinkyInventoryData==null){
+                    objEmbed.thumbnail = {
+                        url:CardModule.Properties.imgResponse.imgError
+                    }
+                    objEmbed.description = `:x: Pinky: **${pinkyData[DBM_Pinky_Data.columns.name]}** need to be captured first.`;
+                    return interaction.reply({embeds:[new MessageEmbed(objEmbed)]});
+                }
+
+                objEmbed.title = `${pinkyData[DBM_Pinky_Data.columns.name]}`;
+                objEmbed.fields = [
+                    {
+                        name:`Pinky ID:`,
+                        value:`${pinkyData[DBM_Pinky_Data.columns.id_pinky]}`,
+                        inline:true
+                    },
+                    {
+                        name:`Category:`,
+                        value:`${pinkyData[DBM_Pinky_Data.columns.category]}`,
+                        inline:true
+                    },
+                    {
+                        name:`Captured By:`,
+                        value:`<@${pinkyInventoryData[DBM_Pinky_Inventory.columns.id_user]}>`,
+                        inline:true
+                    }
+                ];
+                objEmbed.thumbnail = {
+                    url:pinkyData[DBM_Pinky_Data.columns.img_url]
+                }
+                objEmbed.footer = {
+                    text:`Captured at: ${GlobalFunctions.convertDateTime(pinkyInventoryData[DBM_Pinky_Inventory.columns.created_at])}`
+                }
+
+                return interaction.reply({embeds:[new MessageEmbed(objEmbed)]});
+                break;
+        }
+
+    },
+    async executeComponentButton(interaction){
+        var customId = interaction.customId;
+        const guildId = interaction.guild.id;
+        var userId = interaction.user.id;
+        var userUsername = interaction.user.username;
+        var userAvatarUrl = interaction.user.avatarURL();
+
+        //default embed:
+        var objEmbed = {
+            color: CardModule.Properties.embedColor,
+            author: {
+                iconURL:userAvatarUrl,
+                name:userUsername
+            }
+        };
+        var arrEmbedsSend = [];
+
+        switch(customId){
+            case "catch_pinky":
                 //get card spawn information
                 var userCardData = await CardModule.getCardUserStatusData(userId);
                 var guildSpawnData = await CardGuildModule.getCardGuildData(guildId);
-                var objEmbed = {
-                    color: CardModule.Properties.embedColor
-                };
 
                 //get the spawn token & prepare the card color
                 var userData = {
@@ -128,46 +233,39 @@ module.exports = {
                         url: CardModule.Properties.imgResponse.imgError
                     }
                     objEmbed.description = ":x: There are no Pinky detected right now.";
-                    return message.channel.send({embed:objEmbed});
+                    return interaction.reply({embeds:[new MessageEmbed(objEmbed)]});
                 } else if(userData.token==spawnedCardData.token) {
                     //user already capture the card on this turn
                     objEmbed.thumbnail = {
                         url: CardModule.Properties.imgResponse.imgError
                     }
-                    objEmbed.description = ":x: Sorry, you've already used the capture command.";
-                    return message.channel.send({embed:objEmbed});
+                    objEmbed.description = ":x: You already used the capture command.";
+                    return interaction.reply({embeds:[new MessageEmbed(objEmbed)]});
                 }
 
                 //reward & validator
                 switch(spawnedCardData.type){
-                    case "quiz":
-                        //check if card spawn is quiz
-                        objEmbed.thumbnail = {
-                            url: CardModule.Properties.imgResponse.imgError
-                        }
-                        objEmbed.description = ":x: Current card spawn type is **quiz**. You need to use: **p!card answer <a/b/c/d>** to guess the answer and capture the card.";
-                        return message.channel.send({embed:objEmbed});
                     case "number":
                         //check if card spawn is number
                         objEmbed.thumbnail = {
                             url: CardModule.Properties.imgResponse.imgError
                         }
                         objEmbed.description = ":x: Current card spawn type is **number**. You need to use: **p!card guess <lower/higher>** to guess the next hidden number and capture the card.";
-                        return message.channel.send({embed:objEmbed});
+                        return interaction.reply({embeds:[new MessageEmbed(objEmbed)]});
                     case "battle":
                         //check if card spawn is number
                         objEmbed.thumbnail = {
                             url: CardModule.Properties.imgResponse.imgFailed
                         }
-                        objEmbed.description = ":x: Tsunagarus are still wandering around! You need to use: **p!card battle** to participate in battle!";
-                        return message.channel.send({embed:objEmbed});
-                    case "color": //color card spawn
+                        objEmbed.description = ":x: Tsunagarus are still wandering around! You need to battle it.";
+                        return interaction.reply({embeds:[new MessageEmbed(objEmbed)]});
+                    case "color":
+                    case "quiz":
                         objEmbed.thumbnail = {
                             url: CardModule.Properties.imgResponse.imgError
                         }
-                        objEmbed.description = ":x: Current card spawn type is **color**. You need to use: **p!card catch** to capture the card.";
-                        return message.channel.send({embed:objEmbed});
-                        break;
+                        objEmbed.description = `:x: Current card spawn type was **${spawnedCardData.type}**.`;
+                        return interaction.reply({embeds:[new MessageEmbed(objEmbed)]});
                 }
 
                 var jsonParsedSpawnData = JSON.parse(guildSpawnData[DBM_Card_Guild.columns.spawn_data]);
@@ -176,13 +274,11 @@ module.exports = {
                 var pinkyData = await PinkyModule.getPinkyData(idPinky);
                 var cardData = await CardModule.getCardData(jsonParsedSpawnData.id_card);
 
-                
                 var colorPointReward = cardData[DBM_Card_Data.columns.rarity]*10;
                 var textReward = `>${colorPointReward} ${cardData[DBM_Card_Data.columns.color]} color point\n`;
                 var mofuCoinReward = cardData[DBM_Card_Data.columns.rarity]*10;
 
                 var seriesPointReward = cardData[DBM_Card_Data.columns.rarity]*10;
-
 
                 textReward += `>${mofuCoinReward} mofucoin\n`;
                 textReward += `>${seriesPointReward} ${CardModule.Properties.seriesCardCore.sp003.currency}\n`;
@@ -243,79 +339,18 @@ module.exports = {
                     text:`ID: ${idPinky} | Captured By: ${userUsername}(${currentPinky}/${PinkyModule.Properties.maxPinky})`
                 }
 
-                await message.channel.send({embed:objEmbed});
+                arrEmbedsSend.push(new MessageEmbed(objEmbed));
 
                 //check for completionist status
                 if(currentPinky>=PinkyModule.Properties.maxPinky){
                     var completion = await PinkyModule.pinkyCompletion(guildId);
                     if(completion!=null){
-                        await message.channel.send({embed:completion});
+                        arrEmbedsSend.push(new MessageEmbed(completion));
                     }
                 }
 
-                break;
-            case "detail":
-                //get/view the card detail
-                var pinkyId = args[1];
-                objEmbed = {
-                    color:CardModule.Properties.embedColor
-                }
-                if(pinkyId==null){
-                    objEmbed.thumbnail = {
-                        url:CardModule.Properties.imgResponse.imgError
-                    }
-                    objEmbed.description = ":x: Please enter the pinky ID.";
-                    return message.channel.send({embed:objEmbed});
-                }
+                await interaction.reply({embeds:arrEmbedsSend});
 
-                //check if card ID exists/not
-                var pinkyData = await PinkyModule.getPinkyData(pinkyId);
-
-                if(pinkyData==null){
-                    objEmbed.thumbnail = {
-                        url:CardModule.Properties.imgResponse.imgError
-                    }
-                    objEmbed.description = ":x: Sorry, I can't find that pinky ID.";
-
-                    return message.channel.send({embed:objEmbed});
-                }
-
-                //check if pinky captured/not
-                var pinkyInventoryData = await PinkyModule.getPinkyInventoryData(guildId,pinkyId);
-                if(pinkyInventoryData==null){
-                    objEmbed.thumbnail = {
-                        url:CardModule.Properties.imgResponse.imgError
-                    }
-                    objEmbed.description = `:x: Sorry, Pinky: **${pinkyData[DBM_Pinky_Data.columns.name]}** need to be captured first.`;
-                    return message.channel.send({embed:objEmbed});
-                }
-
-                objEmbed.title = `${pinkyData[DBM_Pinky_Data.columns.name]}`;
-                objEmbed.fields = [
-                    {
-                        name:`Pinky ID:`,
-                        value:`${pinkyData[DBM_Pinky_Data.columns.id_pinky]}`,
-                        inline:true
-                    },
-                    {
-                        name:`Category:`,
-                        value:`${pinkyData[DBM_Pinky_Data.columns.category]}`,
-                        inline:true
-                    },
-                    {
-                        name:`Captured By:`,
-                        value:`<@${pinkyInventoryData[DBM_Pinky_Inventory.columns.id_user]}>`,
-                        inline:true
-                    }
-                ];
-                objEmbed.thumbnail = {
-                    url:pinkyData[DBM_Pinky_Data.columns.img_url]
-                }
-                objEmbed.footer = {
-                    text:`Captured at: ${GlobalFunctions.convertDateTime(pinkyInventoryData[DBM_Pinky_Inventory.columns.created_at])}`
-                }
-
-                return message.channel.send({embed:objEmbed});
                 break;
         }
     }

@@ -172,6 +172,15 @@ module.exports = {
       var minutes = (hours - rhours) * 60;
       var rminutes = Math.round(minutes);
       return {hours:rhours, minutes: rminutes};
+   },
+   mergeObjects(obj1,obj2){
+      return Object.assign({},obj1,obj2);
+   },
+   getCurrentWeek() {
+      let monthStart = new Date();
+      monthStart.setDate(0);
+      let offset = (monthStart.getDay() + 1) % 7 - 1; // -1 is for a week starting on Monday
+      return Math.ceil((new Date().getDate() + offset) / 7);
    }
 
 }

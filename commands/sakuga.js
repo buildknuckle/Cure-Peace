@@ -1,7 +1,8 @@
-const Discord = require('discord.js');
+const {MessageActionRow, MessageButton, MessageEmbed, Discord} = require('discord.js');
 const fetch = require('node-fetch');
-const paginationEmbed = require('discord.js-pagination');
+const paginationEmbed = require('discordjs-button-pagination');
 const GlobalFunctions = require('../modules/GlobalFunctions');
+const DiscordStyles = require('../modules/DiscordStyles');
 
 function handleResponse(response) {
     return response.json().then(function (json) {
@@ -9,120 +10,117 @@ function handleResponse(response) {
     });
 }
 
-function handleData(data) {
-    console.log(data);
-}
-
-function handleError(error) {
-    console.log(error);
-}
-
 module.exports = {
-	name: 'sakuga',
-    description: 'Contain all sakugabooru category',
+	name: 'sakugabooru',
+    description: 'Sakugabooru search command',
     args: true,
+    options: [
+        {
+            name: "anime-title",
+            description: "Enter the anime title",
+            type: 3,
+            required:true
+        },
+        {
+            name: "page",
+            description: "Enter the page number",
+            type: 4,
+            required:false
+        },
+    ],
+    async executeMessage(message, args) {
+    },
+    async execute(interaction) {
+        var objEmbed = {
+            color: DiscordStyles.Color.embedColor
+        };
 
-    async execute(message, args) {
-        // var guildId = message.guild.id;
-        // var userId = message.author.id;
-        
-        switch(args[0]) {
-            case "search":
-                var objEmbed = {
-                    color: '#efcc2c'
-                };
+        var _keyword = interaction.options._hoistedOptions[0].value;
+        var page = interaction.options._hoistedOptions.hasOwnProperty(1) ? 
+        interaction.options._hoistedOptions[1].value :1;//param(opt.): page search
 
-                var page = 1; var indexSlice = 1;
-                if(args[1].includes("page")){
-                    indexSlice = 2;
-                    var splitPage = args[1].split("page");
-                    page = splitPage[1];
+        _keyword = _keyword.replace(/\s/g, '_').replace(/,/g, '+');//repalce whitespace comma
+
+        // Define the config we'll need for our Api request
+        var url = `https://www.sakugabooru.com/post.json?limit=0&page=${page}&tags=${_keyword}`,
+        options = {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+            }
+        };
+
+        // Make the HTTP Api request
+        await fetch(url, options).then(handleResponse)
+        .then(async function handleData(dt) {
+            var arrPages = [];
+            dt.forEach(entry => {
+                objEmbed.author = {
+                    name: `${entry.author}`,
+                    url: `https://www.sakugabooru.com/user/show/${entry.creator_id}`
                 }
 
-                var _keyword = args.slice(indexSlice);
-                _keyword = _keyword.join(' ');
-                if(_keyword==""){
-                    message.channel.send("Please enter the search keyword.");
-                    return;
+                objEmbed.description = `**Tags:**\n${entry.tags.replace(/\s/g,",").replace(/_/g," ")}`;
+
+                //file extension filter
+                switch(entry.file_ext.split('.').pop().toLowerCase()){
+                    //image format:
+                    case "jpg":
+                    case "jpeg":
+                    case "png":
+                    case "gif":
+                        objEmbed.image = {
+                            url:entry.file_url
+                        }
+                        break;
+                    //video format:
+                    case "mp4":
+                    default:
+                        objEmbed.description +=`\n\n**File:**\n${entry.file_url}`;
+                        objEmbed.image = {
+                            url:entry.preview_url
+                        }
+                        break;  
                 }
-
-                _keyword = _keyword.replace(/\s/g, '_');//replace whitespace
-                _keyword = _keyword.replace(/,/g, '+');//repalce comma
-
-                // Define the config we'll need for our Api request
-                var url = `https://www.sakugabooru.com/post.json?limit=0&page=${page}&tags=${_keyword}`,
-                options = {
-                    method: 'GET',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Accept': 'application/json',
-                    }
-                };
-
-                // console.log(`https://www.sakugabooru.com/post.json?limit=0&page=${page}&tags=${_keyword}`);
-
-                // Make the HTTP Api request
-                await fetch(url, options).then(handleResponse)
-                .then(async function handleData(dt) {
-                    var txtTitle = ""; var arrPages = [];
-                    var ctr = 0; var maxCtr = 3; var pointerMaxData = dt.length;
-                    dt.forEach(entry => {
-                        objEmbed.author = {
-                            name: `${entry.author}`,
-                            url: `https://www.sakugabooru.com/user/show/${entry.creator_id}`
-                        }
-
-                        objEmbed.description = `**Tags:**\n${entry.tags.replace(/\s/g,",").replace(/_/g," ")}`;
-
-                        if(entry.file_ext!="jpg"&&entry.file_ext!="png"&&entry.file_ext!="gif"){
-                            objEmbed.description +=`\n\n**File:**\n${entry.file_url}`;
-                            objEmbed.image = {
-                                url:entry.preview_url
-                                // url:entry.jpeg_url
-                            }
-                        } else {
-                            objEmbed.image = {
-                                url:entry.file_url
-                                // url:entry.jpeg_url
-                            }
-                        }
-                        
-                        objEmbed.fields = [
-                            {
-                                name:`Site:`,
-                                value:`[Go to site](https://www.sakugabooru.com/post/show/${entry.id})\n`,
-                                inline:true
-                                // value: ,
-                            },
-                            {
-                                name:`Posted:`,
-                                value:`${GlobalFunctions.timestampToDateTime(entry.created_at)}`,
-                                inline:true
-                            },
-                            {
-                                name:`Score:`,
-                                value:entry.score,
-                                inline:true
-                                // value: `[Go to site](https://www.sakugabooru.com/post/show/${dt.id})\n`,
-                            },
-                        ];
-                        var msgEmbed = new Discord.MessageEmbed(objEmbed);
-                        arrPages.push(msgEmbed);
-                    });
-
-                    if(arrPages.length>0){
-                        paginationEmbed(message,arrPages);
-                    } else {
-                        return message.channel.send(`Sorry, I can't find that **keyword**. Try to put a more specific keyword.`);
-                    }
-                })
-                .catch(function handleError(error) {
-                    console.error(error);
-                    return message.channel.send(`Sorry, I can't find that **keyword**. Try to put a more specific keyword.`);
-                });
                 
+                objEmbed.fields = [
+                    {
+                        name:`Site:`,
+                        value:`[Go to site](https://www.sakugabooru.com/post/show/${entry.id})\n`,
+                        inline:true
+                    },
+                    {
+                        name:`Posted date:`,
+                        value:`${GlobalFunctions.timestampToDateTime(entry.created_at)}`,
+                        inline:true
+                    },
+                    {
+                        name:`Score:`,
+                        value:`${entry.score}`,
+                        inline:true
+                    }
+                ];
+                var msgEmbed = new MessageEmbed(objEmbed);
+                arrPages.push(msgEmbed);
 
-                break;
-        }
+                objEmbed = {
+                    color: DiscordStyles.Color.embedColor
+                };
+            });
+            // console.log(arrPages);
+            // return;
+
+            if(arrPages.length>0){
+                paginationEmbed(interaction,arrPages,DiscordStyles.Button.pagingButtonList);
+            } else {
+                return interaction.reply(`:x: I can't find that **keyword**. Try to put more specific keyword.`);
+            }
+        })
+        .catch(function handleError(error) {
+            console.error(error);
+            return interaction.reply(`:x: I can't find that **keyword**. Try to put more specific keyword.`);
+        });
+
     }
 }
