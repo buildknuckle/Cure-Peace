@@ -148,7 +148,7 @@ module.exports = {
                             description: "Select the color assignment",
                             type: 3,
                             required: true,
-                            choices: CardModule.Properties.interactionColorList
+                            choices: CardModule.Properties.dataColorCore.interactionColorList
                         }
                     ]
                 },
@@ -279,7 +279,7 @@ module.exports = {
                             description: "Choose the color",
                             type: 3,
                             required: true,
-                            choices:CardModule.Properties.interactionColorList
+                            choices: CardModule.Properties.dataColorCore.interactionColorList
                         },
                         {
                             name: "mode",
@@ -316,7 +316,7 @@ module.exports = {
                             description: "Choose the color selection",
                             type: 3,
                             required: true,
-                            choices: CardModule.Properties.interactionColorList
+                            choices: CardModule.Properties.dataColorCore.interactionColorList
                         }
                     ]
                 },
@@ -638,11 +638,11 @@ module.exports = {
                 },
             ]
         },
-        {
-            name:"debug",
-            description:"Spawn testing",
-            type: 1
-        },
+        // {
+        //     name:"debug",
+        //     description:"Spawn testing",
+        //     type: 1
+        // },
         {
             name:"wish",
             description:"Make a wish to duplicate precure card",
@@ -662,11 +662,6 @@ module.exports = {
         var userId = message.author.id;
         var userUsername = message.author.username;
         var userAvatarUrl = message.author.avatarURL();
-
-        // var members = message.guild.members;
-        // switch(args[0]) {
-            
-        // }
 	},
     async execute(interaction){
         var command = interaction.options._group;
@@ -748,7 +743,7 @@ module.exports = {
                 }
 
                 var cardUserStatusData = await CardModule.getCardUserStatusData(userId);
-                clvl = await CardModule.getAverageLevel(userId,[
+                clvl = await CardModule.Status.getAverageLevel(userId,[
                     cardUserStatusData[DBM_Card_User_Data.columns.color_level_blue],
                     cardUserStatusData[DBM_Card_User_Data.columns.color_level_green],
                     cardUserStatusData[DBM_Card_User_Data.columns.color_level_pink],
@@ -1385,7 +1380,7 @@ module.exports = {
                 switch(type){
                     case CardModule.Properties.cardCategory.normal.value:
                         return interaction.reply({
-                            embeds:[CardModule.embedCardDetail(cardData[DBM_Card_Data.columns.color],
+                            embeds:[CardModule.Embeds.embedCardDetail(cardData[DBM_Card_Data.columns.color],
                             cardData[DBM_Card_Data.columns.id_card],cardData[DBM_Card_Data.columns.pack],
                             cardData[DBM_Card_Data.columns.name],cardData[DBM_Card_Data.columns.img_url],cardData[DBM_Card_Data.columns.series],cardData[DBM_Card_Data.columns.rarity],userAvatarUrl,
                             userInventoryData[DBM_Card_Inventory.columns.created_at],userInventoryData[DBM_Card_Inventory.columns.level],cardData[DBM_Card_Data.columns.max_hp],cardData[DBM_Card_Data.columns.max_atk],userInventoryData[DBM_Card_Inventory.columns.level_special],itemStock,cardData[DBM_Card_Data.columns.ability1])]
@@ -1393,7 +1388,7 @@ module.exports = {
                         break;
                     case CardModule.Properties.cardCategory.gold.value:
                         return interaction.reply({
-                            embeds:[CardModule.embedCardDetail(cardData[DBM_Card_Data.columns.color],
+                            embeds:[CardModule.Embeds.embedCardDetail(cardData[DBM_Card_Data.columns.color],
                             cardData[DBM_Card_Data.columns.id_card],cardData[DBM_Card_Data.columns.pack],
                             cardData[DBM_Card_Data.columns.name],cardData[DBM_Card_Data.columns.img_url_upgrade1],cardData[DBM_Card_Data.columns.series],cardData[DBM_Card_Data.columns.rarity],userAvatarUrl,
                             userInventoryData[DBM_Card_Inventory.columns.created_at],userInventoryData[DBM_Card_Inventory.columns.level],cardData[DBM_Card_Data.columns.max_hp],cardData[DBM_Card_Data.columns.max_atk],userInventoryData[DBM_Card_Inventory.columns.level_special],itemStock,cardData[DBM_Card_Data.columns.ability1],CardModule.Properties.cardCategory.gold.value)]
@@ -1509,7 +1504,7 @@ module.exports = {
                                 },
                                 description : `:x: I can't find that card Id.`
                             };
-                            return interaction.reply({embeds:[new MessageEmbed(objEmbed)]});
+                            return interaction.reply({embeds:[new MessageEmbed(objEmbed)],ephemeral:true});
                         }
 
                         var cardInventoryData = await CardModule.getCardInventoryUserData(userId,cardId);
@@ -1572,7 +1567,7 @@ module.exports = {
                                         },
 
                                     };
-                                    return interaction.reply({embeds:[new MessageEmbed(objEmbed)]});
+                                    return interaction.reply({embeds:[new MessageEmbed(objEmbed)],ephemeral:true});
                                 }
                             }
                         } else {
@@ -1914,10 +1909,10 @@ module.exports = {
                         //get updated data:
                         var cardInventoryData = await CardModule.getCardInventoryUserData(userId,selectedIdCard);
 
-                        var objEmbed = CardModule.embedCardLevelUp(cardData[DBM_Card_Data.columns.color],cardData[DBM_Card_Data.columns.id_card],cardData[DBM_Card_Data.columns.pack],cardData[DBM_Card_Data.columns.name],cardData[DBM_Card_Data.columns.img_url],cardData[DBM_Card_Data.columns.series],cardData[DBM_Card_Data.columns.rarity],userAvatarUrl,userUsername,cardInventoryData[DBM_Card_Inventory.columns.level],cardData[DBM_Card_Data.columns.max_hp],cardData[DBM_Card_Data.columns.max_atk],cardInventoryData[DBM_Card_Inventory.columns.level_special]);
+                        var objEmbed = CardModule.Embeds.embedCardLevelUp(cardData[DBM_Card_Data.columns.color],cardData[DBM_Card_Data.columns.id_card],cardData[DBM_Card_Data.columns.pack],cardData[DBM_Card_Data.columns.name],cardData[DBM_Card_Data.columns.img_url],cardData[DBM_Card_Data.columns.series],cardData[DBM_Card_Data.columns.rarity],userAvatarUrl,userUsername,cardInventoryData[DBM_Card_Inventory.columns.level],cardData[DBM_Card_Data.columns.max_hp],cardData[DBM_Card_Data.columns.max_atk],cardInventoryData[DBM_Card_Inventory.columns.level_special]);
 
                         if(cardInventoryData[DBM_Card_Inventory.columns.is_gold]){
-                            objEmbed = CardModule.embedCardLevelUp(cardData[DBM_Card_Data.columns.color],cardData[DBM_Card_Data.columns.id_card],cardData[DBM_Card_Data.columns.pack],cardData[DBM_Card_Data.columns.name],cardData[DBM_Card_Data.columns.img_url_upgrade1],cardData[DBM_Card_Data.columns.series],cardData[DBM_Card_Data.columns.rarity],userAvatarUrl,userUsername,cardInventoryData[DBM_Card_Inventory.columns.level],cardData[DBM_Card_Data.columns.max_hp],cardData[DBM_Card_Data.columns.max_atk],cardInventoryData[DBM_Card_Inventory.columns.level_special],CardModule.Properties.cardCategory.gold.value);
+                            objEmbed = CardModule.Embeds.embedCardLevelUp(cardData[DBM_Card_Data.columns.color],cardData[DBM_Card_Data.columns.id_card],cardData[DBM_Card_Data.columns.pack],cardData[DBM_Card_Data.columns.name],cardData[DBM_Card_Data.columns.img_url_upgrade1],cardData[DBM_Card_Data.columns.series],cardData[DBM_Card_Data.columns.rarity],userAvatarUrl,userUsername,cardInventoryData[DBM_Card_Inventory.columns.level],cardData[DBM_Card_Data.columns.max_hp],cardData[DBM_Card_Data.columns.max_atk],cardInventoryData[DBM_Card_Inventory.columns.level_special],CardModule.Properties.cardCategory.gold.value);
                         }
 
                         return interaction.reply({content:`**${userUsername}** has used **${nextExp} ${cardData[DBM_Card_Data.columns.color]}** color points & **${cardData[DBM_Card_Data.columns.name]}** is now level **${cardInventoryData[DBM_Card_Inventory.columns.level]}**!`,
@@ -2035,10 +2030,10 @@ module.exports = {
                         //get latest target card level
                         var userCardData = await CardModule.getUserCardInventoryData(userId,targetCardId)//card target
 
-                        var objEmbed = CardModule.embedCardLevelUp(cardData[DBM_Card_Data.columns.color],cardData[DBM_Card_Data.columns.id_card],cardData[DBM_Card_Data.columns.pack],cardData[DBM_Card_Data.columns.name],cardData[DBM_Card_Data.columns.img_url],cardData[DBM_Card_Data.columns.series],cardData[DBM_Card_Data.columns.rarity],userAvatarUrl,userUsername,userCardData[DBM_Card_Inventory.columns.level],cardData[DBM_Card_Data.columns.max_hp],cardData[DBM_Card_Data.columns.max_atk],userCardData[DBM_Card_Inventory.columns.level_special]);
+                        var objEmbed = CardModule.Embeds.embedCardLevelUp(cardData[DBM_Card_Data.columns.color],cardData[DBM_Card_Data.columns.id_card],cardData[DBM_Card_Data.columns.pack],cardData[DBM_Card_Data.columns.name],cardData[DBM_Card_Data.columns.img_url],cardData[DBM_Card_Data.columns.series],cardData[DBM_Card_Data.columns.rarity],userAvatarUrl,userUsername,userCardData[DBM_Card_Inventory.columns.level],cardData[DBM_Card_Data.columns.max_hp],cardData[DBM_Card_Data.columns.max_atk],userCardData[DBM_Card_Inventory.columns.level_special]);
 
                         if(userCardData[DBM_Card_Inventory.columns.is_gold]){
-                            objEmbed = CardModule.embedCardLevelUp(cardData[DBM_Card_Data.columns.color],cardData[DBM_Card_Data.columns.id_card],cardData[DBM_Card_Data.columns.pack],cardData[DBM_Card_Data.columns.name],cardData[DBM_Card_Data.columns.img_url_upgrade1],cardData[DBM_Card_Data.columns.series],cardData[DBM_Card_Data.columns.rarity],userAvatarUrl,userUsername,userCardData[DBM_Card_Inventory.columns.level],cardData[DBM_Card_Data.columns.max_hp],cardData[DBM_Card_Data.columns.max_atk],userCardData[DBM_Card_Inventory.columns.level_special],CardModule.Properties.cardCategory.gold.value);
+                            objEmbed = CardModule.Embeds.embedCardLevelUp(cardData[DBM_Card_Data.columns.color],cardData[DBM_Card_Data.columns.id_card],cardData[DBM_Card_Data.columns.pack],cardData[DBM_Card_Data.columns.name],cardData[DBM_Card_Data.columns.img_url_upgrade1],cardData[DBM_Card_Data.columns.series],cardData[DBM_Card_Data.columns.rarity],userAvatarUrl,userUsername,userCardData[DBM_Card_Inventory.columns.level],cardData[DBM_Card_Data.columns.max_hp],cardData[DBM_Card_Data.columns.max_atk],userCardData[DBM_Card_Inventory.columns.level_special],CardModule.Properties.cardCategory.gold.value);
                         }
 
                         return interaction.reply({content:`**${userUsername}** has convert ${qty}x **${txtCardDataSource}** & increased **${cardData[DBM_Card_Data.columns.name]}** level by **${rarityValue}**.\n**${cardData[DBM_Card_Data.columns.name]}** is now level **${userCardData[DBM_Card_Inventory.columns.level]}**!`, 
@@ -2095,11 +2090,11 @@ module.exports = {
                         //get updated data:
                         cardInventoryData = await CardModule.getCardInventoryUserData(userId,selectedIdCard);
 
-                        var objEmbed = CardModule.embedCardLevelUp(cardData[DBM_Card_Data.columns.color],cardData[DBM_Card_Data.columns.id_card],cardData[DBM_Card_Data.columns.pack],cardData[DBM_Card_Data.columns.name],cardData[DBM_Card_Data.columns.img_url],cardData[DBM_Card_Data.columns.series],cardData[DBM_Card_Data.columns.rarity],userAvatarUrl,userUsername,cardInventoryData[DBM_Card_Inventory.columns.level],cardData[DBM_Card_Data.columns.max_hp],cardData[DBM_Card_Data.columns.max_atk],cardInventoryData[DBM_Card_Inventory.columns.level_special]);
+                        var objEmbed = CardModule.Embeds.embedCardLevelUp(cardData[DBM_Card_Data.columns.color],cardData[DBM_Card_Data.columns.id_card],cardData[DBM_Card_Data.columns.pack],cardData[DBM_Card_Data.columns.name],cardData[DBM_Card_Data.columns.img_url],cardData[DBM_Card_Data.columns.series],cardData[DBM_Card_Data.columns.rarity],userAvatarUrl,userUsername,cardInventoryData[DBM_Card_Inventory.columns.level],cardData[DBM_Card_Data.columns.max_hp],cardData[DBM_Card_Data.columns.max_atk],cardInventoryData[DBM_Card_Inventory.columns.level_special]);
 
                         //check for card type upgrade
                         if(cardInventoryData[DBM_Card_Inventory.columns.is_gold]){
-                            objEmbed = CardModule.embedCardLevelUp(cardData[DBM_Card_Data.columns.color],cardData[DBM_Card_Data.columns.id_card],cardData[DBM_Card_Data.columns.pack],cardData[DBM_Card_Data.columns.name],cardData[DBM_Card_Data.columns.img_url_upgrade1],cardData[DBM_Card_Data.columns.series],cardData[DBM_Card_Data.columns.rarity],userAvatarUrl,userUsername,cardInventoryData[DBM_Card_Inventory.columns.level],cardData[DBM_Card_Data.columns.max_hp],cardData[DBM_Card_Data.columns.max_atk],cardInventoryData[DBM_Card_Inventory.columns.level_special],CardModule.Properties.cardCategory.gold.value);
+                            objEmbed = CardModule.Embeds.embedCardLevelUp(cardData[DBM_Card_Data.columns.color],cardData[DBM_Card_Data.columns.id_card],cardData[DBM_Card_Data.columns.pack],cardData[DBM_Card_Data.columns.name],cardData[DBM_Card_Data.columns.img_url_upgrade1],cardData[DBM_Card_Data.columns.series],cardData[DBM_Card_Data.columns.rarity],userAvatarUrl,userUsername,cardInventoryData[DBM_Card_Inventory.columns.level],cardData[DBM_Card_Data.columns.max_hp],cardData[DBM_Card_Data.columns.max_atk],cardInventoryData[DBM_Card_Inventory.columns.level_special],CardModule.Properties.cardCategory.gold.value);
                         }
                         
                         return interaction.reply({content:`**${userUsername}** - **${cardData[DBM_Card_Data.columns.name]}** special attack is now level **${cardInventoryData[DBM_Card_Inventory.columns.level_special]}**!`, 
@@ -2243,7 +2238,7 @@ module.exports = {
                         } else {
                             var cardUserStatusData = await CardModule.getCardUserStatusData(userId);
                             //get clvl
-                            var clvl = await CardModule.getAverageLevel(userId,[
+                            var clvl = await CardModule.Status.getAverageLevel(userId,[
                                 cardUserStatusData[DBM_Card_User_Data.columns.color_level_blue],
                                 cardUserStatusData[DBM_Card_User_Data.columns.color_level_green],
                                 cardUserStatusData[DBM_Card_User_Data.columns.color_level_pink],
@@ -2313,7 +2308,7 @@ module.exports = {
 
                         //announce the card ugprade
                         await interaction.channel.send({content:`${userUsername} has successfully upgrade "**${cardData[DBM_Card_Data.columns.id_card]} - ${cardData[DBM_Card_Data.columns.name]}**" into gold card!`,
-                        embeds:[CardModule.embedCardDetail(cardData[DBM_Card_Data.columns.color],
+                        embeds:[CardModule.Embeds.embedCardDetail(cardData[DBM_Card_Data.columns.color],
                         cardData[DBM_Card_Data.columns.id_card],cardData[DBM_Card_Data.columns.pack],
                         cardData[DBM_Card_Data.columns.name],cardData[DBM_Card_Data.columns.img_url_upgrade1],cardData[DBM_Card_Data.columns.series],cardData[DBM_Card_Data.columns.rarity],userAvatarUrl,
                         userCardInventoryData[DBM_Card_Inventory.columns.created_at],userCardInventoryData[DBM_Card_Inventory.columns.level],cardData[DBM_Card_Data.columns.max_hp],cardData[DBM_Card_Data.columns.max_atk],userCardInventoryData[DBM_Card_Inventory.columns.level_special],userCardInventoryData[DBM_Card_Inventory.columns.stock],cardData[DBM_Card_Data.columns.ability1],CardModule.Properties.cardCategory.gold.value)]});
@@ -3540,7 +3535,6 @@ module.exports = {
                 //get card spawn information
                 var userCardData = await CardModule.getCardUserStatusData(userId);
                 var guildSpawnData = await CardGuildModule.getCardGuildData(guildId);
-                
 
                 //get the spawn token & prepare the card color
                 var userData = {
@@ -3648,9 +3642,7 @@ module.exports = {
 
                         } else {
                             //wrong answer - update the token
-                            await CardModule.updateCatchAttempt(userId,
-                                spawnedCardData.token
-                            );
+                            await CardModule.updateCatchAttempt(userId, spawnedCardData.token);
                         }
                     }
 
@@ -3685,13 +3677,8 @@ module.exports = {
                 }
 
                 //check for double point boost
-                if(userData.color==spawnedCardData.color){
-                    pointReward*=2;
-                }
-
-                if(userData.series==spawnedCardData.series){
-                    seriesPointReward*=2;
-                }
+                if(userData.color==spawnedCardData.color) pointReward*=2;
+                if(userData.series==spawnedCardData.series) seriesPointReward*=2;
 
                 var cardStock = await CardModule.getUserCardStock(userId,spawnedCardData.id);
                 if(cardStock<=-1){//non duplicate
@@ -3737,10 +3724,7 @@ module.exports = {
 
                 if(!duplicate){
                     await CardModule.removeCardGuildSpawn(guildId);
-                    arrEmbedsSend.push(CardModule.embedCardCapture(spawnedCardData.color,spawnedCardData.id,spawnedCardData.pack,cardSpawnData[DBM_Card_Data.columns.name],cardSpawnData[DBM_Card_Data.columns.img_url],cardSpawnData[DBM_Card_Data.columns.series],cardSpawnData[DBM_Card_Data.columns.rarity],userAvatarUrl,userUsername,currentTotalCard,cardSpawnData[DBM_Card_Data.columns.max_hp],cardSpawnData[DBM_Card_Data.columns.max_hp],cardStock));
-                    // await message.channel.send({embeds:
-                    //     [CardModule.embedCardCapture(spawnedCardData.color,spawnedCardData.id,spawnedCardData.pack,cardSpawnData[DBM_Card_Data.columns.name],cardSpawnData[DBM_Card_Data.columns.img_url],cardSpawnData[DBM_Card_Data.columns.series],cardSpawnData[DBM_Card_Data.columns.rarity],userAvatarUrl,userUsername,currentTotalCard,cardSpawnData[DBM_Card_Data.columns.max_hp],cardSpawnData[DBM_Card_Data.columns.max_hp],cardStock)]
-                    // });
+                    arrEmbedsSend.push(CardModule.Embeds.embedCardCapture(spawnedCardData.color,spawnedCardData.id,spawnedCardData.pack,cardSpawnData[DBM_Card_Data.columns.name],cardSpawnData[DBM_Card_Data.columns.img_url],cardSpawnData[DBM_Card_Data.columns.series],cardSpawnData[DBM_Card_Data.columns.rarity],userAvatarUrl,userUsername,currentTotalCard,cardSpawnData[DBM_Card_Data.columns.max_hp],cardSpawnData[DBM_Card_Data.columns.max_hp],cardStock));
                 }
 
                 //send all embeds
@@ -3963,7 +3947,7 @@ module.exports = {
                         await CardModule.removeCardGuildSpawn(guildId);
 
                         arrEmbedsSend.push(
-                            CardModule.embedCardCapture(spawnedCardData.color,spawnedCardData.id,
+                            CardModule.Embeds.embedCardCapture(spawnedCardData.color,spawnedCardData.id,
                             cardSpawnData[DBM_Card_Data.columns.pack],cardSpawnData[DBM_Card_Data.columns.name],cardSpawnData[DBM_Card_Data.columns.img_url],cardSpawnData[DBM_Card_Data.columns.series],cardSpawnData[DBM_Card_Data.columns.rarity],userAvatarUrl,userUsername,currentTotalCard,cardSpawnData[DBM_Card_Data.columns.max_hp],cardSpawnData[DBM_Card_Data.columns.max_atk],cardStock)
                         )
                     }
@@ -5232,7 +5216,7 @@ module.exports = {
                     
                     if(!duplicate){
                         arrEmbedsSend.push(
-                            CardModule.embedCardCapture(cardDataReward[DBM_Card_Data.columns.color],cardDataReward[DBM_Card_Data.columns.id_card],cardDataReward[DBM_Card_Data.columns.pack],cardDataReward[DBM_Card_Data.columns.name],cardDataReward[DBM_Card_Data.columns.img_url],cardDataReward[DBM_Card_Data.columns.series],cardDataReward[DBM_Card_Data.columns.rarity],userAvatarUrl,userUsername,currentTotalCard,cardDataReward[DBM_Card_Data.columns.max_hp],cardDataReward[DBM_Card_Data.columns.max_atk],userCardRewardStock)
+                            CardModule.Embeds.embedCardCapture(cardDataReward[DBM_Card_Data.columns.color],cardDataReward[DBM_Card_Data.columns.id_card],cardDataReward[DBM_Card_Data.columns.pack],cardDataReward[DBM_Card_Data.columns.name],cardDataReward[DBM_Card_Data.columns.img_url],cardDataReward[DBM_Card_Data.columns.series],cardDataReward[DBM_Card_Data.columns.rarity],userAvatarUrl,userUsername,currentTotalCard,cardDataReward[DBM_Card_Data.columns.max_hp],cardDataReward[DBM_Card_Data.columns.max_atk],userCardRewardStock)
                         );
                     }
 
@@ -6887,7 +6871,7 @@ module.exports = {
                     
                     //update the special point reward
                     var pointSpecial = CardModule.Status.getPartySpecialPointProgress(level_special);
-                    specialCharged = await CardModule.Status.updatePartySpecialPoint(partyData.partyData[DBM_Card_Party.columns.id],pointSpecial);
+                    specialCharged = await CardModule.Party.updatePartySpecialPoint(partyData.partyData[DBM_Card_Party.columns.id],pointSpecial);
                     rewardsReceived+=`>**${pointSpecial}**% party special points\n`;
 
                     try{
@@ -6984,7 +6968,7 @@ module.exports = {
                     if(!specialActivated){
                         //update the special point reward
                         var pointSpecial = CardModule.Status.getPartySpecialPointProgress(level_special);
-                        specialCharged = await CardModule.Status.updatePartySpecialPoint(partyData.partyData[DBM_Card_Party.columns.id],pointSpecial);
+                        specialCharged = await CardModule.Party.updatePartySpecialPoint(partyData.partyData[DBM_Card_Party.columns.id],pointSpecial);
                         rewardsReceived+=`>**${pointSpecial}**% party special points\n`;
                     }
 
@@ -7308,7 +7292,6 @@ module.exports = {
                         }
                         objEmbed.description = ":x: You can't capture this card.";
                         return interaction.editReply({embeds:[new MessageEmbed(objEmbed)]});
-                        break;
                     case "color": //color card spawn
                         var query = `SELECT * 
                         FROM ${DBM_Card_Data.TABLENAME} 
@@ -7399,14 +7382,10 @@ module.exports = {
                 switch(spawnedCardData.type){
                     case "color":
                         //bonus +10% catch rate
-                        if(rngCatch+bonusCatch+10>=chance){
-                            captured = true;
-                        }
+                        if(rngCatch+bonusCatch+10>=chance) captured = true;
                         break;
                     default://normal card spawn
-                        if(rngCatch+bonusCatch>=chance){
-                            captured = true;
-                        }
+                        if(rngCatch+bonusCatch>=chance) captured = true;
                         break;
                 }
 
@@ -7418,12 +7397,8 @@ module.exports = {
                     var pointReward = cardSpawnData[DBM_Card_Data.columns.rarity];
                     var seriesReward = pointReward;
                     //check for double point reward
-                    if(spawnedCardData.color==userData.color){
-                        pointReward*=2;
-                    }
-                    if(spawnedCardData.series==userData.series){
-                        seriesReward*=2;
-                    }
+                    if(spawnedCardData.color==userData.color) pointReward*=2;
+                    if(spawnedCardData.series==userData.series) seriesReward*=2;
 
                     var objColor = new Map();
                     objColor.set(`color_point_${spawnedCardData.color}`,pointReward);
@@ -7477,16 +7452,12 @@ module.exports = {
                             case "color":
                                 break;
                             default://normal card spawn, erase the card guild spawn
-                                if(spawnedCardData.data==null){
-                                    await CardModule.removeCardGuildSpawn(guildId);
-                                } else {
-                                    await CardModule.removeCardGuildSpawn(guildId,false,true,false);
-                                }
+                                spawnedCardData.data==null ? await CardModule.removeCardGuildSpawn(guildId) : await CardModule.removeCardGuildSpawn(guildId,false,true,false)
                                 break;
                         }
 
                         arrEmbedsSend.push(
-                            CardModule.embedCardCapture(cardSpawnData[DBM_Card_Data.columns.color],cardSpawnData[DBM_Card_Data.columns.id_card],cardSpawnData[DBM_Card_Data.columns.pack],cardSpawnData[DBM_Card_Data.columns.name],cardSpawnData[DBM_Card_Data.columns.img_url],cardSpawnData[DBM_Card_Data.columns.series],cardSpawnData[DBM_Card_Data.columns.rarity],userAvatarUrl,userUsername,currentTotalCard,cardSpawnData[DBM_Card_Data.columns.max_hp],cardSpawnData[DBM_Card_Data.columns.max_atk],itemStock)
+                            CardModule.Embeds.embedCardCapture(cardSpawnData[DBM_Card_Data.columns.color],cardSpawnData[DBM_Card_Data.columns.id_card],cardSpawnData[DBM_Card_Data.columns.pack],cardSpawnData[DBM_Card_Data.columns.name],cardSpawnData[DBM_Card_Data.columns.img_url],cardSpawnData[DBM_Card_Data.columns.series],cardSpawnData[DBM_Card_Data.columns.rarity],userAvatarUrl,userUsername,currentTotalCard,cardSpawnData[DBM_Card_Data.columns.max_hp],cardSpawnData[DBM_Card_Data.columns.max_atk],itemStock)
                         );
                     }
 
@@ -7501,25 +7472,19 @@ module.exports = {
                     if(checkCardCompletionPack){
                         //card pack completion
                         embedCompletion = await CardModule.leaderboardAddNew(guildId,userId,userAvatarUrl,CardModule.Properties.dataColorCore[cardSpawnData[DBM_Card_Data.columns.color]].color,"pack",cardSpawnData[DBM_Card_Data.columns.pack]);
-                        if(embedCompletion!=null){
-                            arrCompletion.push(embedCompletion);
-                        }
+                        if(embedCompletion!=null) arrCompletion.push(embedCompletion);
                     }
 
                     if(checkCardCompletionSeries) {
                         //color set completion
                         embedCompletion = await CardModule.leaderboardAddNew(guildId,userId,userAvatarUrl,CardModule.Properties.embedColor,"series",spawnedCardData.series);
-                        if(embedCompletion!=null){
-                            arrCompletion.push(embedCompletion);
-                        }
+                        if(embedCompletion!=null) arrCompletion.push(embedCompletion);
                     }
                     
                     if(checkCardCompletionColor) {
                         //color set completion
                         embedCompletion = await CardModule.leaderboardAddNew(guildId,userId,userAvatarUrl,CardModule.Properties.dataColorCore[cardSpawnData[DBM_Card_Data.columns.color]].color,"color",spawnedCardData.color);
-                        if(embedCompletion!=null){
-                            arrCompletion.push(embedCompletion);
-                        }
+                        if(embedCompletion!=null) arrCompletion.push(embedCompletion);
                     }
 
                     if(arrCompletion.length>0){
