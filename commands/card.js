@@ -1061,25 +1061,13 @@ module.exports = {
 
                     var txtHp = `${bHp}`; var txtAtk =  `${bAtk}`;
 
-                    if(hp>bHp){ 
-                        iconHp = "⬆️"; 
-                    } else if(hp<bHp) {
-                        iconHp = "⬇️";
-                    }
+                    if(hp>bHp){ iconHp = "⬆️"; } else if(hp<bHp) { iconHp = "⬇️"; }
 
-                    if(iconHp!=""){
-                        txtHp += ` ➡️ ${hp}`;
-                    }
+                    if(iconHp!=""){ txtHp += ` ➡️ ${hp}`; }
 
-                    if(atk>bAtk){
-                        iconAtk = "⬆️"; 
-                    } else if(atk<bAtk) {
-                        iconAtk = "⬇️"; 
-                    }
+                    if(atk>bAtk){ iconAtk = "⬆️"; } else if(atk<bAtk) { iconAtk = "⬇️"; }
 
-                    if(iconAtk!=""){
-                        txtAtk += ` ➡️ ${atk}`;
-                    }
+                    if(iconAtk!=""){ txtAtk += ` ➡️ ${atk}`; }
 
                     if(avatarFormMode=="normal"){
                         objEmbed.fields = [{
@@ -1989,12 +1977,8 @@ module.exports = {
                         //start processing level up:
                         //check for card level
                         switch(rarity){
-                            case 6:
-                            case 7:
-                                rarityValue = 6;
-                            default:
-                                rarityValue = rarity;
-                                break;
+                            case 6: case 7: rarityValue = 6;
+                            default: rarityValue = rarity; break;
                         }
 
                         rarityValue*=qty;
@@ -2036,7 +2020,7 @@ module.exports = {
                             objEmbed = CardModule.Embeds.embedCardLevelUp(cardData[DBM_Card_Data.columns.color],cardData[DBM_Card_Data.columns.id_card],cardData[DBM_Card_Data.columns.pack],cardData[DBM_Card_Data.columns.name],cardData[DBM_Card_Data.columns.img_url_upgrade1],cardData[DBM_Card_Data.columns.series],cardData[DBM_Card_Data.columns.rarity],userAvatarUrl,userUsername,userCardData[DBM_Card_Inventory.columns.level],cardData[DBM_Card_Data.columns.max_hp],cardData[DBM_Card_Data.columns.max_atk],userCardData[DBM_Card_Inventory.columns.level_special],CardModule.Properties.cardCategory.gold.value);
                         }
 
-                        return interaction.reply({content:`**${userUsername}** has convert ${qty}x **${txtCardDataSource}** & increased **${cardData[DBM_Card_Data.columns.name]}** level by **${rarityValue}**.\n**${cardData[DBM_Card_Data.columns.name]}** is now level **${userCardData[DBM_Card_Inventory.columns.level]}**!`, 
+                        return interaction.reply({content:`**${userUsername}** has converted ${qty}x **${txtCardDataSource}** & increased **${cardData[DBM_Card_Data.columns.name]}** level by **${rarityValue}**.\n**${cardData[DBM_Card_Data.columns.name]}** is now level **${userCardData[DBM_Card_Inventory.columns.level]}**!`, 
                         embeds:[objEmbed]});
                         
                         break;

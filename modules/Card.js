@@ -3113,7 +3113,7 @@ const Leveling = require('../modules/Card/Leveling');
 
 const Shop = require('../modules/Card/Shop');
 
-const Status = class Status {
+class Status {
     static getHp(level,base_hp){
         return level+base_hp;
     }
