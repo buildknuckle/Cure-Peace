@@ -5,7 +5,7 @@ const DBM_Item_Inventory = require('../database/model/DBM_Item_Inventory');
 const DBM_Item_Data = require('../database/model/DBM_Item_Data');
 
 class Properties{
-    static maxItem = 100;
+    static maxItem = 250;
     static embedColor = '#efcc2c';
 
     static imgResponse = {
@@ -17,24 +17,46 @@ class Properties{
     static categoryData = {
         card:{
             value:"card",
-            name:"Card"
+            value_search:"card",
+            name:"Card",
+            choices_text:"card"
         },
         food:{
             value:"food",
-            name:"Food"
+            value_search:"food",
+            name:"Food",
+            choices_text:"food"
         },
         ingredient:{
             value:"ingredient",
-            name:"Ingredient"
+            value_search:"ingredient",
+            name:"Ingredient",
+            choices_text:"ingredient"
         },
         ingredient_rare:{
             value:"ingredient_rare",
-            name:"Rare Ingredient"
+            value_search:"ingredient",
+            name:"Rare Ingredient",
+            choices_text:"rare-ingredient"
         },
         misc_fragment:{
             value:"misc_fragment",
+            value_search:"misc_fragment",
             name:"Card Fragment",
+            choices_text:"card-fragment"
         },
+        misc_gardening:{
+            value:"misc_gardening",
+            value_search:"misc_gardening",
+            name:"Gardening",
+            choices_text:"gardening"
+        },
+        misc_plant:{
+            value:"misc_plant",
+            value_search:"misc_plant",
+            name:"Plant",
+            choices_text:"plant"
+        }
     }
 
     static saleData = {
@@ -104,7 +126,7 @@ async function addNewItemInventory(id_user,id_item,addStock = 1){
         }
 
         await DB.insert(DBM_Item_Inventory.TABLENAME,parameterSet);
-    } else {
+    } else if(addStock>=1){
         //update the stock
         var query = `UPDATE ${DBM_Item_Inventory.TABLENAME} 
         SET ${DBM_Item_Inventory.columns.stock}=${DBM_Item_Inventory.columns.stock}+${addStock} 
@@ -112,7 +134,6 @@ async function addNewItemInventory(id_user,id_item,addStock = 1){
         ${DBM_Item_Inventory.columns.id_item}=?`;
         await DBConn.conn.promise().query(query, [id_user,id_item]);
     }
-    
 }
 
 async function updateItemStock(id_user,id_item,value){

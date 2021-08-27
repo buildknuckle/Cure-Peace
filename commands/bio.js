@@ -1,38 +1,43 @@
-const Discord = require('discord.js');
-const paginationEmbed = require('discord.js-pagination');
+const {MessageActionRow, MessageButton, MessageEmbed, Discord} = require('discord.js');
+const DiscordStyles = require('../modules/DiscordStyles');
+const paginationEmbed = require('discordjs-button-pagination');
 const DB = require('../database/DatabaseCore');
 const DBConn = require('../storage/dbconn');
 const CardModule = require('../modules/Card');
-const ItemModule = require('../modules/Item');
-const CardGuildModule = require('../modules/CardGuild');
 const GlobalFunctions = require('../modules/GlobalFunctions.js');
 const DBM_Card_Data = require('../database/model/DBM_Card_Data');
 const BioModule = require('../modules/Bio');
+const { execute } = require('../events/messageCreate');
 
 module.exports = {
     name: 'bio',
     cooldown: 5,
-    description: 'Contains all card categories',
+    description: 'View info for precure character',
     args: true,
-	async execute(message, args) {
-        const guildId = message.guild.id;
-        var userId = message.author.id;
-        var userUsername = message.author.username;
-        var userAvatarUrl = message.author.avatarURL();
+    options:[
+        {
+            name: "info",
+            description: "View info for precure character",
+            type: 1,
+            options: [
+                {
+                    name: "name",
+                    description: "Enter the name. Example: nagisa",
+                    type: 3,
+                    required:true
+                }
+            ]
+        }
+    ],
+	async executeMessage(message, args) {
+	},
+    async execute(interaction){
+        var packName = interaction.options._hoistedOptions[0].value.toLowerCase();
 
-        // var members = message.guild.members;
-        var packName = args.join(' ');
-
-        if(packName==null){
-            objEmbed.thumbnail = {
-                url:CardModule.Properties.imgResponse.imgError
-            }
-            objEmbed.description = ":x: Please enter the name that you want to see for the profile.";
-            return message.channel.send({embed:objEmbed});
-        } else if(!BioModule.Properties.bioDataCore.hasOwnProperty(packName.toLowerCase())){
-            return message.channel.send({
-                content:"Sorry, I cannot search that name. Here are the list of bio that you can search:",
-                embed:CardModule.embedCardPackList});
+        if(!BioModule.Properties.bioDataCore.hasOwnProperty(packName.toLowerCase())){
+            return interaction.reply({
+                content:":x: I cannot search that name. Here are the list of bio that you can search:",
+                embeds:[new MessageEmbed(CardModule.embedCardPackList)]});
         }
 
         //embedColor in string and will be readed on Properties class: object variable
@@ -112,8 +117,6 @@ module.exports = {
             };
         }
 
-        return message.channel.send({embed:objEmbed});
-        
-
-	},
+        return interaction.reply({embeds:[new MessageEmbed(objEmbed)]});
+    }
 };

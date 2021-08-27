@@ -1,5 +1,7 @@
-const Discord = require('discord.js');
-const paginationEmbed = require('discord.js-pagination');
+const {MessageActionRow, MessageButton, MessageEmbed, Discord, Message} = require('discord.js');
+const DiscordStyles = require('../modules/DiscordStyles');
+// const paginationEmbed = require('discord.js-pagination');
+const paginationEmbed = require('discordjs-button-pagination');
 const DB = require('../database/DatabaseCore');
 const DBConn = require('../storage/dbconn');
 const CardModule = require('../modules/Card');
@@ -18,52 +20,206 @@ module.exports = {
     cooldown: 5,
     description: 'Contains all item categories',
     args: true,
-	async execute(message, args) {
-        const guildId = message.guild.id;
-        var userId = message.author.id;
-        var userUsername = message.author.username;
-        var userAvatarUrl = message.author.avatarURL();
-
-        switch(args[0]) {
-            case "inventory":
-                var objEmbed ={
-                    color: CardModule.Properties.embedColor
-                };
-                objEmbed.title = `Item Inventory:`;
-                objEmbed.author = {
-                    name: userUsername,
-                    icon_url: userAvatarUrl
+    options:[
+        {
+            name: "inventory",
+            description: "Open item inventory menu",
+            type: 2,
+            options: [
+                {
+                    name: "open-item-inventory",
+                    description: "Open item inventory menu",
+                    type: 1,
+                    options: [
+                        {
+                            name: "filter",
+                            description: "Enter username to view card status from other user.",
+                            type: 3,
+                            choices:[
+                                {
+                                    name:ItemModule.Properties.categoryData.card.choices_text,
+                                    value:ItemModule.Properties.categoryData.card.value
+                                },
+                                {
+                                    name:ItemModule.Properties.categoryData.food.choices_text,
+                                    value:ItemModule.Properties.categoryData.food.value
+                                },
+                                {
+                                    name:ItemModule.Properties.categoryData.ingredient.choices_text,
+                                    value:ItemModule.Properties.categoryData.ingredient.value
+                                },
+                                {
+                                    name:ItemModule.Properties.categoryData.misc_fragment.choices_text,
+                                    value:ItemModule.Properties.categoryData.misc_fragment.value
+                                },
+                                {
+                                    name:ItemModule.Properties.categoryData.misc_gardening.choices_text,
+                                    value:ItemModule.Properties.categoryData.misc_gardening.value
+                                },
+                                {
+                                    name:ItemModule.Properties.categoryData.misc_plant.choices_text,
+                                    value:ItemModule.Properties.categoryData.misc_plant.value
+                                }
+                            ]
+                        }
+                    ]
                 }
+            ]
+        },
+        {
+            name: "detail",
+            description: "View item detail",
+            type: 2,
+            options: [
+                {
+                    name: "view",
+                    description: "View item detail",
+                    type: 1,
+                    options: [
+                        {
+                            name: "id-item",
+                            description: "Enter id item that you want to view. Example:ca001",
+                            type: 3,
+                            required:true
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            name: "use",
+            description: "Use items",
+            type: 2,
+            options: [
+                {
+                    name: "item",
+                    description: "Use items",
+                    type: 1,
+                    options: [
+                        {
+                            name: "id-item",
+                            description: "Enter id item that you want to use. Example:ca001",
+                            type: 3,
+                            required:true
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            name: "shop",
+            description: "Open item shop menu",
+            type: 2,
+            options: [
+                {
+                    name: "view",
+                    description: "View item shop listing",
+                    type: 1
+                },
+                {
+                    name: "buy",
+                    description: "Purchase the item",
+                    type: 1,
+                    options:[
+                        {
+                            name:"item-id",
+                            description:"Enter the item ID that you want to purchase. Example: ca001",
+                            type:3,
+                            required:true
+                        },
+                        {
+                            name:"qty",
+                            description:"Enter the amount of item that you want to purchase.",
+                            type:4
+                        },
+                    ]
+                }
+            ]
+        },
+        {
+            name: "sale",
+            description: "Open item sale menu",
+            type: 2,
+            options: [
+                {
+                    name: "view",
+                    description: "View item sale listing",
+                    type: 1
+                },
+                {
+                    name: "buy",
+                    description: "Purchase the item sale",
+                    type: 1,
+                    options:[
+                        {
+                            name:"sale-selection",
+                            description:"Enter the sale number selection",
+                            type:3,
+                            required:true
+                        },
+                        {
+                            name:"qty",
+                            description:"Enter the amount of item sale that you want to purchase.",
+                            type:4,
+                            required:true
+                        },
+                    ]
+                }
+            ]
+        },
+    ],
+	async executeMessage(message, args) {
+    },
+    async execute(interaction){
+        var command = interaction.options._group;
+        var commandSubcommand = interaction.options._subcommand;
+        const guildId = interaction.guild.id;
+        var userId = interaction.user.id;
+        var userUsername = interaction.user.username;
+        var userAvatarUrl = interaction.user.avatarURL();
+
+        //default embed:
+        var objEmbed = {
+            color: CardModule.Properties.embedColor,
+            author: {
+                name: userUsername,
+                icon_url: userAvatarUrl
+            }
+        };
+
+        switch(command){
+            case "inventory":
+                var filter = interaction.options._hoistedOptions.hasOwnProperty(0) ? 
+                interaction.options._hoistedOptions[0].value : null;
+                objEmbed.title = `Item Inventory:`;
 
                 var queryFilterInventory = "";
                 var arrParameterized = [userId,0];
-                if(args[1]!=null){
-                    var itemFilter = args[1].toLowerCase();
-                    if(itemFilter!="card"&&itemFilter!="food"&&
-                    itemFilter!="ingredient"&&itemFilter!="fragment"){
-                        objEmbed.description = ":x: Please enter the filter with: **card**/**food**/**ingredient**/**fragment**";
-                        objEmbed.thumbnail = {
-                            url:ItemModule.Properties.imgResponse.imgError
-                        };
-                        return message.channel.send({embed:objEmbed});
-                    }
-
+                var itemFilter = "";
+                if(filter!=null){
+                    itemFilter = filter.toLowerCase();
+                    objEmbed.title = `Item Inventory - ${GlobalFunctions.capitalize(ItemModule.Properties.categoryData[itemFilter].name)}:`;
                     switch(itemFilter){
-                        case "card":
+                        case ItemModule.Properties.categoryData.card.value_search:
+                        case ItemModule.Properties.categoryData.food.value_search:
                             queryFilterInventory+=` AND idat.${DBM_Item_Data.columns.category}=? `;
-                            arrParameterized.push("card");
+                            arrParameterized.push(ItemModule.Properties.categoryData[itemFilter].value);
                             break;
-                        case "food":
+                        case ItemModule.Properties.categoryData.misc_fragment.value_search:
                             queryFilterInventory+=` AND idat.${DBM_Item_Data.columns.category}=? `;
-                            arrParameterized.push("food");
+                            arrParameterized.push(ItemModule.Properties.categoryData.misc_fragment.value);
                             break;
-                        case "ingredient":
+                        case ItemModule.Properties.categoryData.misc_gardening.value_search:
+                            queryFilterInventory+=` AND idat.${DBM_Item_Data.columns.category}=? `;
+                            arrParameterized.push(ItemModule.Properties.categoryData.misc_gardening.value);
+                            break;
+                        case ItemModule.Properties.categoryData.misc_plant.value_search:
+                            queryFilterInventory+=` AND idat.${DBM_Item_Data.columns.category}=? `;
+                            arrParameterized.push(ItemModule.Properties.categoryData.misc_plant.value);
+                            break;
+                        case ItemModule.Properties.categoryData.ingredient.value_search:
                             queryFilterInventory+=` AND (idat.${DBM_Item_Data.columns.category}=? OR idat.${DBM_Item_Data.columns.category}=?) `;
-                            arrParameterized.push("ingredient","ingredient_rare");
-                            break;
-                        case "fragment":
-                            queryFilterInventory+=` AND idat.${DBM_Item_Data.columns.category}=? `;
-                            arrParameterized.push("misc_fragment");
+                            arrParameterized.push(ItemModule.Properties.categoryData.ingredient.value,ItemModule.Properties.categoryData.ingredient_rare.value);
                             break;
                     }
                 }
@@ -79,14 +235,13 @@ module.exports = {
                 order by inv.${DBM_Item_Inventory.columns.id_item}`;
                 arrParameterized.push(0);
                 
-                var arrPages = []; var itemList = "";
+                var arrPages = []; var itemList = ""; var descriptionList = "";
                 var inventoryUser = await DBConn.conn.promise().query(query, arrParameterized);
                 var ctr = 0; var maxCtr = 6; var pointerMaxData = inventoryUser[0].length;
                 
                 inventoryUser[0].forEach(entry => {
-                    
-                    itemList+=`**[${entry[DBM_Item_Data.columns.id]}] - ${entry[DBM_Item_Data.columns.name]}** x${entry[DBM_Item_Inventory.columns.stock]}: ${GlobalFunctions.cutText(entry[DBM_Item_Data.columns.description],20).replace(/\*\*/g, '')}\n`;
-
+                    itemList+=`**[${entry[DBM_Item_Data.columns.id]}] - ${entry[DBM_Item_Data.columns.name]}** x${entry[DBM_Item_Inventory.columns.stock]}\n`;
+                    descriptionList+=`${GlobalFunctions.cutText(entry[DBM_Item_Data.columns.description],20).replace(/\*\*/g, '')}\n`;
                     
                     //create pagination
                     if(pointerMaxData-1<=0||ctr>maxCtr){
@@ -95,11 +250,16 @@ module.exports = {
                                 name: `[ID] - Name - Stock:`,
                                 value: itemList,
                                 inline:true
-                            }
+                            },
+                            {
+                                name: `Description:`,
+                                value: descriptionList,
+                                inline:true
+                            },
                         ];
-                        var msgEmbed = new Discord.MessageEmbed(objEmbed);
+                        var msgEmbed = new MessageEmbed(objEmbed);
                         arrPages.push(msgEmbed);
-                        itemList = ""; ctr = 0;
+                        itemList = ""; descriptionList=""; ctr = 0;
                     } else {
                         ctr++;
                     }
@@ -107,39 +267,26 @@ module.exports = {
                 });
 
                 if(arrPages.length<=0){
-                    objEmbed.description = "You don't have any item yet...";
-                    var msgEmbed = new Discord.MessageEmbed(objEmbed);
-                    arrPages.push(msgEmbed);
+                    objEmbed.description = "You don't have any item yet.";
+                    if(filter!=null)
+                        objEmbed.description = `You don't have any **${ItemModule.Properties.categoryData[itemFilter].name}** yet.`;
+                    
+                    return interaction.reply({embeds:[new MessageEmbed(objEmbed)]});
                 }
 
-                pages = arrPages;
-
-                paginationEmbed(message,pages);
-
+                paginationEmbed(interaction,arrPages,DiscordStyles.Button.pagingButtonList);
                 break;
             case "detail":
-                var itemId = args[1];
-                objEmbed = {
-                    color:CardModule.Properties.embedColor
-                }
-                if(itemId==null){
-                    objEmbed.thumbnail = {
-                        url:CardModule.Properties.imgResponse.imgError
-                    }
-                    objEmbed.description = ":x: Please enter the item ID.";
-                    return message.channel.send({embed:objEmbed});
-                }
-
+                var itemId = interaction.options._hoistedOptions[0].value;
+                objEmbed.author = null;
                 //check if item ID exists/not
                 var itemData = await ItemModule.getItemData(itemId);
-
                 if(itemData==null){
                     objEmbed.thumbnail = {
                         url:CardModule.Properties.imgResponse.imgError
                     }
-                    objEmbed.description = ":x: Sorry, I can't find that item ID.";
-
-                    return message.channel.send({embed:objEmbed});
+                    objEmbed.description = ":x: I can't find that item ID.";
+                    return interaction.reply({embeds:[new MessageEmbed(objEmbed)]});
                 }
 
                 //check if user have card/not
@@ -148,8 +295,8 @@ module.exports = {
                     objEmbed.thumbnail = {
                         url:CardModule.Properties.imgResponse.imgError
                     }
-                    objEmbed.description = `:x: Sorry, you don't have: **${itemData[DBM_Item_Data.columns.name]}** yet.`;
-                    return message.channel.send({embed:objEmbed});
+                    objEmbed.description = `:x: You don't have: **${itemData[DBM_Item_Data.columns.name]}** yet.`;
+                    return interaction.reply({embeds:[new MessageEmbed(objEmbed)]});
                 }
 
                 var objEmbedFields = [
@@ -165,6 +312,7 @@ module.exports = {
                         url:itemData[DBM_Item_Data.columns.img_url]
                     }
                 }
+                
                 objEmbed.title = `${itemData[DBM_Item_Data.columns.name]}`;
                 objEmbed.footer = {
                     text:`Item ID: ${itemData[DBM_Item_Data.columns.id]} | Stock: ${userItemStock}`
@@ -195,7 +343,7 @@ module.exports = {
                         break;
                     default:
                         objEmbedFields[objEmbedFields.length] = {
-                            name:`Description`,
+                            name:`Description:`,
                             value:`${itemData[DBM_Item_Data.columns.description]}`,
                             inline:true
                         }
@@ -206,30 +354,14 @@ module.exports = {
                     objEmbed.fields = objEmbedFields;
                 }
 
-                return message.channel.send({embed:objEmbed});
+                return interaction.reply({embeds:[new MessageEmbed(objEmbed)]});
                 break;
             case "use":
                 var userStatusData = await CardModule.getCardUserStatusData(userId);
                 var currentStatusEffect = userStatusData[DBM_Card_User_Data.columns.status_effect];
-
-                var itemId = args[1];
-                objEmbed = {
-                    color:CardModule.Properties.embedColor,
-                    author: {
-                        name: userUsername,
-                        icon_url: userAvatarUrl
-                    }
-                }
+                var itemId = interaction.options._hoistedOptions[0].value;
 
                 var currentStatusEffect = userStatusData[DBM_Card_User_Data.columns.status_effect];
-
-                if(itemId==null){
-                    objEmbed.thumbnail = {
-                        url:CardModule.Properties.imgResponse.imgError
-                    }
-                    objEmbed.description = ":x: Please enter the item ID.";
-                    return message.channel.send({embed:objEmbed});
-                }
 
                 //check if item ID exists/not
                 var itemData = await ItemModule.getItemData(itemId);
@@ -238,9 +370,8 @@ module.exports = {
                     objEmbed.thumbnail = {
                         url:CardModule.Properties.imgResponse.imgError
                     }
-                    objEmbed.description = ":x: Sorry, I can't find that item ID.";
-
-                    return message.channel.send({embed:objEmbed});
+                    objEmbed.description = ":x: I can't find that item ID.";
+                    return interaction.reply({embeds:[new MessageEmbed(objEmbed)]});
                 }
 
                 if(currentStatusEffect==CardModule.StatusEffect.debuffData.item_curse.value){
@@ -254,7 +385,7 @@ module.exports = {
                                         itemData[DBM_Item_Data.columns.id])){
                                             var embedStatusEffectActivated = await CardModule.StatusEffect.embedStatusEffectActivated(
                                                 userUsername,userAvatarUrl,currentStatusEffect,"debuff");
-                                            return message.channel.send({embed:embedStatusEffectActivated});
+                                            return interaction.reply({embeds:[new MessageEmbed(embedStatusEffectActivated)]});
                                         }
                                     }
                             }
@@ -270,7 +401,7 @@ module.exports = {
                         url:CardModule.Properties.imgResponse.imgError
                     }
                     objEmbed.description = `:x: Sorry, you don't have: **${itemData[DBM_Item_Data.columns.name]}** yet.`;
-                    return message.channel.send({embed:objEmbed});
+                    return interaction.reply({embeds:[new MessageEmbed(objEmbed)]});
                 }
 
                 //category validator
@@ -280,7 +411,7 @@ module.exports = {
                         url:CardModule.Properties.imgResponse.imgError
                     }
                     objEmbed.description = `:x: You cannot use this item.`;
-                    return message.channel.send({embed:objEmbed});
+                    return interaction.reply({embeds:[new MessageEmbed(objEmbed)]});
                 }
 
                 var messageValue = `${CardModule.StatusEffect.buffData[itemData[DBM_Item_Data.columns.effect_data]].description}`;
@@ -310,8 +441,8 @@ module.exports = {
                                         objEmbed.thumbnail = {
                                             url:CardModule.Properties.imgResponse.imgError
                                         }
-                                        objEmbed.description = `:x: I can't scan the card reward for this tsunagarus!`;
-                                        return message.channel.send({embed:objEmbed});
+                                        objEmbed.description = `:x: Cannot scan the card reward for this tsunagarus!`;
+                                        return interaction.reply({embeds:[new MessageEmbed(objEmbed)]});
                                     } else {
                                         objEmbed.fields = [
                                             {
@@ -327,7 +458,7 @@ module.exports = {
                                         url:CardModule.Properties.imgResponse.imgError
                                     }
                                     objEmbed.description = `:x: Cannot use this item when no tsunagarus detected!`;
-                                    return message.channel.send({embed:objEmbed});
+                                    return interaction.reply({embeds:[new MessageEmbed(objEmbed)]});
                                     break;
                             }
                             
@@ -336,8 +467,7 @@ module.exports = {
                                 url:CardModule.Properties.imgResponse.imgError
                             }
                             objEmbed.description = `:x: Cannot use this item when no tsunagarus detected!`;
-
-                            return message.channel.send({embed:objEmbed});
+                            return interaction.reply({embeds:[new MessageEmbed(objEmbed)]});
                         }
                         break;
                     case CardModule.StatusEffect.buffData.clear_status_all.value:
@@ -369,7 +499,7 @@ module.exports = {
                                             inline:true
                                         }
                                     ]
-                                    return message.channel.send({embed:objEmbed});
+                                    return interaction.reply({embeds:[new MessageEmbed(objEmbed)]});
                                 }
                             }
                         } else if(itemData[DBM_Item_Data.columns.effect_data] in CardModule.StatusEffect.buffData){
@@ -382,7 +512,7 @@ module.exports = {
                                             inline:true
                                         }
                                     ]
-                                    return message.channel.send({embed:objEmbed});
+                                    return interaction.reply({embeds:[new MessageEmbed(objEmbed)]});
                                 }
                             }
                         }
@@ -413,182 +543,162 @@ module.exports = {
                     }
                 }
                 
-                return message.channel.send({embed:objEmbed});
-
+                await interaction.reply({embeds:[new MessageEmbed(objEmbed)],ephemeral:true});
+                return;
                 break;
             case "shop":
                 var userCardData = await CardModule.getCardUserStatusData(userId);
 
-                var arrSaleDay = ["fri","sat","sun"];
+                var arrSaleDay = ["sat","sun"];
                 var itemSale = false;
                 var day = GlobalFunctions.getDayName();
                 if(arrSaleDay.includes(day)){
                     itemSale = true;
                 }
 
-                if(args[1]==null){
-                    var objEmbed = {
-                        color:CardModule.Properties.embedColor,
-                        author: {
-                            name: "Mofu shop",
-                            icon_url: "https://waa.ai/JEwn.png"
-                        }
-                    }
-
-                    var itemSaleNotification = ""; 
-                    if(itemSale){
-                        itemSaleNotification = `\n\n✨**Special Offer:** It's **${day}sale**-day! I'm giving the discount sale price by 50% for all items!\n`;
-                    }
-
-                    var query = `SELECT * 
-                    FROM ${DBM_Item_Data.TABLENAME} 
-                    WHERE ${DBM_Item_Data.columns.category}=? OR  
-                    ${DBM_Item_Data.columns.category}=?`;
-                    var result = await DBConn.conn.promise().query(query, [ItemModule.Properties.categoryData.card.value,ItemModule.Properties.categoryData.ingredient.value]);
-                    
-                    var arrPages = [];
-                    var itemList1 = ""; var itemList2 = ""; var itemList3 = ""; var ctr = 0;
-                    var maxCtr = 8; var pointerMaxData = result[0].length;
-                    objEmbed.title = `Mofu Item Shop:`;
-                    objEmbed.description = `Welcome to Mofushop! Here are the available item list that you can purchase:\nUse **p!item shop buy <item id> [qty]** to purchase the item.${itemSaleNotification}\nYour Mofucoin: **${userCardData[DBM_Card_User_Data.columns.mofucoin]}**`;
-
-                    result[0].forEach(item => {
-                        itemList1+=`**${item[DBM_Item_Data.columns.id]}** - ${item[DBM_Item_Data.columns.name]}\n`;
-                        
-                        if(itemSale){
-                            itemList2+=`${Math.round(item[DBM_Item_Data.columns.price_mofucoin]/2)}\n`;
-                        } else {
-                            itemList2+=`${item[DBM_Item_Data.columns.price_mofucoin]}\n`;
-                        }
-                        
-                        itemList3+=`${item[DBM_Item_Data.columns.description]}\n`;
-                        
-                        //create pagination
-                        if(pointerMaxData-1<=0||ctr>maxCtr){
-                            objEmbed.fields = [
-                                {
-                                    name:`ID - Name:`,
-                                    value: itemList1,
-                                    inline:true,
-                                },
-                                {
-                                    name:`MC:`,
-                                    value: itemList2,
-                                    inline:true,
-                                },
-                                {
-                                    name:`Description:`,
-                                    value: itemList3,
-                                    inline:true,
-                                }
-                            ];
-                            var msgEmbed = new Discord.MessageEmbed(objEmbed);
-                            arrPages.push(msgEmbed);
-                            itemList1 = ""; itemList2 = ""; itemList3 = ""; ctr = 0;
-                        } else {
-                            ctr++;
-                        }
-                        pointerMaxData--;
-                    });
-
-                    // for(var i=0;i<arrPages.length;i++){
-                    //     arrPages[i].fields[0]['name'] = `Progress: ${progressTotal}/${PinkyModule.Properties.maxPinky}`;
-                    // }
-
-                    return paginationEmbed(message,arrPages);
-
-                } else if(args[1]!=null){
-                    if(args[1].toLowerCase()!="buy"){
-                        return message.channel.send({embed:{
-                            color: CardModule.Properties.embedColor,
-                            description:`Use **p!item shop buy <item id>** to buy the item.`
-                        }})
-                    }
-                } else if(args[2]==null){
-                    return message.channel.send({embed:{
-                        color: CardModule.Properties.embedColor,
-                        description:`Use **p!item shop buy <item id>** to buy the item.`
-                    }})
-                }
-
-                objEmbed = {
+                var objEmbed = {
                     color:CardModule.Properties.embedColor,
-                    author : {
-                        name: userUsername,
-                        icon_url: userAvatarUrl
+                    author: {
+                        name: "Mofu shop",
+                        icon_url: "https://waa.ai/JEwn.png"
                     }
                 }
 
-                var itemId = args[2];
-                var qty = args[3];
-                if(qty!=null&&isNaN(qty)){
-                    objEmbed.description = `:x: Please enter the quantity between 1-99`;
-                    return message.channel.send({embed:objEmbed});
-                } else if(qty<=0||qty>=99){
-                    objEmbed.description = `:x: Please enter the quantity between 1-99`;
-                    return message.channel.send({embed:objEmbed});
-                } 
-                
-                if(qty==null){
-                    qty = 1;
+                switch(commandSubcommand){
+                    case "view":
+                        var itemSaleNotification = itemSale == true ? `\n\n✨**Special Offer:** It's **${day}sale**-day! I'm giving the discount sale price by 50% for all items!\n`:""; 
+    
+                        var query = `SELECT * 
+                        FROM ${DBM_Item_Data.TABLENAME} 
+                        WHERE ${DBM_Item_Data.columns.category}=? OR  
+                        ${DBM_Item_Data.columns.category}=?`;
+                        var result = await DBConn.conn.promise().query(query, [ItemModule.Properties.categoryData.card.value,ItemModule.Properties.categoryData.ingredient.value]);
+                        
+                        var arrPages = [];
+                        var itemList1 = ""; var itemList2 = ""; var itemList3 = ""; var ctr = 0;
+                        var maxCtr = 8; var pointerMaxData = result[0].length;
+                        objEmbed.title = `Mofu Item Shop:`;
+                        objEmbed.description = `Welcome to Mofushop! Here are the available item list that you can purchase:${itemSaleNotification}\nYour Mofucoin: **${userCardData[DBM_Card_User_Data.columns.mofucoin]}**`;
+    
+                        result[0].forEach(item => {
+                            itemList1+=`**${item[DBM_Item_Data.columns.id]}** - ${item[DBM_Item_Data.columns.name]}\n`;
+                            
+                            if(itemSale){
+                                itemList2+=`${Math.round(item[DBM_Item_Data.columns.price_mofucoin]/2)}\n`;
+                            } else {
+                                itemList2+=`${item[DBM_Item_Data.columns.price_mofucoin]}\n`;
+                            }
+                            
+                            itemList3+=`${item[DBM_Item_Data.columns.description]}\n`;
+                            
+                            //create pagination
+                            if(pointerMaxData-1<=0||ctr>maxCtr){
+                                objEmbed.fields = [
+                                    {
+                                        name:`ID - Name:`,
+                                        value: itemList1,
+                                        inline:true,
+                                    },
+                                    {
+                                        name:`MC:`,
+                                        value: itemList2,
+                                        inline:true,
+                                    },
+                                    {
+                                        name:`Description:`,
+                                        value: itemList3,
+                                        inline:true,
+                                    }
+                                ];
+                                var msgEmbed = new MessageEmbed(objEmbed);
+                                arrPages.push(msgEmbed);
+                                itemList1 = ""; itemList2 = ""; itemList3 = ""; ctr = 0;
+                            } else {
+                                ctr++;
+                            }
+                            pointerMaxData--;
+                        });
+    
+                        return paginationEmbed(interaction,arrPages,DiscordStyles.Button.pagingButtonList);
+                        break;
+                    case "buy":
+                        objEmbed = {
+                            color:CardModule.Properties.embedColor,
+                            author : {
+                                name: userUsername,
+                                icon_url: userAvatarUrl
+                            }
+                        }
+        
+                        var itemId = interaction.options._hoistedOptions[0].value;
+                        var qty = interaction.options._hoistedOptions.hasOwnProperty(1) ? 
+                        interaction.options._hoistedOptions[1].value : 1;
+
+                        if(qty!=null&&isNaN(qty)){
+                            objEmbed.description = `:x: Please enter valid quantity between 1-99`;
+                            return interaction.reply({embeds:[new MessageEmbed(objEmbed)]});
+                        } else if(qty<=0||qty>=99){
+                            objEmbed.description = `:x: Please enter valid quantity between 1-99`;
+                            return interaction.reply({embeds:[new MessageEmbed(objEmbed)]});
+                        }
+        
+                        var allowedItem = `'${ItemModule.Properties.categoryData.card.value_search}',
+                        '${ItemModule.Properties.categoryData.ingredient.value_search}'`;
+                        //get current user stock
+                        var currentStock = await ItemModule.getUserItemStock(userId,itemId);
+                        var query = `SELECT * 
+                        FROM ${DBM_Item_Data.TABLENAME} 
+                        WHERE ${DBM_Item_Data.columns.category} IN (${allowedItem}) AND 
+                        ${DBM_Item_Data.columns.id}=? 
+                        LIMIT 1`;
+                        var itemData = await DBConn.conn.promise().query(query,[itemId]);
+                        itemData = itemData[0][0];
+                        
+                        if(itemData==null){
+                            objEmbed.thumbnail = {
+                                url:CardModule.Properties.imgResponse.imgFailed
+                            }
+                            objEmbed.description = `:x: Please enter the correct item ID.`;
+                            return interaction.reply({embeds:[new MessageEmbed(objEmbed)]});
+                        }
+        
+                        var mofucoin = userCardData[DBM_Card_User_Data.columns.mofucoin];
+        
+                        var itemDataPrice = itemData[DBM_Item_Data.columns.price_mofucoin]*qty;
+                        if(itemSale){
+                            itemDataPrice=Math.round(itemData[DBM_Item_Data.columns.price_mofucoin]/2)*qty;
+                        }
+                        var itemDataId = itemData[DBM_Item_Data.columns.id];
+                        var itemDataName = itemData[DBM_Item_Data.columns.name];
+        
+                        if(currentStock+qty>=ItemModule.Properties.maxItem){
+                            objEmbed.thumbnail = {
+                                url:CardModule.Properties.imgResponse.imgFailed
+                            }
+                            objEmbed.description = `:x: Sorry, you cannot purchase **${itemDataId} - ${itemDataName}** anymore.`;
+                            return interaction.reply({embeds:[new MessageEmbed(objEmbed)]});
+                        } else if(mofucoin<itemDataPrice){
+                            objEmbed.thumbnail = {
+                                url:CardModule.Properties.imgResponse.imgFailed
+                            }
+                            objEmbed.description = `:x: Sorry, you need **${itemDataPrice} mofucoin** to purchase ${qty}x: **${itemDataId} - ${itemDataName}**`;
+                            return interaction.reply({embeds:[new MessageEmbed(objEmbed)]});
+                        }
+        
+                        objEmbed.thumbnail = {
+                            url:CardModule.Properties.imgResponse.imgOk
+                        }
+                        objEmbed.description = `You have purchased ${qty}x: **${itemDataId} - ${itemDataName}** with **${itemDataPrice} mofucoin**.`;
+                        
+                        //update the mofucoin
+                        await CardModule.updateMofucoin(userId,-itemDataPrice);
+        
+                        // //add the item inventory
+                        await ItemModule.addNewItemInventory(userId,itemId,qty);
+        
+                        return interaction.reply({embeds:[new MessageEmbed(objEmbed)]});
+                        break;
                 }
-                qty = parseInt(qty);//convert to int
-
-                var allowedItem = "'card','ingredient'";
-                //get current user stock
-                var currentStock = await ItemModule.getUserItemStock(userId,itemId);
-                var query = `SELECT * 
-                FROM ${DBM_Item_Data.TABLENAME} 
-                WHERE ${DBM_Item_Data.columns.category} IN (${allowedItem}) AND 
-                ${DBM_Item_Data.columns.id}=? 
-                LIMIT 1`;
-                var itemData = await DBConn.conn.promise().query(query,[itemId]);
-                itemData = itemData[0][0];
-                
-                if(itemData==null){
-                    objEmbed.thumbnail = {
-                        url:CardModule.Properties.imgResponse.imgFailed
-                    }
-                    objEmbed.description = `:x: Sorry, that item is not purchasable on the shop.`;
-                    return message.channel.send({embed:objEmbed});
-                }
-
-                var mofucoin = userCardData[DBM_Card_User_Data.columns.mofucoin];
-
-                var itemDataPrice = itemData[DBM_Item_Data.columns.price_mofucoin]*qty;
-                if(itemSale){
-                    itemDataPrice=Math.round(itemData[DBM_Item_Data.columns.price_mofucoin]/2)*qty;
-                }
-                var itemDataId = itemData[DBM_Item_Data.columns.id];
-                var itemDataName = itemData[DBM_Item_Data.columns.name];
-
-                if(currentStock+qty>=ItemModule.Properties.maxItem){
-                    objEmbed.thumbnail = {
-                        url:CardModule.Properties.imgResponse.imgFailed
-                    }
-                    objEmbed.description = `:x: Sorry, you cannot purchase **${itemDataId} - ${itemDataName}** anymore.`;
-                    return message.channel.send({embed:objEmbed});
-                } else if(mofucoin<itemDataPrice){
-                    objEmbed.thumbnail = {
-                        url:CardModule.Properties.imgResponse.imgFailed
-                    }
-                    objEmbed.description = `:x: Sorry, you need **${itemDataPrice} mofucoin** to purchase ${qty}x: **${itemDataId} - ${itemDataName}**`;
-                    return message.channel.send({embed:objEmbed});
-                }
-
-                objEmbed.thumbnail = {
-                    url:CardModule.Properties.imgResponse.imgOk
-                }
-                objEmbed.description = `You have purchased ${qty}x: **${itemDataId} - ${itemDataName}** with **${itemDataPrice} mofucoin**.`;
-                
-                //update the mofucoin
-                await CardModule.updateMofucoin(userId,-itemDataPrice);
-
-                // //add the item inventory
-                await ItemModule.addNewItemInventory(userId,itemId,qty);
-
-                return message.channel.send({embed:objEmbed});
-                
                 break;
             case "sale":
                 var objEmbed = {
@@ -598,7 +708,7 @@ module.exports = {
                         icon_url: "https://cdn.discordapp.com/attachments/793415946738860072/827928547590668298/latest.png"
                     },
                     title:"Fragment Shop",
-                    description:`Hariham Harry has returned from the future with fragments and has opened up shop again!\nUse the command "**p!item sale buy <sale number> [qty]**" to buy the fragment!\nBe quick, once someone buys a sale, it's gone! And remember, you can buy as many sale as you want, but can only buy up to 1 fragment type!`,
+                    description:`Hariham Harry has returned from the future with fragments and has opened up shop again!\nBe quick, once someone buys a sale, it's gone! And remember, you can buy as many sale as you want, but can only buy up to 1 fragment type!`,
                     thumbnail:{
                         url:"https://cdn.discordapp.com/attachments/793415946738860072/827928547590668298/latest.png"
                     }
@@ -656,7 +766,6 @@ module.exports = {
                         //exists
                         salePurchased = splittedUserTokenData[1];
                     }
-                    
                 } else {
                     saleToken = shopSaleToken;
                     lastSaleDate = GlobalFunctions.getCurrentDate();
@@ -729,99 +838,93 @@ module.exports = {
                         objEmbed.fields = arrField;
                     }
                 }
-                
+
                 //all sold out
                 if(allSoldOut){
                     objEmbed.description = "All the item sale has been sold out.";
                     objEmbed.fields = null;
-                    return message.channel.send({embed:objEmbed});
-                }
-                
-                var optionalArgs = args[1];
-                
-                if(optionalArgs!=null){
-                    objEmbed.fields = null; objEmbed.footer = null;
-                    //buy process
-                    if(optionalArgs!="buy"){
-                        objEmbed.description = ":x: Please enter the correct sale buy command with: **p!item sale buy <sale number> [qty]**";
-                        return message.channel.send({embed:objEmbed});
-                    }
-
-                    var selectedSaleNumber = args[2]; //move to next args: selected sale number
-                    if(isNaN(selectedSaleNumber)||selectedSaleNumber==null){
-                        objEmbed.description = ":x: Please enter the selected sale number between 1-5.";
-                        return message.channel.send({embed:objEmbed});
-                    } else if(arrItemShopList[selectedSaleNumber-1]==null||arrItemShopList[selectedSaleNumber-1]==""||arrItemShopListStock[selectedSaleNumber-1]<=0){
-                        objEmbed.description = ":x: The selected sale number is not on the list/has been sold out.";
-                        return message.channel.send({embed:objEmbed});
-                    } else if(saleToken==shopSaleToken && salePurchased.includes(String(selectedSaleNumber-1))){
-                        objEmbed.description = ":x: Sorry, you're not allowed to buy the same sale item again.";
-                        return message.channel.send({embed:objEmbed});
-                    }
-
-                    // console.log(saleToken);
-                    // return;
-
-                    var qty = 1;
-                    var optionalQty = args[3]; //move to next args
-                    if((optionalQty!=null&&isNaN(optionalQty))||optionalQty<1||optionalQty>99){
-                        objEmbed.description = ":x: Please enter the valid amount between 1-99.";
-                        return message.channel.send({embed:objEmbed});
-                    } else if(optionalQty!=null){
-                        qty = optionalQty; salePrice*=qty;
-                    }
-
-                    //item shop stock validation
-                    if(qty>arrItemShopListStock[selectedSaleNumber-1]){
-                        objEmbed.description = `:x: You can only buy up to **${arrItemShopListStock[selectedSaleNumber-1]} ${arrItemShopList[selectedSaleNumber-1]}**.`;
-                        return message.channel.send({embed:objEmbed});
-                    }
-    
-                    var itemData = await ItemModule.getItemData(arrItemShopList[selectedSaleNumber-1]);
-                    var seriesData = itemData[DBM_Item_Data.columns.extra_data];
-                    var seriesPoint = CardModule.Properties.seriesCardCore[seriesData].series_point;
-    
-                    if(cardUserData[seriesPoint]<salePrice){
-                        objEmbed.description = `:x: You need ${salePrice} ${CardModule.Properties.seriesCardCore[seriesPoint].currency} to purchase ${qty}x sale number ${selectedSaleNumber}: **${itemData[DBM_Item_Data.columns.id]} - ${itemData[DBM_Item_Data.columns.name]}**.`;
-                        return message.channel.send({embed:objEmbed});
-                    }
-    
-                    objEmbed.description = `:white_check_mark: <@${userId}> has purchased ${qty}x sale number ${selectedSaleNumber}: **${itemData[DBM_Item_Data.columns.id]} - ${itemData[DBM_Item_Data.columns.name]}** with **${salePrice} ${CardModule.Properties.seriesCardCore[seriesPoint].currency}**.`;
-    
-                    //{"sale_token":"2239","last_date":"2021-04-04","sale_list":{"cfrg001":5,"cfrg011":0,"cfrg007":0,"cfrg004":5,"cfrg015":5}}
-
-                    //update the series point
-                    var parameterSeries = new Map();
-                    parameterSeries.set(seriesPoint,-salePrice);
-                    await CardModule.updateSeriesPoint(userId,parameterSeries);
-
-                    salePurchased += selectedSaleNumber-1;
-
-                    //update the sale token
-                    var parameterSet = new Map();
-                    parameterSet.set(DBM_Card_User_Data.columns.sale_token,`${saleToken},${salePurchased}`);
-                    var parameterWhere = new Map();
-                    parameterWhere.set(DBM_Card_User_Data.columns.id_user,userId);
-                    await DB.update(DBM_Card_User_Data.TABLENAME,parameterSet,parameterWhere);
-    
-                    //update the item
-                    await ItemModule.addNewItemInventory(userId,itemData[DBM_Item_Data.columns.id],qty);
-    
-                    //update the item sale data
-                    var jsonParsedData = JSON.parse(guildData[DBM_Card_Guild.columns.sale_shop_data]);
-                    jsonParsedData[ItemModule.Properties.saleData.sale_list][arrItemShopList[selectedSaleNumber-1]]-=qty;
-                    guildData[DBM_Card_Guild.columns.sale_shop_data] = jsonParsedData;
-                    var parameterSet = new Map();
-                    parameterSet.set(DBM_Card_Guild.columns.sale_shop_data,JSON.stringify(jsonParsedData));
-                    var parameterWhere = new Map();
-                    parameterWhere.set(DBM_Card_Guild.columns.id_guild,guildId);
-                    await DB.update(DBM_Card_Guild.TABLENAME,parameterSet,parameterWhere);
+                    return interaction.reply({embeds:[new MessageEmbed(objEmbed)]});
                 }
 
-                return message.channel.send({embed:objEmbed});
+                switch(commandSubcommand){
+                    case "buy":
+                        objEmbed.fields = null; objEmbed.footer = null;
+    
+                        var selectedSaleNumber = interaction.options._hoistedOptions[0].value; //move to next args: selected sale number
+                        if(isNaN(selectedSaleNumber)||selectedSaleNumber==null){
+                            objEmbed.description = ":x: Please enter the valid sale number";
+                            return interaction.reply({embeds:[new MessageEmbed(objEmbed)]});
+                        } else if(arrItemShopList[selectedSaleNumber-1]==null||arrItemShopList[selectedSaleNumber-1]==""||arrItemShopListStock[selectedSaleNumber-1]<=0){
+                            objEmbed.description = ":x: The selected sale number is not on the list/has been sold out.";
+                            return interaction.reply({embeds:[new MessageEmbed(objEmbed)]});
+                        } else if(saleToken==shopSaleToken && salePurchased.includes(String(selectedSaleNumber-1))){
+                            objEmbed.description = ":x: You're not allowed to buy the same sale item again.";
+                            return interaction.reply({embeds:[new MessageEmbed(objEmbed)]});
+                        }
+    
+                        // console.log(saleToken);
+                        // return;
+    
+                        var qty = 1;
+                        var optionalQty = interaction.options._hoistedOptions[1].value; //move to next args
+                        if(optionalQty<1){
+                            objEmbed.description = ":x: Please re-enter the qty with valid amount.";
+                            return interaction.reply({embeds:[new MessageEmbed(objEmbed)]});
+                        } else if(optionalQty!=null){
+                            qty = optionalQty; salePrice*=qty;
+                        }
+    
+                        //item shop stock validation
+                        if(qty>arrItemShopListStock[selectedSaleNumber-1]){
+                            objEmbed.description = `:x: You can only buy up to **${arrItemShopListStock[selectedSaleNumber-1]} ${arrItemShopList[selectedSaleNumber-1]}**.`;
+                            return interaction.reply({embeds:[new MessageEmbed(objEmbed)]});
+                        }
+        
+                        var itemData = await ItemModule.getItemData(arrItemShopList[selectedSaleNumber-1]);
+                        var seriesData = itemData[DBM_Item_Data.columns.extra_data];
+                        var seriesPoint = CardModule.Properties.seriesCardCore[seriesData].series_point;
+        
+                        if(cardUserData[seriesPoint]<salePrice){
+                            objEmbed.description = `:x: You need ${salePrice} ${CardModule.Properties.seriesCardCore[seriesPoint].currency} to purchase ${qty}x sale number ${selectedSaleNumber}: **${itemData[DBM_Item_Data.columns.id]} - ${itemData[DBM_Item_Data.columns.name]}**.`;
+                            return interaction.reply({embeds:[new MessageEmbed(objEmbed)]});
+                        }
+        
+                        objEmbed.description = `:white_check_mark: <@${userId}> has purchased ${qty}x sale number ${selectedSaleNumber}: **${itemData[DBM_Item_Data.columns.id]} - ${itemData[DBM_Item_Data.columns.name]}** with **${salePrice} ${CardModule.Properties.seriesCardCore[seriesPoint].currency}**.`;
+        
+                        //{"sale_token":"2239","last_date":"2021-04-04","sale_list":{"cfrg001":5,"cfrg011":0,"cfrg007":0,"cfrg004":5,"cfrg015":5}}
+    
+                        //update the series point
+                        var parameterSeries = new Map();
+                        parameterSeries.set(seriesPoint,-salePrice);
+                        await CardModule.updateSeriesPoint(userId,parameterSeries);
+    
+                        salePurchased += selectedSaleNumber-1;
+    
+                        //update the sale token
+                        var parameterSet = new Map();
+                        parameterSet.set(DBM_Card_User_Data.columns.sale_token,`${saleToken},${salePurchased}`);
+                        var parameterWhere = new Map();
+                        parameterWhere.set(DBM_Card_User_Data.columns.id_user,userId);
+                        await DB.update(DBM_Card_User_Data.TABLENAME,parameterSet,parameterWhere);
+        
+                        //update the item
+                        await ItemModule.addNewItemInventory(userId,itemData[DBM_Item_Data.columns.id],qty);
+        
+                        //update the item sale data
+                        var jsonParsedData = JSON.parse(guildData[DBM_Card_Guild.columns.sale_shop_data]);
+                        jsonParsedData[ItemModule.Properties.saleData.sale_list][arrItemShopList[selectedSaleNumber-1]]-=qty;
+                        guildData[DBM_Card_Guild.columns.sale_shop_data] = jsonParsedData;
+                        var parameterSet = new Map();
+                        parameterSet.set(DBM_Card_Guild.columns.sale_shop_data,JSON.stringify(jsonParsedData));
+                        var parameterWhere = new Map();
+                        parameterWhere.set(DBM_Card_Guild.columns.id_guild,guildId);
+                        await DB.update(DBM_Card_Guild.TABLENAME,parameterSet,parameterWhere);
 
+                        break;
+                }
+
+                return interaction.reply({embeds:[new MessageEmbed(objEmbed)]});
                 break;
         }
-
     }
 }

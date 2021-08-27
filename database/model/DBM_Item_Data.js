@@ -5,6 +5,8 @@ class DBM_Item_Data {
         id: "id", 
         name: "name",
         category: "category",
+        is_purchasable_shop: "is_purchasable_shop",
+        is_tradable: "is_tradable",
         price_mofucoin: "price_mofucoin",
         img_url: "img_url",
         description: "description",

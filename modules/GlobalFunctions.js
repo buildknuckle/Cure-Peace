@@ -34,9 +34,24 @@ module.exports = {
       var ss = ("0" + today.getSeconds()).slice(-2);
       return `${yyyy}-${mm}-${dd} ${hh}:${min}:${ss}`;
    },
-   convertDateTime(dateTime){
+   convertDateTime(dateTime,format=0){
       var dt = new Date(dateTime);
-      return `${("0" + dt.getDate()).slice(-2)}/${("0" + (dt.getMonth() + 1)).slice(-2)}/${dt.getFullYear()}`;
+      switch(format){
+         case 0:
+         default:
+            //dd/mm/yyyy
+            return `${("0" + dt.getDate()).slice(-2)}/${("0" + (dt.getMonth() + 1)).slice(-2)}/${dt.getFullYear()}`;
+            break;
+         case 1:
+            //yyyy-mm-dd
+            return `${dt.getFullYear()}-${("0" + (dt.getMonth() + 1)).slice(-2)}-${("0" + dt.getDate()).slice(-2)}`;
+            break;
+         case 2:
+            //yyyy-mm-dd
+            return `${dt.getFullYear()}-${("0" + (dt.getMonth() + 1)).slice(-2)}-${("0" + dt.getDate()).slice(-2)} ${("0" + dt.getHours()).slice(-2)}:${("0" + dt.getMinutes()).slice(-2)}:${("0" + dt.getSeconds()).slice(-2)}`;
+            break;
+      }
+      
    },
    getDayName(){
       var options = {  weekday: 'short', hour12: false };
@@ -148,6 +163,24 @@ module.exports = {
       return Object.fromEntries(
          Object.entries(dataObject).sort(([,a],[,b]) => a-b)
      );
+   },
+   getDateTimeDifference(dateStart,dateEnd){
+      var timeRemaining = (dateStart - dateEnd ) / 1000 / 60;
+      var num = timeRemaining;
+      var hours = (num / 60);
+      var rhours = Math.floor(hours);
+      var minutes = (hours - rhours) * 60;
+      var rminutes = Math.round(minutes);
+      return {hours:rhours, minutes: rminutes};
+   },
+   mergeObjects(obj1,obj2){
+      return Object.assign({},obj1,obj2);
+   },
+   getCurrentWeek() {
+      let monthStart = new Date();
+      monthStart.setDate(0);
+      let offset = (monthStart.getDay() + 1) % 7 - 1; // -1 is for a week starting on Monday
+      return Math.ceil((new Date().getDate() + offset) / 7);
    }
 
 }
