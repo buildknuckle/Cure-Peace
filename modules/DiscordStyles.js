@@ -18,12 +18,12 @@ class Button{
     static pagingButtonList = [
         new MessageButton()
         .setCustomId('previousbtn')
-        .setLabel('⏪')
-        .setStyle('DANGER'),
+        .setLabel('◀')
+        .setStyle('PRIMARY'),
         new MessageButton()
         .setCustomId('nextbtn')
-        .setLabel('⏩')
-        .setStyle('SUCCESS')
+        .setLabel('▶')
+        .setStyle('PRIMARY')
     ];
 
     static basic(id,label,style){
