@@ -16,7 +16,6 @@ const DBM_Card_Guild = require('../database/model/DBM_Card_Guild');
 const DBM_Pinky_Data = require('../database/model/DBM_Pinky_Data');
 const DBM_Pinky_Inventory = require('../database/model/DBM_Pinky_Inventory');
 const DBM_Item_Data = require('../database/model/DBM_Item_Data');
-const { executeComponentButton } = require('./card');
 
 module.exports = {
     name: 'pinky',
