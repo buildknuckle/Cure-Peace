@@ -1,5 +1,5 @@
 const fs = require('fs');
-const {MessageActionRow, MessageButton, MessageEmbed, Discord} = require('discord.js');
+const {MessageEmbed} = require('discord.js');
 
 const peacestats = JSON.parse(fs.readFileSync('storage/peacestats.json', 'utf8'));
 
@@ -8,7 +8,7 @@ module.exports = {
     cooldown: 5,
     description: "Rock-Paper-Scissors! with Peace",
     args: true,
-    options:[
+    options: [
         {
             name: "play",
             description: "Peace will play a game of Rock-Paper-Scissors with you!",
@@ -30,9 +30,9 @@ module.exports = {
         },
         {
             name: "score",
-            description: "Peace will shows the Rock-Paper-Score scoreboard!",
+            description: "Peace will show the Rock-Paper-Score scoreboard!",
             type: 3,
-            required:false,
+            required: false,
             choices: [
                 {
                     name: "myscore",
@@ -48,7 +48,7 @@ module.exports = {
             name: "view",
             description: "Peace will display the screencap that you ask for",
             type: 3,
-            required:false,
+            required: false,
             choices: [
                 {
                     name: "rock",
@@ -66,32 +66,32 @@ module.exports = {
         },
     ],
     executeMessage(message, args) {
-        const clientId = message.client.user.id;
+        // slash-only command
     },
-    execute(interaction){
-        var message = interaction.message;
-        var userId = interaction.user.id;
-        var username = interaction.user.username;
-        var avatarURL = interaction.user.avatarURL();
+    execute(interaction) {
+        const userObject = interaction.member.user;
+        const userId = userObject.id;
+        const username = userObject.username;
+        const avatarURL = userObject.avatarURL();
 
         const clientId = interaction.applicationId;
-        var janken = new MessageEmbed()
-        .setColor('#efcc2c')
-        .setTitle('Sparkling, glittering, rock-paper-scissors!');
+        const janken = new MessageEmbed()
+            .setColor('#efcc2c')
+            .setTitle('Sparkling, glittering, rock-paper-scissors!');
 
-        if (!peacestats[userId]){ 
+        if (!peacestats[userId]) {
             peacestats[userId] = {
-               name: message.user.username,
-               win: 0,
-               draw: 0,
-               loss: 0,
-               points: 0
-           };
+                name: username,
+                win: 0,
+                draw: 0,
+                loss: 0,
+                points: 0
+            };
         }
 
-        if (!peacestats[clientId]){ 
+        if (!peacestats[clientId]) {
             peacestats[clientId] = {
-                name: "Cure Peace", 
+                name: "Cure Peace",
                 win: 0,
                 draw: 0,
                 loss: 0,
@@ -109,17 +109,17 @@ module.exports = {
         let ploss = peacestats[clientId].loss;
         let ppoints = peacestats[clientId].points;
 
-        var command = interaction.options._hoistedOptions.hasOwnProperty(0) ? 
-        interaction.options._hoistedOptions[0].name:null;//first param
-        switch(command){
+        const command = interaction.options._hoistedOptions.hasOwnProperty(0) ?
+            interaction.options._hoistedOptions[0].name : null; //first param
+        switch (command) {
             case "play":
-                var selection = interaction.options._hoistedOptions[0].value;
-                var peaceChoice = Math.floor(Math.random() * 3) + 1;
+                const play_selection = interaction.options._hoistedOptions[0].value;
+                const peaceChoice = Math.floor(Math.random() * 3) + 1;
 
-                var state = 0;//0:draw,1:loss,2:win
-                switch(selection){
+                let state = 0; // 0:draw, 1:loss, 2:win
+                switch (play_selection) {
                     case "rock":
-                        switch(peaceChoice){
+                        switch (peaceChoice) {
                             case 1:
                                 state = 0;
                                 janken.setDescription(`Hey we both went with Rock! It's a draw!`);
@@ -128,17 +128,17 @@ module.exports = {
                             case 2:
                                 state = 1;
                                 janken.setDescription(`I picked Paper! Oh no, you lost.`);
-                                janken.setImage('https://imgur.com/uQtSfqD.png');
+                                janken.setImage('https://i.imgur.com/uQtSfqD.png');
                                 break;
                             case 3:
                                 state = 2;
                                 janken.setDescription(`I picked Scissors! Yay yay yay! You win!`);
-                                janken.setImage('https://imgur.com/vgqsHN5.png');
+                                janken.setImage('https://i.imgur.com/vgqsHN5.png');
                                 break;
                         }
                         break;
                     case "paper":
-                        switch(peaceChoice){
+                        switch (peaceChoice) {
                             case 1:
                                 state = 2;
                                 janken.setDescription(`I picked Rock! Yay yay yay! You win!`);
@@ -147,17 +147,17 @@ module.exports = {
                             case 2:
                                 state = 0;
                                 janken.setDescription(`Hey we both went with Paper! It's a draw!`);
-                                janken.setImage('https://imgur.com/uQtSfqD.png');
+                                janken.setImage('https://i.imgur.com/uQtSfqD.png');
                                 break;
                             case 3:
                                 state = 1;
-                                janken.setDescription(`I picked Scissors! Oh no, you lost.`)
-                                janken.setImage('https://imgur.com/vgqsHN5.png');
+                                janken.setDescription(`I picked Scissors! Oh no, you lost.`);
+                                janken.setImage('https://i.imgur.com/vgqsHN5.png');
                                 break;
                         }
                         break;
                     case "scissors":
-                        switch(peaceChoice){
+                        switch (peaceChoice) {
                             case 1:
                                 state = 1;
                                 janken.setDescription(`I picked Rock! Oh no, you lost.`);
@@ -166,122 +166,123 @@ module.exports = {
                             case 2:
                                 state = 2;
                                 janken.setDescription(`I picked Paper! Yay yay yay! You win!`);
-                                janken.setImage('https://imgur.com/uQtSfqD.png');
+                                janken.setImage('https://i.imgur.com/uQtSfqD.png');
                                 break;
                             case 3:
                                 state = 0;
                                 janken.setDescription(`Hey we both went with Scissors! It's a draw!`);
-                                janken.setImage('https://imgur.com/vgqsHN5.png');
+                                janken.setImage('https://i.imgur.com/vgqsHN5.png');
                                 break;
                         }
                         break;
                 }
 
-                switch(state){
+                switch (state) {
                     case 0:
                         //draw
-                        peacestats[userId] = { name: username, win: uwin + 0, draw: udraw + 1, loss: uloss + 0, points: upoints + 1 } //Poster's Score Draw
-                        peacestats[clientId] = { name: "Cure Peace",  win: pwin + 0, draw: pdraw + 1, loss: ploss + 0, points: ppoints + 1 } //Cure Peace's Score Draw
+                        peacestats[userId] = { name: username, win: uwin + 0, draw: udraw + 1, loss: uloss + 0, points: upoints + 1 }; // Poster's Score Draw
+                        peacestats[clientId] = { name: "Cure Peace", win: pwin + 0, draw: pdraw + 1, loss: ploss + 0, points: ppoints + 1 }; // Cure Peace's Score Draw
+                        break;
                     case 1:
                         //loss
-                        peacestats[userId] = { name: username, win: uwin + 0, draw: udraw + 0, loss: uloss + 1, points: upoints + 0  } //Poster's Score Loss
-                        peacestats[clientId] = { name: "Cure Peace",  win: pwin + 1, draw: pdraw + 0, loss: ploss + 0, points: ppoints + 3 } //Cure Peace's Score Win
+                        peacestats[userId] = { name: username, win: uwin + 0, draw: udraw + 0, loss: uloss + 1, points: upoints + 0 }; // Poster's Score Loss
+                        peacestats[clientId] = { name: "Cure Peace", win: pwin + 1, draw: pdraw + 0, loss: ploss + 0, points: ppoints + 3 }; // Cure Peace's Score Win
+                        break;
                     case 2:
                         //win
-                        peacestats[userId] = { name: username, win: uwin + 1, draw: udraw + 0, loss: uloss + 0, points: upoints + 3 } //Poster's Score Win
-                        peacestats[clientId] = { name: "Cure Peace",  win: pwin + 0, draw: pdraw + 0, loss: ploss + 1, points: ppoints + 0 } //Cure Peace's Score Loss
+                        peacestats[userId] = { name: username, win: uwin + 1, draw: udraw + 0, loss: uloss + 0, points: upoints + 3 }; // Poster's Score Win
+                        peacestats[clientId] = { name: "Cure Peace", win: pwin + 0, draw: pdraw + 0, loss: ploss + 1, points: ppoints + 0 }; // Cure Peace's Score Loss
                         break;
                 }
 
                 fs.writeFile('storage/peacestats.json', JSON.stringify(peacestats), (err) => {
-                    if (err) console.error(err); 
+                    if (err) console.error(err);
                 });
-                return interaction.reply({embeds:[janken]});
-                break;
+                return interaction.reply({embeds: [janken]});
             case "score":
-                var selection = interaction.options._hoistedOptions[0].value;//myscore/leaderboard
-                switch(selection){
+                const score_selection = interaction.options._hoistedOptions[0].value; //myscore/leaderboard
+                switch (score_selection) {
                     case "myscore":
                         const scorecard = new MessageEmbed()
-                        .setAuthor(username)
-                        .setThumbnail(avatarURL)
-                        .setColor('#efcc2c')
-                        .setTitle(`Here's your current score, ${username}!` )
-                        .addField(":white_check_mark:", `${uwin} wins`)
-                        .addField(":recycle:", `${udraw} draws` )
-                        .addField(":negative_squared_cross_mark:", `${uloss} losses`)
-                        .addField(":cloud_lightning:", `${upoints} points`)
+                            .setAuthor(username)
+                            .setThumbnail(avatarURL)
+                            .setColor('#efcc2c')
+                            .setTitle(`Here's your current score, ${username}!`)
+                            .addField(":white_check_mark:", `${uwin} wins`)
+                            .addField(":recycle:", `${udraw} draws`)
+                            .addField(":negative_squared_cross_mark:", `${uloss} losses`)
+                            .addField(":cloud_lightning:", `${upoints} points`);
 
-                        interaction.reply({embeds:[scorecard]});
+                        interaction.reply({embeds: [scorecard]});
                         break;
                     case "leaderboard":
-                        var lbArray = Object.entries(peacestats)
+                        let lbArray = Object.entries(peacestats);
 
-                        for (i = 0, len = lbArray.length; i < len; i++) {
-                            lbArray[i].splice(0,1);
+                        for (let i = 0, len = lbArray.length; i < len; i++) {
+                            lbArray[i].splice(0, 1);
                         }
 
-                        var newarray = [];
+                        let newarray = [];
 
-                        for (i = 0, len = lbArray.length; i < len; i++) { 
-                            newarray.push(lbArray[i].pop())
+                        for (let i = 0, len = lbArray.length; i < len; i++) {
+                            newarray.push(lbArray[i].pop());
                         }
 
-                        function compare(a, b) {
-                            const ptsa = a.points
-                            const ptsb = b.points
+                    function compare(a, b) {
+                        const ptsa = a.points;
+                        const ptsb = b.points;
 
-                            let comparison = 0;
-                            if (ptsa > ptsb) {
-                                comparison = -1;
-                            } else if (ptsa < ptsb) {
-                                comparison = 1;
-                            }
-                            return comparison;
+                        let comparison = 0;
+                        if (ptsa > ptsb) {
+                            comparison = -1;
+                        } else if (ptsa < ptsb) {
+                            comparison = 1;
                         }
+                        return comparison;
+                    }
 
                         newarray.sort(compare);
 
-                        let postarray = newarray.map(x => `${x.name} - W: ${x.win} - D: ${x.draw} - L: ${x.loss} - Pts: ${x.points}`)
-                        
+                        let postarray = newarray.map(x => `${x.name} - W: ${x.win} - D: ${x.draw} - L: ${x.loss} - Pts: ${x.points}`);
+
                         const leaderboard = new MessageEmbed()
-                        .setAuthor("Top 10")
-                        .setThumbnail("https://cdn.discordapp.com/avatars/764510594153054258/cb309a0c731ca1357cfbe303c39d47a8.png")
-                        .setColor('#efcc2c')
-                        .setTitle("Here's the current Top 10!" )
-                        i = 0;
+                            .setAuthor("Top 10")
+                            .setThumbnail("https://cdn.discordapp.com/avatars/764510594153054258/cb309a0c731ca1357cfbe303c39d47a8.png")
+                            .setColor('#efcc2c')
+                            .setTitle("Here's the current Top 10!");
+                        let i = 0;
                         while (i < 10) {
-                            if (postarray[i] == undefined) {
+                            if (postarray[i] === undefined) {
                                 break;
                             }
-                            leaderboard.addField('#' + (i + 1) ,postarray[i]);
+                            leaderboard.addField('#' + (i + 1), postarray[i]);
                             i++;
                         }
-                        interaction.reply({embeds:[leaderboard]});
+                        interaction.reply({embeds: [leaderboard]});
                         break;
                 }
                 break;
             case "view":
-                var selection = interaction.options._hoistedOptions[0].value;//rock/paper/scissors
-                switch(selection){
+                const view_selection = interaction.options._hoistedOptions[0].value; // rock/paper/scissors
+                switch (view_selection) {
                     case "rock":
                         janken.setTitle('Rock!')
-                        .setDescription('Here I am doing my cool rock pose!')    
-                        .setImage('https://i.imgur.com/xvAk8aA.png')
+                            .setDescription('Here I am doing my cool rock pose!')
+                            .setImage('https://i.imgur.com/xvAk8aA.png');
                         break;
                     case "paper":
                         janken.setTitle('Paper!')
-                        .setDescription('Here I am doing my cool paper pose!')    
-                        .setImage('https://imgur.com/uQtSfqD.png')
+                            .setDescription('Here I am doing my cool paper pose!')
+                            .setImage('https://i.imgur.com/uQtSfqD.png');
                         break;
                     case "scissors":
                         janken.setColor('#efcc2c')
-                        .setTitle('Scissors!')
-                        .setDescription('Here I am doing my cool scissors pose!')    
-                        .setImage('https://imgur.com/vgqsHN5.png')
+                            .setTitle('Scissors!')
+                            .setDescription('Here I am doing my cool scissors pose!')
+                            .setImage('https://i.imgur.com/vgqsHN5.png');
                         break;
                 }
-                interaction.reply({embeds:[janken]});
+                interaction.reply({embeds: [janken]});
                 break;
         }
     }
