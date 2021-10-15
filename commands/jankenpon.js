@@ -284,6 +284,9 @@ module.exports = {
                 }
                 interaction.reply({embeds: [janken]});
                 break;
+            case null:
+                interaction.reply({ content: 'You did not specify a valid option!', ephemeral: true });
+                break;
         }
     }
 };
