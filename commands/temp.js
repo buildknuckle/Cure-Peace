@@ -4,123 +4,213 @@ module.exports = {
     name: 'temp',
     cooldown: 5,
     description: `You'll be able to convert temperatures now!`,
+    args: true,
+    options: [
+        {
+            name: "ctof",
+            type: 1,
+            description: "Celsius to Fahrenheit",
+            options: [
+                {
+                    type: 4,
+                    name: "temp",
+                    description: "Temperature",
+                    choices: [],
+                    required: true
+                }
+            ],
+        },
+        {
+            name: "ftoc",
+            description: "Fahrenheit to Celsius",
+            type: 1,
+            options: [
+                {
+                    type: 4,
+                    name: "temp",
+                    description: "Temperature",
+                    choices: [],
+                    required: true
+                }
+            ],
+        },
+        {
+            name: "ktoc",
+            value: 'ktoc',
+            description: "Kelvin to Celsius",
+            type: 1,
+            options: [
+                {
+                    type: 4,
+                    name: "temp",
+                    description: "Temperature",
+                    choices: [],
+                    required: true
+                }
+            ],
+        },
+        {
+            name: "ktof",
+            value: 'ktof',
+            description: "Kelvin to Fahrenheit",
+            type: 1,
+            options: [
+                {
+                    type: 4,
+                    name: "temp",
+                    description: "Temperature",
+                    choices: [],
+                    required: true
+                }
+            ],
+        },
+        {
+            name: "ctok",
+            value: "ctok",
+            description: "Celsius to Kelvin",
+            type: 1,
+            options: [
+                {
+                    type: 4,
+                    name: "temp",
+                    description: "Temperature",
+                    choices: [],
+                    required: true
+                }
+            ],
+        },
+        {
+            name: "ftok",
+            value: 'ftok',
+            description: "Fahrenheit to Kelvin",
+            type: 1,
+            options: [
+                {
+                    type: 4,
+                    name: "temp",
+                    description: "Temperature",
+                    choices: [],
+                    required: true
+                }
+            ],
+        }
+    ],
 
+    executeMessage(message, args) {
 
-    execute(message, args) {
-        
-        const tempbox = new Discord.MessageEmbed()
-        var temp = args[1]
-        var tempresult = 0
+    },
+    execute(interaction) {
 
-        switch(args[0]){
-            case "ctof": 
+        const tempbox = new Discord.MessageEmbed();
+        const command = interaction.options._subcommand;
+        const temp = interaction.options._hoistedOptions[0].value;
+        let tempresult = 0;
+
+        let convert = function (color, type, title, output) {
+            tempbox.setColor(color);
+            const hot = 'The brilliant sun, hot-blooded power!';
+            const cold = 'The light of Wisdom!';
+            switch (type) {
+                case 'hot':
+                    tempbox.setTitle(`${hot} ${title}`);
+                    tempbox.setThumbnail("https://waa.ai/JEw2.png");
+                    tempbox.setDescription(output);
+                    break;
+                case 'cold':
+                    tempbox.setThumbnail("https://waa.ai/JEwz.png");
+                    tempbox.setTitle(`${cold} ${title}`);
+                    tempbox.setDescription(output);
+                    break;
+            }
+            return interaction.reply({embeds: [tempbox]});
+        };
+
+        let emptyInput = function (color, thumb = null) {
+            tempbox.setColor(color);
+            if (thumb) {
+                tempbox.setThumbnail(thumb);
+            }
+            tempbox.setDescription(`You didn't enter anything!`);
+            return interaction.reply({embeds: [tempbox], ephemeral: true});
+        };
+
+        switch (command) {
+            case "ctof":
                 if (temp != null) {
-                 
-                    tempresult = (temp * 9/5) + 32 
+                    tempresult = (temp * 9 / 5) + 32;
+                    let title = 'Converting Celsius to Fahrenheit!';
+                    let output = `${temp} ℃ is ${tempresult} ℉`;
 
-                    tempbox.setColor('#F97E36')
-                    tempbox.setTitle('The brilliant sun, hot-blooded power!')    
-                    tempbox.setTitle("Converting Celcius to Fahrenheit!")
-                    tempbox.setThumbnail("https://waa.ai/JEw2.png")
-                    tempbox.setDescription(temp, `C is `, tempresult, `F`)
-                    return message.channel.send(tempbox);
+                    convert('#F97E36', 'hot', title, output);
+                } else {
+                    emptyInput('#F97E36');
                 }
-                else {
-                    tempbox.setColor('#F97E36')
-                    tempbox.setDescription(`You didn't enter anything!`)
-                    return message.channel.send(tempbox);
-                }
+                break;
             case "ftoc":
                 if (temp != null) {
-                 
-                    tempresult = (temp - 32) * 5/9
+                    tempresult = (temp - 32) * 5 / 9;
 
-                    tempbox.setColor('#F97E36')
-                    tempbox.setTitle('The brilliant sun, hot-blooded power!')    
-                    tempbox.setTitle("Converting Fahrenheit to Celcius!")
-                    tempbox.setThumbnail("https://waa.ai/JEw2.png")
-                    tempbox.setDescription(temp, `F is `, tempresult, `C`)
-                    return message.channel.send(tempbox);
+                    let title = 'Converting Fahrenheit to Celsius!';
+                    let output = `${temp} ℉ is ${tempresult} ℃`;
+
+                    convert('#F97E36', 'hot', title, output);
+                } else {
+                    emptyInput('#F97E36');
                 }
-                else {
-                    tempbox.setColor('#F97E36')
-                    tempbox.setDescription(`You didn't enter anything!`)
-                    return message.channel.send(tempbox);
-                }
+                break;
             case "ktoc":
                 if (temp != null) {
-                 
-                    tempresult = temp - 273.15
 
-                    tempbox.setColor('#A59CFD')
-                    tempbox.setTitle('The light of Wisdom!')    
-                    tempbox.setTitle("Converting Kelvin to Celcius!")
-                    tempbox.setThumbnail("https://waa.ai/JEwz.png")
-                    tempbox.setDescription(temp, `K is `, tempresult, `C`)
-                    return message.channel.send(tempbox);
+                    tempresult = temp - 273.15;
+                    let title = 'Converting Kelvin to Celsius!';
+                    let output = `${temp} K is ${tempresult} ℃`;
+
+                    convert('#A59CFD', 'cold', title, output);
+                } else {
+                    emptyInput('#A59CFD', 'https://waa.ai/JEwz.png');
                 }
-                else {
-                    tempbox.setColor('#A59CFD')
-                    tempbox.setThumbnail("https://waa.ai/JEwz.png")
-                    tempbox.setDescription(`You didn't enter anything!`)
-                    return message.channel.send(tempbox);
-                }
+                break;
             case "ktof":
                 if (temp != null) {
-                 
-                    tempresult = (temp - 273.15) * 9/5 + 32 
 
-                    tempbox.setColor('#A59CFD')
-                    tempbox.setTitle('The light of Wisdom!')    
-                    tempbox.setTitle("Converting Kelvin to Fahrenheit!")
-                    tempbox.setThumbnail("https://waa.ai/JEwz.png")
-                    tempbox.setDescription(temp, `K is `, tempresult, `F`)
-                    return message.channel.send(tempbox);
+                    tempresult = (temp - 273.15) * 9 / 5 + 32;
+                    let title = 'Converting Kelvin to Fahrenheit!';
+                    let output = `${temp} K is ${tempresult} ℉`;
+
+                    convert('#A59CFD', 'cold', title, output);
+                } else {
+                    emptyInput('#A59CFD', 'https://waa.ai/JEwz.png');
                 }
-                else {
-                    tempbox.setColor('#A59CFD')
-                    tempbox.setThumbnail("https://waa.ai/JEwz.png")
-                    tempbox.setDescription(`You didn't enter anything!`)
-                    return message.channel.send(tempbox);
-                }
+                break;
             case "ctok":
                 if (temp != null) {
-                 
-                    tempresult = temp + 273.15
 
-                    tempbox.setColor('#A59CFD')
-                    tempbox.setTitle('The light of Wisdom!')    
-                    tempbox.setTitle("Converting Celcius to Kelvin!")
-                    tempbox.setThumbnail("https://waa.ai/JEwz.png")
-                    tempbox.setDescription(temp, `C is `, tempresult, `K`)
-                    return message.channel.send(tempbox);
+                    tempresult = temp + 273.15;
+
+                    let title = 'Converting Celsius to Kelvin!';
+                    let output = `${temp} ℃ is ${tempresult} K`;
+                    convert('#A59CFD', 'cold', title, output);
+                } else {
+                    emptyInput('#A59CFD', 'https://waa.ai/JEwz.png');
                 }
-                else {
-                    tempbox.setColor('#A59CFD')
-                    tempbox.setThumbnail("https://waa.ai/JEwz.png")
-                    tempbox.setDescription(`You didn't enter anything!`)
-                    return message.channel.send(tempbox);
-                }
+                break;
             case "ftok":
                 if (temp != null) {
-                 
-                    tempresult = (temp - 32) * 5/9 + 273.15
 
-                    tempbox.setColor('#A59CFD')
-                    tempbox.setTitle('The light of Wisdom!')    
-                    tempbox.setTitle("Converting Fahrenheit to Kelvin!")
-                    tempbox.setThumbnail("https://waa.ai/JEwz.png")
-                    tempbox.setDescription(temp, `F is `, tempresult, `K`)
-                    return message.channel.send(tempbox);
+                    tempresult = (temp - 32) * 5 / 9 + 273.15;
+                    let title = 'Converting Fahrenheit to Kelvin!';
+                    let output = `${temp} ℉ is ${tempresult} K`;
+
+                    convert('#A59CFD', 'cold', title, output);
+                } else {
+                    emptyInput('#A59CFD', 'https://waa.ai/JEwz.png');
                 }
-                else {
-                    tempbox.setColor('#A59CFD')
-                    tempbox.setThumbnail("https://waa.ai/JEwz.png")
-                    tempbox.setDescription(`You didn't enter anything!`)
-                    return message.channel.send(tempbox);
-                }
+                break;
+            case null:
+                interaction.reply({content: "No conversion specified!", ephemeral: true});
+                break;
         }
 
-	},
+    },
 
-}
+};
