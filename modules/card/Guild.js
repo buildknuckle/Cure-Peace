@@ -1,7 +1,3 @@
-<<<<<<< Updated upstream:modules/CardGuild.js
-const DB = require('../database/DatabaseCore');
-const DBM_Card_Guild = require('../database/model/DBM_Card_Guild');
-=======
 const Cron = require('node-cron');
 const DB = require('../../database/DatabaseCore');
 const DBConn = require('../../storage/dbconn');
@@ -11,7 +7,6 @@ const CardModule = require('./Card');
 // const DBM_Card_Inventory = require('../database/model/DBM_Card_Inventory');
 const DBM_User_Data = require('../../database/model/DBM_User_Data');
 const DBM_Guild_Data = require('../../database/model/DBM_Guild_Data');
->>>>>>> Stashed changes:modules/card/Guild.js
 
 var arrTimerCardSpawn = {};//timer for each guild
 /*
@@ -94,14 +89,8 @@ async function getTimerRemaining(id_guild){
 async function initCardSpawnInstance(guildId,client){
     var cardGuildData = await getGuildData(guildId);
 
-<<<<<<< Updated upstream:modules/CardGuild.js
-    if(cardGuildData[DBM_Card_Guild.columns.id_channel_spawn]!=null){
-        var assignedChannel = cardGuildData[DBM_Card_Guild.columns.id_channel_spawn];
-        const CardModule = require('../modules/Card');
-=======
     if(cardGuildData[DBM_Guild_Data.columns.id_channel_spawn]!=null){
         var assignedChannel = cardGuildData[DBM_Guild_Data.columns.id_channel_spawn];
->>>>>>> Stashed changes:modules/card/Guild.js
         
         arrTimerCardSpawn[guildId] = setInterval(async function intervalCardSpawn(){
             if(arrTimerGuildInformation.hasOwnProperty(guildId)){
@@ -133,14 +122,8 @@ async function updateCardSpawnInstance(guildId,client){
 
     var cardGuildData = await getGuildData(guildId);
 
-<<<<<<< Updated upstream:modules/CardGuild.js
-    if(cardGuildData[DBM_Card_Guild.columns.id_channel_spawn]!=null){
-        var assignedChannel = cardGuildData[DBM_Card_Guild.columns.id_channel_spawn];
-        const CardModule = require('../modules/Card');
-=======
     if(cardGuildData[DBM_Guild_Data.columns.id_channel_spawn]!=null){
         var assignedChannel = cardGuildData[DBM_Guild_Data.columns.id_channel_spawn];
->>>>>>> Stashed changes:modules/card/Guild.js
 
         arrTimerCardSpawn[guildId] = setInterval(async function intervalCardSpawn(){
             if(arrTimerGuildInformation.hasOwnProperty(guildId)){

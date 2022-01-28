@@ -47,26 +47,11 @@ module.exports = {
                         // console.log('Successfully reloaded application (/) commands.');
                     } catch (error) {
                         console.error(error);
-<<<<<<< Updated upstream
-=======
                         // GlobalFunctions.errorLogger(error);
->>>>>>> Stashed changes
                     }
                 })();
         
                 //get card spawn guild data
-<<<<<<< Updated upstream
-                var cardGuildData = await CardGuildModules.getCardGuildData(guild.id);
-                //set card spawn interval
-                if(cardGuildData[DBM_Card_Guild.columns.id_channel_spawn]!=null){
-                    //check if channel exists/not
-                    var channelExists = guild.channels.cache.find(ch => ch.id === cardGuildData[DBM_Card_Guild.columns.id_channel_spawn])
-                    if(channelExists){
-
-                        await CardGuildModules.initCardSpawnInstance(guild.id,guild);
-                    }
-                }
-=======
                 // var cardGuildData = await CardGuildModules.getCardGuildData(guild.id);
                 // //set card spawn interval
                 // if(cardGuildData[DBM_Card_Guild.columns.id_channel_spawn]!=null){
@@ -76,7 +61,6 @@ module.exports = {
                 //         await CardGuildModules.initCardSpawnInstance(guild.id,guild);
                 //     }
                 // }
->>>>>>> Stashed changes
                 
             });
 
