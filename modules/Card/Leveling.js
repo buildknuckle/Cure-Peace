@@ -2,16 +2,11 @@ module.exports = class Leveling {
     // 1 star was Lv.20, 2 star was Lv.25, 3 star was Lv.35, 4 star and Cure Cards was Lv.40 and 5 star and Premium Cure Cards was Lv.50
     static getMaxLevel(rarity){
         switch(rarity){
-            case 1:
-                return 20;
-            case 2:
-                return 25;
-            case 3:
-                return 35;
-            case 4:
-                return 40;
-            default:
-                return 50;
+            case 1: return 20;
+            case 2: return 25;
+            case 3: return 35;
+            case 4: return 40;
+            default: return 50;
         }
     }
 
@@ -33,12 +28,9 @@ module.exports = class Leveling {
     static getNextCardSpecialTotal(level){
         //get the card stock requirement to level up the specials
         switch(level){
-            case 1:
-                return 1;
-            case 2:
-                return 2;
-            default:
-                return 4;
+            case 1: return 1;
+            case 2: return 2;
+            default: return 4;
         }
     }
     

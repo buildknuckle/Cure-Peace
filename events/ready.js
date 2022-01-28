@@ -4,21 +4,25 @@ const { REST } = require('@discordjs/rest');
 const { Routes } = require('discord-api-types/v9');
 const { SlashCommandBuilder } = require('@discordjs/builders');
 
-const DBM_Card_Guild = require('../database/model/DBM_Card_Guild');
-const CardModules = require('../modules/Card');
-const CardGuildModules = require('../modules/CardGuild');
-const WeatherModules = require('../modules/Weather');
+const DBM_Guild_Data = require('../database/model/DBM_Guild_Data');
+const CardModules = require('../modules/card/Card');
+const GuildModule = require('../modules/card/Guild');
+// const CardGuildModules = require('../modules/CardGuild');
+// const WeatherModules = require('../modules/Weather');
 const { prefix, token } = require('../storage/config.json');
 
 module.exports = {
 	name: 'ready',
 	once: true,
-	execute(client) {
+	async execute(client) {
         try {
             const rest = new REST({ version: '9' }).setToken(token);
 
+            //load all necessary card data
+            await CardModules.init();
+
             // console.log('Ready!');
-            WeatherModules.updateTimerRemaining();
+            // WeatherModules.updateTimerRemaining();
             
             const commandFiles = fs.readdirSync('./commands').filter(file => file.endsWith('.js'));
 
@@ -28,6 +32,9 @@ module.exports = {
             }
 
             client.guilds.cache.forEach(async guild => {
+                //init/one time load load all necessary guild data
+                await GuildModule.init(guild.id);
+
                 console.log(`connected to: ${guild.id} - ${guild.name}`);
                 (async () => {
                     try {
@@ -40,10 +47,15 @@ module.exports = {
                         // console.log('Successfully reloaded application (/) commands.');
                     } catch (error) {
                         console.error(error);
+<<<<<<< Updated upstream
+=======
+                        // GlobalFunctions.errorLogger(error);
+>>>>>>> Stashed changes
                     }
                 })();
         
                 //get card spawn guild data
+<<<<<<< Updated upstream
                 var cardGuildData = await CardGuildModules.getCardGuildData(guild.id);
                 //set card spawn interval
                 if(cardGuildData[DBM_Card_Guild.columns.id_channel_spawn]!=null){
@@ -54,8 +66,21 @@ module.exports = {
                         await CardGuildModules.initCardSpawnInstance(guild.id,guild);
                     }
                 }
+=======
+                // var cardGuildData = await CardGuildModules.getCardGuildData(guild.id);
+                // //set card spawn interval
+                // if(cardGuildData[DBM_Card_Guild.columns.id_channel_spawn]!=null){
+                //     //check if channel exists/not
+                //     var channelExists = guild.channels.cache.find(ch => ch.id === cardGuildData[DBM_Card_Guild.columns.id_channel_spawn])
+                //     if(channelExists){
+                //         await CardGuildModules.initCardSpawnInstance(guild.id,guild);
+                //     }
+                // }
+>>>>>>> Stashed changes
                 
             });
+
+            // console.log(GuildModule.dataUserLogin);
         
             //added the activity
             var arrActivity = [
@@ -73,7 +98,7 @@ module.exports = {
             console.log('Cure Peace Ready!');
         } catch(error){
             console.log(error);
-            GlobalFunctions.errorLogger(error);
+            // GlobalFunctions.errorLogger(error);
         }
 	},
 };

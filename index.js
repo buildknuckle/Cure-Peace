@@ -2,7 +2,6 @@ const fs = require('fs');
 const Discord = require('discord.js');
 
 const commandFiles = fs.readdirSync('./commands').filter(file => file.endsWith('.js'));
-const DBM_Card_Guild = require('./database/model/DBM_Card_Guild');
 const GlobalFunctions = require('./modules/GlobalFunctions');
 // const CardModules = require('./modules/Card');
 // const CardGuildModules = require('./modules/CardGuild');
@@ -27,6 +26,7 @@ for (const file of eventFiles) {
 	}
 }
 
+<<<<<<< Updated upstream
 // const commands = [];
 // 
 
@@ -94,4 +94,6 @@ var cooldown = false;
     
 // });
 
+=======
+>>>>>>> Stashed changes
 client.login(token)

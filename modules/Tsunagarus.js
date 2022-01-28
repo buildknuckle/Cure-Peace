@@ -3,7 +3,7 @@ const DB = require('../database/DatabaseCore');
 const DBConn = require('../storage/dbconn');
 const GlobalFunctions = require('../modules/GlobalFunctions.js');
 const CardModules = require('../modules/Card');
-const CardGuildModules = require('../modules/CardGuild');
+const CardGuildModules = require('./Guild');
 
 class Properties {
     static dataTsunagarusExecutivesCore = {
@@ -12,6 +12,25 @@ class Properties {
             img_url:"https://media.discordapp.net/attachments/842662797941669888/844457642474340352/latest.png",
             embed_color:"#FF9E28"
         }
+    }
+
+    static dataEnemyType = {
+        zakenna:"zakenna",
+        uzaina:"uzaina",
+        hoshina:"hoshina",
+        nakewameke:"nakewameke",
+        desertrian:"desertrian",
+        negatone:"negatone",
+        akanbe:"akanbe",
+        jikochuu:"jikochuu",
+        saiarks:"saiarks",
+        zetsuborg:"zetsuborg",
+        yokubaru:"yokubaru",
+        kirakirarun_thieves:"kirakirarun thieves",
+        oshimaida:"oshimaida",
+        nottrigger:"nottrigger",
+        megabyogen:"megabyogen",
+        yaraneda:"yaraneda"
     }
 
     static enemySpawnData = {
@@ -211,57 +230,52 @@ class Properties {
             }
         },
         "max heart":{
-            term:"zakenna"
+            term:this.dataEnemyType.zakenna
         },
         "splash star":{
-            term:"uzaina"
+            term:this.dataEnemyType.uzaina
         },
         "yes! precure 5 gogo!":{
-            term:"hoshina"
+            term:this.dataEnemyType.hoshina
         },
         "fresh":{
-            term:"nakewameke"
+            term:this.dataEnemyType.nakewameke
         },
         "heartcatch":{
-            term:"desertrian",
-            super:true
+            term:this.dataEnemyType.desertrian
         },
         "suite":{
-            term:"negatone"
+            term:this.dataEnemyType.negatone
         },
         "smile":{
-            term:"akanbe",
-            super:true
+            term:this.dataEnemyType.akanbe
         },
         "doki doki!":{
-            term:"jikochuu"
+            term:this.dataEnemyType.jikochuu
         },
         "happiness":{
-            term:"saiarks",
-            super:true
+            term:this.dataEnemyType.saiarks
         },
         "go! princess":{
-            term:"zetsuborg",
-            super:true
+            term:this.dataEnemyType.zetsuborg
         },
         "mahou tsukai":{
-            term:"yokubaru",
-            super:true
+            term:this.dataEnemyType.yokubaru
         },
         "kirakira":{
-            term:"kirakirarun thieves",
-            super:true
+            term:this.dataEnemyType.kirakirarun_thieves
         },
         "hugtto":{
-            term:"oshimaida",
-            super:true
+            term:this.dataEnemyType.oshimaida
         },
         "star twinkle":{
-            term:"nottrigger",
-            super:true
+            term:this.dataEnemyType.nottrigger
         },
         "healin' good":{
-            term:"megabyogen"
+            term:this.dataEnemyType.megabyogen
+        },
+        "tropical rouge":{
+            term:this.dataEnemyType.yaraneda
         }
     }
 

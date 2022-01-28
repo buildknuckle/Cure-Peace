@@ -40,7 +40,11 @@ module.exports = {
 			}
 		} catch(error){
 			console.error(error);
+<<<<<<< Updated upstream
 			GlobalFunctions.errorLogger(error);
+=======
+			// await GlobalFunctions.errorLogger(error);
+>>>>>>> Stashed changes
 		}
 
 

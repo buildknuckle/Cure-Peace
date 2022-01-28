@@ -1,5 +1,10 @@
+<<<<<<< Updated upstream
 const {MessageEmbed} = require('discord.js');
 const CardModules = require('../modules/Card');
+=======
+const { MessageEmbed } = require('discord.js');
+// const CardModules = require('../modules/Card');
+>>>>>>> Stashed changes
 
 module.exports = {
     name: 'help',

@@ -1,9 +1,7 @@
-const {MessageActionRow, MessageButton, MessageEmbed, Discord} = require('discord.js');
-const DiscordStyles = require('../modules/DiscordStyles');
-// const paginationEmbed = require('discord.js-pagination');
-const paginationEmbed = require('discordjs-button-pagination');
+const {MessageActionRow, MessageSelectMenu, MessageButton, MessageEmbed, Discord} = require('discord.js');
 const DB = require('../database/DatabaseCore');
 const DBConn = require('../storage/dbconn');
+<<<<<<< Updated upstream
 const CardModule = require('../modules/Card');
 const ItemModule = require('../modules/Item');
 const CardGuildModule = require('../modules/CardGuild');
@@ -20,12 +18,23 @@ const DBM_Item_Inventory = require('../database/model/DBM_Item_Inventory');
 const DBM_Item_Data = require('../database/model/DBM_Item_Data');
 const DBM_Card_Party = require('../database/model/DBM_Card_Party');
 const { limitizeUserPoints } = require('../modules/Card');
+=======
+const DiscordStyles = require('../modules/DiscordStyles');
+const GlobalFunctions = require('../modules/GlobalFunctions');
+
+const paginationEmbed = require('discordjs-button-pagination');
+
+const CardModule = require("../modules/card/Card");
+const UserModule = require("../modules/card/User");
+const GuildModule = require("../modules/card/Guild");
+>>>>>>> Stashed changes
 
 module.exports = {
     name: 'card',
     cooldown: 5,
-    description: 'Contains all card categories',
+    description: 'Contains all card command',
     args: true,
+<<<<<<< Updated upstream
     options: CardModule.Properties.interactionCommandOptions,
 	async executeMessage(message, args) {
         const guildId = message.guild.id;
@@ -33,28 +42,70 @@ module.exports = {
         var userUsername = message.author.username;
         var userAvatarUrl = message.author.avatarURL();
 	},
+=======
+    options:[
+        {
+            name: "status",
+            description: "Open card status menu.",
+            type: 2,
+            options: [
+                {
+                    name: "open-status-menu",
+                    description: "Open card status menu.",
+                    type: 1,
+                    options: [
+                        {
+                            name: "username",
+                            description: "Enter username to view card status from other user.",
+                            type: 3,
+                            required:false
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            name: "inventory",
+            description: "Open card inventory menu.",
+            type: 2,
+            options: [
+                {
+                    name: "open-menu",
+                    description: "Open card inventory menu.",
+                    type: 1,
+                    options: [
+                        {
+                            name: "card-pack",
+                            description: "Enter the card pack. Example: nagisa",
+                            type: 3,
+                            required:true
+                        },
+                        {
+                            name: "username",
+                            description: "Enter username to view card inventory from other user.",
+                            type: 3
+                        }
+                    ]
+                }
+            ]
+        }
+	],
+
+>>>>>>> Stashed changes
     async execute(interaction){
         var command = interaction.options._group;
         var commandSubcommand = interaction.options._subcommand;
         const guildId = interaction.guild.id;
-        var userId = interaction.user.id;
-        var userUsername = interaction.user.username;
-        var userAvatarUrl = interaction.user.avatarURL();
 
-        //default embed:
-        var objEmbed = {
-            color: CardModule.Properties.embedColor,
-            author: {
-                name: userUsername,
-                icon_url: userAvatarUrl
-            }
-        };
+        var objUserData = {
+            id:interaction.user.id,
+            username:interaction.user.username,
+            avatarUrl:interaction.user.avatarURL()
+        }
 
         switch(command){
             //STATUS MENU: open card status
             case "status":
-                //get card total:
-                //user parameter validator if placed
                 var memberExists = true;
                 var parameterUsername = interaction.options._hoistedOptions.hasOwnProperty(0) ? 
                 interaction.options._hoistedOptions[0].value : null;
@@ -76,398 +127,25 @@ module.exports = {
                             }
                         }
                     );
+<<<<<<< Updated upstream
                 }
 
                 if(!memberExists){
                     return interaction.reply(":x: I can't find that username.");
+=======
+                } else if(!memberExists){
+                    objEmbed.title = "Cannot find that user";
+                    objEmbed.description = ":x: I can't find that username, please re-enter with specific username.";
+                    objEmbed.thumbnail = {url:CardModule.Properties.imgMofu.imgError};
+                    return interaction.reply({embeds:[new MessageEmbed(objEmbed)],ephemeral:true});
+>>>>>>> Stashed changes
                 }
 
-                var query = `select cd.${DBM_Card_Data.columns.pack}, count(inv.${DBM_Card_Inventory.columns.id_user}) as total
-                from ${DBM_Card_Data.TABLENAME} cd
-                left join ${DBM_Card_Inventory.TABLENAME} inv 
-                on cd.${DBM_Card_Data.columns.id_card}=inv.${DBM_Card_Inventory.columns.id_card} and 
-                inv.${DBM_Card_Inventory.columns.id_user}=? 
-                group by cd.${DBM_Card_Data.columns.pack}`;
-
-                var queryGold = `select cd.${DBM_Card_Data.columns.pack}, count(inv.${DBM_Card_Inventory.columns.id_user}) as total_gold  
-                from ${DBM_Card_Data.TABLENAME} cd
-                left join ${DBM_Card_Inventory.TABLENAME} inv 
-                on cd.${DBM_Card_Data.columns.id_card}=inv.${DBM_Card_Inventory.columns.id_card} and 
-                inv.${DBM_Card_Inventory.columns.id_user}=? and inv.${DBM_Card_Inventory.columns.is_gold}=1 
-                group by cd.${DBM_Card_Data.columns.pack}`;
-
-                var arrParameterized = [userId];
-                var arrCardTotal = {}; var arrCardIconCompletion = {};
-                var cardDataInventory = await DBConn.conn.promise().query(query, arrParameterized);
-                var cardDataInventoryGold = await DBConn.conn.promise().query(queryGold, arrParameterized);
-                for(var i=0;i<cardDataInventory[0].length;i++){
-                    arrCardIconCompletion[cardDataInventory[0][i][DBM_Card_Data.columns.pack]] = ``;//set default
-                    if(cardDataInventory[0][i]['total']>=CardModule.Properties.dataCardCore[cardDataInventory[0][i][DBM_Card_Data.columns.pack]].total){
-                        arrCardIconCompletion[cardDataInventory[0][i][DBM_Card_Data.columns.pack]] = "✅ ";
-                        if(cardDataInventoryGold[0][i]['total_gold']>=CardModule.Properties.dataCardCore[cardDataInventory[0][i][DBM_Card_Data.columns.pack]].total){
-                            arrCardIconCompletion[cardDataInventory[0][i][DBM_Card_Data.columns.pack]] = "☑️ ";
-                        }
-                    }
-                    
-                    arrCardTotal[cardDataInventory[0][i][DBM_Card_Data.columns.pack]] = cardDataInventory[0][i]['total'];
-                }
-
-                var cardUserStatusData = await CardModule.getCardUserStatusData(userId);
-                clvl = await CardModule.Status.getAverageLevel(userId,[
-                    cardUserStatusData[DBM_Card_User_Data.columns.color_level_blue],
-                    cardUserStatusData[DBM_Card_User_Data.columns.color_level_green],
-                    cardUserStatusData[DBM_Card_User_Data.columns.color_level_pink],
-                    cardUserStatusData[DBM_Card_User_Data.columns.color_level_purple],
-                    cardUserStatusData[DBM_Card_User_Data.columns.color_level_red],
-                    cardUserStatusData[DBM_Card_User_Data.columns.color_level_white],
-                    cardUserStatusData[DBM_Card_User_Data.columns.color_level_yellow]
-                ]);
-
-                //prepare the embed
-                var avatarId = "-";
-                if(cardUserStatusData[DBM_Card_User_Data.columns.card_id_selected]!=null){
-                    avatarId = cardUserStatusData[DBM_Card_User_Data.columns.card_id_selected];
-                }
-
-                var currentSE = "-";
-                if(cardUserStatusData[DBM_Card_User_Data.columns.status_effect] in CardModule.StatusEffect.buffData){
-                    currentSE = `${CardModule.StatusEffect.buffData[cardUserStatusData[DBM_Card_User_Data.columns.status_effect]].name}\n⬆️ ${CardModule.StatusEffect.buffData[cardUserStatusData[DBM_Card_User_Data.columns.status_effect]].description}`;
-                    //check for hp buff
-                    if(CardModule.StatusEffect.buffData[cardUserStatusData[DBM_Card_User_Data.columns.status_effect]].value.includes("hp_up_")){
-                        iconHp = "⬆️";
-                    } else if(CardModule.StatusEffect.buffData[cardUserStatusData[DBM_Card_User_Data.columns.status_effect]].value.includes("atk_up_")){
-                        iconAtk = "⬆️";
-                    }
-                } else if(cardUserStatusData[DBM_Card_User_Data.columns.status_effect] in CardModule.StatusEffect.debuffData){
-                    currentSE = `${CardModule.StatusEffect.debuffData[cardUserStatusData[DBM_Card_User_Data.columns.status_effect]].name}\n⬇️ ${CardModule.StatusEffect.debuffData[cardUserStatusData[DBM_Card_User_Data.columns.status_effect]].description}`;
-                }
-
-                var currentSkills = "-";
-                if(cardUserStatusData[DBM_Card_User_Data.columns.status_effect_2]!=null){
-                    var statusEffect2 = JSON.parse(cardUserStatusData[DBM_Card_User_Data.columns.status_effect_2]);
-
-                    if(statusEffect2.value in CardModule.StatusEffect.cureSkillsBuffData){
-                        currentSkills = `${CardModule.StatusEffect.cureSkillsBuffData[statusEffect2.value].name} x${statusEffect2.attempts}\n⬆️ ${CardModule.StatusEffect.cureSkillsBuffData[statusEffect2.value].description}`;
-                    }
-                }
-
-                //check if in party/not
-                var txtInParty = ""; var arrPages = [];
-                var partyData = await CardModule.Party.searchPartyStatusData(guildId,userId);
-                if(partyData!=null){
-                    txtInParty = ":busts_in_silhouette: In Party\n";
-                }
-
-                var assignedSeries = cardUserStatusData[DBM_Card_User_Data.columns.series_set];
-                assignedSeries = CardModule.Properties.seriesCardCore[assignedSeries].pack;
-
-                objEmbed.description = `${txtInParty}**aCLvl:** ${clvl} | **Assigned Set:** ${cardUserStatusData[DBM_Card_User_Data.columns.color]}/${assignedSeries} | **Cure Avatar:** ${avatarId} \n**MofuCoin:** ${cardUserStatusData[DBM_Card_User_Data.columns.mofucoin]}/${CardModule.Properties.limit.mofucoin}\n**Wish Point:** ${JSON.parse(cardUserStatusData[DBM_Card_User_Data.columns.wish_data])["wish_point"]}\n**Special Point:** ${cardUserStatusData[DBM_Card_User_Data.columns.special_point]}%\n**Status Effect:** ${currentSE}\n\n**Act. Battle Skills:** ${currentSkills}`;
-
-                objEmbed.fields = [{
-                        name: `Pink(Lvl. ${cardUserStatusData[DBM_Card_User_Data.columns.color_level_pink]}/${cardUserStatusData[DBM_Card_User_Data.columns.color_point_pink]} CP):`,
-                        value: `${arrCardIconCompletion.nagisa}Nagisa: ${arrCardTotal.nagisa}/${CardModule.Properties.dataCardCore.nagisa.total}\n${arrCardIconCompletion.saki}Saki: ${arrCardTotal.saki}/${CardModule.Properties.dataCardCore.saki.total}\n${arrCardIconCompletion.nozomi}Nozomi: ${arrCardTotal.nozomi}/${CardModule.Properties.dataCardCore.nozomi.total}\n${arrCardIconCompletion.love}Love: ${arrCardTotal.love}/${CardModule.Properties.dataCardCore.love.total}\n${arrCardIconCompletion.tsubomi}Tsubomi: ${arrCardTotal.tsubomi}/${CardModule.Properties.dataCardCore.tsubomi.total}\n${arrCardIconCompletion.hibiki}Hibiki: ${arrCardTotal.hibiki}/${CardModule.Properties.dataCardCore.hibiki.total}\n${arrCardIconCompletion.miyuki}Miyuki: ${arrCardTotal.miyuki}/${CardModule.Properties.dataCardCore.miyuki.total}\n${arrCardIconCompletion.mana}Mana: ${arrCardTotal.mana}/${CardModule.Properties.dataCardCore.mana.total}\n${arrCardIconCompletion.megumi}Megumi: ${arrCardTotal.megumi}/${CardModule.Properties.dataCardCore.megumi.total}\n${arrCardIconCompletion.haruka}Haruka: ${arrCardTotal.haruka}/${CardModule.Properties.dataCardCore.haruka.total}\n${arrCardIconCompletion.mirai}Mirai: ${arrCardTotal.mirai}/${CardModule.Properties.dataCardCore.mirai.total}\n${arrCardIconCompletion.ichika}Ichika: ${arrCardTotal.ichika}/${CardModule.Properties.dataCardCore.ichika.total}\n${arrCardIconCompletion.hana}Hana: ${arrCardTotal.hana}/${CardModule.Properties.dataCardCore.hana.total}\n${arrCardIconCompletion.hikaru}Hikaru: ${arrCardTotal.hikaru}/${CardModule.Properties.dataCardCore.hikaru.total}\n${arrCardIconCompletion.nodoka}Nodoka: ${arrCardTotal.nodoka}/${CardModule.Properties.dataCardCore.nodoka.total}`,
-                        inline: true
-                    },
-                    {
-                        name: `Blue(Lvl. ${cardUserStatusData[DBM_Card_User_Data.columns.color_level_blue]}/${cardUserStatusData[DBM_Card_User_Data.columns.color_point_blue]} CP):`,
-                        value: `${arrCardIconCompletion.karen}Karen: ${arrCardTotal.karen}/${CardModule.Properties.dataCardCore.karen.total}\n${arrCardIconCompletion.miki}Miki: ${arrCardTotal.miki}/${CardModule.Properties.dataCardCore.miki.total}\n${arrCardIconCompletion.erika}Erika: ${arrCardTotal.erika}/${CardModule.Properties.dataCardCore.erika.total}\n${arrCardIconCompletion.ellen}Ellen: ${arrCardTotal.ellen}/${CardModule.Properties.dataCardCore.ellen.total}\n${arrCardIconCompletion.reika}Reika: ${arrCardTotal.reika}/${CardModule.Properties.dataCardCore.reika.total}\n${arrCardIconCompletion.rikka}Rikka: ${arrCardTotal.rikka}/${CardModule.Properties.dataCardCore.rikka.total}\n${arrCardIconCompletion.hime}Hime: ${arrCardTotal.hime}/${CardModule.Properties.dataCardCore.hime.total}\n${arrCardIconCompletion.minami}Minami: ${arrCardTotal.minami}/${CardModule.Properties.dataCardCore.minami.total}\n${arrCardIconCompletion.aoi}Aoi: ${arrCardTotal.aoi}/${CardModule.Properties.dataCardCore.aoi.total}\n${arrCardIconCompletion.saaya}Saaya: ${arrCardTotal.saaya}/${CardModule.Properties.dataCardCore.saaya.total}\n${arrCardIconCompletion.yuni}Yuni: ${arrCardTotal.yuni}/${CardModule.Properties.dataCardCore.yuni.total}\n${arrCardIconCompletion.chiyu}Chiyu: ${arrCardTotal.chiyu}/${CardModule.Properties.dataCardCore.chiyu.total}`,
-                        inline: true
-                    },
-                    {
-                        name: `Yellow(Lvl. ${cardUserStatusData[DBM_Card_User_Data.columns.color_level_yellow]}/${cardUserStatusData[DBM_Card_User_Data.columns.color_point_yellow]} CP):`,
-                        value: `${arrCardIconCompletion.hikari}Hikari: ${arrCardTotal.hikari}/${CardModule.Properties.dataCardCore.hikari.total}\n${arrCardIconCompletion.urara}Urara: ${arrCardTotal.urara}/${CardModule.Properties.dataCardCore.urara.total}\n${arrCardIconCompletion.inori}Inori: ${arrCardTotal.inori}/${CardModule.Properties.dataCardCore.inori.total}\n${arrCardIconCompletion.itsuki}Itsuki: ${arrCardTotal.itsuki}/${CardModule.Properties.dataCardCore.itsuki.total}\n${arrCardIconCompletion.ako}Ako: ${arrCardTotal.ako}/${CardModule.Properties.dataCardCore.ako.total}\n${arrCardIconCompletion.yayoi}Yayoi: ${arrCardTotal.yayoi}/${CardModule.Properties.dataCardCore.yayoi.total}\n${arrCardIconCompletion.alice}Alice: ${arrCardTotal.alice}/${CardModule.Properties.dataCardCore.alice.total}\n${arrCardIconCompletion.yuko}Yuko: ${arrCardTotal.yuko}/${CardModule.Properties.dataCardCore.yuko.total}\n${arrCardIconCompletion.kirara}Kirara: ${arrCardTotal.kirara}/${CardModule.Properties.dataCardCore.kirara.total}\n${arrCardIconCompletion.himari}Himari: ${arrCardTotal.himari}/${CardModule.Properties.dataCardCore.himari.total}\n${arrCardIconCompletion.homare}Homare: ${arrCardTotal.homare}/${CardModule.Properties.dataCardCore.homare.total}\n${arrCardIconCompletion.elena}Elena: ${arrCardTotal.elena}/${CardModule.Properties.dataCardCore.elena.total}\n${arrCardIconCompletion.hinata}Hinata: ${arrCardTotal.hinata}/${CardModule.Properties.dataCardCore.hinata.total}`,
-                        inline: true
-                    },
-                    {
-                        name: `Purple(Lvl. ${cardUserStatusData[DBM_Card_User_Data.columns.color_level_purple]}/${cardUserStatusData[DBM_Card_User_Data.columns.color_point_purple]} CP):`,
-                        value: `${arrCardIconCompletion.yuri}Yuri: ${arrCardTotal.yuri}/${CardModule.Properties.dataCardCore.yuri.total}\n${arrCardIconCompletion.makoto}Makoto: ${arrCardTotal.makoto}/${CardModule.Properties.dataCardCore.makoto.total}\n${arrCardIconCompletion.iona}Iona: ${arrCardTotal.iona}/${CardModule.Properties.dataCardCore.iona.total}\n${arrCardIconCompletion.riko}Riko: ${arrCardTotal.riko}/${CardModule.Properties.dataCardCore.riko.total}\n${arrCardIconCompletion.yukari}Yukari: ${arrCardTotal.yukari}/${CardModule.Properties.dataCardCore.yukari.total}\n${arrCardIconCompletion.ruru}Ruru: ${arrCardTotal.ruru}/${CardModule.Properties.dataCardCore.ruru.total}\n${arrCardIconCompletion.madoka}Madoka: ${arrCardTotal.madoka}/${CardModule.Properties.dataCardCore.madoka.total}\n${arrCardIconCompletion.kurumi}Kurumi: ${arrCardTotal.kurumi}/${CardModule.Properties.dataCardCore.kurumi.total}`,
-                        inline: true
-                    },
-                    {
-                        name: `Red(Lvl. ${cardUserStatusData[DBM_Card_User_Data.columns.color_level_red]}/${cardUserStatusData[DBM_Card_User_Data.columns.color_point_red]} CP):`,
-                        value: `${arrCardIconCompletion.rin}Rin: ${arrCardTotal.rin}/${CardModule.Properties.dataCardCore.rin.total}\n${arrCardIconCompletion.setsuna}Setsuna: ${arrCardTotal.setsuna}/${CardModule.Properties.dataCardCore.setsuna.total}\n${arrCardIconCompletion.akane}Akane: ${arrCardTotal.akane}/${CardModule.Properties.dataCardCore.akane.total}\n${arrCardIconCompletion.aguri}Aguri: ${arrCardTotal.aguri}/${CardModule.Properties.dataCardCore.aguri.total}\n${arrCardIconCompletion.towa}Towa: ${arrCardTotal.towa}/${CardModule.Properties.dataCardCore.towa.total}\n${arrCardIconCompletion.akira}Akira: ${arrCardTotal.akira}/${CardModule.Properties.dataCardCore.akira.total}\n${arrCardIconCompletion.emiru}Emiru: ${arrCardTotal.emiru}/${CardModule.Properties.dataCardCore.emiru.total}`,
-                        inline: true
-                    },
-                    {
-                        name: `Green(Lvl. ${cardUserStatusData[DBM_Card_User_Data.columns.color_level_green]}/${cardUserStatusData[DBM_Card_User_Data.columns.color_point_green]} CP):`,
-                        value: `${arrCardIconCompletion.komachi}Komachi: ${arrCardTotal.komachi}/${CardModule.Properties.dataCardCore.komachi.total}\n${arrCardIconCompletion.nao}Nao: ${arrCardTotal.nao}/${CardModule.Properties.dataCardCore.nao.total}\n${arrCardIconCompletion.kotoha}Kotoha: ${arrCardTotal.kotoha}/${CardModule.Properties.dataCardCore.kotoha.total}\n${arrCardIconCompletion.ciel}Ciel: ${arrCardTotal.ciel}/${CardModule.Properties.dataCardCore.ciel.total}\n${arrCardIconCompletion.lala}Lala: ${arrCardTotal.lala}/${CardModule.Properties.dataCardCore.lala.total}`,
-                        inline: true
-                    },
-                    {
-                        name: `White(Lvl. ${cardUserStatusData[DBM_Card_User_Data.columns.color_level_white]}/${cardUserStatusData[DBM_Card_User_Data.columns.color_point_white]} CP):`,
-                        value: `${arrCardIconCompletion.honoka}Honoka: ${arrCardTotal.honoka}/${CardModule.Properties.dataCardCore.honoka.total}\n${arrCardIconCompletion.mai}Mai: ${arrCardTotal.mai}/${CardModule.Properties.dataCardCore.mai.total}\n${arrCardIconCompletion.kanade}Kanade: ${arrCardTotal.kanade}/${CardModule.Properties.dataCardCore.kanade.total}`,
-                        inline: true
-                    }
-                ];
-
-                var msgEmbed = new MessageEmbed(objEmbed);
-                arrPages[0] = msgEmbed;
-
-                //page 2
-                objEmbed.fields = [
-                    {
-                        name:"Series Points:",
-                        value:`:heart: ${cardUserStatusData[DBM_Card_User_Data.columns.sp001]}/${CardModule.Properties.limit.seriespoint} ${CardModule.Properties.seriesCardCore.sp001.currency} (${CardModule.Properties.seriesCardCore.sp001.pack})\n:star: ${cardUserStatusData[DBM_Card_User_Data.columns.sp002]}/${CardModule.Properties.limit.seriespoint} ${CardModule.Properties.seriesCardCore.sp002.currency} (${CardModule.Properties.seriesCardCore.sp002.pack})\n:butterfly: ${cardUserStatusData[DBM_Card_User_Data.columns.sp003]}/${CardModule.Properties.limit.seriespoint} ${CardModule.Properties.seriesCardCore.sp003.currency} (${CardModule.Properties.seriesCardCore.sp003.pack})\n:mobile_phone: ${cardUserStatusData[DBM_Card_User_Data.columns.sp004]}/${CardModule.Properties.limit.seriespoint} ${CardModule.Properties.seriesCardCore.sp004.currency} (${CardModule.Properties.seriesCardCore.sp004.pack})\n:seedling: ${cardUserStatusData[DBM_Card_User_Data.columns.sp005]}/${CardModule.Properties.limit.seriespoint} ${CardModule.Properties.seriesCardCore.sp005.currency} (${CardModule.Properties.seriesCardCore.sp005.pack})\n:notes: ${cardUserStatusData[DBM_Card_User_Data.columns.sp006]}/${CardModule.Properties.limit.seriespoint} ${CardModule.Properties.seriesCardCore.sp006.currency} (${CardModule.Properties.seriesCardCore.sp006.pack})\n:fairy: ${cardUserStatusData[DBM_Card_User_Data.columns.sp007]}/${CardModule.Properties.limit.seriespoint} ${CardModule.Properties.seriesCardCore.sp007.currency} (${CardModule.Properties.seriesCardCore.sp007.pack})\n:performing_arts: ${cardUserStatusData[DBM_Card_User_Data.columns.sp008]}/${CardModule.Properties.limit.seriespoint} ${CardModule.Properties.seriesCardCore.sp008.currency} (${CardModule.Properties.seriesCardCore.sp008.pack})\n:dress: ${cardUserStatusData[DBM_Card_User_Data.columns.sp009]}/${CardModule.Properties.limit.seriespoint} ${CardModule.Properties.seriesCardCore.sp009.currency} (${CardModule.Properties.seriesCardCore.sp009.pack})\n:princess: ${cardUserStatusData[DBM_Card_User_Data.columns.sp010]}/${CardModule.Properties.limit.seriespoint} ${CardModule.Properties.seriesCardCore.sp010.currency} (${CardModule.Properties.seriesCardCore.sp010.pack})\n:broom: ${cardUserStatusData[DBM_Card_User_Data.columns.sp011]}/${CardModule.Properties.limit.seriespoint} ${CardModule.Properties.seriesCardCore.sp011.currency} (${CardModule.Properties.seriesCardCore.sp011.pack})\n:sparkles: ${cardUserStatusData[DBM_Card_User_Data.columns.sp012]}/${CardModule.Properties.limit.seriespoint} ${CardModule.Properties.seriesCardCore.sp012.currency} (${CardModule.Properties.seriesCardCore.sp012.pack})\n:small_blue_diamond: ${cardUserStatusData[DBM_Card_User_Data.columns.sp013]}/${CardModule.Properties.limit.seriespoint} ${CardModule.Properties.seriesCardCore.sp013.currency} (${CardModule.Properties.seriesCardCore.sp013.pack})\n:ringed_planet: ${cardUserStatusData[DBM_Card_User_Data.columns.sp014]}/${CardModule.Properties.limit.seriespoint} ${CardModule.Properties.seriesCardCore.sp014.currency} (${CardModule.Properties.seriesCardCore.sp014.pack})\n:diamond_shape_with_a_dot_inside: ${cardUserStatusData[DBM_Card_User_Data.columns.sp015]}/${CardModule.Properties.limit.seriespoint} ${CardModule.Properties.seriesCardCore.sp015.currency} (${CardModule.Properties.seriesCardCore.sp015.pack})`,
-                        inline:true
-                    },
-                    {
-                        name:"Color Buff:",
-                        value:`**Pink:** +${CardModule.getBonusCatchAttempt(parseInt(cardUserStatusData[DBM_Card_User_Data.columns.color_level_pink]))}% Catch Rate\n**Blue:** +${CardModule.getBonusCatchAttempt(parseInt(cardUserStatusData[DBM_Card_User_Data.columns.color_level_blue]))}% Catch Rate\n**Yellow:** +${CardModule.getBonusCatchAttempt(parseInt(cardUserStatusData[DBM_Card_User_Data.columns.color_level_yellow]))}% Catch Rate\n**Purple:** +${CardModule.getBonusCatchAttempt(parseInt(cardUserStatusData[DBM_Card_User_Data.columns.color_level_purple]))}% Catch Rate\n**Red:** +${CardModule.getBonusCatchAttempt(parseInt(cardUserStatusData[DBM_Card_User_Data.columns.color_level_red]))}% Catch Rate\n**Green:** +${CardModule.getBonusCatchAttempt(parseInt(cardUserStatusData[DBM_Card_User_Data.columns.color_level_green]))}% Catch Rate\n**White:** +${CardModule.getBonusCatchAttempt(parseInt(cardUserStatusData[DBM_Card_User_Data.columns.color_level_white]))}% Catch Rate`,
-                        inline:true
-                    }
-                ]
-                var msgEmbed = new MessageEmbed(objEmbed);
-                arrPages[1] = msgEmbed;
-
-                //page 3
-                //init all arrCardTotal
-                var queryInitList = `select cd.${DBM_Card_Data.columns.pack} 
-                from ${DBM_Card_Data.TABLENAME} cd 
-                group by cd.${DBM_Card_Data.columns.pack}`;
-                var arrCardTotal = {};
-                var cardDataInventory = await DBConn.conn.promise().query(queryInitList);
-
-                for(var i=0;i<cardDataInventory[0].length;i++){
-                    arrCardTotal[cardDataInventory[0][i][DBM_Card_Data.columns.pack]] = "0";
-                }
-
-                var queryDuplicate = `select cd.${DBM_Card_Data.columns.pack},sum(inv.${DBM_Card_Inventory.columns.stock}) as total 
-                from ${DBM_Card_Data.TABLENAME} cd
-                left join ${DBM_Card_Inventory.TABLENAME} inv
-                on cd.${DBM_Card_Data.columns.id_card}=inv.${DBM_Card_Inventory.columns.id_card} and
-                inv.${DBM_Card_Inventory.columns.id_user}=? and
-                inv.${DBM_Card_Inventory.columns.stock}>=1
-                where inv.${DBM_Card_Inventory.columns.stock}>=1 
-                group by cd.${DBM_Card_Data.columns.pack}`;
-                var arrParameterized = [userId];
-                // var arrCardTotal = {};
-                var cardDataInventory = await DBConn.conn.promise().query(queryDuplicate, arrParameterized);
-
-                for(var i=0;i<cardDataInventory[0].length;i++){
-                    arrCardTotal[cardDataInventory[0][i][DBM_Card_Data.columns.pack]] = cardDataInventory[0][i]['total'];
-                }
-
-                objEmbed.fields = [{
-                        name: `Pink Duplicate:`,
-                        value: `Nagisa: ${arrCardTotal.nagisa}\nSaki: ${arrCardTotal.saki}\nNozomi: ${arrCardTotal.nozomi}\nLove: ${arrCardTotal.love}\nTsubomi: ${arrCardTotal.tsubomi}\nHibiki: ${arrCardTotal.hibiki}\nMiyuki: ${arrCardTotal.miyuki}\nMana: ${arrCardTotal.mana}\nMegumi: ${arrCardTotal.megumi}\nHaruka: ${arrCardTotal.haruka}\nMirai: ${arrCardTotal.mirai}\nIchika: ${arrCardTotal.ichika}\nHana: ${arrCardTotal.hana}\nHikaru: ${arrCardTotal.hikaru}\nNodoka: ${arrCardTotal.nodoka}`,
-                        inline: true
-                    },
-                    {
-                        name: `Blue Duplicate:`,
-                        value: `Karen: ${arrCardTotal.karen}\nMiki: ${arrCardTotal.miki}\nErika: ${arrCardTotal.erika}\nEllen: ${arrCardTotal.ellen}\nReika: ${arrCardTotal.reika}\nRikka: ${arrCardTotal.rikka}\nHime: ${arrCardTotal.hime}\nMinami: ${arrCardTotal.minami}\nAoi: ${arrCardTotal.aoi}\nSaaya: ${arrCardTotal.saaya}\nYuni: ${arrCardTotal.yuni}\nChiyu: ${arrCardTotal.chiyu}`,
-                        inline: true
-                    },
-                    {
-                        name: `Yellow Duplicate:`,
-                        value: `Hikari: ${arrCardTotal.hikari}\nUrara: ${arrCardTotal.urara}\nInori: ${arrCardTotal.inori}\nItsuki: ${arrCardTotal.itsuki}\nAko: ${arrCardTotal.ako}\nYayoi: ${arrCardTotal.yayoi}\nAlice: ${arrCardTotal.alice}\nYuko: ${arrCardTotal.yuko}\nKirara: ${arrCardTotal.kirara}\nHimari: ${arrCardTotal.himari}\nHomare: ${arrCardTotal.homare}\nElena: ${arrCardTotal.elena}\nHinata: ${arrCardTotal.hinata}`,
-                        inline: true
-                    },
-                    {
-                        name: `Purple Duplicate:`,
-                        value: `Yuri: ${arrCardTotal.yuri}\nMakoto: ${arrCardTotal.makoto}\nIona: ${arrCardTotal.iona}\nRiko: ${arrCardTotal.riko}\nYukari: ${arrCardTotal.yukari}\nRuru: ${arrCardTotal.ruru}\nMadoka: ${arrCardTotal.madoka}\nKurumi: ${arrCardTotal.kurumi}`,
-                        inline: true
-                    },
-                    {
-                        name: `Red Duplicate:`,
-                        value: `Rin: ${arrCardTotal.rin}\nSetsuna: ${arrCardTotal.setsuna}\nAkane: ${arrCardTotal.akane}\nAguri: ${arrCardTotal.aguri}\nTowa: ${arrCardTotal.towa}\nAkira: ${arrCardTotal.akira}\nEmiru: ${arrCardTotal.emiru}`,
-                        inline: true
-                    },
-                    {
-                        name: `Green Duplicate:`,
-                        value: `Komachi: ${arrCardTotal.komachi}\nNao: ${arrCardTotal.nao}\nKotoha: ${arrCardTotal.kotoha}\nCiel: ${arrCardTotal.ciel}\nLala: ${arrCardTotal.lala}`,
-                        inline: true
-                    },
-                    {
-                        name: `White Duplicate:`,
-                        value: `Honoka: ${arrCardTotal.honoka}\nMai: ${arrCardTotal.mai}\nKanade: ${arrCardTotal.kanade}`,
-                        inline: true
-                    }
-                ];
-
-                var msgEmbed = new MessageEmbed(objEmbed);
-                arrPages[2] = msgEmbed;
-
-                //reset to 0
-                for(var i=0;i<cardDataInventory[0].length;i++){
-                    arrCardTotal[cardDataInventory[0][i][DBM_Card_Data.columns.pack]] = "0";
-                }
-
-                //gold card
-                for(var i=0;i<cardDataInventoryGold[0].length;i++){
-                    arrCardTotal[cardDataInventoryGold[0][i][DBM_Card_Data.columns.pack]] = cardDataInventoryGold[0][i]['total_gold'];
-                }
-
-                objEmbed.fields = [{
-                    name: `Pink Gold:`,
-                    value: `Nagisa: ${arrCardTotal.nagisa}/${CardModule.Properties.dataCardCore.nagisa.total}\nSaki: ${arrCardTotal.saki}/${CardModule.Properties.dataCardCore.saki.total}\nNozomi: ${arrCardTotal.nozomi}/${CardModule.Properties.dataCardCore.nozomi.total}\nLove: ${arrCardTotal.love}/${CardModule.Properties.dataCardCore.love.total}\nTsubomi: ${arrCardTotal.tsubomi}/${CardModule.Properties.dataCardCore.tsubomi.total}\nHibiki: ${arrCardTotal.hibiki}/${CardModule.Properties.dataCardCore.hibiki.total}\nMiyuki: ${arrCardTotal.miyuki}/${CardModule.Properties.dataCardCore.miyuki.total}\nMana: ${arrCardTotal.mana}/${CardModule.Properties.dataCardCore.mana.total}\nMegumi: ${arrCardTotal.megumi}/${CardModule.Properties.dataCardCore.megumi.total}\nHaruka: ${arrCardTotal.haruka}/${CardModule.Properties.dataCardCore.haruka.total}\nMirai: ${arrCardTotal.mirai}/${CardModule.Properties.dataCardCore.mirai.total}\nIchika: ${arrCardTotal.ichika}/${CardModule.Properties.dataCardCore.ichika.total}\nHana: ${arrCardTotal.hana}/${CardModule.Properties.dataCardCore.hana.total}\nHikaru: ${arrCardTotal.hikaru}/${CardModule.Properties.dataCardCore.hikaru.total}\nNodoka: ${arrCardTotal.nodoka}/${CardModule.Properties.dataCardCore.nodoka.total}`,
-                    inline: true
-                },
-                {
-                    name: `Blue Gold:`,
-                    value: `Karen: ${arrCardTotal.karen}/${CardModule.Properties.dataCardCore.karen.total}\nMiki: ${arrCardTotal.miki}/${CardModule.Properties.dataCardCore.miki.total}\nErika: ${arrCardTotal.erika}/${CardModule.Properties.dataCardCore.erika.total}\nEllen: ${arrCardTotal.ellen}/${CardModule.Properties.dataCardCore.ellen.total}\nReika: ${arrCardTotal.reika}/${CardModule.Properties.dataCardCore.reika.total}\nRikka: ${arrCardTotal.rikka}/${CardModule.Properties.dataCardCore.rikka.total}\nHime: ${arrCardTotal.hime}/${CardModule.Properties.dataCardCore.hime.total}\nMinami: ${arrCardTotal.minami}/${CardModule.Properties.dataCardCore.minami.total}\nAoi: ${arrCardTotal.aoi}/${CardModule.Properties.dataCardCore.aoi.total}\nSaaya: ${arrCardTotal.saaya}/${CardModule.Properties.dataCardCore.saaya.total}\nYuni: ${arrCardTotal.yuni}/${CardModule.Properties.dataCardCore.yuni.total}\nChiyu: ${arrCardTotal.chiyu}/${CardModule.Properties.dataCardCore.chiyu.total}`,
-                    inline: true
-                },
-                {
-                    name: `Yellow Gold:`,
-                    value: `Hikari: ${arrCardTotal.hikari}/${CardModule.Properties.dataCardCore.hikari.total}\nUrara: ${arrCardTotal.urara}/${CardModule.Properties.dataCardCore.urara.total}\nInori: ${arrCardTotal.inori}/${CardModule.Properties.dataCardCore.inori.total}\nItsuki: ${arrCardTotal.itsuki}/${CardModule.Properties.dataCardCore.itsuki.total}\nAko: ${arrCardTotal.ako}/${CardModule.Properties.dataCardCore.ako.total}\nYayoi: ${arrCardTotal.yayoi}/${CardModule.Properties.dataCardCore.yayoi.total}\nAlice: ${arrCardTotal.alice}/${CardModule.Properties.dataCardCore.alice.total}\nYuko: ${arrCardTotal.yuko}/${CardModule.Properties.dataCardCore.yuko.total}\nKirara: ${arrCardTotal.kirara}/${CardModule.Properties.dataCardCore.kirara.total}\nHimari: ${arrCardTotal.himari}/${CardModule.Properties.dataCardCore.himari.total}\nHomare: ${arrCardTotal.homare}/${CardModule.Properties.dataCardCore.homare.total}\nElena: ${arrCardTotal.elena}/${CardModule.Properties.dataCardCore.elena.total}\nHinata: ${arrCardTotal.hinata}/${CardModule.Properties.dataCardCore.hinata.total}`,
-                    inline: true
-                },
-                {
-                    name: `Purple Gold:`,
-                    value: `Yuri: ${arrCardTotal.yuri}/${CardModule.Properties.dataCardCore.yuri.total}\nMakoto: ${arrCardTotal.makoto}/${CardModule.Properties.dataCardCore.makoto.total}\nIona: ${arrCardTotal.iona}/${CardModule.Properties.dataCardCore.iona.total}\nRiko: ${arrCardTotal.riko}/${CardModule.Properties.dataCardCore.riko.total}\nYukari: ${arrCardTotal.yukari}/${CardModule.Properties.dataCardCore.yukari.total}\nRuru: ${arrCardTotal.ruru}/${CardModule.Properties.dataCardCore.ruru.total}\nMadoka: ${arrCardTotal.madoka}/${CardModule.Properties.dataCardCore.madoka.total}\nKurumi: ${arrCardTotal.kurumi}/${CardModule.Properties.dataCardCore.kurumi.total}`,
-                    inline: true
-                },
-                {
-                    name: `Red Gold:`,
-                    value: `Rin: ${arrCardTotal.rin}/${CardModule.Properties.dataCardCore.rin.total}\nSetsuna: ${arrCardTotal.setsuna}/${CardModule.Properties.dataCardCore.setsuna.total}\nAkane: ${arrCardTotal.akane}/${CardModule.Properties.dataCardCore.akane.total}\nAguri: ${arrCardTotal.aguri}/${CardModule.Properties.dataCardCore.aguri.total}\nTowa: ${arrCardTotal.towa}/${CardModule.Properties.dataCardCore.towa.total}\nAkira: ${arrCardTotal.akira}/${CardModule.Properties.dataCardCore.akira.total}\nEmiru: ${arrCardTotal.emiru}/${CardModule.Properties.dataCardCore.emiru.total}`,
-                    inline: true
-                },
-                {
-                    name: `Green Gold:`,
-                    value: `Komachi: ${arrCardTotal.komachi}/${CardModule.Properties.dataCardCore.komachi.total}\nNao: ${arrCardTotal.nao}/${CardModule.Properties.dataCardCore.nao.total}\nKotoha: ${arrCardTotal.kotoha}/${CardModule.Properties.dataCardCore.kotoha.total}\nCiel: ${arrCardTotal.ciel}/${CardModule.Properties.dataCardCore.ciel.total}\nLala: ${arrCardTotal.lala}/${CardModule.Properties.dataCardCore.lala.total}`,
-                    inline: true
-                },
-                {
-                    name: `White Gold:`,
-                    value: `Honoka: ${arrCardTotal.honoka}/${CardModule.Properties.dataCardCore.honoka.total}\nMai: ${arrCardTotal.mai}/${CardModule.Properties.dataCardCore.mai.total}\nKanade: ${arrCardTotal.kanade}/${CardModule.Properties.dataCardCore.kanade.total}`,
-                    inline: true
-                }];
-
-                var msgEmbed = new MessageEmbed(objEmbed);
-                arrPages[3] = msgEmbed;
-
-                if(cardUserStatusData[DBM_Card_User_Data.columns.card_id_selected]!=null){
-                    var cardAvatarData = await CardModule.getCardData(avatarId);
-                    var cardUserAvatarData = await CardModule.getUserCardInventoryData(userId,avatarId);
-
-                    var packName = cardAvatarData[DBM_Card_Data.columns.pack];
-                    var level = cardUserAvatarData[DBM_Card_Inventory.columns.level];
-                    var level_special = cardUserAvatarData[DBM_Card_Inventory.columns.level_special];
-                    var atk = cardAvatarData[DBM_Card_Data.columns.max_atk];
-                    var hp = cardAvatarData[DBM_Card_Data.columns.max_hp];
-                    var rarity = cardAvatarData[DBM_Card_Data.columns.rarity];
-                    var avatarFormMode = cardUserStatusData[DBM_Card_User_Data.columns.card_avatar_form];
-                    var type = "normal"; var cardTypeDisplay = "";
-                    
-                    var goldIcon = "";
-                    if(cardUserAvatarData[DBM_Card_Inventory.columns.is_gold]){
-                        objEmbed.thumbnail = {
-                            url:cardAvatarData[DBM_Card_Data.columns.img_url_upgrade1]
-                        }
-                        type = "gold"; goldIcon="✨"; cardTypeDisplay = "Gold";
-                    } else {
-                        objEmbed.thumbnail = {
-                            url:cardAvatarData[DBM_Card_Data.columns.img_url]
-                        }
-                    }
-
-                    var iconHp = ""; var iconAtk = "";//for status effect
-                    var bHp = CardModule.Status.getHp(level,hp); var bAtk = CardModule.Status.getAtk(level,atk);
-                    var hp = bHp; var atk = bAtk;
-
-                    //skills effect
-                    var currentSkills = "-";
-                    if(cardUserStatusData[DBM_Card_User_Data.columns.status_effect_2]!=null){
-                        var statusEffect2 = JSON.parse(cardUserStatusData[DBM_Card_User_Data.columns.status_effect_2]).value;
-
-                        if(statusEffect2 in CardModule.StatusEffect.cureSkillsBuffData){
-                            switch(statusEffect2){
-                                case "stats_booster":
-                                    hp+=GlobalFunctions.calculatePercentage(hp,CardModule.StatusEffect.cureSkillsBuffData[statusEffect2].boost_value);
-                                    atk+=GlobalFunctions.calculatePercentage(atk,CardModule.StatusEffect.cureSkillsBuffData[statusEffect2].boost_value);
-                                    break;
-                                case "catchphrage":
-                                    hp-=GlobalFunctions.calculatePercentage(hp,CardModule.StatusEffect.cureSkillsBuffData[statusEffect2].boost_penalty);
-                                    atk+=GlobalFunctions.calculatePercentage(atk,CardModule.StatusEffect.cureSkillsBuffData[statusEffect2].boost_value);
-                                    break;
-                                case "levelcutter":
-                                    level-=GlobalFunctions.calculatePercentage(level,CardModule.StatusEffect.cureSkillsBuffData[statusEffect2].boost_penalty);
-                                    if(level<=1){level = 1;}
-                                    //update the latest stats
-                                    bHp = CardModule.Status.getHp(level,hp); bAtk = CardModule.Status.getAtk(level,atk);
-                                    hp = bHp; atk = bAtk;
-
-                                    atk+=GlobalFunctions.calculatePercentage(atk,CardModule.StatusEffect.cureSkillsBuffData[statusEffect2].boost_value);
-                                    break;
-                                case "endure":
-                                    hp-=GlobalFunctions.calculatePercentage(hp,CardModule.StatusEffect.cureSkillsBuffData[statusEffect2].boost_penalty);
-                                    atk+=GlobalFunctions.calculatePercentage(atk,CardModule.StatusEffect.cureSkillsBuffData[statusEffect2].boost_value);
-                                    break;
-                                case "starmaster":
-                                    rarity+=7;
-                                    break;
-                            }
-                        }
-                    }
-
-                    //prevents from negative/limit
-                    if(hp<=0){ hp=1; } 
-                    else if(hp>=100){ hp=100; }
-                    if(atk<=0){atk=0;}
-                    if(rarity>=7){rarity = 7;}
-
-                    //buff/debuff
-                    if(cardUserStatusData[DBM_Card_User_Data.columns.status_effect] in CardModule.StatusEffect.buffData){
-                        //check for hp buff
-                        if(CardModule.StatusEffect.buffData[cardUserStatusData[DBM_Card_User_Data.columns.status_effect]].value.includes("hp_up_")){
-                            hp+=GlobalFunctions.calculatePercentage(hp,CardModule.StatusEffect.buffData[cardUserStatusData[DBM_Card_User_Data.columns.status_effect]].value_hp_boost);
-
-                        } else if(CardModule.StatusEffect.buffData[cardUserStatusData[DBM_Card_User_Data.columns.status_effect]].value.includes("atk_up_")){
-                            atk+=GlobalFunctions.calculatePercentage(atk,CardModule.StatusEffect.buffData[cardUserStatusData[DBM_Card_User_Data.columns.status_effect]].value_atk_boost);
-                        }
-                    } else if(cardUserStatusData[DBM_Card_User_Data.columns.status_effect] in CardModule.StatusEffect.debuffData){
-                        if(CardModule.StatusEffect.debuffData[cardUserStatusData[DBM_Card_User_Data.columns.status_effect]].value.includes("hp_down_")){
-                            hp-=GlobalFunctions.calculatePercentage(hp,CardModule.StatusEffect.debuffData[cardUserStatusData[DBM_Card_User_Data.columns.status_effect]].value_hp_down);
-
-                        } else if(CardModule.StatusEffect.debuffData[cardUserStatusData[DBM_Card_User_Data.columns.status_effect]].value.includes("atk_down_")){
-                            atk-=GlobalFunctions.calculatePercentage(atk,CardModule.StatusEffect.debuffData[cardUserStatusData[DBM_Card_User_Data.columns.status_effect]].value_atk_down);
-                        }
-                    }
-
-                    //prevents from negative
-                    if(hp<=0){ hp=1; } 
-                    else if(hp>=100){ hp=100; }
-                    if(atk<=0){atk=0;}
-
-                    var txtHp = `${bHp}`; var txtAtk =  `${bAtk}`;
-
-                    if(hp>bHp){ iconHp = "⬆️"; } else if(hp<bHp) { iconHp = "⬇️"; }
-
-                    if(iconHp!=""){ txtHp += ` ➡️ ${hp}`; }
-
-                    if(atk>bAtk){ iconAtk = "⬆️"; } else if(atk<bAtk) { iconAtk = "⬇️"; }
-
-                    if(iconAtk!=""){ txtAtk += ` ➡️ ${atk}`; }
-
-                    if(avatarFormMode=="normal"){
-                        objEmbed.fields = [{
-                            name:`Cure Avatar:\n${rarity+CardModule.Properties.cardCategory[type].rarityBoost}⭐ ${CardModule.Properties.dataCardCore[packName].alter_ego}${goldIcon} Lv.${level}`,
-                            value:`${iconHp}❤️ **HP: **${txtHp}\n${iconAtk}⚔️ **Atk:** ${txtAtk}\n**Special**: ${CardModule.Properties.dataCardCore[packName].special_attack} Lv.${level_special}`,
-                            inline:true
-                        }];
-                        objEmbed.image = {
-                            url:CardModule.Properties.dataCardCore[packName].icon
-                        }
-                    } else {
-                        objEmbed.fields = [{
-                            name:`Cure Avatar:\n${rarity+CardModule.Properties.cardCategory[type].rarityBoost}⭐ ${GlobalFunctions.capitalize(cardTypeDisplay)} ${CardModule.Properties.dataCardCore[packName].form[avatarFormMode].name}${goldIcon} Lv.${level}`,
-                            value:`${iconHp}❤️ **HP: **${txtHp}\n${iconAtk}⚔️ **Atk:** ${txtAtk}\n\n**Special**: ${CardModule.Properties.dataCardCore[packName].special_attack} Lv.${level_special}`,
-                            inline:true
-                        }];
-
-                        objEmbed.image = {
-                            url:CardModule.Properties.dataCardCore[packName].form[avatarFormMode].img_url
-                        }
-                    }
-
-                    var msgEmbed = new MessageEmbed(objEmbed);
-                    arrPages[4] = msgEmbed;
-                }
-
+                var arrPages = await UserModule.EventListener.printStatus(objUserData);
                 paginationEmbed(interaction,arrPages,DiscordStyles.Button.pagingButtonList);
-
                 break;
             case "inventory":
+<<<<<<< Updated upstream
                 var pack = interaction.options._hoistedOptions[0].value.toLowerCase();
                 var parameterUsername = interaction.options._hoistedOptions.hasOwnProperty(1) ? 
                 interaction.options._hoistedOptions[1].value : null;
@@ -480,100 +158,14 @@ module.exports = {
                 }
 
                 //user parameter validator
+=======
+                var pack = interaction.options._hoistedOptions[0].value;
+>>>>>>> Stashed changes
                 var memberExists = true;
-                if(parameterUsername!=null){
-                    await interaction.guild.members.fetch({query:`${parameterUsername}`,limit:1,count:false})
-                    .then(
-                        members=> {
-                            if(members.size>=1){
-                                userId = members.first().user.id;
-                                userUsername = members.first().user.username;
-                                userAvatarUrl = members.first().user.avatarURL();
-                            } else {
-                                memberExists = false;
-                            }
-                        }
-                    );
-                }
-
-                if(!memberExists){
-                    return interaction.reply({content:":x: I can't find that username.",ephemeral:true});
-                }
-
-                //end user parameter validator
-                objEmbed.title = `${GlobalFunctions.capitalize(pack)}/${CardModule.Properties.dataCardCore[pack].alter_ego} Pack:`;
-                objEmbed.author = {
-                    name: userUsername,
-                    icon_url: userAvatarUrl
-                }
-
-                var cardList = "";
-                var query = `select cd.${DBM_Card_Data.columns.id_card},cd.${DBM_Card_Data.columns.color}, 
-                cd.${DBM_Card_Data.columns.series},cd.${DBM_Card_Data.columns.pack},cd.${DBM_Card_Data.columns.name}, 
-                cd.${DBM_Card_Data.columns.img_url},inv.${DBM_Card_Inventory.columns.id_user}, inv.${DBM_Card_Inventory.columns.level}, 
-                inv.${DBM_Card_Inventory.columns.stock}, inv.${DBM_Card_Inventory.columns.is_gold} 
-                from ${DBM_Card_Data.TABLENAME} cd 
-                left join ${DBM_Card_Inventory.TABLENAME} inv 
-                on cd.${DBM_Card_Data.columns.id_card}=inv.${DBM_Card_Inventory.columns.id_card} and 
-                inv.${DBM_Card_Inventory.columns.id_user}=? 
-                where cd.pack = ?`;
-                var arrParameterized = [userId,pack];
-                
-                var arrPages = [];
-                var cardDataInventory = await DBConn.conn.promise().query(query, arrParameterized);
-                var totalGold = 0;
-
-                var progressTotal = 0; var ctr = 0; var maxCtr = 3; var pointerMaxData = cardDataInventory[0].length;
-                cardDataInventory[0].forEach(function(entry){
-                    var icon = "❌";
-                    //checkmark if card is owned
-                    if(entry[DBM_Card_Inventory.columns.id_user]!=null){
-                        icon = "✅"; progressTotal++;
-                        if(entry[DBM_Card_Inventory.columns.is_gold]==1){
-                            icon = "☑️"; totalGold+=1;
-                        }
-                    }
-                   
-                    cardList+=`[${icon} ${entry[DBM_Card_Data.columns.id_card]} - ${entry[DBM_Card_Data.columns.name]}](${entry[DBM_Card_Data.columns.img_url]})`;
-                    if(entry[DBM_Card_Inventory.columns.stock]>=1){
-                        cardList+=` x${entry[DBM_Card_Inventory.columns.stock]}`;
-                    }
-                    if(entry[DBM_Card_Inventory.columns.id_user]!=null){
-                        cardList+=` Lv.${entry[DBM_Card_Inventory.columns.level]}`;
-                    }
-                    cardList+="\n";
-
-                    objEmbed.thumbnail = {
-                        url:CardModule.Properties.dataCardCore[pack].icon
-                    };
-                    objEmbed.color = CardModule.Properties.dataColorCore[entry[DBM_Card_Data.columns.color]].color;
-                    
-                    //create pagination
-                    if(pointerMaxData-1<=0||ctr>maxCtr){
-                        objEmbed.fields = [{
-                            name: `Normal: ${progressTotal}/${CardModule.Properties.dataCardCore[pack].total} | Gold: ${totalGold}/${CardModule.Properties.dataCardCore[pack].total}`,
-                            value: cardList,
-                        }];
-                        var msgEmbed = new MessageEmbed(objEmbed);
-                        arrPages.push(msgEmbed);
-                        cardList = ""; ctr = 0;
-                    } else {
-                        ctr++;
-                    }
-                    pointerMaxData--;
-                });
-
-                for(var i=0;i<arrPages.length;i++){
-                    arrPages[i].fields[0]['name'] = `Normal: ${progressTotal}/${CardModule.Properties.dataCardCore[pack].total} | Gold: ${totalGold}/${CardModule.Properties.dataCardCore[pack].total}`;
-                }
-                
-                paginationEmbed(interaction,arrPages,DiscordStyles.Button.pagingButtonList);
-                break;
-            case "duplicate":
-                var pack = interaction.options._hoistedOptions[0].value.toLowerCase();
                 var parameterUsername = interaction.options._hoistedOptions.hasOwnProperty(1) ? 
                 interaction.options._hoistedOptions[1].value : null;
 
+<<<<<<< Updated upstream
                 var listAll = false;
                 if(pack=="all"){
                     listAll = true;
@@ -585,19 +177,26 @@ module.exports = {
 
                 //user parameter validator
                 var memberExists = true;
+=======
+>>>>>>> Stashed changes
                 if(parameterUsername!=null){
-                    await interaction.guild.members.fetch({query:`${parameterUsername}`,limit:1,count:false})
+                    await interaction.guild.members.fetch({query:`${parameterUsername}`,limit:1})
                     .then(
-                        members=> {
+                        async members=> {
                             if(members.size>=1){
+
                                 userId = members.first().user.id;
-                                userUsername = members.first().user.username;
-                                userAvatarUrl = members.first().user.avatarURL();
+                                objEmbed.author = {
+                                    name:members.first().user.username,
+                                    icon_url:members.first().user.avatarURL()
+                                }
+                                
                             } else {
                                 memberExists = false;
                             }
                         }
                     );
+<<<<<<< Updated upstream
                 }
 
                 if(!memberExists){
@@ -693,68 +292,55 @@ module.exports = {
                 }
                 
                 paginationEmbed(interaction,arrPages,DiscordStyles.Button.pagingButtonList,300000);
+=======
+                } else if(!memberExists){
+                    objEmbed.title = "Cannot find that user";
+                    objEmbed.description = ":x: I can't find that username, please re-enter with specific username.";
+                    objEmbed.thumbnail = {url:CardModule.Properties.imgMofu.imgError};
+                    return interaction.reply({embeds:[new MessageEmbed(objEmbed)],ephemeral:true});
+                }
+
+                var arrPages = await UserModule.EventListener.printInventory(objUserData, pack, interaction);
+                return arrPages;
+                // paginationEmbed(interaction,arrPages,DiscordStyles.Button.pagingButtonList);
+>>>>>>> Stashed changes
                 break;
-            case "detail":
-                var cardId = interaction.options._hoistedOptions[0].value.toLowerCase();
-                var type = interaction.options._hoistedOptions.hasOwnProperty(1) ? 
-                interaction.options._hoistedOptions[1].value : CardModule.Properties.cardCategory.normal.value;//preview mode: normal/gold
+        }
 
-                //check if card ID exists/not
-                var cardData = await CardModule.getCardData(cardId);
+        // var objSpawn = await CardModule.Spawner.spawnNormal(guildId);
+        // await interaction.reply({embeds:[objSpawn.embed],components:objSpawn.components});
 
-                if(cardData==null){
-                    objEmbed.thumbnail = {
-                        url:CardModule.Properties.imgResponse.imgError
-                    }
-                    objEmbed.description = ":x: I can't find that card ID.";
+        // switch(command){
+        //     //STATUS MENU: open card status
+        //     case "test":
+        //         await interaction.reply("ok");
+        //         break;
+        // }
+    },
 
-                    return interaction.reply({embeds:[new MessageEmbed(objEmbed)]});
-                }
+    async executeComponentButton(interaction){
+        var command = interaction.command;
+        var customId = interaction.customId;
+        const guildId = interaction.guild.id;
 
-                //check if user have card/not
-                var itemStock = await CardModule.getUserCardStock(userId,cardId);
-                if(itemStock<=-1){
-                    objEmbed.thumbnail = {
-                        url:CardModule.Properties.imgResponse.imgError
-                    }
-                    objEmbed.description = `:x: You don't have: **${cardData[DBM_Card_Data.columns.name]}** yet. Please capture this card first.`;
-                    return interaction.reply({embeds:[new MessageEmbed(objEmbed)]});
-                }
+        var objUserData = {
+            id:interaction.user.id,
+            username:interaction.user.username,
+            avatarUrl:interaction.user.avatarURL()
+        }
 
-                //get card user inventory data to get the received date data
-                var userInventoryData = await CardModule.getUserCardInventoryData(userId,cardId);
+        //check for user login
+        var loginCheck = await UserModule.isLogin(objUserData,guildId);
+        if(loginCheck!=true){
+            return interaction.reply(loginCheck);//return error message
+        }
 
-                if(type!=null){
-                    if(type.toLowerCase()==CardModule.Properties.cardCategory.gold.value&&
-                    userInventoryData[DBM_Card_Inventory.columns.is_gold]==0){
-                        objEmbed.thumbnail = {
-                            url:CardModule.Properties.imgResponse.imgError
-                        }
-                        objEmbed.description = `:x: You need the ${CardModule.Properties.cardCategory.gold.value} upgrade of: **${cardData[DBM_Card_Data.columns.name]}** to see this card.`;
-                        return interaction.reply({embeds:[new MessageEmbed(objEmbed)]});
-                    }
-                }
-
-                switch(type){
-                    case CardModule.Properties.cardCategory.normal.value:
-                        return interaction.reply({
-                            embeds:[CardModule.Embeds.embedCardDetail(cardData[DBM_Card_Data.columns.color],
-                            cardData[DBM_Card_Data.columns.id_card],cardData[DBM_Card_Data.columns.pack],
-                            cardData[DBM_Card_Data.columns.name],cardData[DBM_Card_Data.columns.img_url],cardData[DBM_Card_Data.columns.series],cardData[DBM_Card_Data.columns.rarity],userAvatarUrl,
-                            userInventoryData[DBM_Card_Inventory.columns.created_at],userInventoryData[DBM_Card_Inventory.columns.level],cardData[DBM_Card_Data.columns.max_hp],cardData[DBM_Card_Data.columns.max_atk],userInventoryData[DBM_Card_Inventory.columns.level_special],itemStock,cardData[DBM_Card_Data.columns.ability1])]
-                        });
-                        break;
-                    case CardModule.Properties.cardCategory.gold.value:
-                        return interaction.reply({
-                            embeds:[CardModule.Embeds.embedCardDetail(cardData[DBM_Card_Data.columns.color],
-                            cardData[DBM_Card_Data.columns.id_card],cardData[DBM_Card_Data.columns.pack],
-                            cardData[DBM_Card_Data.columns.name],cardData[DBM_Card_Data.columns.img_url_upgrade1],cardData[DBM_Card_Data.columns.series],cardData[DBM_Card_Data.columns.rarity],userAvatarUrl,
-                            userInventoryData[DBM_Card_Inventory.columns.created_at],userInventoryData[DBM_Card_Inventory.columns.level],cardData[DBM_Card_Data.columns.max_hp],cardData[DBM_Card_Data.columns.max_atk],userInventoryData[DBM_Card_Inventory.columns.level_special],itemStock,cardData[DBM_Card_Data.columns.ability1],CardModule.Properties.cardCategory.gold.value)]
-                        });
-                        break;
-                }
-
+        switch(customId){
+            case "catch_normal":
+                var ret = await CardModule.EventListener.captureNormal(objUserData, guildId, false);
+                return interaction.reply(ret);
                 break;
+<<<<<<< Updated upstream
             case "set":
                 switch(commandSubcommand){
                     case "color":
@@ -1006,39 +592,17 @@ module.exports = {
 
                         break;
                 }
+=======
+            case "catch_boost":
+                var ret = await CardModule.EventListener.captureNormal(objUserData, guildId, true);
+                return interaction.reply(ret);
+>>>>>>> Stashed changes
                 break;
-            case "unset":
-                //revert back the transformation
-                var cardUserData = await CardModule.getCardUserStatusData(userId);
-                if(cardUserData[DBM_Card_User_Data.columns.card_id_selected]==null){
-                    objEmbed.thumbnail = {
-                        url: CardModule.Properties.imgResponse.imgError
-                    }
-                    objEmbed.description = ":x: You haven't set the precure avatar yet.";
-                    message.channel.send({embed:objEmbed});
-                    return;
-                }
-
-                //process the update
-                var cardData = await CardModule.getCardData(cardUserData[DBM_Card_User_Data.columns.card_id_selected]);
-                var parameterSet = new Map();
-                parameterSet.set(DBM_Card_User_Data.columns.card_id_selected,null);
-                var parameterWhere = new Map();
-                parameterWhere.set(DBM_Card_User_Data.columns.id_user,userId);
-                await DB.update(DBM_Card_User_Data.TABLENAME,parameterSet,parameterWhere);
-
-                if(cardData[DBM_Card_Data.columns.rarity]>=3){
-                    var objColor = new Map();
-                    objColor.set(`color_point_${cardData[DBM_Card_Data.columns.color]}`,cardData[DBM_Card_Data.columns.rarity]*10);
-                    await CardModule.updateColorPoint(userId,objColor);
-                    objEmbed.description = `🔁 Your precure avatar has been reverted back into **${cardData[DBM_Card_Data.columns.rarity]*10} ${cardData[DBM_Card_Data.columns.color]}** points.`;
-                } else {
-                    objEmbed.description = `🔁 Your precure avatar has been reverted back.`;
-                }
-
-                interaction.reply({embeds:[new MessageEmbed(objEmbed)]});
-
+            case "catch_color":
+                var ret = await CardModule.EventListener.captureColor(objUserData, guildId, false);
+                return interaction.reply(ret);
                 break;
+<<<<<<< Updated upstream
             case "leaderboard":
                 var completion = interaction.options._hoistedOptions[0].value;
                 var selection = null;
@@ -1137,153 +701,75 @@ module.exports = {
                 }
 
                 return interaction.reply({embeds:[new MessageEmbed(objEmbed)]});
+=======
+            case "catch_color_boost":
+                var ret = await CardModule.EventListener.captureColor(objUserData, guildId, true);
+                return interaction.reply(ret);
+>>>>>>> Stashed changes
                 break;
-            case "upgrade":
-                switch(commandSubcommand){
-                    case "color-level":
-                        var selectedColor = interaction.options._hoistedOptions[0].value;
+            case "catch_series":
+                var ret = await CardModule.EventListener.captureSeries(objUserData, guildId, false);
+                return interaction.reply(ret);
+                break;
+            case "catch_series_boost":
+                var ret = await CardModule.EventListener.captureSeries(objUserData, guildId, true);
+                return interaction.reply(ret);
+                break;
+            //jankenpon:
+            case "jankenpon_rock":
+            case "jankenpon_paper":
+            case "jankenpon_scissors":
+                var ret = await CardModule.EventListener.captureJankenpon(objUserData, guildId, customId.split("_")[1]);
+                return interaction.reply(ret);
+                break;
+            //number
+            case "number_lower":
+            case "number_higher":
+                var ret = await CardModule.EventListener.captureNumber(objUserData, guildId, customId.split("_")[1]);
+                return interaction.reply(ret);
+                break;
+        }
+    },
+    async executeComponentSelectMenu(interaction){
+        var customId = interaction.customId;
+        const guildId = interaction.guild.id;
+        
+        var objUserData = {
+            id:interaction.user.id,
+            username:interaction.user.username,
+            avatarUrl:interaction.user.avatarURL()
+        }
 
-                        var userCardData = await CardModule.getCardUserStatusData(userId);
-                        var colorLevel = userCardData[`color_level_${selectedColor}`];
-                        var colorPoint = userCardData[`color_point_${selectedColor}`];
-                        var nextColorPoint = CardModule.getNextColorPoint(colorLevel);
-                        //validator: check if color points is enough/not
-                        if(colorPoint<nextColorPoint){
-                            var objEmbed = {
-                                color: CardModule.Properties.embedColor,
-                                thumbnail : {
-                                    url: CardModule.Properties.imgResponse.imgError
-                                },
-                                description : `:x: You need **${nextColorPoint} ${selectedColor}** color points to level up your color.`
-                            };
-                            return interaction.reply({embeds:[new MessageEmbed(objEmbed)]});
-                        }
+        //check for user login
+        var loginCheck = await UserModule.isLogin(objUserData,guildId);
+        if(loginCheck!=true){
+            return interaction.reply(loginCheck);//return error message
+        }
 
-                        //update the color points
-                        var parameterSetColorPoint = new Map();
-                        parameterSetColorPoint.set(`color_point_${selectedColor}`,-nextColorPoint);
-                        await CardModule.updateColorPoint(userId,parameterSetColorPoint);
+        switch(customId){
+            case "act_mini_tsunagarus":
+                var ret = await CardModule.EventListener.captureCheckActAnswer(objUserData, guildId, interaction.values[0],CardModule.Spawner.spawnDataType.act.dataKey.typeVal.mini_tsunagarus);
+                return interaction.reply(ret);
+                break;
+            case "act_suite_notes_count":
+                var ret = await CardModule.EventListener.captureCheckActAnswer(objUserData, guildId, interaction.values[0],CardModule.Spawner.spawnDataType.act.dataKey.typeVal.suite_notes_count);
+                return interaction.reply(ret);
+                break;
+            case "act_star_twinkle_constellation":
+                var ret = await CardModule.EventListener.captureCheckActAnswer(objUserData, guildId, interaction.values[0],CardModule.Spawner.spawnDataType.act.dataKey.typeVal.star_twinkle_constellation);
+                return interaction.reply(ret);
+                break;
+            case "act_star_twinkle_counting":
+                var ret = await CardModule.EventListener.captureCheckActAnswer(objUserData, guildId, interaction.values[0],CardModule.Spawner.spawnDataType.act.dataKey.typeVal.star_twinkle_counting);
+                return interaction.reply(ret);
+                break;
+            case "quiz_answer":
+                var ret = await CardModule.EventListener.captureQuiz(objUserData, guildId, interaction.values[0]);
+                return interaction.reply(ret);
+                break;
+        }
 
-                        //add 1 color level
-                        var query = `UPDATE ${DBM_Card_User_Data.TABLENAME} 
-                        SET color_level_${selectedColor} = color_level_${selectedColor}+1
-                        WHERE ${DBM_Card_User_Data.columns.id_user}=?`;
-                        await DBConn.conn.promise().query(query, [userId]);
-
-                        colorLevel+=1;
-
-                        var objEmbed = {
-                            color: CardModule.Properties.embedColor,
-                            title: `${userUsername}' ${GlobalFunctions.capitalize(selectedColor)} Level Up!`,
-                            thumbnail:{
-                                url: userAvatarUrl
-                            },
-                            description : `:white_check_mark: <@${userId}> **${selectedColor}** color is now level **${colorLevel}**!`,
-                            fields: [
-                                {
-                                    name:`Total bonus capture rate:`,
-                                    value:`+${CardModule.getBonusCatchAttempt(colorLevel)}%`,
-                                    inline: true
-                                },
-                                {
-                                    name:`Next ${GlobalFunctions.capitalize(selectedColor)} Color Points:`,
-                                    value:`${CardModule.getNextColorPoint(colorLevel)}`,
-                                    inline: true
-                                },
-                            ]
-                        };
-
-                        return interaction.reply({embeds:[new MessageEmbed(objEmbed)]});
-                        break;
-                    case "card-level-with-point":
-                        var selectedIdCard = interaction.options._hoistedOptions[0].value;
-                        var cardData = await CardModule.getCardData(selectedIdCard);
-                        if(cardData==null){
-                            //validation: card exists/not
-                            objEmbed.description = `:x: I can't find that card ID.`;
-                            return interaction.reply({embeds:[new MessageEmbed(objEmbed)]});
-                        }
-
-                        var cardInventoryData = await CardModule.getCardInventoryUserData(userId,selectedIdCard);
-                        var cardUserData = await CardModule.getCardUserStatusData(userId);
-                        if(cardInventoryData==null){ 
-                            //validation: card owned/not
-                            objEmbed.description = `:x: You don't have: **${cardData[DBM_Card_Data.columns.id_card]} - ${cardData[DBM_Card_Data.columns.name]}** yet. Please capture this card firt.`;
-                            return interaction.reply({embeds:[new MessageEmbed(objEmbed)]});
-                        }
-
-                        //card up with quantity
-                        var qty = interaction.options._hoistedOptions.hasOwnProperty(1) ? 
-                        parseInt(interaction.options._hoistedOptions[1].value) : 1;
-                        if(qty<=0||qty>99){
-                            objEmbed.description = `:x: Please enter the valid level quantity between 1-${CardModule.Leveling.getMaxLevel(rarity)}`;
-                            return interaction.reply({embeds:[new MessageEmbed(objEmbed)]});
-                        }
-
-                        var cardLevel = cardInventoryData[DBM_Card_Inventory.columns.level];
-                        var rarity = cardData[DBM_Card_Data.columns.rarity];
-                        var selectedColor = cardData[DBM_Card_Data.columns.color];
-
-                        if(cardLevel+qty>CardModule.Leveling.getMaxLevel(rarity)){
-                            //max level validation
-                            objEmbed.thumbnail = { 
-                                url:CardModule.Properties.imgResponse.imgError
-                            };
-                            objEmbed.title = `Limited Card Level`;
-                            objEmbed.description = `:x: Cannot level up more than the level cap!`;
-                            return interaction.reply({embeds:[new MessageEmbed(objEmbed)]});
-                        } else if(cardLevel>=CardModule.Leveling.getMaxLevel(rarity)){
-                            //max level validation
-                            objEmbed.thumbnail = { 
-                                url:CardModule.Properties.imgResponse.imgError
-                            };
-                            objEmbed.title = `Maximum Card Level!`;
-                            objEmbed.description = `:x: **${cardData[DBM_Card_Data.columns.name]}** has reached the maximum card level and cannot be increased anymore.`;
-                            return interaction.reply({embeds:[new MessageEmbed(objEmbed)]});
-                        }
-                        
-                        //color point validation
-                        var nextExp = CardModule.Leveling.getNextCardExp(cardLevel,qty);
-                        if(cardUserData[`color_point_${cardData[DBM_Card_Data.columns.color]}`]<nextExp){
-                            var objEmbed = {
-                                color: CardModule.Properties.embedColor,
-                                description : `:x: You need **${nextExp} ${cardData[DBM_Card_Data.columns.color]}** color points to level up the **${cardData[DBM_Card_Data.columns.id_card]} - ${cardData[DBM_Card_Data.columns.name]}** into level **${cardLevel+qty}**.`,
-                                thumbnail : {
-                                    url: CardModule.Properties.imgResponse.imgError
-                                },
-                            };
-                            return interaction.reply({embeds:[new MessageEmbed(objEmbed)]});
-                        }
-
-                        //update the card level & color points 
-                        var query = `UPDATE ${DBM_Card_Inventory.TABLENAME} inv, ${DBM_Card_User_Data.TABLENAME} cud 
-                        SET inv.${DBM_Card_Inventory.columns.level}=inv.${DBM_Card_Inventory.columns.level}+${qty}, 
-                        cud.color_point_${selectedColor}=cud.color_point_${selectedColor}-${nextExp} 
-                        WHERE cud.${DBM_Card_User_Data.columns.id_user}=? AND 
-                        inv.${DBM_Card_Inventory.columns.id_user}=? AND 
-                        inv.${DBM_Card_Inventory.columns.id_card}=?`;
-                        await DBConn.conn.promise().query(query,[userId,userId,selectedIdCard]);
-
-                        //get updated data:
-                        var cardInventoryData = await CardModule.getCardInventoryUserData(userId,selectedIdCard);
-
-                        var objEmbed = CardModule.Embeds.embedCardLevelUp(cardData[DBM_Card_Data.columns.color],cardData[DBM_Card_Data.columns.id_card],cardData[DBM_Card_Data.columns.pack],cardData[DBM_Card_Data.columns.name],cardData[DBM_Card_Data.columns.img_url],cardData[DBM_Card_Data.columns.series],cardData[DBM_Card_Data.columns.rarity],userAvatarUrl,userUsername,cardInventoryData[DBM_Card_Inventory.columns.level],cardData[DBM_Card_Data.columns.max_hp],cardData[DBM_Card_Data.columns.max_atk],cardInventoryData[DBM_Card_Inventory.columns.level_special]);
-
-                        if(cardInventoryData[DBM_Card_Inventory.columns.is_gold]){
-                            objEmbed = CardModule.Embeds.embedCardLevelUp(cardData[DBM_Card_Data.columns.color],cardData[DBM_Card_Data.columns.id_card],cardData[DBM_Card_Data.columns.pack],cardData[DBM_Card_Data.columns.name],cardData[DBM_Card_Data.columns.img_url_upgrade1],cardData[DBM_Card_Data.columns.series],cardData[DBM_Card_Data.columns.rarity],userAvatarUrl,userUsername,cardInventoryData[DBM_Card_Inventory.columns.level],cardData[DBM_Card_Data.columns.max_hp],cardData[DBM_Card_Data.columns.max_atk],cardInventoryData[DBM_Card_Inventory.columns.level_special],CardModule.Properties.cardCategory.gold.value);
-                        }
-
-                        return interaction.reply({content:`**${userUsername}** has used **${nextExp} ${cardData[DBM_Card_Data.columns.color]}** color points & **${cardData[DBM_Card_Data.columns.name]}** is now level **${cardInventoryData[DBM_Card_Inventory.columns.level]}**!`,
-                        embeds:[objEmbed]});
-                        break;
-                    case "card-level-with-duplicate":
-                        var cardId = interaction.options._hoistedOptions[0].value;
-                        var targetCardId = interaction.options._hoistedOptions[1].value;
-                        var qty = interaction.options._hoistedOptions.hasOwnProperty(2) ? 
-                        interaction.options._hoistedOptions[2].value : 1;
-                        var cardStock = await CardModule.getUserCardStock(userId,cardId);
-                        var userTargetCardStock = await CardModule.getUserCardStock(userId,targetCardId);
-
+<<<<<<< Updated upstream
                         //check for card data
                         var cardData = await CardModule.getCardData(cardId);
                         var cardTargetData = await CardModule.getCardData(targetCardId);
@@ -6892,5 +6378,7 @@ module.exports = {
                 }
                 break;
         }
+=======
+>>>>>>> Stashed changes
     }
-};
+}
