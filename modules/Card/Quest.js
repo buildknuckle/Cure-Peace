@@ -4,14 +4,17 @@ const DB = require('../../database/DatabaseCore');
 const DBConn = require('../../storage/dbconn');
 
 const GlobalFunctions = require('../../modules/GlobalFunctions');
-const DBM_User_Data = require('../../database/model/DBM_User_Data');
-const DBM_Card_Data = require('../../database/model/DBM_Card_Data');
+
 const Embed = require("../../modules/card/Embed");
 const GProperties = require("../../modules/card/Properties");
 const CPackModule = require("../../modules/card/Cpack");
 const SPackModule = require("../../modules/card/Spack");
 const CardModule = require("../../modules/card/Card");
 const UserModule = require("../../modules/card/User");
+
+const DBM_User_Data = require('../../database/model/DBM_User_Data');
+const DBM_Card_Data = require('../../database/model/DBM_Card_Data');
+const DBM_Card_Inventory = require("../../database/model/DBM_Card_Inventory");
 
 class Properties {
     static dataKey = {
@@ -160,7 +163,6 @@ class Card {
             objEmbed.thumbnail = {
                 url:GProperties.imgMofu.ok
             }
-            
         }
     
         return {embeds:[objEmbed]};
@@ -169,11 +171,13 @@ class Card {
     static async submitQuest(objUserData, userStatusData, idCardSubmit){
         idCardSubmit = idCardSubmit.toLowerCase();//lowercase the id card
         var questDate = GlobalFunctions.getCurrentDate();
-        var parsedQuestData = JSON.parse(userStatusData[DBM_User_Data.columns.daily_data]);
-        var parsedCardQuest = parsedQuestData[Properties.dataKey.quest][Properties.dataKey.card];
+        var parsedDailyData = JSON.parse(userStatusData[DBM_User_Data.columns.daily_data]);
+        var parsedCardQuest = parsedDailyData[Properties.dataKey.quest][Properties.dataKey.card];
+
+        var userId = objUserData.id;
 
         //VALIDATION
-        if(parsedQuestData[Properties.dataKey.lastQuestDate]!=questDate){//if quest has expired
+        if(parsedDailyData[Properties.dataKey.lastQuestDate]!=questDate){//if quest has expired
             return Embed.errorMini(`:x: Please receive new card quest with: **/daily quest list**`,objUserData,true, {
                 title:`Daily Card Quest Has Expired`
             });
@@ -195,19 +199,49 @@ class Card {
 
         //get card data:
         var cardData = await CardModule.getCardData(idCardSubmit);
-        var id = cardData[DBM_Card_Data.columns.id_card];
+        var cardId = cardData[DBM_Card_Data.columns.id_card];
+        var color = cardData[DBM_Card_Data.columns.color]; var series = cardData[DBM_Card_Data.columns.series];
         var name = cardData[DBM_Card_Data.columns.name];
         var rarity = cardData[DBM_Card_Data.columns.rarity];
 
-        //check if user have card/not
-        var stock = await UserModule.Card.getStock(objUserData.id, idCardSubmit);
-        if(stock<=-1){
-            return Embed.errorMini(`:x: You need 1x **${id} - ${name}** to submit this card quest.`,objUserData,true, {
-                title:`Not enough stock`
+        //card stock validation
+        var cardInventoryData = await UserModule.Card.getInventoryData(userId, cardId);
+        if(cardInventoryData==null){
+            return Embed.errorMini(`:x: You need 1x **${cardId} - ${name}** to submit this card quest.`,objUserData,true, {
+                title:`Not Enough Card`
             });
-        } else {
-            
+        } else if(cardInventoryData[DBM_Card_Inventory.columns.stock]<1) {
+            return Embed.errorMini(`:x: You need 1x **${cardId} - ${name}** to submit this card quest.`,objUserData,true, {
+                title:`Not Enough Card`
+            });
         }
+
+        //start update
+        parsedCardQuest = GlobalFunctions.removeArrayItem(parsedCardQuest,searchResult);
+        parsedDailyData[Properties.dataKey.quest][Properties.dataKey.card] = parsedCardQuest;
+        //update user quest data
+        var objUpdateData = {};
+        var mapColorPoint = new Map();
+        mapColorPoint.set(DBM_User_Data.columns.color_data);//update color point
+        //update series point
+        objUpdateData[DBM_User_Data.columns.daily_data] = JSON.stringify(parsedDailyData);//parse daily data
+        await UserModule.updateData(userId, userStatusData, objUpdateData);
+
+        await UserModule.Card.updateStockParam(userId, cardId, cardInventoryData,-1);//update card stock
+
+        return {embeds:[Embed.builder(`✅ You have submit: 1x **${cardId} - ${name}** for your daily card quest.`,objUserData, {
+            color:color,
+            title:`Daily Card Quest Submitted!`,
+            thumbnail:GProperties.imgMofu.ok,
+            fields:[
+                {
+                    name:`Rewards Received:`,
+                    value:stripIndents`${GProperties.color[color].icon} ${colorPointReward} ${GProperties.color[color].value} points
+                    ${SPackModule[series].Properties.icon.mascot_emoji} ${seriesPointReward} ${SPackModule[series].Properties.currency.name} 
+                    ${GProperties.currency.mofucoin.icon_emoji} ${mofucoinReward} ${GProperties.currency.mofucoin.name}`
+                }
+            ]
+        })]};
 
     }
 }

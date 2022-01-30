@@ -55,6 +55,7 @@ class Enemy{
         tsunagarus:{
             term:"akanbe",
             name:"Akanbe",
+            catchphrase:"Akanbe!",
             color:[],//will be loaded from init
             img:[
                 "https://static.wikia.nocookie.net/prettycure/images/4/46/Akanbe_01.jpg",

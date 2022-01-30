@@ -95,6 +95,7 @@ class Enemy{
         tsunagarus:{
             term:"nottrigger",
             name:"Nottrigger",
+            catchphrase:"Nottrigger",
             color:[],//will be loaded from init
             img:[
                 "https://static.wikia.nocookie.net/prettycure/images/6/62/STPC06_Nottoreiga.jpg",

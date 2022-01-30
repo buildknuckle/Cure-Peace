@@ -111,7 +111,9 @@ class Embed {
             fields:[
             {
                 name:`Rewards Received:`,
-                value:`${Properties.color[color].icon_card} **${qtyReceive}x dup card:** ${id} - ${name}${qtyReceive>1?" ⏫":""}\n${Properties.color[color].icon} ${colorPoint} ${color} points ${colorPoint>rarity?" ⏫":""}\n${SpackModule[series].Properties.currency.icon_emoji} ${seriesPoint} ${SpackModule[series].Properties.currency.name} ${seriesPoint>rarity?" ⏫":""}${"rewards" in options ? "\n"+options.rewards : ""}`,
+                value:stripIndents`${Properties.color[color].icon_card} **${qtyReceive}x dup card:** ${id} - ${name}${qtyReceive>1?" ⏫":""}
+                ${Properties.color[color].icon} ${colorPoint} ${color} points ${colorPoint>rarity?" ⏫":""}
+                ${SpackModule[series].Properties.currency.icon_emoji} ${seriesPoint} ${SpackModule[series].Properties.currency.name} ${seriesPoint>rarity?" ⏫":""}${"rewards" in options ? "\n"+options.rewards : ""}`,
                 inline:false
             }],
             footer: {
@@ -127,12 +129,17 @@ class Embed {
         var rarity = cardData[DBM_Card_Data.columns.rarity]; var pack = cardData[DBM_Card_Data.columns.pack]; 
         var color = CpackModule[pack].Properties.color; var series = CpackModule[pack].Properties.series;
 
-        return GEmbed.failMini(`${"notifFront" in options? options.notifFront:""}\n:x: <@${userId}> has failed to catch the card this time.\n${"notifBack" in options? options.notifBack:""}\n`, objUserData, {
+        var builder = GEmbed.failMini(`${"notifFront" in options? options.notifFront:""}\n:x: <@${userId}> has failed to catch the card this time.\n${"notifBack" in options? options.notifBack:""}\n`, objUserData, {
         fields:[{
             name:`Received:`,
-            value:`${Properties.color[color].icon} ${rarity} ${color} points\n${SpackModule[series].Properties.currency.icon_emoji} ${rarity} ${SpackModule[series].Properties.currency.name}`,
+            value:stripIndents`${Properties.color[color].icon} ${rarity} ${color} points
+            ${SpackModule[series].Properties.currency.icon_emoji} ${rarity} ${SpackModule[series].Properties.currency.name}`,
             inline:true
-        }]})
+        }]});
+        if("title" in options)
+            obuilder.fields[0].title = options.title;
+        
+        return builder;
     }
 }
 
@@ -413,6 +420,7 @@ class Spawner {
                 var resultData = await DB.selectRandomNonDuplicate(DBM_Card_Data.TABLENAME, mapWhere, DBM_Card_Data.columns.pack, 4);
                 
                 //card data:
+                var randIdReward = resultData[GlobalFunctions.randomNumber(0,resultData.length-1)][DBM_Card_Data.columns.id_card];
                 var id = resultData[0][DBM_Card_Data.columns.id_card];
                 var pack = resultData[0][DBM_Card_Data.columns.pack];
                 var arrAnswerList = []; //prepare the answer list
@@ -423,7 +431,6 @@ class Spawner {
                 shuffleName += `${GlobalFunctions.shuffleText(
                         GlobalFunctions.shuffleText(
                             GlobalFunctions.shuffleText(splittedText[i])).replace(" ",""))}`.toLowerCase();
-                shuffleName = GlobalFunctions.shuffleText(shuffleName);
                 
                 for(var i=0;i<resultData.length;i++){
                     var pack = resultData[i][DBM_Card_Data.columns.pack];
@@ -466,7 +473,7 @@ class Spawner {
                 // //select menu end
     
                 mapSet.set(DBM_Guild_Data.columns.spawn_data,
-                `{"${this.spawnDataType.act.dataKey.type}":"${this.spawnDataType.act.dataKey.typeVal.mini_tsunagarus}","${this.spawnDataType.act.dataKey.value}":"${answer}","${this.spawnDataType.act.dataKey.spawnId}":"${id}"}`);
+                `{"${this.spawnDataType.act.dataKey.type}":"${this.spawnDataType.act.dataKey.typeVal.mini_tsunagarus}","${this.spawnDataType.act.dataKey.value}":"${answer}","${this.spawnDataType.act.dataKey.spawnId}":"${randIdReward}"}`);
 
                 objEmbed = GEmbed.builder(`**Chiridjirin** has taking over the quiz time!\nRearrange this provided hint: **${shuffleName}** and choose the correct branch to defeat the tsunagarus!`,{username:`${rarity}⭐ Act Spawn: Quiztaccked!`},{
                     color:`#CC3060`,
@@ -648,11 +655,11 @@ class Spawner {
                     title:`${SpackModule.star_twinkle.Properties.icon.mascot_emoji} It's Star Twinkle Constellation Time!`,
                     thumbnail:Properties.imgMofu.peek,
                     image:randomImg,
-                    fields: [{
-                        name:`Image Link`,
-                        value:`[Image Link](${randomImg})`,
-                        inline:true
-                    }]
+                    // fields: [{
+                    //     name:`Image Link`,
+                    //     value:`[Image Link](${randomImg})`,
+                    //     inline:true
+                    // }]
                 });
 
                 break;
@@ -970,29 +977,25 @@ class Spawner {
     static async spawnBattle(guildId){
         var rndSeries = GlobalFunctions.randomArrayItem(this.arrSeriesRandomizer);
         var difficulty = GlobalFunctions.randomNumber(1, 3);
-        var objEmbed = GEmbed.builder("spawn_text",{
-            username:`3⭐ Battle Spawn`
+        var txtDescription = stripIndents`**Traits:** 
+        Weakness: ${Properties.color.green.icon}
+        Absorb: ${Properties.color.blue.icon}`;
+        var objEmbed = GEmbed.builder(txtDescription,
+        {
+            username:`${difficulty}⭐ Battle`
         }, {
             thumbnail:BattleModule.Properties.tsunagarus.chokkins.embed.icon,
             fields:[
                 {
-                    name:`Goal & Rewards:`,
-                    value:`⭐Contribute x damage\n⭐Clear without special attack\n⭐Battle with x perfect combo`,
-                    inline: true
-                },
-                {
                     name:`💔HP:`,
-                    value:`Col 1:???\nCol 2:???\nCol 3:???`,
+                    value:stripIndents`${Properties.color.pink.icon} ???/???
+                    ${Properties.color.blue.icon} ???
+                    ${Properties.color.green.icon} ???`,
                     inline: true
                 },
                 {
-                    name:`Information:`,
-                    value:`Col 1:???\nCol 2:???\nCol 3:???`,
-                    inline: true
-                },
-                {
-                    name:`Next Actions:`,
-                    value:`???`,
+                    name:`Next Target:`,
+                    value:`${Properties.color.pink.icon}`,
                     inline: true
                 }
             ],
@@ -1001,6 +1004,10 @@ class Spawner {
             }
         });
 
+        
+        // **Goal & Rewards:**
+        // ⭐Contribute x damage\n⭐Contribute x damage\n⭐Contribute x damage
+
         return {embeds:[objEmbed], components: [
             new MessageActionRow()
             .addComponents(
@@ -1008,14 +1015,23 @@ class Spawner {
             )
             .addComponents(
                 DiscordStyles.Button.base("card.battle_finisher","💖 Finisher")
-            )
-            .addComponents(
-                DiscordStyles.Button.base("card.battle_scan","🔍 Scan")
             ),
             // .addComponents(
             //     DiscordStyles.Button.base("card.battle_swap","🔁 Swap")
             // ),
-            DiscordStyles.SelectMenus.basic("card.battle_stance","Manual Battle Command",
+            DiscordStyles.SelectMenus.basic("card.battle_skill","✨ Cure Skills",
+                [{
+                    label: `Sapphire Arrow`,
+                    description: ``,
+                    value:`rock`
+                },
+                {
+                    label: `Crystal Shoot`,
+                    description: `Block with neutral stance`,
+                    value:`crystal_shoot`
+                }]
+            ),
+            DiscordStyles.SelectMenus.basic("card.battle_stance","Stance",
                 [{
                     label: `🪨 Rock`,
                     description: `Attack & change into offensive stance`,
@@ -1031,9 +1047,8 @@ class Spawner {
                     description: `Block & change into defensive stance`,
                     value:`scissors`
                 }]
-            ),
-        ],
-    };
+            )
+        ]};
         
     }
 
@@ -1212,7 +1227,7 @@ class EventListener {
         }
 
         //init point map
-        var mapColorPoint = new Map(); //init color point map
+        var mapColorData = new Map(); //init color point map
         var mapSeriesPoint = new Map(); //init series point map
 
         //get color level bonus
@@ -1221,7 +1236,7 @@ class EventListener {
         rateCatch+=UserModule.Card.getColorLevelBonus(colorLevel);
 
         if(GlobalFunctions.randomNumber(0,100)<=rateCatch){//success
-            mapColorPoint.set(Properties.color[color].value, colorPoint);//color points reward
+            mapColorData.set(Properties.color[color].value, {"point":colorPoint});//color points reward
             mapSeriesPoint.set(SpackModule[series].Properties.value, seriesPoint);//series points reward
     
             var inventoryData = await UserModule.Card.getInventoryData(userId, cardData[DBM_Card_Data.columns.id_card]);
@@ -1249,14 +1264,14 @@ class EventListener {
                 );
             }
         } else { //fail to catch
-            mapColorPoint.set(Properties.color[color].value, rarity);//color points reward
+            mapColorData.set(Properties.color[color].value, {"point":rarity});//color points reward
             mapSeriesPoint.set(SpackModule[series].Properties.value, rarity);//series points reward
 
             arrEmbeds.push(Embed.notifFailCatch(objUserData, cardData));
         }
 
         //process the user updatre
-        updateData[DBM_User_Data.columns.color_data] = mapColorPoint;
+        updateData[DBM_User_Data.columns.color_data] = mapColorData;
         updateData[DBM_User_Data.columns.series_data] = mapSeriesPoint;
         updateData[DBM_User_Data.columns.token_cardspawn] = guildData[DBM_Guild_Data.columns.spawn_token];
         await UserModule.updateData(userId, userStatusData, updateData);
@@ -1297,7 +1312,7 @@ class EventListener {
         var number = parsedSpawnData[Spawner.spawnDataType.number.dataKey.number];
         if((choice=="lower" && rndNumber<number)||
         (choice=="higher" && rndNumber>number)){//success
-            mapColorPoint.set(Properties.color[color].value, colorPoint);//color points reward
+            mapColorPoint.set(Properties.color[color].value, {"point":colorPoint});//color points reward
             mapSeriesPoint.set(SpackModule[series].Properties.value, seriesPoint);//series points reward
             updateData[DBM_User_Data.columns.token_cardspawn] = guildData[DBM_Guild_Data.columns.spawn_token];
     
@@ -1324,7 +1339,7 @@ class EventListener {
             }
         } else if(rndNumber==number) {//same
             colorPoint = rarity; seriesPoint = rarity;
-            mapColorPoint.set(Properties.color[color].value, colorPoint);//color points reward
+            mapColorPoint.set(Properties.color[color].value, {"point":colorPoint});//color points reward
             mapSeriesPoint.set(SpackModule[series].Properties.value, seriesPoint);//series points reward
 
             arrEmbeds.push(GEmbed.builder(
@@ -1340,7 +1355,7 @@ class EventListener {
                 }
             ));
         } else { //fail to catch
-            mapColorPoint.set(Properties.color[color].value, rarity);//color points reward
+            mapColorPoint.set(Properties.color[color].value, {"point":rarity});//color points reward
             mapSeriesPoint.set(SpackModule[series].Properties.value, rarity);//series points reward
             updateData[DBM_User_Data.columns.token_cardspawn] = guildData[DBM_Guild_Data.columns.spawn_token];
 
@@ -1406,15 +1421,16 @@ class EventListener {
                 updateData[DBM_User_Data.columns.point_peace] = -boostCost;
                 txtNotifBoostCapture = `${UserModule.Properties.peacePoint.icon} boost capture has been used!`;
             }
-        } else if(color==bonusColor) rateCatch+=Spawner.bonusRateCatch.color[rarity];//calculate color zone bonus
-        
-        //get color level bonus
-        //parse user color data
-        var colorLevel = JSON.parse(userStatusData[DBM_User_Data.columns.color_data])[color]["level"];
-        rateCatch+=UserModule.Card.getColorLevelBonus(colorLevel);
+        } else if(color==bonusColor){
+            rateCatch+=Spawner.bonusRateCatch.color[rarity];//calculate color zone bonus
 
-        if(GlobalFunctions.randomNumber(0,100)<=rateCatch){//success
-            mapColorPoint.set(Properties.color[color].value, colorPoint);//color points reward
+            var colorLevel = JSON.parse(userStatusData[DBM_User_Data.columns.color_data])[color]["level"];
+            rateCatch+=UserModule.Card.getColorLevelBonus(colorLevel);
+        }
+
+        var rndRoll = GlobalFunctions.randomNumber(0,100);
+        if(rndRoll<rateCatch){//success
+            mapColorPoint.set(Properties.color[color].value, {"point":colorPoint});//color points reward
             mapSeriesPoint.set(SpackModule[series].Properties.value, seriesPoint);//series points reward
     
             var inventoryData = await UserModule.Card.getInventoryData(userId, cardData[DBM_Card_Data.columns.id_card]);
@@ -1442,7 +1458,7 @@ class EventListener {
                 );
             }
         } else { //fail to catch
-            mapColorPoint.set(Properties.color[color].value, rarity);//color points reward
+            mapColorPoint.set(Properties.color[color].value, {"point":rarity});//color points reward
             mapSeriesPoint.set(SpackModule[series].Properties.value, rarity);//series points reward
 
             arrEmbeds.push(Embed.notifFailCatch(objUserData, cardData));
@@ -1505,15 +1521,18 @@ class EventListener {
                 updateData[DBM_User_Data.columns.point_peace] = -boostCost;
                 txtNotifBoostCapture = `${UserModule.Properties.peacePoint.icon} boost capture has been used!`;
             }
-        } else if(series==bonusSeries) rateCatch+=Spawner.bonusRateCatch.series[rarity];//calculate series zone bonus
-        
-        //get series level bonus
-        //parse user series data
-        var colorLevel = JSON.parse(userStatusData[DBM_User_Data.columns.color_data])[color]["level"];
-        rateCatch+=UserModule.Card.getColorLevelBonus(colorLevel);
+        } else if(series==bonusSeries){
+            rateCatch+=Spawner.bonusRateCatch.series[rarity];//calculate series zone bonus
 
-        if(GlobalFunctions.randomNumber(0,100)<=rateCatch){//success
-            mapColorPoint.set(Properties.color[color].value, colorPoint);//color points reward
+            //parse user series data
+            var colorLevel = JSON.parse(userStatusData[DBM_User_Data.columns.color_data])[color]["level"];
+            rateCatch+=UserModule.Card.getColorLevelBonus(colorLevel);
+        }
+
+        var rndRoll = GlobalFunctions.randomNumber(0,100);
+        
+        if(rndRoll<=rateCatch){//success
+            mapColorPoint.set(Properties.color[color].value, {"point":colorPoint});//color points reward
             mapSeriesPoint.set(SpackModule[series].Properties.value, seriesPoint);//series points reward
     
             var inventoryData = await UserModule.Card.getInventoryData(userId, cardData[DBM_Card_Data.columns.id_card]);
@@ -1541,7 +1560,7 @@ class EventListener {
                 );
             }
         } else { //fail to catch
-            mapColorPoint.set(Properties.color[color].value, rarity);//color points reward
+            mapColorPoint.set(Properties.color[color].value, {"point":rarity});//color points reward
             mapSeriesPoint.set(SpackModule[series].Properties.value, rarity);//series points reward
 
             arrEmbeds.push(Embed.notifFailCatch(objUserData, cardData));
@@ -1589,7 +1608,7 @@ class EventListener {
         var jankenponData = SpackModule.smile.Properties.jankenponData;
         var rndJankenpon = GlobalFunctions.randomPropertyKey(jankenponData);
         if(jankenponData[rndJankenpon].choiceResults[choice]){//results: win
-            mapColorPoint.set(Properties.color[color].value, colorPoint);//color points reward
+            mapColorPoint.set(Properties.color[color].value, {"point":colorPoint});//color points reward
             mapSeriesPoint.set(SpackModule[series].Properties.value, seriesPoint);//series points reward
             updateData[DBM_User_Data.columns.token_cardspawn] = guildData[DBM_Guild_Data.columns.spawn_token];//update user token
 
@@ -1600,7 +1619,7 @@ class EventListener {
             arrEmbeds.push(GEmbed.builder(
                 `I picked ${jankenponData[rndJankenpon].icon} **${jankenponData[rndJankenpon].value}**! Yay yay yay! You win!`,
                 objUserData,{
-                    color:GEmbed.color.green,
+                    color:GEmbed.color.yellow,
                     title:"✅ You Win!",
                     thumbnail:jankenponData[rndJankenpon].img
                 }
@@ -1623,7 +1642,7 @@ class EventListener {
             }
         } else if(jankenponData[rndJankenpon].value==choice){ //results: draw
             colorPoint = rarity; seriesPoint = rarity;
-            mapColorPoint.set(Properties.color[color].value, colorPoint);//color points reward
+            mapColorPoint.set(Properties.color[color].value, {"point":colorPoint});//color points reward
             mapSeriesPoint.set(SpackModule[series].Properties.value, seriesPoint);//series points reward
 
             arrEmbeds.push(GEmbed.builder(
@@ -1631,14 +1650,15 @@ class EventListener {
                     title:"🔁 Once More!",
                     thumbnail:jankenponData[rndJankenpon].img,
                     fields:[{
-                        name:`Consolidation Rewards:`,
-                        value:`>${colorPoint} ${color} points${colorPoint>rarity ? " ⏫":""}\n>${seriesPoint} ${seriesCurrency} ${seriesPoint>rarity ? " ⏫":""}`
+                        name:`Received:`,
+                        value:stripIndents`${Properties.color[color].icon} ${colorPoint} ${color} points${colorPoint>rarity ? " ⏫":""}
+                        ${SpackModule[series].Properties.icon.mascot_emoji} ${seriesPoint} ${seriesCurrency.name} ${seriesPoint>rarity ? " ⏫":""}`
                     }]
                 }
             ));
         } else {//results: lose
             colorPoint = rarity; seriesPoint = rarity;
-            mapColorPoint.set(Properties.color[color].value, colorPoint);//color points reward
+            mapColorPoint.set(Properties.color[color].value, {"point":colorPoint});//color points reward
             mapSeriesPoint.set(SpackModule[series].Properties.value, seriesPoint);//series points reward
             updateData[DBM_User_Data.columns.token_cardspawn] = guildData[DBM_Guild_Data.columns.spawn_token];//update user token
 
@@ -1649,8 +1669,9 @@ class EventListener {
                     title:"❌ You Lost!",
                     thumbnail:jankenponData[rndJankenpon].img,
                     fields:[{
-                        name:`Consolidation Rewards:`,
-                        value:`>${colorPoint} ${color} points${colorPoint>rarity ? " ⏫":""}\n>${seriesPoint} ${seriesCurrency} ${seriesPoint>rarity ? " ⏫":""}`
+                        name:`Received:`,
+                        value:stripIndents`${Properties.color[color].icon} ${colorPoint} ${color} points${colorPoint>rarity ? " ⏫":""}
+                        ${SpackModule[series].Properties.icon.mascot_emoji} ${seriesPoint} ${seriesCurrency.name} ${seriesPoint>rarity ? " ⏫":""}`
                     }]
                 }
             ));
@@ -1694,7 +1715,7 @@ class EventListener {
         var answer = parsedSpawnData[Spawner.spawnDataType.act.dataKey.value];
 
         if(choice == answer){ //success
-            mapColorPoint.set(Properties.color[color].value, colorPoint);//color points reward
+            mapColorPoint.set(Properties.color[color].value, {"point":colorPoint});//color points reward
             mapSeriesPoint.set(SpackModule[series].Properties.value, seriesPoint);//series points reward
     
             var inventoryData = await UserModule.Card.getInventoryData(userId, cardData[DBM_Card_Data.columns.id_card]);
@@ -1717,7 +1738,7 @@ class EventListener {
                 );
             }
         } else { //fail to catch
-            mapColorPoint.set(Properties.color[color].value, rarity);//color points reward
+            mapColorPoint.set(Properties.color[color].value, {"point":rarity});//color points reward
             mapSeriesPoint.set(SpackModule[series].Properties.value, rarity);//series points reward
 
             switch(subType){

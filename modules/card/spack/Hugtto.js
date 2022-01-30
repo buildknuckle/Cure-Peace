@@ -24,6 +24,7 @@ class Enemy{
         tsunagarus:{
             term:"oshimaida",
             name:"Oshimaida",
+            catchphrase:"Oshimaida!",
             color:[],//will be loaded from init
             img:[
                 "https://static.wikia.nocookie.net/prettycure/images/d/d6/HuPC01_Oshimaid%C4%81.png",

@@ -25,6 +25,7 @@ class Enemy{
         tsunagarus:{
             term:"nakewameke",
             name:"Nakewameke",
+            catchphrase:"Nakewameke!",
             color:[],//will be loaded from init
             img:[
                 "https://static.wikia.nocookie.net/prettycure/images/b/b2/Nakewameke_01.jpg",

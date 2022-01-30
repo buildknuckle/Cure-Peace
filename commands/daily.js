@@ -141,8 +141,8 @@ module.exports = {
                 //validate & check if user have do the daily/not
                 var checkInDate = GlobalFunctions.getCurrentDate();
                 
-                var userData = await UserModule.getStatusData(userId);
-                var idLogin = userData[DBM_User_Data.columns.server_id_login];
+                var userStatusData = await UserModule.getStatusData(userId);
+                var idLogin = userStatusData[DBM_User_Data.columns.server_id_login];
                 var optionsColor = interaction.options._hoistedOptions[0].value;
                 var embedColor = `success`;//default for overall
 
@@ -151,14 +151,14 @@ module.exports = {
                 var mofucoin = GlobalFunctions.randomNumber(60,70);
                 var seriesPoint = Math.round(colorPoint/2);
 
-                var ownSeries = userData[DBM_User_Data.columns.set_series];
-                var parsedDailyData = JSON.parse(userData[DBM_User_Data.columns.daily_data]);
+                var ownSeries = userStatusData[DBM_User_Data.columns.set_series];
+                var parsedDailyData = JSON.parse(userStatusData[DBM_User_Data.columns.daily_data]);
                 var lastCheckInDate = parsedDailyData[QuestModule.Properties.dataKey.lastCheckInDate];
 
                 var txtBonus = ``; var isNewcomer = false;
 
                 //check for newcomer (if user never checked in)
-                if(userData[DBM_User_Data.columns.server_id_login]==null){
+                if(userStatusData[DBM_User_Data.columns.server_id_login]==null){
                     //check if user have 10 cards/not
                     var query = `SELECT COUNT(*) as total FROM ${DBM_Card_Inventory.TABLENAME} WHERE ${DBM_User_Data.columns.id_user}=?`;
                     var res = await DBConn.conn.query(query,[userId]);
@@ -212,12 +212,12 @@ module.exports = {
                 var txtRewards = ``;
                 var mapColor = new Map();
                 var mapSeries = new Map();
-                var mapCurrency = new Map();
-
+                
+                var updateData = {};
                 switch(optionsColor){
                     case "overall":
                         for(var color in Properties.color){
-                            mapColor.set(color,colorPoint);
+                            mapColor.set(Properties.color[color].value, {"point":colorPoint});
                         }
 
                         for(var series in SpackModule){
@@ -232,8 +232,9 @@ module.exports = {
                         //specific
                         embedColor = Properties.color[optionsColor].value;
                         colorPoint*=2; seriesPoint*=2; mofucoin*=2;
-                        mapColor.set(Properties.color[optionsColor].value,colorPoint);
-                        mapSeries.set(userData[DBM_User_Data.columns.set_series],seriesPoint);
+
+                        mapColor.set(Properties.color[optionsColor].value,{"point":colorPoint});
+                        mapSeries.set(userStatusData[DBM_User_Data.columns.set_series],seriesPoint);
 
                         txtRewards = stripIndents`${Properties.emoji.mofucoin} ${mofucoin} mofucoin ⏫
                         ${Properties.color[optionsColor].icon} ${colorPoint} ${optionsColor} points ⏫
@@ -241,13 +242,18 @@ module.exports = {
                         break;
                 }
 
+                updateData[DBM_User_Data.columns.color_data] = mapColor;//update color points data
+                updateData[DBM_User_Data.columns.series_data] = mapSeries;//update series points data
+                
+                var mapCurrency = new Map();
                 mapCurrency.set(Properties.currency.mofucoin.value, mofucoin);
-                await UserModule.updatePointParam(userId, userData, mapColor, mapSeries, mapCurrency);//update points
+                updateData[DBM_User_Data.columns.currency_data] = mapCurrency;
 
+                //process daily data
                 parsedDailyData[QuestModule.Properties.dataKey.lastCheckInDate] = checkInDate;
-                userData[DBM_User_Data.columns.daily_data] = JSON.stringify(parsedDailyData);
-                var mapSet = new Map();
-                mapSet.set(DBM_User_Data.columns.daily_data, userData[DBM_User_Data.columns.daily_data]);
+                userStatusData[DBM_User_Data.columns.daily_data] = JSON.stringify(parsedDailyData);
+                
+                updateData[DBM_User_Data.columns.daily_data] = userStatusData[DBM_User_Data.columns.daily_data];
 
                 //update server id & CheckIn date
                 //replace old guild key
@@ -259,11 +265,9 @@ module.exports = {
                     
                 }
                 GuildModule.Data.userLogin[guildId].push(userId);
-                mapSet.set(DBM_User_Data.columns.server_id_login, guildId);
+                updateData[DBM_User_Data.columns.server_id_login] = guildId;
 
-                var mapWhere = new Map();
-                mapWhere.set(DBM_User_Data.columns.id_user,userId);
-                await DB.update(DBM_User_Data.TABLENAME,mapSet,mapWhere);//DEBUGGING PURPOSE
+                await UserModule.updateData(userId, userStatusData, updateData);
 
                 var notifEmbed;
                 if(!isNewcomer){

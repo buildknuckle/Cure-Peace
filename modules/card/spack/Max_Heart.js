@@ -26,6 +26,7 @@ class Enemy {
         tsunagarus:{//normal monster
             term:"zakenna",
             name:"Zakenna",
+            catchphrase:"Zakenna!",
             color:[],//will be loaded from init
             img:[
                 "https://static.wikia.nocookie.net/prettycure/images/d/d2/FwPC01_Roller_Coaster_Zakenna.png",

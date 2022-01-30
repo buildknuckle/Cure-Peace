@@ -25,6 +25,7 @@ class Enemy{
         tsunagarus:{
             term:"megabyogen",
             name:"Megabyogen",
+            catchphrase:"Mega!",
             color:[],//will be loaded from init
             img:[
                 "https://static.wikia.nocookie.net/prettycure/images/a/ab/HGPC01_Megabyogen.png",

@@ -43,6 +43,11 @@ class Button{
         );
     }
 
+    static row(arrButton){
+        return new MessageActionRow()
+        .addComponents(arrButton);
+    }
+
 }
 
 class SelectMenus {

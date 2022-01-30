@@ -23,7 +23,7 @@ module.exports = {
         var userUsername = interaction.user.username;
         var userAvatarUrl = interaction.user.avatarURL();
 
-        var objSpawn = await CardModule.Spawner.spawnNormal(guildId);
+        var objSpawn = await CardModule.Spawner.spawnBattle(guildId);
         await interaction.reply(objSpawn);
 
         // await interaction.reply("text <:color_pink:935901707026714714>");

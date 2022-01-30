@@ -24,6 +24,7 @@ class Enemy{
         tsunagarus:{
             term:"negatone",
             name:"Negatone",
+            catchphrase:"Negatone!",
             color:[],//will be loaded from init
             img:[
                 "https://static.wikia.nocookie.net/prettycure/images/7/72/Nega0102.gif",

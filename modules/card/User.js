@@ -269,6 +269,8 @@ async function updateSpawnToken(userId, tokenSpawn){
 async function updateData(id_user, userStatusData, options){
     var arrParam = [];
     var querySet = ``;
+
+    //{"pink":{"level":1,"point":0},"blue":{"level":1,"point":0},"yellow":{"level":1,"point":0},"green":{"level":1,"point":0},"red":{"level":1,"point":0},"purple":{"level":1,"point":0},"white":{"level":1,"point":0}}
     
     //process color point
     for (var keyOptions in options) {
@@ -278,15 +280,22 @@ async function updateData(id_user, userStatusData, options){
                 var mapColorPoint = valueOptions;
                 var parsedColorPoint = JSON.parse(userStatusData[DBM_User_Data.columns.color_data]);
                 for (const [key, value] of mapColorPoint.entries()) {
-                    if(value>=0&&parsedColorPoint[key]["point"]+value<Properties.limit.colorPoint){
-                        parsedColorPoint[key]["point"]+= value;
-                    } else if(value<0){
-                        parsedColorPoint[key]["point"]-=- value;
-                    } else {
-                        parsedColorPoint[key]["point"]= Properties.limit.colorPoint;
+                    if("level" in value){//add level
+                        parsedColorPoint[key]["level"]+=value["level"];
                     }
-                    
-                    if(value<0&&parsedColorPoint[key]["point"]-value<=0) parsedColorPoint[key]["point"]=0; //prevent negative
+
+                    if("point" in value){//update color point
+                        var point = value["point"];
+                        if(point>=0&&parsedColorPoint[key]["point"]+point<Properties.limit.colorPoint){
+                            parsedColorPoint[key]["point"]+= point;
+                        } else if(point<0){
+                            parsedColorPoint[key]["point"]-=- point;
+                        } else {
+                            parsedColorPoint[key]["point"]= Properties.limit.colorPoint;
+                        }
+                        
+                        if(point<0&&parsedColorPoint[key]["point"]-point<=0) parsedColorPoint[key]["point"]=0; //prevent negative
+                    }
                 }
             
                 arrParam.push(JSON.stringify(parsedColorPoint));
@@ -342,12 +351,10 @@ async function updateData(id_user, userStatusData, options){
                 querySet+=` ${DBM_User_Data.columns.point_peace} = ?, `;
                 arrParam.push(curPointBoost);
                 break;
-            case DBM_User_Data.columns.daily_data:
-                querySet+=` ${DBM_User_Data.columns.daily_data} = ?, `;
-                arrParam.push(valueOptions);
-                break;
+            case DBM_User_Data.columns.daily_data://daily data
             case DBM_User_Data.columns.token_cardspawn://card spawn token
-                querySet+=` ${DBM_User_Data.columns.token_cardspawn} = ?, `;
+            case DBM_User_Data.columns.server_id_login:
+                querySet+=` ${keyOptions} = ?, `;
                 arrParam.push(valueOptions);
                 break;
         }
@@ -724,7 +731,7 @@ class EventListener {
         var color = CpackModule[pack].Properties.color; var iconColor = GProperties.emoji[`color_${color}`];
         var alterEgo = CpackModule[pack].Properties.alter_ego;
         var icon = CpackModule[pack].Properties.icon;
-        var max = CpackModule.nagisa.Properties.total;
+        var max = CpackModule[pack].Properties.total;
 
         var idx = 0; var maxIdx = 4; var txtInventory = ``;
         var total = {
@@ -742,42 +749,42 @@ class EventListener {
         
         var arrFields = [];
         for(var i=0;i<cardDataInventory.length;i++){
-            var iconOwned = 
-                cardDataInventory[i][DBM_Card_Inventory.columns.id_user] ? 
+            var iconOwned = cardDataInventory[i][DBM_Card_Inventory.columns.id_user] ? 
                 GProperties.emoji.aoi_check_green : GProperties.emoji.aoi_x;
             var rarity = cardDataInventory[i][DBM_Card_Data.columns.rarity];
             var img = cardDataInventory[i][DBM_Card_Data.columns.img_url];
+            var id = cardDataInventory[i][DBM_Card_Inventory.columns.id_user] ? 
+            `${cardDataInventory[i][DBM_Card_Data.columns.id_card]}` : "???";
+            var displayName = cardDataInventory[i][DBM_Card_Inventory.columns.id_user] ? 
+            `[${cardDataInventory[i][DBM_Card_Data.columns.name]}](${img})` : "???";
+            var stock = cardDataInventory[i][DBM_Card_Inventory.columns.stock]>1 ? 
+            `x${cardDataInventory[i][DBM_Card_Inventory.columns.stock]}`:"";
             
             //check for gold
             // iconOwned = cardDataInventory[i][DBM_Card_Data.columns.is_gold]==1 && cardDataInventory[i][DBM_Card_Inventory.columns.id_user] ? 
             // GProperties.emoji.aoi_check_green:GProperties.emoji.aoi_x;
             
-            if(idx<=maxIdx){
-                arrFields.push({
-                    name:`${iconOwned} ${cardDataInventory[i][DBM_Card_Data.columns.id_card]} ${GProperties.emoji.r1}${rarity}`,
-                    value:`[${cardDataInventory[i][DBM_Card_Data.columns.name]}](${img})`
-                });
-
-                if(i==cardDataInventory.length-1){
-                    arrPages.push(Embed.builder(`**Duplicate:**/${Properties.limit.card}\n**Normal: ${total.normal}/ ${max}**\n**Gold: ${total.gold}/${max}**`,objUserData,{
-                        color:Embed.color[color],
-                        title:`${iconColor} ${GlobalFunctions.capitalize(pack)}/${alterEgo} Inventory:`,
-                        thumbnail:icon,
-                        fields:arrFields
-                    }));
-                }
-                idx++;
-            } else {
-                arrPages.push(Embed.builder(`**Duplicate:**/${Properties.limit.card}\n**Normal: ${total.normal}/ ${max}**\n**Gold: ${total.gold}/${max}**`,objUserData,{
+            arrFields.push({
+                name:`${GProperties.emoji.r1}${rarity}: ${id} ${stock}`,
+                value:displayName
+            });
+            
+            if(idx>maxIdx||(idx<maxIdx && i==cardDataInventory.length-1)){
+                arrPages.push(Embed.builder(
+                    stripIndents`**Duplicate:**/${Properties.limit.card}
+                    **Normal:** ${total.normal}/ ${max} 
+                    **Gold:** ${total.gold}/${max}`,objUserData,{
                     color:Embed.color[color],
                     title:`${iconColor} ${GlobalFunctions.capitalize(pack)}/${alterEgo} Inventory:`,
                     thumbnail:icon,
                     fields:arrFields
                 }));
                 arrFields = [];
-                txtInventory = ``;
-                idx=0;
+                idx = 0;
+            } else {
+                idx++;
             }
+
         }
 
         return paginationEmbed(interaction,arrPages,DiscordStyles.Button.pagingButtonList);

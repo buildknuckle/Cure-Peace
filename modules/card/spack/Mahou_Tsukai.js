@@ -24,6 +24,7 @@ class Enemy {
         tsunagarus:{
             term:"yokubaru",
             name:"Yokubaru",
+            catchphrase:"Yokubaru!",
             color:[],//will be loaded from init
             img:[
                 "https://static.wikia.nocookie.net/prettycure/images/e/ed/MTPC01_-_Yokubaru.png",

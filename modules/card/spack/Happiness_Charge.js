@@ -24,6 +24,7 @@ class Enemy{
         tsunagarus:{
             term:"saiarks",
             name:"Saiarks",
+            catchphrase:"Saiarks!",
             color:[],//will be loaded from init
             img:[
                 "https://static.wikia.nocookie.net/prettycure/images/1/17/HCPC03.saiark.PNG",

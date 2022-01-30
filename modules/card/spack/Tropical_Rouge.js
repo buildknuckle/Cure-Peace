@@ -24,6 +24,7 @@ class Enemy{
         tsunagarus:{
             term:"yaraneeda",
             name:"Yaraneeda",
+            catchphrase:"Yaraneeda!",
             color:[],//will be loaded from init
             img:[
                 "https://static.wikia.nocookie.net/prettycure/images/c/c8/TRPC01_Yaraneeda.jpg",

@@ -24,6 +24,7 @@ class Enemy {
         tsunagarus:{
             term:"jikochuu",
             name:"Jikochuu",
+            catchphrase:"Jikochuu!",
             color:[],//will be loaded from init
             img:[
                 "https://static.wikia.nocookie.net/prettycure/images/2/21/JikochuuGorilla.png",

@@ -24,6 +24,7 @@ class Enemy{
         tsunagarus:{
             term:"zetsuborg",
             name:"Zetsuborg",
+            catchphrase:"Zetsuborg!",
             color:[],//will be loaded from init
             img:[
                 "https://static.wikia.nocookie.net/prettycure/images/e/ee/Book_Zetsuborg.png",
