@@ -1,15 +1,13 @@
-const GProperties = require("../Properties");
-
 class Properties {
     static value = "smile";
     static icon = {
         series: "https://cdn.discordapp.com/attachments/793415946738860072/845617680399728690/latest.png",
-        mascot_emoji:GProperties.emoji.m7_candy
+        mascot_emoji:"<:m7_candy:936237023747014726>"
     }
     static name = "Smile";
     static currency = {
         name:"Decor Points",
-        icon_emoji:GProperties.emoji.m7_candy
+        icon_emoji:"<:m7_candy:936237023747014726>"
     };
 
     static theme = "fairy tales";
@@ -43,6 +41,12 @@ class Properties {
             }
         }
     }
+
+    static location = {
+        name:"Nanairogaoka",
+        icon:"https://static.wikia.nocookie.net/prettycure/images/7/74/Nanairoga1.jpg",
+    };
+
 }
 
 class Battle {
@@ -50,24 +54,15 @@ class Battle {
     static img_party_special = "https://cdn.discordapp.com/attachments/793415946738860072/824151822146207764/image0.png";
 }
 
-class Enemy{
-    static data = {
-        tsunagarus:{
-            term:"akanbe",
-            name:"Akanbe",
-            catchphrase:"Akanbe!",
-            color:[],//will be loaded from init
-            img:[
-                "https://static.wikia.nocookie.net/prettycure/images/4/46/Akanbe_01.jpg",
-                "https://static.wikia.nocookie.net/prettycure/images/4/44/Gfxg.jpg",
-                "https://static.wikia.nocookie.net/prettycure/images/0/06/Akanbe.ep.9.jpg",
-                "https://static.wikia.nocookie.net/prettycure/images/9/91/Akanbe_15.jpg",
-                "https://static.wikia.nocookie.net/prettycure/images/b/b8/Akanbe.ep16.jpg"
-            ],
-        }
-    }
+class Monsters {
+    static color = [];//color availability, will be loaded from init
+    static value = "akanbe";
+    static name = "Akanbe";
+    static catchphrase = "Akanbe!";
+    static chaos_meter = "fiasco";
+    static data = {};//will be loaded from init
 }
 
 module.exports = {
-    Properties, Battle, Enemy
+    Properties, Battle, Monsters
 }

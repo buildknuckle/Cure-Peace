@@ -1,12 +1,12 @@
-const DB = require('../database/DatabaseCore');
-const DBConn = require('../storage/dbconn');
-const GlobalFunctions = require('../modules/GlobalFunctions.js');
+const DB = require('../../database/DatabaseCore');
+const DBConn = require('../../storage/dbconn');
+const GlobalFunctions = require('../GlobalFunctions.js');
 const DBM_Card_Guild = require('../database/model/DBM_Card_Guild');
-const DBM_Pinky_Data = require('../database/model/DBM_Pinky_Data');
-const DBM_Pinky_Inventory = require('../database/model/DBM_Pinky_Inventory');
+const DBM_Pinky_Data = require('../../database/model/DBM_Pinky_Data');
+const DBM_Pinky_Inventory = require('../../database/model/DBM_Pinky_Inventory');
 const CardModule = require('../modules/Card')
 const pinky = require('../commands/pinky');
-const DBM_Card_User_Data = require('../database/model/DBM_Card_User_Data');
+const DBM_Card_User_Data = require('../../database/model/DBM_Card_User_Data');
 const { constants } = require('fs');
 
 class Properties{

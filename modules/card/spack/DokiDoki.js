@@ -1,17 +1,19 @@
-const GProperties = require("../Properties");
-
 class Properties {
     static value = "dokidoki";
     static icon = {
         series:"https://cdn.discordapp.com/attachments/793415946738860072/845617720019648512/latest.png",
-        mascot_emoji:GProperties.emoji.m8_davi
+        mascot_emoji:"<:m8_davi:936237025609261106>"
     }
     static name = "Doki Doki";
     static currency = {
         name:"Lovead Points",
-        icon_emoji:GProperties.emoji.m8_davi
+        icon_emoji:"<:m8_davi:936237025609261106>"
     };
     static theme = "emotions and selflessness";
+    static location = {
+        name:"Oogai Town",
+        icon:"https://static.wikia.nocookie.net/prettycure/images/4/4a/Clover_Tower_.jpg",
+    };
 }
 
 class Battle {
@@ -19,24 +21,16 @@ class Battle {
     static img_party_special = "https://cdn.discordapp.com/attachments/793415946738860072/824152056629690368/image0.png";
 }
 
-class Enemy {
-    static data = {
-        tsunagarus:{
-            term:"jikochuu",
-            name:"Jikochuu",
-            catchphrase:"Jikochuu!",
-            color:[],//will be loaded from init
-            img:[
-                "https://static.wikia.nocookie.net/prettycure/images/2/21/JikochuuGorilla.png",
-                "https://static.wikia.nocookie.net/prettycure/images/4/47/Jikochuu_marmo.png",
-                "https://static.wikia.nocookie.net/prettycure/images/5/54/Aee42734.jpg",
-                "https://static.wikia.nocookie.net/prettycure/images/7/77/Jikochuu_pelota.png",
-                "https://static.wikia.nocookie.net/prettycure/images/1/11/DDPC16.Jikochuu.PNG"
-            ],
-        }
-    }
+class Monsters {
+    static color = [];//color availability, will be loaded from init
+    static value = "jikochuu";
+    static name = "Jikochuu";
+    static catchphrase = "Jikochuu!";
+    static chaos_meter = "selfish";
+    static data = {};//will be loaded from init
+
 }
 
 module.exports = {
-    Properties, Battle, Enemy
+    Properties, Battle, Monsters
 }

@@ -8,7 +8,7 @@ const GlobalFunctions = require('../../modules/GlobalFunctions');
 const Embed = require("../../modules/card/Embed");
 const GProperties = require("../../modules/card/Properties");
 const CPackModule = require("../../modules/card/Cpack");
-const SPackModule = require("../../modules/card/Spack");
+const SPackModule = require("./Series");
 const CardModule = require("../../modules/card/Card");
 const UserModule = require("../../modules/card/User");
 
@@ -127,7 +127,7 @@ class Card {
             color: Embed.color.yellow,
             author: {
                 name: `Daily Card Quest List (${activeQuest}/4)`,
-                icon_url: GProperties.imgMofu.ok
+                icon_url: GProperties.imgSet.mofu.ok
             },
             description:``
         });
@@ -152,7 +152,7 @@ class Card {
                 **Rewards:**
                 ${GProperties.color[color].icon} ${colorPointReward} ${color} points
                 ${SPackModule[series].Properties.icon.mascot_emoji} ${seriesPointReward} ${seriesCurrency.name}
-                ${GProperties.currency.mofucoin.icon_emoji} ${mofucoinReward} mofucoin`;
+                ${GProperties.currency.mofucoin.emoji} ${mofucoinReward} mofucoin`;
                 objEmbed.description+=`\n\n`;
             }
     
@@ -161,7 +161,7 @@ class Card {
             objEmbed.title = `Daily card quest has been completed!`;
             objEmbed.description += `✅ You have completed all the card quest for today`;
             objEmbed.thumbnail = {
-                url:GProperties.imgMofu.ok
+                url:GProperties.imgSet.mofu.ok
             }
         }
     
@@ -205,7 +205,7 @@ class Card {
         var rarity = cardData[DBM_Card_Data.columns.rarity];
 
         //card stock validation
-        var cardInventoryData = await UserModule.Card.getInventoryData(userId, cardId);
+        var cardInventoryData = await CardModule.Inventory.getData(userId, cardId);
         if(cardInventoryData==null){
             return Embed.errorMini(`:x: You need 1x **${cardId} - ${name}** to submit this card quest.`,objUserData,true, {
                 title:`Not Enough Card`
@@ -227,18 +227,18 @@ class Card {
         objUpdateData[DBM_User_Data.columns.daily_data] = JSON.stringify(parsedDailyData);//parse daily data
         await UserModule.updateData(userId, userStatusData, objUpdateData);
 
-        await UserModule.Card.updateStockParam(userId, cardId, cardInventoryData,-1);//update card stock
+        await CardModule.Inventory.updateStockParam(userId, cardId, cardInventoryData,-1);//update card stock
 
         return {embeds:[Embed.builder(`✅ You have submit: 1x **${cardId} - ${name}** for your daily card quest.`,objUserData, {
             color:color,
             title:`Daily Card Quest Submitted!`,
-            thumbnail:GProperties.imgMofu.ok,
+            thumbnail:GProperties.imgSet.mofu.ok,
             fields:[
                 {
                     name:`Rewards Received:`,
                     value:stripIndents`${GProperties.color[color].icon} ${colorPointReward} ${GProperties.color[color].value} points
                     ${SPackModule[series].Properties.icon.mascot_emoji} ${seriesPointReward} ${SPackModule[series].Properties.currency.name} 
-                    ${GProperties.currency.mofucoin.icon_emoji} ${mofucoinReward} ${GProperties.currency.mofucoin.name}`
+                    ${GProperties.currency.mofucoin.emoji} ${mofucoinReward} ${GProperties.currency.mofucoin.name}`
                 }
             ]
         })]};

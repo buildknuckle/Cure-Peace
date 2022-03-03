@@ -1,9 +1,9 @@
-const DB = require('../database/DatabaseCore');
-const DBConn = require('../storage/dbconn');
-const GlobalFunctions = require('../modules/GlobalFunctions.js');
-const DBM_Item_Inventory = require('../database/model/DBM_Item_Inventory');
-const DBM_Item_Data = require('../database/model/DBM_Item_Data');
-const DBM_Kirakira_Recipe = require('../database/model/DBM_Kirakira_Recipe');
+const DB = require('../../database/DatabaseCore');
+const DBConn = require('../../storage/dbconn');
+const GlobalFunctions = require('../GlobalFunctions.js');
+const DBM_Item_Inventory = require('../../database/model/DBM_Item_Inventory');
+const DBM_Item_Data = require('../../database/model/DBM_Item_Data');
+const DBM_Kirakira_Recipe = require('../../database/model/DBM_Kirakira_Recipe');
 
 class Properties{
     static maxItem = 100;

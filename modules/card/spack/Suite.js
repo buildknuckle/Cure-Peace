@@ -1,40 +1,24 @@
-const GProperties = require("../Properties");
-
 class Properties {
     static value = "suite";
     static icon = {
         series:"https://cdn.discordapp.com/attachments/793415946738860072/845617647847473160/latest.png",
-        mascot_emoji:GProperties.emoji.m6_hummy
+        mascot_emoji:"<:m6_hummy:936237021716946964>"
     }
     static name = "Suite";
     static currency = {
         name:"Melody Note Points",
-        icon_emoji:GProperties.emoji.m6_hummy
+        icon_emoji:"<:m6_hummy:936237021716946964>"
     };
     static theme = ":musical_note: musical theme";
+    static location = {
+        name:"Kanon Town",
+        icon:"https://static.wikia.nocookie.net/prettycure/images/0/09/Kanon_Town.jpg",
+    };
 }
 
 class Battle {
     static party_special = "Suite Session Ensemble Crescendo";
     static img_party_special = "https://cdn.discordapp.com/attachments/793415946738860072/824150226645680138/image0.png";
-}
-
-class Enemy{
-    static data = {
-        tsunagarus:{
-            term:"negatone",
-            name:"Negatone",
-            catchphrase:"Negatone!",
-            color:[],//will be loaded from init
-            img:[
-                "https://static.wikia.nocookie.net/prettycure/images/7/72/Nega0102.gif",
-                "https://static.wikia.nocookie.net/prettycure/images/0/02/Nega05a.gif",
-                "https://static.wikia.nocookie.net/prettycure/images/e/ec/Nega07.gif",
-                "https://static.wikia.nocookie.net/prettycure/images/c/cc/Nega11.gif",
-                "https://static.wikia.nocookie.net/prettycure/images/f/f8/Nega15.gif"
-            ],
-        }
-    }
 }
 
 class FairyTones {
@@ -82,7 +66,16 @@ class FairyTones {
     }
 }
 
+class Monsters {
+    static color = [];//color availability, will be loaded from init
+    static value = "negatone";
+    static name = "Negatone";
+    static catchphrase = "Negatone!";
+    static chaos_meter = "nega";
+    static data = {};//will be loaded from init
+}
+
 
 module.exports = {
-    Properties, Battle, Enemy, FairyTones
+    Properties, Battle, FairyTones, Monsters
 }

@@ -7,7 +7,6 @@ const DBConn = require('../storage/dbconn');
 const GlobalFunctions = require('../modules/GlobalFunctions.js');
 const DBM_Card_Data = require('../database/model/DBM_Card_Data');
 const BioModule = require('../modules/Bio');
-const { execute } = require('../events/messageCreate');
 
 module.exports = {
     name: 'bio',

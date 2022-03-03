@@ -1,5 +1,5 @@
 const fs = require('fs');
-const DB = require('../database/DatabaseCore');
+// const DB = require('../database/DatabaseCore');
 // const DBConn = require('../storage/dbconn');
 // const DBM_Log_Error = require('../database/model/DBM_Log_Error');
 
@@ -198,5 +198,17 @@ module.exports = {
    },
    isEmptyObject(obj){
       return Object.keys(obj).length === 0;
+   },
+   sumObjectByKey(obj, key){
+      return obj.reduce((total, obj) => obj[key] + total,0);
+   },
+   isDuplicate(arr){
+      return new Set(arr).size !== arr.length
+   },
+   isArrayValDuplicate(arr,valSearch){
+      return arr.filter(val => val==valSearch).length>=1 ? true:false; 
+   },
+   emojify(string){//return all emoji into smaller size on mobile
+      return `${string}𝅺`
    }
 }

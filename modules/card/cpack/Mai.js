@@ -8,17 +8,21 @@ class Properties {
     static series = "splash_star";
 }
 
-class Form {
+class Avatar {
     static normal = {
+        icon:"https://waa.ai/JEwb.png",
         name:"Cure Egret",
         transform_quotes1:"Dual Spiritual Power!",
         transform_quotes2:"The sparkling silver wing, Cure Egret!",
         special_attack:"Twin Stream Splash",
         img_special_attack:"https://cdn.discordapp.com/attachments/793379085069844520/817775792875372554/unknown.png",
         img_transformation:"",
+        skill:{
+            passive:{}
+        }
     }
 }
 
 module.exports = {
-    Properties, Form
+    Properties, Avatar
 }

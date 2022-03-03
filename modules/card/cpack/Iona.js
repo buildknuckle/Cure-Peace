@@ -8,17 +8,21 @@ class Properties {
     static series = "happiness_charge";
 }
 
-class Form {
+class Avatar {
     static normal = {
+        icon:"https://waa.ai/JEwV.png",
         name:"Cure Fortune",
         transform_quotes1:"Pretty Cure! Kirarin Star Symphony",
         transform_quotes2:"The star of hope that glitters in the night sky! Cure Fortune!",
         special_attack:"Stardust Shoot",
         img_special_attack:"https://cdn.discordapp.com/attachments/793389261570965504/817786376220835840/unknown.png",
         img_transformation:"",
+        skill:{
+            passive:{}
+        }
     }
 }
 
 module.exports = {
-    Properties, Form
+    Properties, Avatar
 }

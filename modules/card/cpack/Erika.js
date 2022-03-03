@@ -8,17 +8,21 @@ class Properties {
     static series = "heartcatch";
 }
 
-class Form {
+class Avatar {
     static normal = {
+        icon:"https://waa.ai/JEwE.png",
         name : "Cure Marine",
         transform_quotes1 : "Pretty Cure! Open My Heart!",
         transform_quotes2 : "The flower that flutters in the ocean winds, Cure Marine!",
         special_attack : "Blue Forte Wave",
         img_special_attack : "https://cdn.discordapp.com/attachments/793382673749377075/817778139501559888/unknown.png",
         img_transformation : "https://cdn.discordapp.com/attachments/793382673749377075/822047680099254272/image0.gif",
+        skill:{
+            passive:{}
+        }
     }
 }
 
 module.exports = {
-    Properties, Form
+    Properties, Avatar
 }

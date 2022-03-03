@@ -1,117 +1,114 @@
 const stripIndents = require('common-tags/lib/stripIndent');
+const dedent = require("dedent-js");
 const {MessageActionRow, MessageSelectMenu, MessageButton, MessageEmbed, Discord} = require('discord.js');
 const DB = require('../../database/DatabaseCore');
 const DBConn = require('../../storage/dbconn');
 const DiscordStyles = require('../../modules/DiscordStyles');
 const GlobalFunctions = require('../GlobalFunctions.js');
 
-const paginationEmbed = require('discordjs-button-pagination');
+const paginationEmbed = require('../DiscordPagination');
 
 const GProperties = require('./Properties');
+const Color = GProperties.color;
 
 const DBM_Card_Data = require('../../database/model/DBM_Card_Data');
 const DBM_Card_Inventory = require('../../database/model/DBM_Card_Inventory');
 const DBM_User_Data = require('../../database/model/DBM_User_Data');
 const DBM_Guild_Data = require('../../database/model/DBM_Guild_Data');
 
-const CpackModule = require("./Cpack");
-const SpackModule = require("./Spack");
+const Data = require("./Data");
+const DataUser = Data.User;
+const DataCard = Data.Card;
+// const CpackModule = require("./Cpack");
+const {Series, SPack} = require("./Series");
 
-const GuildModule = require('./Guild');
+const CardModule = require('./card');
+// const QuestModule = require('./Quest');
 
-const Embed = require("./Embed");
+const GEmbed = require("./Embed");
+const Validation = require("./Validation");
 
-class Properties {
-    static limit = {
-        colorPoint:3000,
-        mofucoin:3000,
-        jewel:1000,
-        seriesPoint:2000,
-        pointPeace:5,
-        card:120
-    }
+// class Color {
+//     static canLevelUp(color_data, color, totalLevelUp=1){
+//         return color_data[color].point>(color_data[color].level+totalLevelUp)*100 ? 
+//             true:false;
+//     }
+// }
 
-    static peacePoint = {
-        icon:GProperties.emoji.peacepoint,
-        name:"Peace Point"
-    }
-}
+// class Data {
+//     static peacePoint = Object.freeze({
+//         value:"peacePoint",
+//         name:"Peace Point",
+//         emoji:"<:peacepoint:936238606660554773>",
+//         limit:5,
+//         getLabel: function(val, withMax=false){
+//             if(withMax){
+//                 return `${val}/${this.limit} ${this.emoji}`;
+//             } else {
+//                 return `${val} ${this.emoji}`;
+//             }
+//         }
+//     })
 
-class Color {
-    static canLevelUp(color_data, color, totalLevelUp=1){
-        return color_data[color].point>(color_data[color].level+totalLevelUp)*100 ? 
-            true:false;
-    }
-}
+//     static color = Object.freeze({
+//         level:"level",
+//         point:"point"
+//     })
 
-async function getStatusData(id_user, guildId = null){
-    //{"mofucoin":0}
+//     static getCurrency(userData,currency=null){
+//         var currencyData = JSON.parse(userData[DBM_User_Data.columns.currency_data]);
+//         if(currency==null){
+//             return currencyData;
+//         } else {
+//             return currencyData[currency.value];
+//         }
+//     }
 
-    //{"pink":{"level":1,"point":0},"blue":{"level":1,"point":0},"yellow":{"level":1,"point":0},"green":{"level":1,"point":0},"red":{"level":1,"point":0},"purple":{"level":1,"point":0},"white":{"level":1,"point":0}}
+//     static getPeacePoint(userData){
+//         return userData[DBM_User_Data.columns.peace_point];
+//     }
 
-    //{"max_heart":0,"splash_star":0,"yes5gogo":0,"fresh":0,"heartcatch":0,"suite":0,"smile":0,"dokidoki":0,"happiness_charge":0,"go_princess":0,"mahou_tsukai":0,"kirakira":0,"hugtto":0,"star_twinkle":0,"healin_good":0,"tropical_rouge":0}
+//     static getSetColor(userData){
+//         return userData[DBM_User_Data.columns.set_color];
+//     }
 
-    //if guildId provided it'll check whether user has login to server/not
-    var parameterWhere = new Map();
-    parameterWhere.set(DBM_User_Data.columns.id_user,id_user);
-    var resultCheckExist = await DB.select(DBM_User_Data.TABLENAME,parameterWhere);
+//     static getColorData(userData){
+//         return JSON.parse(userData[DBM_User_Data.columns.color_data]);
+//     }
 
-    if(resultCheckExist[0]==null){ //insert if not found
-        var parameter = new Map();
-        parameter.set(DBM_User_Data.columns.id_user,id_user);
-        await DB.insert(DBM_User_Data.TABLENAME,parameter);
-        //reselect after insert new data
-        parameterWhere = new Map();
-        parameterWhere.set(DBM_User_Data.columns.id_user,id_user);
-        resultCheckExist = await DB.select(DBM_User_Data.TABLENAME,parameterWhere);
-    }
+//     static getColorLevel(userData, color){
+//         var parsedColorData = JSON.parse(userData[DBM_User_Data.columns.color_data]);
+//         return parsedColorData[color.value][this.color.level];
+//     }
 
-    resultCheckExist = resultCheckExist[0];
+//     static getColorPoint(userData, color){
+//         var parsedColorData = JSON.parse(userData[DBM_User_Data.columns.color_data]);
+//         return parsedColorData[color.value][this.color.point];
+//     }
 
-    if(guildId == null||guildId !== null && resultCheckExist[DBM_User_Data.columns.server_id_login]==guildId){
-        return await resultCheckExist;
-    } else {
-        return null;
-    }
-}
+//     static getSetSeries(userData){
+//         return userData[DBM_User_Data.columns.set_series];
+//     }
+
+//     static getSeriesName(userData){
+//         var series = this.getSetSeries(userData);
+//         return SpackModule[series].Properties.name;
+//     }
+
+//     static getSeriesData(userData){
+//         return JSON.parse(userData[DBM_User_Data.columns.series_data]);
+//     }
+// }
 
 async function isLogin(objUserData, guildId){
     var userId = objUserData.id;
     if(!GuildModule.Data.userLogin[guildId].includes(userId)){
-        return Embed.errorMini(`Please login into server with: "**/daily check-in**" command.`,objUserData,true, {
+        return GEmbed.errorMini(`Please login into server with: "**/daily check-in**" command.`,objUserData,true, {
             title:`❌ Not logged in yet!`
         });
     } else {
         return true;
     }
-}
-
-async function getAverageColorLevel(color_data){
-    //{"pink":{"level":1,"point":0},"blue":{"level":1,"point":0},"yellow":{"level":1,"point":0},"green":{"level":1,"point":0},"red":{"level":1,"point":0},"purple":{"level":1,"point":0},"white":{"level":1,"point":0}}
-    // if(color_data!=null){
-    //     //if arrColorLevel provided we dont need to read it from db
-    //     var userData = await getStatusData(id_user);
-    //     var parsedColor = JSON.parse(userData[DBM_User_Data.columns.color_data]);
-    //     color_data = [
-    //             parsedColor.pink.level, parsedColor.blue.level,
-    //             parsedColor.yellow.level, parsedColor.green.level,
-    //             parsedColor.red.level, parsedColor.purple.level,
-    //             parsedColor.white.level
-    //     ];
-    // } else {
-        
-    // }
-
-    color_data = [ 
-        color_data.pink.level, color_data.blue.level, color_data.yellow.level, color_data.green.level,
-        color_data.red.level, color_data.purple.level, color_data.white.level
-    ];
-
-    var total = 0;
-    for(var i = 0; i < color_data.length; i++) 
-        total += color_data[i];
-    
-    return Math.ceil(total / color_data.length);
 }
 
 async function updatePointParam(id_user, userStatusData, mapColorPoint, mapSeriesPoint, mapCurrency = null){
@@ -234,7 +231,7 @@ async function updateSeriesPointParam(id_user, userStatusData, mapSeriesPoint){
 
 async function updateSeriesPoint(id_user, mapSeriesPoint){
     //get series point from db
-    var statusData = await getStatusData(id_user);
+    var statusData = await DataUser.Card.getData(id_user);
     var parsedSeriesPoint = JSON.parse(statusData[DBM_User_Data.columns.series_data]);
     for (const [key, value] of mapSeriesPoint.entries()) {
         if(value>=0&&parsedSeriesPoint[key]+value<Properties.limit.colorPoint){
@@ -338,9 +335,9 @@ async function updateData(id_user, userStatusData, options){
                 querySet+=` ${DBM_User_Data.columns.currency_data} = ?, `;
                 arrParam.push(JSON.stringify(parsedCurrency));
                 break;
-            case DBM_User_Data.columns.point_peace://booster point
-                var curPointBoost = userStatusData[DBM_User_Data.columns.point_peace];
-                if(valueOptions>=0&&curPointBoost+valueOptions<Properties.limit.pointPeace){
+            case DBM_User_Data.columns.peace_point://booster point
+                var curPointBoost = userStatusData[DBM_User_Data.columns.peace_point];
+                if(valueOptions>=0&&curPointBoost+valueOptions<Properties.limit.peacePoint){
                     curPointBoost+= valueOptions;
                 } else if(valueOptions<0){
                     curPointBoost-=- valueOptions;
@@ -348,15 +345,19 @@ async function updateData(id_user, userStatusData, options){
                     curPointBoost= Properties.limit[key];
                 }
 
-                querySet+=` ${DBM_User_Data.columns.point_peace} = ?, `;
+                querySet+=` ${DBM_User_Data.columns.peace_point} = ?, `;
                 arrParam.push(curPointBoost);
                 break;
             case DBM_User_Data.columns.daily_data://daily data
             case DBM_User_Data.columns.token_cardspawn://card spawn token
             case DBM_User_Data.columns.server_id_login:
+            case DBM_User_Data.columns.avatar_main_data:
+            case DBM_User_Data.columns.avatar_support_data://support avatar
+            default:
                 querySet+=` ${keyOptions} = ?, `;
                 arrParam.push(valueOptions);
                 break;
+        
         }
     }
 
@@ -370,80 +371,36 @@ async function updateData(id_user, userStatusData, options){
     await DBConn.conn.query(query, arrParam);
 }
 
+async function checkAvailable(objUserData, username, interaction){//check if username is available on server/not
+    if(username!=null){
+        var memberExists = true;
+
+        await interaction.guild.members.fetch({query:`${username}`,limit:1})
+        .then(
+            async members=> {
+                if(members.size>=1){
+                    objUserData = {
+                        id:members.first().user.id,
+                        username:members.first().user.username,
+                        avatarUrl:members.first().user.avatarURL()
+                    }
+                    
+                } else {
+                    memberExists = false;
+                }
+            }
+        );
+
+        if(!memberExists){
+            await interaction.reply(GEmbed.notifUserNotFound(objUserData));
+            return false;
+        }
+    }
+
+    return objUserData;
+}
+
 class Card {
-    static async getPackTotal(userId, pack){
-        var query = `SELECT count(*) as total  
-        FROM ${DBM_Card_Data.TABLENAME} cd, ${DBM_Card_Inventory.TABLENAME} inv 
-        WHERE cd.${DBM_Card_Data.columns.pack}=? AND cd.${DBM_Card_Data.columns.id_card}=inv.${DBM_Card_Inventory.columns.id_card} AND 
-        inv.${DBM_Card_Inventory.columns.id_user}=?`;
-        var result = await DBConn.conn.query(query,[pack, userId]);
-        if(result[0]==null){
-            return 0;
-        } else {
-            return result[0]['total'];
-        }
-    }
-
-    static async getStock(userId, cardId){
-        var mapWhere = new Map();
-        mapWhere.set(DBM_Card_Inventory.columns.id_card, cardId);
-        mapWhere.set(DBM_Card_Inventory.columns.id_user, userId);
-        var result = await DB.select(DBM_Card_Inventory.TABLENAME,mapWhere);
-        if(result[0]==null){
-            return -1;
-        } else {
-            return result[0][DBM_Card_Inventory.columns.stock];
-        }
-    }
-
-    static async getInventoryData(userId, cardId){
-        var mapWhere = new Map();
-        mapWhere.set(DBM_Card_Inventory.columns.id_card, cardId);
-        mapWhere.set(DBM_Card_Inventory.columns.id_user, userId);
-        var result = await DB.select(DBM_Card_Inventory.TABLENAME,mapWhere);
-        if(result[0]==null){
-            return null;
-        } else {
-            return result[0];
-        }
-    }
-    
-    static async updateStockParam(userId, cardId, cardInventoryData=null, qty=1){
-        if(cardInventoryData==null){
-            //add new card
-            var mapAdd = new Map();
-            mapAdd.set(DBM_Card_Inventory.columns.id_card,cardId);
-            mapAdd.set(DBM_Card_Inventory.columns.id_user,userId);
-            if(qty>=1){
-                mapAdd.set(DBM_Card_Inventory.columns.stock,qty);
-            }
-            
-            await DB.insert(DBM_Card_Inventory.TABLENAME,mapAdd);
-        } else {
-            //get old card stock
-            var stock = cardInventoryData[DBM_Card_Inventory.columns.stock];
-            
-            if(qty>=0&&stock+qty<Properties.limit.card){
-                stock+= qty;
-            } else if(qty<0){
-                stock-=- qty;
-            } else {
-                stock= Properties.limit.card;
-            }
-            
-            if(qty<0&&stock-qty<=0) stock=0; //prevent negative
-
-            var mapSet = new Map();
-            mapSet.set(DBM_Card_Inventory.columns.stock,stock);
-            var mapWhere = new Map();
-            mapWhere.set(DBM_Card_Inventory.columns.id_card, cardInventoryData[DBM_Card_Data.columns.id_card]);
-            mapWhere.set(DBM_Card_Inventory.columns.id_user, userId);
-            await DB.update(DBM_Card_Inventory.TABLENAME, mapSet, mapWhere);
-            return stock//return with stock
-        }
-    
-    }
-
     static getColorLevelBonus(level){
         return level>=2 ? level*5:0;
     }
@@ -451,10 +408,105 @@ class Card {
     static getUserLevelBonus(level){
         return level>=2? level*5:0;
     }
+
+    
 }
 
 class EventListener {
-    static async printStatus(objUserData){
+    static async printInventory(objUserData, pack, interaction){
+        var arrPages = []; //prepare paging embed
+        
+        var query = `select cd.${DBM_Card_Data.columns.id_card}, cd.${DBM_Card_Data.columns.pack}, cd.${DBM_Card_Data.columns.name}, cd.${DBM_Card_Data.columns.rarity}, cd.${DBM_Card_Data.columns.img_url}, cd.${DBM_Card_Data.columns.hp_base}, cd.${DBM_Card_Data.columns.atk_base}, inv.${DBM_Card_Inventory.columns.id_user}, inv.${DBM_Card_Inventory.columns.is_gold}, inv.${DBM_Card_Inventory.columns.stock}, inv.${DBM_Card_Inventory.columns.level}
+        from ${DBM_Card_Data.TABLENAME} cd 
+        left join ${DBM_Card_Inventory.TABLENAME} inv 
+        on cd.${DBM_Card_Data.columns.id_card} = inv.${DBM_Card_Inventory.columns.id_card} and 
+        inv.${DBM_Card_Inventory.columns.id_user} = ?
+        where cd.${DBM_Card_Data.columns.pack}=?`;
+        
+        var cardDataInventory = await DBConn.conn.query(query, [objUserData.id, pack]);
+        //validation if pack exists/not
+        if(cardDataInventory.length<=0){
+            return interaction.reply(GEmbed.notifPackNotFound(objUserData));
+        }
+
+        var pack = cardDataInventory[0][DBM_Card_Data.columns.pack];
+        var color = CpackModule[pack].Properties.color; var iconColor = GProperties.emoji[`color_${color}`];
+        var series = CpackModule[pack].Properties.series; var iconSeries = Series[series].Properties.icon.mascot_emoji;
+        var alterEgo = CpackModule[pack].Properties.alter_ego;
+        var icon = CpackModule[pack].Properties.icon;
+        var max = CpackModule[pack].Properties.total;
+
+        var idx = 0; var maxIdx = 4; var txtInventory = ``;
+        var total = {
+            normal:cardDataInventory.filter(
+                function (item) {
+                    return item[DBM_Card_Inventory.columns.id_user] != null;
+                }
+            ).length,
+            gold:cardDataInventory.filter(
+                function (item) {
+                    return item[DBM_Card_Inventory.columns.is_gold] == 1;
+                }
+            ).length,
+            duplicate: GlobalFunctions.sumObjectByKey(cardDataInventory.filter(
+                function (item) {
+                    return item[DBM_Card_Inventory.columns.stock]>0;
+                }
+            ), DBM_Card_Inventory.columns.stock)
+        };
+        
+        var arrFields = [];
+        for(var i=0;i<cardDataInventory.length;i++){
+            var cardInventory = cardDataInventory[i];
+            var rarity = cardInventory[DBM_Card_Data.columns.rarity];
+
+            arrFields.push({
+                name:`${CardModule.Emoji.rarity(rarity)}${rarity}: ${id} ${stock}`,
+                value:stripIndents`${displayName} Lv.${level}`
+            });
+
+            if(cardInventory[DBM_Card_Inventory.columns.id_user]){
+                var id = `${cardInventory[DBM_Card_Data.columns.id_card]}`;
+                var img = cardInventory[DBM_Card_Data.columns.img_url];
+                var displayName = `[${GlobalFunctions.cutText(cardInventory[DBM_Card_Data.columns.name],30)}](${img})`;
+                var stock = cardInventory[DBM_Card_Inventory.columns.stock]>0 ?
+                `${GProperties.color[color].icon_card}x${cardInventory[DBM_Card_Inventory.columns.stock]}`:"";
+                var level = cardInventory[DBM_Card_Inventory.columns.level];
+                var hp = CardModule.Parameter.getHp(level, cardInventory[DBM_Card_Data.columns.hp_base]);
+                var atk = CardModule.Parameter.getHp(level, cardInventory[DBM_Card_Data.columns.atk_base]);
+
+                txtInventory+=`**${CardModule.Emoji.rarity(rarity, cardInventory)}${rarity}: ${id} ${stock}**\n`;
+                txtInventory+=`${displayName} Lv.${level}\n❤️:${hp} | ⚔️:${atk}\n\n`;
+            } else {
+                txtInventory+=`**${CardModule.Emoji.rarity(rarity)}${rarity}: ???**\n???\n\n`;
+            }
+            
+            if(idx>maxIdx||(idx<maxIdx && i==cardDataInventory.length-1)){
+                arrPages.push(GEmbed.builder(
+                    `**Normal:** ${total.normal}/${max} | **Gold:** ${total.gold}/${max}\n${GProperties.color[color].icon_card}: ${total.duplicate}/${Properties.limit.card*cardDataInventory.length}\n`+
+                    `\n${txtInventory}`,objUserData,{
+                    color:GEmbed.color[color],
+                    title:`${iconSeries} ${GlobalFunctions.capitalize(pack)}/${alterEgo} Inventory:`,
+                    thumbnail:icon,
+                    // fields:arrFields
+                }));
+                arrFields = []; txtInventory="";
+                idx = 0;
+            } else {
+                idx++;
+            }
+        }
+
+        return arrPages;
+    }
+
+    static async printStatus(userDiscord, guildId){
+        var tes = new Series(SPack["max_heart"]);
+        console.log(tes.Properties);
+        // tes.Properties
+        // tes.Properties.getValue();
+        return;
+        var userId = userDiscord.id;
         //key data:
         // objUserData = {
         //     id:interaction.user.id,
@@ -465,6 +517,23 @@ class EventListener {
         //init embed
         var arrPages = []; //prepare paging embed
     
+        var userData = new DataUser( await DataUser.getData(userId));
+        // var parsedColorData = userData.getColorData();
+        // var parsedSeriesData = userData.getSeriesData();
+    
+        var userLevel = userData.getAverageColorLevel();//average overall color level
+    
+        //init the object
+        var objCardStatus = {
+            pink:{"pack":{},"level":userData.getColorLevel(Color.pink),"point":userData.getColorPoint(Color.pink)},
+            blue:{"pack":{},"level":userData.getColorLevel(Color.blue),"point":userData.getColorPoint(Color.blue)},
+            yellow:{"pack":{},"level":userData.getColorLevel(Color.yellow),"point":userData.getColorPoint(Color.yellow)},
+            purple:{"pack":{},"level":userData.getColorLevel(Color.purple),"point":userData.getColorPoint(Color.purple)},
+            red:{"pack":{},"level":userData.getColorLevel(Color.red),"point":userData.getColorPoint(Color.red)},
+            green:{"pack":{},"level":userData.getColorLevel(Color.green),"point":userData.getColorPoint(Color.green)},
+            white:{"pack":{},"level":userData.getColorLevel(Color.white),"point":userData.getColorPoint(Color.white)}
+        };
+
         var query = `select cd.${DBM_Card_Data.columns.pack}, count(inv.${DBM_Card_Inventory.columns.id_user}) as total, 
         cd.${DBM_Card_Data.columns.color}, cd.${DBM_Card_Data.columns.series} 
         from ${DBM_Card_Data.TABLENAME} cd 
@@ -479,84 +548,68 @@ class EventListener {
         on cd.${DBM_Card_Data.columns.id_card}=inv.${DBM_Card_Inventory.columns.id_card} and 
         inv.${DBM_Card_Inventory.columns.id_user}=? and inv.${DBM_Card_Inventory.columns.is_gold}=1 
         group by cd.${DBM_Card_Data.columns.pack}`;
-    
-        var userData = await getStatusData(objUserData.id);
-        var parsedColorData = JSON.parse(userData[DBM_User_Data.columns.color_data]);
-        var parsedSeriesData = JSON.parse(userData[DBM_User_Data.columns.series_data]);
-        var parsedStatusEffect = JSON.parse(userData[DBM_User_Data.columns.status_effect_data]);
-    
-        var statusEffect = "-";
-        Object.keys(parsedSeriesData).length === 0 ? statusEffect = "-" : statusEffect = statusEffect.value;
-    
-        var currencyData = JSON.parse(userData[DBM_User_Data.columns.currency_data]);
-        var lvl = await getAverageColorLevel(parsedColorData);//average overall color level
-    
-        //init the object
-        var objCardStatus = {pink:{"pack":{},"level":parsedColorData.pink.level,"point":parsedColorData.pink.point},
-        blue:{"pack":{},"level":parsedColorData.blue.level,"point":parsedColorData.blue.point},
-        yellow:{"pack":{},"level":parsedColorData.yellow.level,"point":parsedColorData.yellow.point},
-        purple:{"pack":{},"level":parsedColorData.purple.level,"point":parsedColorData.purple.point},
-        red:{"pack":{},"level":parsedColorData.red.level,"point":parsedColorData.red.point},
-        green:{"pack":{},"level":parsedColorData.green.level,"point":parsedColorData.green.point},
-        white:{"pack":{},"level":parsedColorData.white.level,"point":parsedColorData.white.point}};
-        var cardDataInventory = await DBConn.conn.query(query, [objUserData.id]);
-        var cardDataInventoryGold = await DBConn.conn.query(queryGold, [objUserData.id]);
-    
+
+        var cardDataInventory = await DBConn.conn.query(query, [userId]);
+        var cardDataInventoryGold = await DBConn.conn.query(queryGold, [userId]);
+
         for(var i=0;i<cardDataInventory.length;i++){
-            var color = cardDataInventory[i][DBM_Card_Data.columns.color];
-            var pack = cardDataInventory[i][DBM_Card_Data.columns.pack];
-            var total = cardDataInventory[i]['total'];
-            var total_gold = cardDataInventoryGold[i]['total_gold'];
-    
+            var cardData = new DataCard(cardDataInventory[i]);
+            var color = cardData.getColor();
+            var pack = cardData.getPack();
+            var total = cardData.total;
+            var total_gold = cardData.total_gold;
+            var packTotal = DataCard.getPackTotal(pack);
+
             objCardStatus[color]["pack"][pack] = {"value":pack,"total":total,"total_gold":total_gold,"iconCompletion":""};
-            if(total>=CpackModule[pack].Properties.total){
-                cardDataInventoryGold[i]['total_gold'] >= CpackModule[pack].Properties.total ? 
-                    objCardStatus[color]["pack"][pack]["iconCompletion"] = "☑️ " : objCardStatus[color]["pack"][pack]["iconCompletion"] = "✅ ";
+            if(total>=packTotal){
+                cardDataInventoryGold[i]['total_gold'] >= packTotal ? 
+                objCardStatus[color]["pack"][pack]["iconCompletion"] = "☑️ " : objCardStatus[color]["pack"][pack]["iconCompletion"] = "✅ ";
             }
         }
     
         //prepare the embed
         //avatar
-        var avatarId = "-";
-        if(userData[DBM_User_Data.columns.avatar_id]!=null)
-            avatarId = userData[DBM_User_Data.columns.avatar_id];
-    
-        var userAvatarMainData = JSON.parse(userData[DBM_User_Data.columns.avatar_main_data]);
-    
-        var setColor = userData[DBM_User_Data.columns.set_color];
-        var setSeries = SpackModule[userData[DBM_User_Data.columns.set_series]].Properties.name;
+        var setColor = userData.getSetColor();
+        var setSeries = userData.getSetSeries();
     
         //prepare the embed
-        var txtMainStatus = stripIndents`**Assigned Zone:** ${GProperties.color[setColor].icon}/${setSeries} | **Cure Avatar:** ${avatarId}
+        var txtMainStatus = dedent(`🪐 **Location:** ${userData.getSeriesLocationName()}@${userData.getSetSeriesName()}
+        ${DataUser.peacePoint.emoji} **${DataUser.peacePoint.name}:** ${userData.getPeacePoint()}/${userData.limit.peacePoint}
+        
         **Currency:**
-        ${currencyData[GProperties.currency.mofucoin.value]}/${Properties.limit.mofucoin} ${GProperties.currency.mofucoin.icon_emoji}
-        ${currencyData[GProperties.currency.jewel.value]}/${Properties.limit.jewel} ${GProperties.currency.jewel.icon_emoji}
-        ${Properties.peacePoint.icon} **${Properties.peacePoint.name}:** ${userData[DBM_User_Data.columns.point_peace]}/${Properties.limit.pointPeace} **|** ✨ **Special Point:** ${userAvatarMainData.special_point}%
-        **Status Effect:** ${statusEffect}`;
+        ${userData.getCurrency(DataUser.currency.jewel)}
+        ${GProperties.currency.jewel.getLabel(
+            DataUser.getCurrency(userData, GProperties.currency.jewel), Properties.limit.currency.jewel)}`);
 
-        var objEmbed = Embed.builder(txtMainStatus, {
-            username:`${objUserData.username} (Lvl.${lvl})`,
-            avatarUrl:objUserData.avatarUrl
+        var objEmbed = GEmbed.builder(txtMainStatus, {
+            username:`${userDiscord.username} (Lvl.${lvl})`,
+            avatarUrl:userDiscord.avatarUrl
         }, {
             title:`Main Status:`,
-            color:Embed.color[setColor],
+            color:GEmbed.color[setColor],
             fields: [
-                {name: `${GProperties.color.pink.icon}${Color.canLevelUp(parsedColorData,GProperties.color.pink.value,1) ? "🆙":""} Lvl. ${objCardStatus.pink.level}/${objCardStatus.pink.point} Pts:`,
+                {name: `${GProperties.color.pink.emoji}${Color.canLevelUp(parsedColorData,GProperties.color.pink.value,1) ? "🆙":""} Lvl. ${objCardStatus.pink.level}/${objCardStatus.pink.point} Pts:`,
                 value: ``,inline:true},
-                {name: `${GProperties.color.blue.icon}${Color.canLevelUp(parsedColorData,GProperties.color.blue.value,1) ? "🆙":""} Lvl. ${objCardStatus.blue.level}/${objCardStatus.blue.point} Pts:`,
+                {name: `${GProperties.color.blue.emoji}${Color.canLevelUp(parsedColorData,GProperties.color.blue.value,1) ? "🆙":""} Lvl. ${objCardStatus.blue.level}/${objCardStatus.blue.point} Pts:`,
                 value: ``,inline:true},
-                {name: `${GProperties.color.yellow.icon}${Color.canLevelUp(parsedColorData,GProperties.color.yellow.value,1) ? "🆙":""} Lvl. ${objCardStatus.yellow.level}/${objCardStatus.yellow.point} Pts:`,
+                {name: `${GProperties.color.yellow.emoji}${Color.canLevelUp(parsedColorData,GProperties.color.yellow.value,1) ? "🆙":""} Lvl. ${objCardStatus.yellow.level}/${objCardStatus.yellow.point} Pts:`,
                 value: ``,inline:true},
-                {name: `${GProperties.color.purple.icon}${Color.canLevelUp(parsedColorData,GProperties.color.purple.value,1) ? "🆙":""} Lvl. ${objCardStatus.purple.level}/${objCardStatus.purple.point} Pts:`,
+                {name: `${GProperties.color.purple.emoji}${Color.canLevelUp(parsedColorData,GProperties.color.purple.value,1) ? "🆙":""} Lvl. ${objCardStatus.purple.level}/${objCardStatus.purple.point} Pts:`,
                 value: ``,inline:true},
-                {name: `${GProperties.color.red.icon}${Color.canLevelUp(parsedColorData,GProperties.color.red.value,1) ? "🆙":""} Lvl. ${objCardStatus.red.level}/${objCardStatus.red.point} Pts:`,
+                {name: `${GProperties.color.red.emoji}${Color.canLevelUp(parsedColorData,GProperties.color.red.value,1) ? "🆙":""} Lvl. ${objCardStatus.red.level}/${objCardStatus.red.point} Pts:`,
                 value: ``,inline:true},
-                {name: `${GProperties.color.green.icon}${Color.canLevelUp(parsedColorData,GProperties.color.green.value,1) ? "🆙":""} Lvl. ${objCardStatus.green.level}/${objCardStatus.green.point} Pts:`,
+                {name: `${GProperties.color.green.emoji}${Color.canLevelUp(parsedColorData,GProperties.color.green.value,1) ? "🆙":""} Lvl. ${objCardStatus.green.level}/${objCardStatus.green.point} Pts:`,
                 value: ``,inline:true},
-                {name: `${GProperties.color.white.icon}${Color.canLevelUp(parsedColorData,GProperties.color.white.value,1) ? "🆙":""} Lvl. ${objCardStatus.white.level}/${objCardStatus.white.point} Pts:`,
+                {name: `${GProperties.color.white.emoji}${Color.canLevelUp(parsedColorData,GProperties.color.white.value,1) ? "🆙":""} Lvl. ${objCardStatus.white.level}/${objCardStatus.white.point} Pts:`,
                 value: ``,inline:true},
-            ]
+            ],
+            footer:{
+                text:`Page 1 / 5 | Daily checked in: ${userData.hasLogin() ? `✅`:`❌`} `
+            }
         });
+
+        console.log(objEmbed);
+        return;
     
         var idxColor = 0;
         Object.keys(objCardStatus).forEach(keyColor=>{
@@ -573,9 +626,10 @@ class EventListener {
         objEmbed.title = `Status - Series Points`;
         objEmbed.description = ``;
         objEmbed.fields = [];
+        objEmbed.footer = null;
 
-        for(var series in SpackModule){
-            objEmbed.description+=`${SpackModule[series].Properties.currency.icon_emoji} ${parsedSeriesData[series]}/${Properties.limit.seriesPoint} ${SpackModule[series].Properties.currency.name} (${SpackModule[series].Properties.name})\n`;
+        for(var series in Series){
+            objEmbed.description+=`${Series[series].Properties.currency.icon_emoji} ${parsedSeriesData[series]}/${Properties.limit.seriesPoint} ${Series[series].Properties.currency.name} (${Series[series].Properties.name})\n`;
         }
         
         arrPages[1] = new MessageEmbed(objEmbed); //add embed to pages
@@ -591,7 +645,7 @@ class EventListener {
         where inv.${DBM_Card_Inventory.columns.stock}>=1 
         group by cd.${DBM_Card_Data.columns.pack}`;
     
-        var cardDataInventory = await DBConn.conn.query(queryDuplicate, [objUserData.id]);
+        var cardDataInventory = await DBConn.conn.query(queryDuplicate, [userDiscord.id]);
     
         //reset all total to 0
         Object.keys(objCardStatus).forEach(keyColor=>{
@@ -603,13 +657,13 @@ class EventListener {
         objEmbed.title = `Status - Duplicate Card:`;
         objEmbed.description = ``;
         objEmbed.fields = [
-            { name: `${GProperties.color.pink.icon_card} Pink:`, value: ``, inline: true}, 
-            { name: `${GProperties.color.blue.icon_card} Blue:`, value: ``, inline: true},
-            { name: `${GProperties.color.yellow.icon_card} Yellow:`, value: ``, inline: true}, 
-            { name: `${GProperties.color.purple.icon_card} Purple:`, value: ``, inline: true },
-            { name: `${GProperties.color.red.icon_card} Red:`, value: ``, inline: true }, 
-            { name: `${GProperties.color.green.icon_card} Green:`, value: ``, inline: true },
-            { name: `${GProperties.color.white.icon_card} White:`, value: ``, inline: true }
+            { name: `${GProperties.color.pink.emoji_card} Pink:`, value: ``, inline: true}, 
+            { name: `${GProperties.color.blue.emoji_card} Blue:`, value: ``, inline: true},
+            { name: `${GProperties.color.yellow.emoji_card} Yellow:`, value: ``, inline: true}, 
+            { name: `${GProperties.color.purple.emoji_card} Purple:`, value: ``, inline: true },
+            { name: `${GProperties.color.red.emoji_card} Red:`, value: ``, inline: true }, 
+            { name: `${GProperties.color.green.emoji_card} Green:`, value: ``, inline: true },
+            { name: `${GProperties.color.white.emoji_card} White:`, value: ``, inline: true }
         ];
     
         for(var i=0;i<cardDataInventory.length;i++){
@@ -623,7 +677,8 @@ class EventListener {
             Object.keys(objCardStatus[keyColor]["pack"]).forEach(pack => {
                 // console.log(objCardStatus[keyColor]["pack"]);
                 var objPack = objCardStatus[keyColor]["pack"][pack];
-                objEmbed.fields[idxColor]["value"] += `${objPack.iconCompletion}${GlobalFunctions.capitalize(objPack.value)}: ${objPack.total}/${Properties.limit.card}\n`;
+                var max = CpackModule[pack].Properties.total;
+                objEmbed.fields[idxColor]["value"] += `${objPack.iconCompletion}${GlobalFunctions.capitalize(objPack.value)}: ${objPack.total}/${Properties.limit.card*max}\n`;
             });
             idxColor+=1;
         });
@@ -641,13 +696,13 @@ class EventListener {
     
         objEmbed.title = `Status - Gold Card:`;
         objEmbed.fields = [
-            { name: `${GProperties.color.pink.icon_card} Pink:`, value: ``, inline: true}, 
-            { name: `${GProperties.color.blue.icon_card} Blue:`, value: ``, inline: true},
-            { name: `${GProperties.color.yellow.icon_card} Yellow:`, value: ``, inline: true}, 
-            { name: `${GProperties.color.purple.icon_card} Purple:`, value: ``, inline: true },
-            { name: `${GProperties.color.red.icon_card} Red:`, value: ``, inline: true }, 
-            { name: `${GProperties.color.green.icon_card} Green:`, value: ``, inline: true },
-            { name: `${GProperties.color.white.icon_card} White:`, value: ``, inline: true }
+            { name: `${GProperties.color.pink.emoji_card} Pink:`, value: ``, inline: true}, 
+            { name: `${GProperties.color.blue.emoji_card} Blue:`, value: ``, inline: true},
+            { name: `${GProperties.color.yellow.emoji_card} Yellow:`, value: ``, inline: true}, 
+            { name: `${GProperties.color.purple.emoji_card} Purple:`, value: ``, inline: true },
+            { name: `${GProperties.color.red.emoji_card} Red:`, value: ``, inline: true }, 
+            { name: `${GProperties.color.green.emoji_card} Green:`, value: ``, inline: true },
+            { name: `${GProperties.color.white.emoji_card} White:`, value: ``, inline: true }
         ];
     
         var idxColor = 0;
@@ -660,149 +715,148 @@ class EventListener {
         });
     
         arrPages[3] = new MessageEmbed(objEmbed); //add embed to pages
+
+        //======page 5: avatar======
+        // var pageIndex = 4;
+        // var avatarData = await this.getAvatarData(objUserData.id);
+        // if(avatarData[DBM_Card_Avatar.columns.id_main]!==null){
+        //     //get main avatar data
+        //     var cardId = avatarData[DBM_Card_Avatar.columns.id_main];
+        //     var cardData = await CardModule.getCardData(avatarData[DBM_Card_Avatar.columns.id_main]);
+        //     var cardInventoryData = await CardModule.Inventory.getData(objUserData.id, cardId);
+        //     var pack = cardData[DBM_Card_Data.columns.pack];
+        //     var arrCardData = [cardData];
+        //     var arrCardInventoryData = [cardInventoryData];
+            
+        //     //check & get support 1 avatar data
+        //     if(avatarData[DBM_Card_Avatar.columns.id_support1]!==null){
+        //         let cardData = await CardModule.getCardData(avatarData[DBM_Card_Avatar.columns.id_support1]);
+        //         let cardInventoryData = await CardModule.Inventory.getData(objUserData.id, avatarData[DBM_Card_Avatar.columns.id_support1]);
+
+        //         arrCardData.push(cardData);
+        //         arrCardInventoryData.push(cardInventoryData);
+        //     } else {
+        //         arrCardData.push(null);
+        //         arrCardInventoryData.push(null);
+        //     }
+
+        //     //check & get support 2 avatar data
+        //     if(avatarData[DBM_Card_Avatar.columns.id_support2]!==null){
+        //         let cardData = await CardModule.getCardData(avatarData[DBM_Card_Avatar.columns.id_support2]);
+        //         let cardInventoryData = await CardModule.Inventory.getData(objUserData.id, avatarData[DBM_Card_Avatar.columns.id_support2]);
+
+        //         arrCardData.push(cardData);
+        //         arrCardInventoryData.push(cardInventoryData);
+        //     } else {
+        //         arrCardData.push(null);
+        //         arrCardInventoryData.push(null);
+        //     }
+
+        //     var avatarData = Avatar.init(arrCardData, arrCardInventoryData);
+        //     var arrFields = [];
+            
+        //     //check & get support data to embed
+        //     for(var i=0;i<=2;i++){
+        //         if(Avatar.Data.isAvailable(avatarData, i)){
+        //             let cardId = Avatar.Data.getIdCard(avatarData, i);
+        //             let pack = Avatar.Data.getPack(avatarData, i);
+        //             let rarity = Avatar.Data.getRarity(avatarData, i);
+        //             let level = Avatar.Data.getSuppportLevel(avatarData, i);
+        //             let name = Avatar.Data.getAlterEgo(avatarData, i);
+
+        //             switch(i){
+        //                 case 0://main cure
+        //                     arrFields.push(
+        //                         {name: `**${rarity}${CardModule.Emoji.rarity(rarity)} ${name}** | Lvl. ${level}`, 
+        //                         value: dedent(`❤️ **Hp:** ${Avatar.Data.getMaxHp(avatarData)} | ⚔️ **Atk:** ${Avatar.Data.getAtk(avatarData)}
+        //                         **Passive Skill:**
+        //                         ${Avatar.Skill.getPassiveSkillLabel(level, pack)}`)}
+        //                     );
+        //                     break;
+        //                 default:
+        //                     arrFields.push({ 
+        //                     name: `**${rarity}${CardModule.Emoji.rarity(rarity)} ${name} | Lvl. ${level}** (Support ${i})`, 
+        //                     value: dedent(`**Passive Skill:** 
+        //                     ${Avatar.Skill.getPassiveSkillLabel(level, pack)}`)});
+        //                     break;
+        //             }
+        //         } else {
+        //             arrFields.push({ 
+        //                 name: `❌ Support ${i} : Not available`, 
+        //                 value: dedent(`**Passive Skill: -**`)});
+        //         }
+        //     }
+
+        //     // console.log(avatarData);
+
+        //     arrPages[pageIndex] = new MessageEmbed(
+        //         GEmbed.builder("",objUserData,{
+        //             color: CpackModule[pack].Properties.color,
+        //             title:`Cure Avatar:`,
+        //             thumbnail:cardData[DBM_Card_Data.columns.img_url],
+        //             fields:arrFields
+        //         })
+        //     ); //add embed to pages
+
+        // }
     
         return arrPages;
     }
 
-    static async printInventory(objUserData, pack, interaction){
+    static async printDetail(objUserData, idCard, interaction, isPrivate=true){
+        var userId = objUserData.id;
+        //print card detail
         var arrPages = []; //prepare paging embed
-        
-        var query = `select cd.${DBM_Card_Data.columns.id_card}, cd.${DBM_Card_Data.columns.pack}, cd.${DBM_Card_Data.columns.name}, cd.${DBM_Card_Data.columns.rarity}, cd.${DBM_Card_Data.columns.img_url}, inv.${DBM_Card_Inventory.columns.id_user}, inv.${DBM_Card_Inventory.columns.is_gold}, inv.${DBM_Card_Inventory.columns.stock}, inv.${DBM_Card_Inventory.columns.level}
-        from ${DBM_Card_Data.TABLENAME} cd 
-        left join ${DBM_Card_Inventory.TABLENAME} inv 
-        on cd.${DBM_Card_Data.columns.id_card} = inv.${DBM_Card_Inventory.columns.id_card} and 
-        inv.${DBM_Card_Inventory.columns.id_user} = ?
-        where cd.${DBM_Card_Data.columns.pack}=?`;
-        
-        var cardDataInventory = await DBConn.conn.query(query, [objUserData.id, pack]);
-        //validation if pack exists/not
-        if(cardDataInventory.length<=0){
-            var packByColor = {pink:``,blue:``,yellow:``,purple:``,red:``,green:``,white:``};
-            for(var pack in CpackModule){
-                var series = CpackModule[pack].Properties.series;
-                packByColor[CpackModule[pack].Properties.color]+=`${SpackModule[series].Properties.icon.mascot_emoji} ${GlobalFunctions.capitalize(pack)}\n`;
-            }
-
-            return interaction.reply({embeds:[
-                Embed.builder(":x: I can't find that card pack. Here are the list for available card pack:", objUserData, {
-                    color:Embed.color.danger,
-                    fields:[
-                        {
-                            name:`${GProperties.emoji.color_pink} Pink:`,
-                            value:packByColor.pink,
-                            inline:true
-                        },
-                        {
-                            name:`${GProperties.emoji.color_blue} Blue:`,
-                            value:packByColor.blue,
-                            inline:true
-                        },
-                        {
-                            name:`${GProperties.emoji.color_yellow} Yellow:`,
-                            value:packByColor.yellow,
-                            inline:true
-                        },
-                        {
-                            name:`${GProperties.emoji.color_purple} Purple:`,
-                            value:packByColor.purple,
-                            inline:true
-                        },
-                        {
-                            name:`${GProperties.emoji.color_red} Red:`,
-                            value:packByColor.red,
-                            inline:true
-                        },
-                        {
-                            name:`${GProperties.emoji.color_green} Green:`,
-                            value:packByColor.green,
-                            inline:true
-                        },
-                        {
-                            name:`${GProperties.emoji.color_white} White:`,
-                            value:packByColor.white,
-                            inline:true
-                        }
-                    ]
-                })
-            ], ephemeral:true});
+        var cardData = await CardModule.getCardData(idCard);
+        var cardInventoryData = await CardModule.Inventory.getData(userId, idCard);
+        if(!cardData){
+            return interaction.reply(GEmbed.notifCardDataNotFound(objUserData));
+        } else if(!cardInventoryData){
+            return interaction.reply(GEmbed.notifNotOwnCard(objUserData));
         }
 
-        var pack = cardDataInventory[0][DBM_Card_Data.columns.pack];
-        var color = CpackModule[pack].Properties.color; var iconColor = GProperties.emoji[`color_${color}`];
-        var alterEgo = CpackModule[pack].Properties.alter_ego;
-        var icon = CpackModule[pack].Properties.icon;
-        var max = CpackModule[pack].Properties.total;
+        var idCard = cardData[DBM_Card_Data.columns.id_card];
+        var name = cardData[DBM_Card_Data.columns.name];
+        var rarity = cardData[DBM_Card_Data.columns.rarity];
+        var pack = cardData[DBM_Card_Data.columns.pack];
+        var color = CpackModule[pack].Properties.color;
+        var img = CardModule.Modifier.img(cardInventoryData, cardData);
+        var series = CpackModule[pack].Properties.series;
+        var createdDate = GlobalFunctions.convertDateTime(cardInventoryData[DBM_Card_Inventory.columns.created_at]);
 
-        var idx = 0; var maxIdx = 4; var txtInventory = ``;
-        var total = {
-            normal:cardDataInventory.filter(
-                function (item) {
-                    return item[DBM_Card_Inventory.columns.id_user] != null;
-                }
-            ).length,
-            gold:cardDataInventory.filter(
-                function (item) {
-                    return item[DBM_Card_Inventory.columns.is_gold] == 1;
-                }
-            ).length
-        };
-        
-        var arrFields = [];
-        for(var i=0;i<cardDataInventory.length;i++){
-            var iconOwned = cardDataInventory[i][DBM_Card_Inventory.columns.id_user] ? 
-                GProperties.emoji.aoi_check_green : GProperties.emoji.aoi_x;
-            var rarity = cardDataInventory[i][DBM_Card_Data.columns.rarity];
-            var img = cardDataInventory[i][DBM_Card_Data.columns.img_url];
-            var id = cardDataInventory[i][DBM_Card_Inventory.columns.id_user] ? 
-            `${cardDataInventory[i][DBM_Card_Data.columns.id_card]}` : "???";
-            var displayName = cardDataInventory[i][DBM_Card_Inventory.columns.id_user] ? 
-            `[${cardDataInventory[i][DBM_Card_Data.columns.name]}](${img})` : "???";
-            var stock = cardDataInventory[i][DBM_Card_Inventory.columns.stock]>1 ? 
-            `x${cardDataInventory[i][DBM_Card_Inventory.columns.stock]}`:"";
-            
-            //check for gold
-            // iconOwned = cardDataInventory[i][DBM_Card_Data.columns.is_gold]==1 && cardDataInventory[i][DBM_Card_Inventory.columns.id_user] ? 
-            // GProperties.emoji.aoi_check_green:GProperties.emoji.aoi_x;
-            
-            arrFields.push({
-                name:`${GProperties.emoji.r1}${rarity}: ${id} ${stock}`,
-                value:displayName
-            });
-            
-            if(idx>maxIdx||(idx<maxIdx && i==cardDataInventory.length-1)){
-                arrPages.push(Embed.builder(
-                    stripIndents`**Duplicate:**/${Properties.limit.card}
-                    **Normal:** ${total.normal}/ ${max} 
-                    **Gold:** ${total.gold}/${max}`,objUserData,{
-                    color:Embed.color[color],
-                    title:`${iconColor} ${GlobalFunctions.capitalize(pack)}/${alterEgo} Inventory:`,
-                    thumbnail:icon,
-                    fields:arrFields
-                }));
-                arrFields = [];
-                idx = 0;
-            } else {
-                idx++;
+        var level = cardInventoryData[DBM_Card_Inventory.columns.level];
+        var hp = Avatar.Parameter.getHp(level, cardData[DBM_Card_Data.columns.hp_base]);
+        var atk = Avatar.Parameter.getAtk(level, cardData[DBM_Card_Data.columns.atk_base]);
+        var spMax = Avatar.Parameter.getSp(color);
+
+        var cureData = CpackModule[pack].Avatar.normal;
+
+        arrPages.push(GEmbed.builder(
+        dedent(`**${rarity}${CardModule.Emoji.rarity(rarity, cardInventoryData)} Level:** ${level}/${Avatar.Parameter.getMaxLevel(rarity)} | **Next EXP:** ${Avatar.Parameter.getNextExp(level)}P
+        **Passive Skill:**
+        ${Avatar.Skill.getPassiveSkillLabel(level, pack)}
+
+        **Battle Stats:**
+        ❤️: ${hp} | ⚔️: ${atk} 
+        🌟 SP Max: ${spMax} 
+        💖 **Special:** ${CpackModule[pack].Avatar.normal.special_attack}`),
+        {
+            username:`${cureData.name}`,
+            avatarUrl:cureData.icon
+        },{
+            color:color,
+            image:img,
+            title:`${name}`,
+            footer:{
+                text:`Received at: ${createdDate}`,
+                iconURL:objUserData.avatarUrl
             }
+        }));
 
-        }
-
-        return paginationEmbed(interaction,arrPages,DiscordStyles.Button.pagingButtonList);
-
-        // for(var item in cardDataInventory){
-        //     console.log(item);
-        //     ctr++;
-        // }
-
-        // console.log(color);
-        //init embed
-        // var objEmbed = Embed.builder(``,objUserData, {
-        //     color:Embed.color[]
-        // });
-
+        paginationEmbed(interaction, arrPages, DiscordStyles.Button.pagingButtonList, isPrivate);
     }
 }
 
-module.exports = {Card, Properties, Color, EventListener, getStatusData, isLogin, getAverageColorLevel, updatePointParam, 
+module.exports = {Card, EventListener, checkAvailable, isLogin, updatePointParam, 
     updateColorPointParam, updateSeriesPointParam, updateSeriesPoint, updateSpawnToken,
     updateData}

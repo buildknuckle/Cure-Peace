@@ -486,5 +486,5 @@ module.exports = {
             permanent:true,
             recovery_item:["ca029","ca017","fo009"]
         }
-    } 
+    }
 }

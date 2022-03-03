@@ -1,17 +1,19 @@
-const GProperties = require("../Properties");
-
 class Properties {
     static value = "tropical_rouge";
     static icon = {
         series:"https://cdn.discordapp.com/attachments/832917823122571294/927540812659687444/deb2gk0-c438e38e-61d7-454f-b57e-eca1f24dddda.png",
-        mascot_emoji:GProperties.emoji.m16_kururun
+        mascot_emoji:"<:m16_kururun:936237022274781215>"
     }
     static name = "Tropical-Rouge!";
     static currency = {
         name:"Tropi Points",
-        icon_emoji:GProperties.emoji.m16_kururun
+        icon_emoji:"<:m16_kururun:936237022274781215>"
     };
     static theme = "mermaids and club activities";
+    static location = {
+        name:"Aozora City",
+        icon:"https://static.wikia.nocookie.net/prettycure/images/1/14/TRPC01_Aozora_City.jpg",
+    };
 }
 
 class Battle {
@@ -19,23 +21,15 @@ class Battle {
     static img_party_special = "https://cdn.discordapp.com/attachments/832917823122571294/927542773899460658/1000.png";
 }
 
-class Enemy{
-    static data = {
-        tsunagarus:{
-            term:"yaraneeda",
-            name:"Yaraneeda",
-            catchphrase:"Yaraneeda!",
-            color:[],//will be loaded from init
-            img:[
-                "https://static.wikia.nocookie.net/prettycure/images/c/c8/TRPC01_Yaraneeda.jpg",
-                "https://static.wikia.nocookie.net/prettycure/images/c/ca/TRPC04_Yaraneeda.jpg",
-                "https://static.wikia.nocookie.net/prettycure/images/6/69/TRPC08_Yaraneeda.jpg",
-                "https://static.wikia.nocookie.net/prettycure/images/d/d1/TRPC09_Yaraneeda.jpg"
-            ],
-        }
-    }
+class Monsters {
+    static color = [];//color availability, will be loaded from init
+    static value = "yaraneeda";
+    static name = "Yaraneeda";
+    static catchphrase = "Yaraneeda!";
+    static chaos_meter = "demotivation";
+    static data = {};//will be loaded from init
 }
 
 module.exports = {
-    Properties, Battle, Enemy
+    Properties, Battle, Monsters
 }

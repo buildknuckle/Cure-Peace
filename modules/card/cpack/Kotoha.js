@@ -8,17 +8,21 @@ class Properties {
     static series = "mahou_tsukai";
 }
 
-class Form {
+class Avatar {
     static normal = {
+        icon:"https://waa.ai/JEwd.png",
         name:"Cure Felice",
         transform_quotes1:"Felice, Fun Fun, Flowerle!",
         transform_quotes2:"Spreading blessings to lives far and wide! Cure Felice!",
         special_attack:"Emerald Reincarnation",
         img_special_attack:"https://cdn.discordapp.com/attachments/793391246495449088/817786930174885898/unknown.png",
         img_transformation:"",
+        skill:{
+            passive:{}
+        }
     }
 }
 
 module.exports = {
-    Properties, Form
+    Properties, Avatar
 }

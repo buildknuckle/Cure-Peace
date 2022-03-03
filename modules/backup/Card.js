@@ -1,28 +1,4 @@
 const {MessageActionRow, MessageSelectMenu, MessageButton, MessageEmbed, Discord} = require('discord.js');
-<<<<<<< Updated upstream:modules/Card.js
-const DiscordStyles = require('../modules/DiscordStyles');
-const DB = require('../database/DatabaseCore');
-const DBConn = require('../storage/dbconn');
-const GlobalFunctions = require('../modules/GlobalFunctions.js');
-const CardGuildModules = require('../modules/CardGuild');
-const ItemModules = require('../modules/Item');
-const TsunagarusModules = require('../modules/Tsunagarus');
-const CardPropertiesModules = require('../modules/Card/Properties');
-const DBM_Card_Data = require('../database/model/DBM_Card_Data');
-const DBM_Card_User_Data = require('../database/model/DBM_Card_User_Data');
-const DBM_Card_Inventory = require('../database/model/DBM_Card_Inventory');
-const DBM_Card_Guild = require('../database/model/DBM_Card_Guild');
-const DBM_Card_Leaderboard = require('../database/model/DBM_Card_Leaderboard');
-const DBM_Card_Enemies = require('../database/model/DBM_Card_Enemies');
-const DBM_Card_Tradeboard = require('../database/model/DBM_Card_Tradeboard');
-const DBM_Item_Data = require('../database/model/DBM_Item_Data');
-const DBM_Pinky_Data = require('../database/model/DBM_Pinky_Data');
-const DBM_Pinky_Inventory = require('../database/model/DBM_Pinky_Inventory');
-const DBM_Card_Party = require('../database/model/DBM_Card_Party');
-const DBM_Card_Battle_Instance = require('../database/model/DBM_Card_Battle_Instance');
-
-const latestVersion = "1.13";
-=======
 const DiscordStyles = require('../DiscordStyles');
 const DB = require('../../database/DatabaseCore');
 const DBConn = require('../../storage/dbconn');
@@ -43,7 +19,6 @@ const DBM_Item_Data = require('../../database/model/DBM_Item_Data');
 const DBM_Pinky_Data = require('../../database/model/DBM_Pinky_Data');
 const DBM_Pinky_Inventory = require('../../database/model/DBM_Pinky_Inventory');
 const DBM_Card_Party = require('../../database/model/DBM_Card_Party');
->>>>>>> Stashed changes:modules/backup/Card.js
 
 class StatusEffect{
     //for skills status effect
@@ -911,124 +886,8 @@ class Properties{
     }
 
     //contain basic information of the color
-<<<<<<< Updated upstream:modules/Card.js
-    static arrColor = ["pink","purple","green","yellow","white","blue","red"];
-    static dataColorCore = {
-        pink:{
-            imgMysteryUrl:"https://waa.ai/JEyE.png",
-            color:"#FEA1E6",
-            total:194,
-            skills:{
-                1:{
-                    cp_cost:50,
-                    buff_data:StatusEffect.cureSkillsBuffData.stats_booster
-                }
-            }
-        },
-        blue:{
-            imgMysteryUrl:"https://waa.ai/JEyE.png",
-            color:"#7FC7FF",
-            total:136,
-            skills:{
-                1:{
-                    cp_cost:30,
-                    buff_data:StatusEffect.cureSkillsBuffData.catchphrage
-                }
-            }
-        },
-        red:{
-            imgMysteryUrl:"https://waa.ai/JEyE.png",
-            color:"#FF9389",
-            total:87,
-            skills:{
-                1:{
-                    cp_cost:40,
-                    buff_data:StatusEffect.cureSkillsBuffData.levelcutter
-                }
-            }
-        },
-        yellow:{
-            imgMysteryUrl:"https://waa.ai/JEyE.png",
-            color:"#FDF13B",
-            total:152,
-            skills:{
-                1:{
-                    cp_cost:30,
-                    buff_data:StatusEffect.cureSkillsBuffData.starmaster
-                }
-            }
-        },
-        green:{
-            imgMysteryUrl:"https://waa.ai/JEyE.png",
-            color:"#7CF885",
-            total:62,
-            skills:{
-                1:{
-                    cp_cost:20,
-                    buff_data:StatusEffect.cureSkillsBuffData.endure
-                }
-            }
-        },
-        purple:{
-            imgMysteryUrl:"https://waa.ai/JEyE.png",
-            color:"#897CFE",
-            total:102,
-            skills:{
-                1:{
-                    cp_cost:500,
-                    buff_data:StatusEffect.cureSkillsBuffData.reward_booster
-                }
-            }
-        },
-        white:{
-            imgMysteryUrl:"https://waa.ai/JEyE.png",
-            color:"#FFFFEA",
-            total:40,
-            skills:{
-                1:{
-                    cp_cost:50,
-                    buff_data:StatusEffect.cureSkillsBuffData.cure_blessing
-                }
-            }
-        },
-        all:{
-            imgMysteryUrl:"https://waa.ai/JEyE.png"
-        },
-        interactionColorList:[
-            {
-                name: "pink",
-                value: "pink"
-            },
-            {
-                name: "blue",
-                value: "blue"
-            },
-            {
-                name: "yellow",
-                value: "yellow"
-            },
-            {
-                name: "purple",
-                value: "purple"
-            },
-            {
-                name: "red",
-                value: "red"
-            },
-            {
-                name: "green",
-                value: "green"
-            },
-            {
-                name: "white",
-                value: "white"
-            }
-        ]
-    };
-=======
     static arrColor = CardPropertiesModules.arrColor;
     static dataColorCore = CardPropertiesModules.dataColorCore;
->>>>>>> Stashed changes:modules/backup/Card.js
     
     //the constant of all available/required card
     static dataCardCore = CardPropertiesModules.dataCardCore;
@@ -2784,11 +2643,7 @@ async function generateCardSpawn(id_guild,specificType=null,overwriteToken = tru
     if(specificType!=null) cardSpawnType=specificType;
 
     //for debugging purpose:
-<<<<<<< Updated upstream:modules/Card.js
-    // cardSpawnType = "normal";
-=======
     cardSpawnType = "battle";
->>>>>>> Stashed changes:modules/backup/Card.js
 
     var query = "";
     var objFinalSend = {};
@@ -2856,24 +2711,6 @@ async function generateCardSpawn(id_guild,specificType=null,overwriteToken = tru
             }
 
             //select menu start
-<<<<<<< Updated upstream:modules/Card.js
-            var arrOptions = [
-                {
-                    label: `Lower`,
-                    value: `lower`,
-                    description: `Hidden number is lower than ${rndNumber}`
-                },
-                {
-                    label: `Higher`,
-                    value: `higher`,
-                    description: `Hidden number is higher than ${rndNumber}`
-                }
-            ];
-
-            objFinalSend.components = [
-                DiscordStyles.SelectMenus.basic("card.guess_number","Guess it lower/higher",arrOptions)
-            ];
-=======
             // var arrOptions = [
             //     {
             //         label: `Lower`,
@@ -2895,7 +2732,6 @@ async function generateCardSpawn(id_guild,specificType=null,overwriteToken = tru
                 DiscordStyles.Button.base("card.guess_number.lower","▼ Lower","PRIMARY"),
                 DiscordStyles.Button.base("card.guess_number.higher","▲ Higher","PRIMARY"),
             ])];
->>>>>>> Stashed changes:modules/backup/Card.js
             //select menu end
             
             break;
@@ -4222,11 +4058,7 @@ async function limitizeUserPoints(){
     await DBConn.conn.promise().query(query);
 }
 
-<<<<<<< Updated upstream:modules/Card.js
-module.exports = {latestVersion,Properties,PrecureStarTwinkle: PrecureStarTwinkleCore,Battle,Leveling,Quest,Shop,Status,StatusEffect,TradeBoard,Embeds,Party,Skills,getCardData,getCardInventoryUserData,getAllCardDataByPack,
-=======
 module.exports = {Properties,PrecureStarTwinkleCore: StarTwinkle, Battle,Leveling,Quest,Shop,Status,StatusEffect,TradeBoard,Embeds,Party,Skills,getCardData,getCardInventoryUserData,getAllCardDataByPack,
->>>>>>> Stashed changes:modules/backup/Card.js
     getCardUserStatusData,checkUserHaveCard,getUserCardInventoryData,getUserCardStock,getUserTotalCard,
     updateCatchAttempt,updateColorPoint,updateMofucoin,updateSeriesPoint,removeCardGuildSpawn,generateCardSpawn,addNewCardInventory,limitizeUserPoints,embedBioPackList,embedCardPackList,getBonusCatchAttempt,getNextColorPoint,
     checkCardCompletion,leaderboardAddNew,updateMessageIdSpawn};

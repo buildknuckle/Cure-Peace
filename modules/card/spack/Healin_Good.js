@@ -1,18 +1,20 @@
-const GProperties = require("../Properties");
-
 class Properties {
     static value = "healin_good";
     static icon = {
         series:"https://cdn.discordapp.com/attachments/793415946738860072/936266739841372160/healin_good.png",
-        mascot_emoji:GProperties.emoji.m15_rabirin
+        mascot_emoji:"<:m15_rabirin:936237024724262923>"
     }
     
     static name = "Healin' Good";
     static currency = {
         name:"Elemental Points",
-        icon_emoji:GProperties.emoji.m15_rabirin
+        icon_emoji:"<:m15_rabirin:936237024724262923>"
     };
     static theme = "health, nature, and animals";
+    static location = {
+        name:"Sukoyaka City",
+        icon:"https://static.wikia.nocookie.net/prettycure/images/a/a6/HGPC14_Nodoka%27s_voice_echoes_throughout_Sukoyaka_City.jpg",
+    };
 }
 
 class Battle {
@@ -20,23 +22,15 @@ class Battle {
     static img_party_special = "https://cdn.discordapp.com/attachments/793415946738860072/824157153626816512/image0.png";
 }
 
-class Enemy{
-    static data = {
-        tsunagarus:{
-            term:"megabyogen",
-            name:"Megabyogen",
-            catchphrase:"Mega!",
-            color:[],//will be loaded from init
-            img:[
-                "https://static.wikia.nocookie.net/prettycure/images/a/ab/HGPC01_Megabyogen.png",
-                "https://static.wikia.nocookie.net/prettycure/images/4/4e/HGPC02_Megabyogen.jpg",
-                "https://static.wikia.nocookie.net/prettycure/images/e/e9/HGPC06_The_Megabyogen.jpg",
-                "https://static.wikia.nocookie.net/prettycure/images/0/07/HGPC07_Megabyogen.jpg"
-            ],
-        }
-    }
+class Monsters {
+    static color = [];//color availability, will be loaded from init
+    static value = "megabyogen";
+    static name = "Megabyogen";
+    static catchphrase = "Mega!";
+    static chaos_meter = "virus";
+    static data = {};//will be loaded from init
 }
 
 module.exports = {
-    Properties, Battle, Enemy
+    Properties, Battle, Monsters
 }

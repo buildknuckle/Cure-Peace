@@ -1,5 +1,5 @@
-const GlobalFunctions = require('../modules/GlobalFunctions.js');
-const DB = require('../database/DatabaseCore');
+const GlobalFunctions = require('../GlobalFunctions.js');
+const DB = require('../../database/DatabaseCore');
 const DBM_Card_Guild = require('../database/model/DBM_Card_Guild');
 
 /*

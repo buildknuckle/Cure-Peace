@@ -1,15 +1,13 @@
-const GProperties = require("../Properties");
-
 class Properties {
     static value = "star_twinkle";
     static icon = {
         series:"https://cdn.discordapp.com/attachments/793415946738860072/845618044655239188/latest.png",
-        mascot_emoji:GProperties.emoji.m14_fuwa
+        mascot_emoji:"<:m14_fuwa:936237029157658625>"
     }
     static name = "Star Twinkle";
     static currency = {
         name:"Twinkle Points",
-        icon_emoji:GProperties.emoji.m14_fuwa
+        icon_emoji:"<:m14_fuwa:936237029157658625>"
     };
     static theme = "space, astrology and imagination";
 
@@ -83,6 +81,11 @@ class Properties {
             ]
         }
     }
+
+    static location = {
+        name:"Mihoshi Town",
+        icon:"https://static.wikia.nocookie.net/prettycure/images/0/05/Mihoshi_Town.png",
+    };
 }
 
 class Battle {
@@ -90,24 +93,15 @@ class Battle {
     static img_party_special = "https://cdn.discordapp.com/attachments/793415946738860072/824156329014460416/image0.png";
 }
 
-class Enemy{
-    static data = {
-        tsunagarus:{
-            term:"nottrigger",
-            name:"Nottrigger",
-            catchphrase:"Nottrigger",
-            color:[],//will be loaded from init
-            img:[
-                "https://static.wikia.nocookie.net/prettycure/images/6/62/STPC06_Nottoreiga.jpg",
-                "https://static.wikia.nocookie.net/prettycure/images/b/b9/STPC12_Nottoriga.jpeg",
-                "https://static.wikia.nocookie.net/prettycure/images/7/76/STPC16_Nottorigga.jpg",
-                "https://static.wikia.nocookie.net/prettycure/images/6/65/STPC19_Aiwarn%27s_Nottoriga.jpg",
-                "https://static.wikia.nocookie.net/prettycure/images/7/7f/STPC20_Aiwarn%27s_Nottoriga_form.jpg"
-            ],
-        }
-    }
+class Monsters {
+    static color = [];//color availability, will be loaded from init
+    static value = "nottrigger";
+    static name = "Nottrigger";
+    static catchphrase = "Nottrigger";
+    static chaos_meter = "darken";
+    static data = {};//will be loaded from init
 }
 
 module.exports = {
-    Properties, Battle, Enemy
+    Properties, Battle, Monsters 
 }

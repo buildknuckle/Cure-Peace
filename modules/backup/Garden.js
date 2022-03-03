@@ -1,12 +1,12 @@
-const DB = require('../database/DatabaseCore');
-const GlobalFunctions = require('./GlobalFunctions');
+const DB = require('../../database/DatabaseCore');
+const GlobalFunctions = require('../GlobalFunctions');
 const CardModule = require('./Card');
 const WeatherModule = require('./Weather');
-const ItemModule = require('./Item');
+const ItemModule = require('../Item');
 const UserModule = require('./User');
 const DBM_Card_Guild = require('../database/model/DBM_Card_Guild');
-const DBM_Item_Data = require('../database/model/DBM_Item_Data');
-const DBM_User_Data = require('../database/model/DBM_User_Data');
+const DBM_Item_Data = require('../../database/model/DBM_Item_Data');
+const DBM_User_Data = require('../../database/model/DBM_User_Data');
 
 class Properties {
     static embedColor = '#efcc2c';

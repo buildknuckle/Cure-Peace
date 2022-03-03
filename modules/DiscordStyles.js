@@ -51,6 +51,14 @@ class Button{
 }
 
 class SelectMenus {
+    static options(label, description, value){
+        return{
+            label: label,
+            description: description,
+            value: value,
+        }
+    }
+
     static basic(id,placeholder,arrOptions){
         //template arrOptions:
         //{
@@ -65,8 +73,7 @@ class SelectMenus {
                 .setPlaceholder(placeholder)
                 .addOptions(arrOptions)
         );
-    } 
-    
+    }
 }
 
 module.exports = {Color, Button, SelectMenus}

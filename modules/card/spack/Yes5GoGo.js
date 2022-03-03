@@ -1,7 +1,5 @@
-const {MessageActionRow, MessageSelectMenu, MessageButton, MessageEmbed, Discord, User} = require('discord.js');
 const DB = require('../../../database/DatabaseCore');
 const DBConn = require('../../../storage/dbconn');
-const GProperties = require("../Properties");
 
 const DBM_Pinky_Data = require('../../../database/model/DBM_Pinky_Data');
 
@@ -9,14 +7,18 @@ class Properties {
     static value = "yes5gogo";
     static icon = {
         series:"https://cdn.discordapp.com/attachments/793415946738860072/845617508936974357/latest.png",
-        mascot_emoji:GProperties.emoji.m3_coco
+        mascot_emoji:"<:m3_coco:936237022044110898>"
     }
     static name = "Yes! PreCure 5 GoGo!";
     static currency = {
         name:"Palmin Points",
-        icon_emoji:GProperties.emoji.m3_coco
+        icon_emoji:"<:m3_coco:936237022044110898>"
     }
     static theme = "natural elements, human characteristics and emotions";
+    static location = {
+        name:"L'École des Cinq Lumières",
+        icon:"",
+    };
 }
 
 class Pinky {
@@ -42,21 +44,12 @@ class Spawner {
     }
 }
 
-class Enemy {
-    static data = {
-        tsunagarus:{
-            term:"hoshina",
-            name:"Hoshina",
-            color:[],//will be loaded from init
-            img:[
-                "https://static.wikia.nocookie.net/prettycure/images/9/97/Hoshina.01.png",
-                "https://static.wikia.nocookie.net/prettycure/images/3/36/-3.png",
-                "https://static.wikia.nocookie.net/prettycure/images/9/96/-4.png",
-                "https://static.wikia.nocookie.net/prettycure/images/a/ae/-13.png",
-                "https://static.wikia.nocookie.net/prettycure/images/1/1a/-15.png"
-            ],
-        }
-    }
+class Monsters {
+    static color = [];//color availability, will be loaded from init
+    static value = "hoshina";
+    static name = "Hoshina";
+    static chaos_meter = "eternal";
+    static data = {};//will be loaded from init
 }
 
 async function init(){
@@ -67,5 +60,5 @@ async function init(){
 }
 
 module.exports = {
-    Properties, Pinky, Battle, Spawner, Enemy, init
+    Properties, Pinky, Battle, Spawner, Monsters, init
 }
