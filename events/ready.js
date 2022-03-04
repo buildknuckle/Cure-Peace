@@ -4,13 +4,7 @@ const { REST } = require('@discordjs/rest');
 const { Routes } = require('discord-api-types/v9');
 const { SlashCommandBuilder } = require('@discordjs/builders');
 
-// const DBM_Guild_Data = require('../database/model/DBM_Guild_Data');
-// const CardModules = require('../modules/card/Card');
-// const GuildModule = require('../modules/card/Guild');
-// const BattleModules = require('../modules/card/Battle');
-// const SpackModule = require('../modules/card/Series');
-// const WeatherModules = require('../modules/Weather');
-
+const PuzzlunInit = require("../modules/puzzlun/Init");
 const Birthday = require('../modules/Birthday');
 const DBM_Birthday_Guild = require("../database/model/DBM_Birthday_Guild");
 
@@ -23,7 +17,7 @@ module.exports = {
         try {
             const rest = new REST({ version: '9' }).setToken(token);
 
-            // await CardModules.init();//init card modules
+            await PuzzlunInit.init();//init card modules
 
             // console.log('Ready!');
             // WeatherModules.updateTimerRemaining();

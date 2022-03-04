@@ -15,18 +15,6 @@ class DBM_User_Data {
         series_data:"series_data",
         gardening_data:"gardening_data",
     };
-
-    static dataKey = {
-        daily_data:{
-            lastCheckInDate:"lastCheckInDate",
-            lastQuestDate:"lastQuestDate",
-            quest:{
-                card:"card",
-                kirakiraDelivery:"kirakiraDelivery",
-                battle:"battle"
-            }
-        }
-    }
 }
 
 module.exports = DBM_User_Data;

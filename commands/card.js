@@ -6,15 +6,15 @@ const GlobalFunctions = require('../modules/GlobalFunctions');
 
 const paginationEmbed = require('../modules/DiscordPagination');
 
-const DataModule = require("../modules/card/Data");
-const CardModule = require("../modules/card/Card");
-const Avatar = require("../modules/card/Avatar");
-const UserModule = require("../modules/card/User");
-// const GuildModule = require("../modules/card/Guild");
-const BattleModule = require("../modules/card/Battle");
-// const InstanceBattle = require("../modules/card/InstanceBattle");
-// const Spawner = require("../modules/card/Spawner");
-const Validation = require("../modules/card/Validation");
+const DataModule = require("../modules/puzzlun/Data");
+const CardModule = require("../modules/puzzlun/Card");
+// const Avatar = require("../modules/puzzlun/Avatar");
+const UserModule = require("../modules/puzzlun/User");
+// const GuildModule = require("../modules/puzzlun/Guild");
+// const BattleModule = require("../modules/puzzlun/Battle");
+// const InstanceBattle = require("../modules/puzzlun/InstanceBattle");
+// const Spawner = require("../modules/puzzlun/Spawner");
+const Validation = require("../modules/puzzlun/Validation");
 
 module.exports = {
     name: 'card',

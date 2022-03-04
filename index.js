@@ -3,9 +3,6 @@ const Discord = require('discord.js');
 
 const commandFiles = fs.readdirSync('./commands').filter(file => file.endsWith('.js'));
 const GlobalFunctions = require('./modules/GlobalFunctions');
-// const CardModules = require('./modules/Card');
-// const CardGuildModules = require('./modules/CardGuild');
-// const WeatherModules = require('./modules/Weather');
 const { prefix, token } = require('./storage/config.json');
 
 const eventFiles = fs.readdirSync('./events').filter(file => file.endsWith('.js'));

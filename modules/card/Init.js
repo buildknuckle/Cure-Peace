@@ -1,1 +1,0 @@
-const Loader = require('./Loader');
