@@ -145,7 +145,7 @@ module.exports = {
                 var parameterUsername = interaction.options._hoistedOptions.hasOwnProperty(0) ? 
                 interaction.options._hoistedOptions[0].value : null;
                 
-                var userSearchResult = await Validation.userAvailable(userDiscord, parameterUsername, interaction);
+                var userSearchResult = await Validation.User.isAvailable(userDiscord, parameterUsername, interaction);
                 if(!userSearchResult) return; else userDiscord = userSearchResult;
                 
                 var arrPages = await UserModule.EventListener.printStatus(userDiscord, guildId);
@@ -156,10 +156,10 @@ module.exports = {
                 var parameterUsername = interaction.options._hoistedOptions.hasOwnProperty(1) ? 
                 interaction.options._hoistedOptions[1].value : null;
 
-                var userSearchResult = await UserModule.checkAvailable(userDiscord, parameterUsername, interaction);
+                var userSearchResult = await Validation.User.isAvailable(userDiscord, parameterUsername, interaction);
                 if(!userSearchResult) return; else userDiscord = userSearchResult;
 
-                var arrPages = await UserModule.Card.printInventory(userDiscord, pack, interaction);
+                var arrPages = await UserModule.EventListener.printInventory(userDiscord, pack, interaction);
                 paginationEmbed(interaction,arrPages,DiscordStyles.Button.pagingButtonList, parameterUsername==null?true:false);
                 break;
             case "set":

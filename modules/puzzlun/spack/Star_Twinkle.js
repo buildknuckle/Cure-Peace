@@ -1,4 +1,4 @@
-const Properties = {
+const properties = {
     value:"star_twinkle",
 	name:"Star Twinkle",
     icon:"https://cdn.discordapp.com/attachments/793415946738860072/845618044655239188/latest.png",
@@ -16,7 +16,7 @@ const Properties = {
     },
 }
 
-const Teams = {
+const teams = {
 	icon:"https://cdn.discordapp.com/attachments/793415946738860072/845618044655239188/latest.png",
     special:{
         name:"Star Twinkle Imagination",
@@ -24,7 +24,7 @@ const Teams = {
     }
 }
 
-const Monsters = require("../enpack/monsters/Nottrigger");
+const monsters = require("../enpack/monsters/Nottrigger");
 
 class Spawner {
     fuwaConstellation = {
@@ -100,5 +100,5 @@ class Spawner {
 }
 
 module.exports = {
-    Properties, Teams, Monsters, Spawner
+    properties, teams, monsters, Spawner
 }

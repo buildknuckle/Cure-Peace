@@ -1,4 +1,4 @@
-const Properties = {
+const properties = {
     value:"smile",
 	name:"Smile",
     icon:"https://cdn.discordapp.com/attachments/793415946738860072/845617680399728690/latest.png",
@@ -16,7 +16,7 @@ const Properties = {
     }
 }
 
-const Teams = {
+const teams = {
 	icon:"https://cdn.discordapp.com/attachments/793415946738860072/845617680399728690/latest.png",
     special:{
         name:"Royal Rainbow Burst",
@@ -24,7 +24,7 @@ const Teams = {
     }
 }
 
-const Monsters = require("../enpack/monsters/Akanbe");
+const monsters = require("../enpack/monsters/Akanbe");
 
 class Spawner {
     jankenponData = {
@@ -59,5 +59,5 @@ class Spawner {
 }
 
 module.exports = {
-    Properties, Teams, Monsters, Spawner
+    properties, teams, monsters, Spawner
 }

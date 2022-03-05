@@ -3,7 +3,7 @@ const DBConn = require('../../../storage/dbconn');
 
 const DBM_Card_Avatar = require('../../../database/model/DBM_Card_Avatar');
 
-const Series = require("../Series");
+const Series = require("./Series");
 const GProperties = require('../Properties');
 
 class Avatar {

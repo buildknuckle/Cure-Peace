@@ -1,89 +1,120 @@
-const GEmbed = require("./Embed");
-const embedColor = require("./Embed").color;
+const GlobalFunctions = require("../GlobalFunctions");
+const GProperties = require("./Properties");
+const Color = GProperties.color;
+const {Character, CPack} = require("./data/Character");
+const {Series, SPack} = require("./data/Series");
+const Embed = require("./Embed");
+const EmbedColor = Embed.color;
 const imgSet = require("./Properties").imgSet;
 
-async function userAvailable(userDiscord, username, interaction){//check if username is available on server/not
-    if(username!=null){
-        var memberExists = true;
-
-        await interaction.guild.members.fetch({query:`${username}`,limit:1})
-        .then(
-            async members=> {
-                if(members.size>=1){
-                    userDiscord = {
-                        id:members.first().user.id,
-                        username:members.first().user.username,
-                        avatarUrl:members.first().user.avatarURL()
+class User {
+    static async isAvailable(userDiscord, username, interaction){//check if username is available on server/not
+        if(username!=null){
+            var memberExists = true;
+    
+            await interaction.guild.members.fetch({query:`${username}`,limit:1})
+            .then(
+                async members=> {
+                    if(members.size>=1){
+                        userDiscord = members.first().user
+                        
+                    } else {
+                        memberExists = false;
                     }
-                    
-                } else {
-                    memberExists = false;
                 }
+            );
+    
+            if(!memberExists){
+                await interaction.reply(Embed.errorMini(`:x: I can't find that username, please re-enter with specific nickname/username.`,userDiscord, true, {
+                    title:`Cannot find that user`,
+                    thumbnail:imgSet.mofu.error
+                }));
+                return false;
             }
-        );
-
-        if(!memberExists){
-            await interaction.reply(GEmbed.errorMini(`:x: I can't find that username, please re-enter with specific nickname/username.`,userDiscord, true, {
-                title:`Cannot find that user`,
-                thumbnail:imgSet.mofu.error
-            }));
-            return false;
         }
+    
+        return userDiscord;
     }
 
-    return userDiscord;
+    static embedIsLogin(objUserData, guildId){
+        var userId = objUserData.id;
+        if(!GuildModule.Data.userLogin[guildId].includes(userId)){
+            return Embed.errorMini(`Please login into server with: "**/daily check-in**" command.`,objUserData,true, {
+                title:`❌ Not logged in yet!`
+            });
+        } else {
+            return true;
+        }
+    }
 }
 
-// packNotFound(objUserData){
-//     var packByColor = {pink:``,blue:``,yellow:``,purple:``,red:``,green:``,white:``};
-//     for(var pack in CpackModule){
-//         var series = CpackModule[pack].Properties.series;
-//         packByColor[CpackModule[pack].Properties.color]+=`${SpackModule[series].Properties.icon.mascot_emoji} ${GlobalFunctions.capitalize(pack)}\n`;
-//     }
+class Pack {
+    /**
+     * @param {string} pack pack in string
+     */
+     static isAvailable(pack){
+        return pack in CPack ? true:false;
+    }
+
+    static embedNotFound(userDiscord){
+        var packByColor = {pink:``,blue:``,yellow:``,purple:``,red:``,green:``,white:``};
+        for(var pack in CPack){
+            var character = new Character(pack);
+            var series = new Series(character.series);
     
-//     return {embeds:[
-//         GEmbed.builder(":x: I can't find that card pack. Here are the list for available card pack:", objUserData, {
-//             color:GEmbed.color.danger,
-//             fields:[
-//                 {
-//                     name:`${GProperties.emoji.color_pink} Pink:`,
-//                     value:packByColor.pink,
-//                     inline:true
-//                 },
-//                 {
-//                     name:`${GProperties.emoji.color_blue} Blue:`,
-//                     value:packByColor.blue,
-//                     inline:true
-//                 },
-//                 {
-//                     name:`${GProperties.emoji.color_yellow} Yellow:`,
-//                     value:packByColor.yellow,
-//                     inline:true
-//                 },
-//                 {
-//                     name:`${GProperties.emoji.color_purple} Purple:`,
-//                     value:packByColor.purple,
-//                     inline:true
-//                 },
-//                 {
-//                     name:`${GProperties.emoji.color_red} Red:`,
-//                     value:packByColor.red,
-//                     inline:true
-//                 },
-//                 {
-//                     name:`${GProperties.emoji.color_green} Green:`,
-//                     value:packByColor.green,
-//                     inline:true
-//                 },
-//                 {
-//                     name:`${GProperties.emoji.color_white} White:`,
-//                     value:packByColor.white,
-//                     inline:true
-//                 }
-//             ]
-//         })
-//     ], ephemeral:true};
-// },
+            packByColor[character.color]+=`${series.emoji.mascot} ${GlobalFunctions.capitalize(pack)}\n`;
+        }
+        
+        return {embeds:[
+            Embed.builder(":x: I can't find that card pack. Here are the list for available card pack:", userDiscord, {
+                color:EmbedColor.danger,
+                fields:[
+                    {
+                        name:`${Color.pink.emoji} Pink:`,
+                        value:packByColor.pink,
+                        inline:true
+                    },
+                    {
+                        name:`${Color.blue.emoji} Blue:`,
+                        value:packByColor.blue,
+                        inline:true
+                    },
+                    {
+                        name:`${Color.yellow.emoji} Yellow:`,
+                        value:packByColor.yellow,
+                        inline:true
+                    },
+                    {
+                        name:`${Color.purple.emoji} Purple:`,
+                        value:packByColor.purple,
+                        inline:true
+                    },
+                    {
+                        name:`${Color.red.emoji} Red:`,
+                        value:packByColor.red,
+                        inline:true
+                    },
+                    {
+                        name:`${Color.green.emoji} Green:`,
+                        value:packByColor.green,
+                        inline:true
+                    },
+                    {
+                        name:`${Color.white.emoji} White:`,
+                        value:packByColor.white,
+                        inline:true
+                    }
+                ]
+            })
+        ], ephemeral:true};
+    }
+
+}
+
+class Validation {
+    static User = User;
+    static Pack = Pack;
+}
 
 // cardDataNotFound(objUserData){
 //     return GEmbed.errorMini(`:x: I can't find that precure card.`, objUserData, true);
@@ -93,17 +124,6 @@ async function userAvailable(userDiscord, username, interaction){//check if user
 //     return GEmbed.errorMini(`:x: You don't have this card yet.`, objUserData, true);
 // }
 
-async function isLogin(objUserData, guildId){
-    var userId = objUserData.id;
-    if(!GuildModule.Data.userLogin[guildId].includes(userId)){
-        return GEmbed.errorMini(`Please login into server with: "**/daily check-in**" command.`,objUserData,true, {
-            title:`❌ Not logged in yet!`
-        });
-    } else {
-        return true;
-    }
-}
 
-module.exports = {
-    userAvailable
-}
+
+module.exports = Validation;

@@ -1,4 +1,4 @@
-const Properties = {
+const properties = {
     value:"tropical_rouge",
 	name:"Tropical-Rouge!",
     icon:"https://waa.ai/fTjk",
@@ -16,7 +16,7 @@ const Properties = {
     },
 }
 
-const Teams = {
+const teams = {
 	icon:"https://waa.ai/fTjk",
     special:{
         name:"Mix Tropical",
@@ -24,8 +24,8 @@ const Teams = {
     }
 }
 
-const Monsters = require("../enpack/monsters/Yaraneeda");
+const monsters = require("../enpack/monsters/Yaraneeda");
 
 module.exports = {
-    Properties, Teams, Monsters
+    properties, teams, monsters
 }

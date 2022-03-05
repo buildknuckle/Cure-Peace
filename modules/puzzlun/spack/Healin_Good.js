@@ -1,4 +1,4 @@
-const Properties = {
+const properties = {
     value:"healin_good",
 	name:"Healin' Good",
     icon:"https://cdn.discordapp.com/attachments/793415946738860072/936266739841372160/healin_good.png",
@@ -16,7 +16,7 @@ const Properties = {
     },
 }
 
-const Teams = {
+const teams = {
     icon:"https://cdn.discordapp.com/attachments/793415946738860072/936266739841372160/healin_good.png",
     special:{
         name:"Healing Oasis",
@@ -24,8 +24,8 @@ const Teams = {
     }
 }
 
-const Monsters = require("../enpack/monsters/Megabyogen");
+const monsters = require("../enpack/monsters/Megabyogen");
 
 module.exports = {
-    Properties, Teams, Monsters
+    properties, teams, monsters
 }

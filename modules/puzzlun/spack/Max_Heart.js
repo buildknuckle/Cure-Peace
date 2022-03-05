@@ -1,4 +1,4 @@
-const Properties = {
+const properties = {
     value:"max_heart",
 	name:"Max Heart",
     icon:"https://cdn.discordapp.com/attachments/793415946738860072/845617394872614942/latest.png",
@@ -16,7 +16,7 @@ const Properties = {
     },
 }
 
-const Teams = {
+const teams = {
 	icon:"https://cdn.discordapp.com/attachments/793415946738860072/845617394872614942/latest.png",
     special:{
         name:"Extreme Luminario",
@@ -24,8 +24,8 @@ const Teams = {
     }
 }
 
-const Monsters = require("../enpack/monsters/Zakenna");
+const monsters = require("../enpack/monsters/Zakenna");
 
 module.exports = {
-    Properties, Teams, Monsters
+    properties, teams, monsters
 }

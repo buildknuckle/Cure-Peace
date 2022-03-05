@@ -4,20 +4,19 @@ const DBConn = require('../../../storage/dbconn');
 const DBM_User_Data = require('../../../database/model/DBM_User_Data');
 
 const GProperties = require('../Properties');
-const SeriesModule = require("../Series");
+const SeriesModule = require("./Series");
 // const SPack = SeriesModule.SPack;
 
 class User {
-    data = {
-        id_user: "",
-        server_id_login: "",
-        token_sale: "",
-        token_cardspawn: "",
-        peace_point: 0,
-        set_color:"",
-        set_series:"",
-        currency_data:"",
-    };
+    id_user= null;
+    server_id_login= null;
+    token_sale= null;
+    token_cardspawn= null;
+    peace_point= null;
+    set_color= null;
+    set_series= null;
+    currency_data= null;
+
     Currency;
     Color;
     Series;
@@ -57,7 +56,7 @@ class User {
                     this.Series = new Series(JSON.parse(val));
                     break;
                 default:
-                    this.data[key] = val;
+                    this[key] = val;
                     break;
             }
             
@@ -95,116 +94,116 @@ class User {
         }
     }
 
-    async updateData(userStatusData, options){
-        var arrParam = [];
-        var querySet = ``;
+    // async updateData(userStatusData, options){
+    //     var arrParam = [];
+    //     var querySet = ``;
     
-        //{"pink":{"level":1,"point":0},"blue":{"level":1,"point":0},"yellow":{"level":1,"point":0},"green":{"level":1,"point":0},"red":{"level":1,"point":0},"purple":{"level":1,"point":0},"white":{"level":1,"point":0}}
+    //     //{"pink":{"level":1,"point":0},"blue":{"level":1,"point":0},"yellow":{"level":1,"point":0},"green":{"level":1,"point":0},"red":{"level":1,"point":0},"purple":{"level":1,"point":0},"white":{"level":1,"point":0}}
         
-        //process color point
-        for (var keyOptions in options) {
-            var valueOptions = options[keyOptions];
-            switch(keyOptions){
-                case DBM_User_Data.columns.color_data: //color point
-                    var mapColorPoint = valueOptions;
-                    var parsedColorPoint = JSON.parse(userStatusData[DBM_User_Data.columns.color_data]);
-                    for (const [key, value] of mapColorPoint.entries()) {
-                        if("level" in value){//add level
-                            parsedColorPoint[key]["level"]+=value["level"];
-                        }
+    //     //process color point
+    //     for (var keyOptions in options) {
+    //         var valueOptions = options[keyOptions];
+    //         switch(keyOptions){
+    //             case DBM_User_Data.columns.color_data: //color point
+    //                 var mapColorPoint = valueOptions;
+    //                 var parsedColorPoint = JSON.parse(userStatusData[DBM_User_Data.columns.color_data]);
+    //                 for (const [key, value] of mapColorPoint.entries()) {
+    //                     if("level" in value){//add level
+    //                         parsedColorPoint[key]["level"]+=value["level"];
+    //                     }
     
-                        if("point" in value){//update color point
-                            var point = value["point"];
-                            if(point>=0&&parsedColorPoint[key]["point"]+point<Properties.limit.colorPoint){
-                                parsedColorPoint[key]["point"]+= point;
-                            } else if(point<0){
-                                parsedColorPoint[key]["point"]-=- point;
-                            } else {
-                                parsedColorPoint[key]["point"]= Properties.limit.colorPoint;
-                            }
+    //                     if("point" in value){//update color point
+    //                         var point = value["point"];
+    //                         if(point>=0&&parsedColorPoint[key]["point"]+point<Properties.limit.colorPoint){
+    //                             parsedColorPoint[key]["point"]+= point;
+    //                         } else if(point<0){
+    //                             parsedColorPoint[key]["point"]-=- point;
+    //                         } else {
+    //                             parsedColorPoint[key]["point"]= Properties.limit.colorPoint;
+    //                         }
                             
-                            if(point<0&&parsedColorPoint[key]["point"]-point<=0) parsedColorPoint[key]["point"]=0; //prevent negative
-                        }
-                    }
+    //                         if(point<0&&parsedColorPoint[key]["point"]-point<=0) parsedColorPoint[key]["point"]=0; //prevent negative
+    //                     }
+    //                 }
                 
-                    arrParam.push(JSON.stringify(parsedColorPoint));
-                    querySet+=` ${DBM_User_Data.columns.color_data} = ?, `;
-                    break;
-                case DBM_User_Data.columns.series_data: //series point
-                    var mapSeriesPoint = valueOptions;
-                    var parsedSeriesPoint = JSON.parse(userStatusData[DBM_User_Data.columns.series_data]);
-                    for (const [key, value] of mapSeriesPoint.entries()) {
-                        if(value>=0&&parsedSeriesPoint[key]+value<Properties.limit.seriesPoint){
-                            parsedSeriesPoint[key]+= value;
-                        } else if(value<0){
-                            parsedSeriesPoint[key]-=- value;
-                        } else {
-                            parsedSeriesPoint[key]= Properties.limit.seriesPoint;
-                        }
+    //                 arrParam.push(JSON.stringify(parsedColorPoint));
+    //                 querySet+=` ${DBM_User_Data.columns.color_data} = ?, `;
+    //                 break;
+    //             case DBM_User_Data.columns.series_data: //series point
+    //                 var mapSeriesPoint = valueOptions;
+    //                 var parsedSeriesPoint = JSON.parse(userStatusData[DBM_User_Data.columns.series_data]);
+    //                 for (const [key, value] of mapSeriesPoint.entries()) {
+    //                     if(value>=0&&parsedSeriesPoint[key]+value<Properties.limit.seriesPoint){
+    //                         parsedSeriesPoint[key]+= value;
+    //                     } else if(value<0){
+    //                         parsedSeriesPoint[key]-=- value;
+    //                     } else {
+    //                         parsedSeriesPoint[key]= Properties.limit.seriesPoint;
+    //                     }
                         
-                        if(value<0&&parsedSeriesPoint[key]-value<=0) parsedSeriesPoint[key]=0; //prevent negative
-                    }
+    //                     if(value<0&&parsedSeriesPoint[key]-value<=0) parsedSeriesPoint[key]=0; //prevent negative
+    //                 }
                 
-                    arrParam.push(JSON.stringify(parsedSeriesPoint));
-                    querySet+=` ${DBM_User_Data.columns.series_data} = ?, `;
-                    break;
-                case DBM_User_Data.columns.currency_data: //currency data
-                    var mapCurrency = valueOptions;
-                    var parsedCurrency = JSON.parse(userStatusData[DBM_User_Data.columns.currency_data]);
+    //                 arrParam.push(JSON.stringify(parsedSeriesPoint));
+    //                 querySet+=` ${DBM_User_Data.columns.series_data} = ?, `;
+    //                 break;
+    //             case DBM_User_Data.columns.currency_data: //currency data
+    //                 var mapCurrency = valueOptions;
+    //                 var parsedCurrency = JSON.parse(userStatusData[DBM_User_Data.columns.currency_data]);
                     
-                    for (const [key, value] of mapCurrency.entries()) {
-                        if(value>=0&&parsedCurrency[key]+value<Properties.limit[key]){
-                            parsedCurrency[key]+= value;
-                        } else if(value<0){
-                            parsedCurrency[key]-=- value;
-                        } else {
-                            parsedCurrency[key]= Properties.limit[key];
-                        }
+    //                 for (const [key, value] of mapCurrency.entries()) {
+    //                     if(value>=0&&parsedCurrency[key]+value<Properties.limit[key]){
+    //                         parsedCurrency[key]+= value;
+    //                     } else if(value<0){
+    //                         parsedCurrency[key]-=- value;
+    //                     } else {
+    //                         parsedCurrency[key]= Properties.limit[key];
+    //                     }
                         
-                        if(value<0&&parsedCurrency[key]-value<=0) parsedCurrency[key]=0; //prevent negative
-                    }
+    //                     if(value<0&&parsedCurrency[key]-value<=0) parsedCurrency[key]=0; //prevent negative
+    //                 }
     
-                    querySet+=` ${DBM_User_Data.columns.currency_data} = ?, `;
-                    arrParam.push(JSON.stringify(parsedCurrency));
-                    break;
-                case DBM_User_Data.columns.peace_point://peace point
-                    var curPointBoost = userStatusData[DBM_User_Data.columns.peace_point];
-                    if(valueOptions>=0&&curPointBoost+valueOptions<Properties.limit.peacePoint){
-                        curPointBoost+= valueOptions;
-                    } else if(valueOptions<0){
-                        curPointBoost-=- valueOptions;
-                    } else {
-                        curPointBoost= Properties.limit[key];
-                    }
+    //                 querySet+=` ${DBM_User_Data.columns.currency_data} = ?, `;
+    //                 arrParam.push(JSON.stringify(parsedCurrency));
+    //                 break;
+    //             case DBM_User_Data.columns.peace_point://peace point
+    //                 var curPointBoost = userStatusData[DBM_User_Data.columns.peace_point];
+    //                 if(valueOptions>=0&&curPointBoost+valueOptions<Properties.limit.peacePoint){
+    //                     curPointBoost+= valueOptions;
+    //                 } else if(valueOptions<0){
+    //                     curPointBoost-=- valueOptions;
+    //                 } else {
+    //                     curPointBoost= Properties.limit[key];
+    //                 }
     
-                    querySet+=` ${DBM_User_Data.columns.peace_point} = ?, `;
-                    arrParam.push(curPointBoost);
-                    break;
-                case DBM_User_Data.columns.daily_data://daily data
-                case DBM_User_Data.columns.token_cardspawn://card spawn token
-                case DBM_User_Data.columns.server_id_login:
-                case DBM_User_Data.columns.avatar_main_data:
-                case DBM_User_Data.columns.avatar_support_data://support avatar
-                default:
-                    querySet+=` ${keyOptions} = ?, `;
-                    arrParam.push(valueOptions);
-                    break;
+    //                 querySet+=` ${DBM_User_Data.columns.peace_point} = ?, `;
+    //                 arrParam.push(curPointBoost);
+    //                 break;
+    //             case DBM_User_Data.columns.daily_data://daily data
+    //             case DBM_User_Data.columns.token_cardspawn://card spawn token
+    //             case DBM_User_Data.columns.server_id_login:
+    //             case DBM_User_Data.columns.avatar_main_data:
+    //             case DBM_User_Data.columns.avatar_support_data://support avatar
+    //             default:
+    //                 querySet+=` ${keyOptions} = ?, `;
+    //                 arrParam.push(valueOptions);
+    //                 break;
             
-            }
-        }
+    //         }
+    //     }
     
-        querySet = querySet.replace(/,\s*$/, "");//remove last comma and space
+    //     querySet = querySet.replace(/,\s*$/, "");//remove last comma and space
     
-        arrParam.push(this.data[DBM_User_Data.columns.id_user]);//push user id to arrParam
-        var query = `UPDATE ${DBM_User_Data.TABLENAME} 
-        SET ${querySet} 
-        WHERE ${DBM_User_Data.columns.id_user} = ?`;
+    //     arrParam.push(this[DBM_User_Data.columns.id_user]);//push user id to arrParam
+    //     var query = `UPDATE ${DBM_User_Data.TABLENAME} 
+    //     SET ${querySet} 
+    //     WHERE ${DBM_User_Data.columns.id_user} = ?`;
     
-        await DBConn.conn.query(query, arrParam);
-    }
+    //     await DBConn.conn.query(query, arrParam);
+    // }
 
     getCurrency(currency){
-        var currencyData = JSON.parse(this.data[DBM_User_Data.columns.currency_data]);
+        var currencyData = JSON.parse(this[DBM_User_Data.columns.currency_data]);
         if(currency==null){
             return currencyData;
         } else {
@@ -213,11 +212,11 @@ class User {
     }
 
     getPeacePoint(){
-        return this.data[DBM_User_Data.columns.peace_point];
+        return this[DBM_User_Data.columns.peace_point];
     }
 
     getSetColor(){
-        return this.data[DBM_User_Data.columns.set_color];
+        return this[DBM_User_Data.columns.set_color];
     }
 
     getColorLevel(color){
@@ -229,7 +228,7 @@ class User {
     }
 
     getSetSeries(){
-        return this.data[DBM_User_Data.columns.set_series];
+        return this[DBM_User_Data.columns.set_series];
     }
 
     // getSetSeriesName(){
@@ -242,7 +241,7 @@ class User {
     // }
 
     getSeriesData(){
-        return JSON.parse(this.data[DBM_User_Data.columns.series_data]);
+        return JSON.parse(this[DBM_User_Data.columns.series_data]);
     }
 
     getSeriesPoint(series){
@@ -254,7 +253,7 @@ class User {
     }
 
     getDailyData(){
-        return JSON.parse(this.data[DBM_User_Data.columns.daily_data]);
+        return JSON.parse(this[DBM_User_Data.columns.daily_data]);
     }
 
     getLastCheckInDate(){

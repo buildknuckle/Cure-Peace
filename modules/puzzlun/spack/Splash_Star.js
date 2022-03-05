@@ -1,4 +1,4 @@
-const Properties = {
+const properties = {
     value:"splash_star",
 	name:"Splash Star",
     icon:"https://cdn.discordapp.com/attachments/793415946738860072/845617466529021962/Puzzlun_data_download_cures_4.png",
@@ -16,7 +16,7 @@ const Properties = {
     },
 }
 
-const Teams = {
+const teams = {
 	icon:"https://cdn.discordapp.com/attachments/793415946738860072/845617466529021962/Puzzlun_data_download_cures_4.png",
     special:{
         name:"Spiral Heart Splash",
@@ -24,8 +24,8 @@ const Teams = {
     }
 }
 
-const Monsters = require("../enpack/monsters/Uzaina");
+const monsters = require("../enpack/monsters/Uzaina");
 
 module.exports = {
-    Properties, Teams, Monsters
+    properties, teams, monsters
 }

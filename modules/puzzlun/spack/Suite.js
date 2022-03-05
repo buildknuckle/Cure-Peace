@@ -1,4 +1,4 @@
-const Properties = {
+const properties = {
     value:"suite",
 	name:"Suite",
     icon:"https://cdn.discordapp.com/attachments/793415946738860072/845617647847473160/latest.png",
@@ -16,7 +16,7 @@ const Properties = {
     }
 }
 
-const Teams = {
+const teams = {
 	icon:"https://cdn.discordapp.com/attachments/793415946738860072/845617647847473160/latest.png",
     special:{
         name:"Suite Session Ensemble Crescendo",
@@ -24,7 +24,7 @@ const Teams = {
     }
 }
 
-const Monsters = require("../enpack/monsters/Negatone");
+const monsters = require("../enpack/monsters/Negatone");
 
 class Spawner {
     static fairyTones = {
@@ -72,5 +72,5 @@ class Spawner {
 }
 
 module.exports = {
-    Properties, Teams, Monsters, Spawner
+    properties, teams, monsters, Spawner
 }

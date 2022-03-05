@@ -12,8 +12,8 @@ const DBM_Card_Inventory = require('../../database/model/DBM_Card_Inventory');
 const DataModule = require("./Data");
 const DataCard = DataModule.Card;
 const DataCardInventory = DataModule.CardInventory;
-const {Series, SPack} = require("./Series");
-const {Character, CPack} = require("./Characters");
+const {Series, SPack} = require("./data/Series");
+const {Character, CPack} = require("./data/Character");
 const GProperties = require('./Properties');
 const GEmbed = require('./Embed');
 
@@ -29,17 +29,8 @@ async function init() {
     var cardData = await DBConn.conn.query(query, []);
     for(var i=0;i<cardData.length;i++){
         var dataCard = new DataCard(cardData[i]);
-        CPack[dataCard.data.pack].properties.total = cardData[i]["total"];
+        Character.setTotal(dataCard.pack, cardData[i]["total"]);
     }
-
-    var userCardInventory = new DataCardInventory(
-        await DataCardInventory.getData("145584315839938561","nami301"),
-        await DataCard.getData("tsha301")
-    );
-
-    userCardInventory.data.stock = 0;
-
-    userCardInventory.updateData();
 
     // console.log(userCardInventory);
     

@@ -5,199 +5,69 @@ const DBM_Card_Inventory = require('../../../database/model/DBM_Card_Inventory')
 const DBM_Card_Data = require('../../../database/model/DBM_Card_Data');
 
 const DataCard = require("./Card");
-const SpackModule = require("../Series");
+// const SpackModule = require("./Series");
 const GProperties = require('../Properties');
 const GlobalFunctions = require('../../GlobalFunctions');
 
+//database modifier
+const PROTECTED_KEY = Object.keys(DBM_Card_Inventory.columns);
+const UPDATE_KEY = [
+    DBM_Card_Inventory.columns.id_user,
+    DBM_Card_Inventory.columns.id_card,
+];
 
-// function printInventory(objUserData, pack, interaction){
-//     var arrPages = []; //prepare paging embed
-    
-//     var query = `select cd.${DBM_Card_Data.columns.id_card}, cd.${DBM_Card_Data.columns.pack}, cd.${DBM_Card_Data.columns.name}, cd.${DBM_Card_Data.columns.rarity}, cd.${DBM_Card_Data.columns.img_url}, inv.${DBM_Card_Inventory.columns.id_user}, inv.${DBM_Card_Inventory.columns.is_gold}, inv.${DBM_Card_Inventory.columns.stock}, inv.${DBM_Card_Inventory.columns.level}
-//     from ${DBM_Card_Data.TABLENAME} cd 
-//     left join ${DBM_Card_Inventory.TABLENAME} inv 
-//     on cd.${DBM_Card_Data.columns.id_card} = inv.${DBM_Card_Inventory.columns.id_card} and 
-//     inv.${DBM_Card_Inventory.columns.id_user} = ?
-//     where cd.${DBM_Card_Data.columns.pack}=?`;
-    
-//     var cardDataInventory = await DBConn.conn.query(query, [objUserData.id, pack]);
-//     //validation if pack exists/not
-//     if(cardDataInventory.length<=0){
-//         var packByColor = {pink:``,blue:``,yellow:``,purple:``,red:``,green:``,white:``};
-//         for(var pack in CpackModule){
-//             var series = CpackModule[pack].Properties.series;
-//             packByColor[CpackModule[pack].Properties.color]+=`${SpackModule[series].Properties.icon.mascot_emoji} ${GlobalFunctions.capitalize(pack)}\n`;
-//         }
-
-//         return interaction.reply({embeds:[
-//             Embed.builder(":x: I can't find that card pack. Here are the list for available card pack:", objUserData, {
-//                 color:Embed.color.danger,
-//                 fields:[
-//                     {
-//                         name:`${GProperties.emoji.color_pink} Pink:`,
-//                         value:packByColor.pink,
-//                         inline:true
-//                     },
-//                     {
-//                         name:`${GProperties.emoji.color_blue} Blue:`,
-//                         value:packByColor.blue,
-//                         inline:true
-//                     },
-//                     {
-//                         name:`${GProperties.emoji.color_yellow} Yellow:`,
-//                         value:packByColor.yellow,
-//                         inline:true
-//                     },
-//                     {
-//                         name:`${GProperties.emoji.color_purple} Purple:`,
-//                         value:packByColor.purple,
-//                         inline:true
-//                     },
-//                     {
-//                         name:`${GProperties.emoji.color_red} Red:`,
-//                         value:packByColor.red,
-//                         inline:true
-//                     },
-//                     {
-//                         name:`${GProperties.emoji.color_green} Green:`,
-//                         value:packByColor.green,
-//                         inline:true
-//                     },
-//                     {
-//                         name:`${GProperties.emoji.color_white} White:`,
-//                         value:packByColor.white,
-//                         inline:true
-//                     }
-//                 ]
-//             })
-//         ], ephemeral:true});
-//     }
-
-//     var pack = cardDataInventory[0][DBM_Card_Data.columns.pack];
-//     var color = CpackModule[pack].Properties.color; var iconColor = GProperties.emoji[`color_${color}`];
-//     var alterEgo = CpackModule[pack].Properties.alter_ego;
-//     var icon = CpackModule[pack].Properties.icon;
-//     var max = CpackModule[pack].Properties.total;
-
-//     var idx = 0; var maxIdx = 4; var txtInventory = ``;
-//     var total = {
-//         normal:cardDataInventory.filter(
-//             function (item) {
-//                 return item[DBM_Card_Inventory.columns.id_user] != null;
-//             }
-//         ).length,
-//         gold:cardDataInventory.filter(
-//             function (item) {
-//                 return item[DBM_Card_Inventory.columns.is_gold] == 1;
-//             }
-//         ).length
-//     };
-    
-//     var arrFields = [];
-//     for(var i=0;i<cardDataInventory.length;i++){
-//         var iconOwned = cardDataInventory[i][DBM_Card_Inventory.columns.id_user] ? 
-//             GProperties.emoji.aoi_check_green : GProperties.emoji.aoi_x;
-//         var rarity = cardDataInventory[i][DBM_Card_Data.columns.rarity];
-//         var img = cardDataInventory[i][DBM_Card_Data.columns.img_url];
-//         var id = cardDataInventory[i][DBM_Card_Inventory.columns.id_user] ? 
-//         `${cardDataInventory[i][DBM_Card_Data.columns.id_card]}` : "???";
-//         var displayName = cardDataInventory[i][DBM_Card_Inventory.columns.id_user] ? 
-//         `[${cardDataInventory[i][DBM_Card_Data.columns.name]}](${img})` : "???";
-//         var stock = cardDataInventory[i][DBM_Card_Inventory.columns.stock]>1 ? 
-//         `x${cardDataInventory[i][DBM_Card_Inventory.columns.stock]}`:"";
-        
-//         //check for gold
-//         // iconOwned = cardDataInventory[i][DBM_Card_Data.columns.is_gold]==1 && cardDataInventory[i][DBM_Card_Inventory.columns.id_user] ? 
-//         // GProperties.emoji.aoi_check_green:GProperties.emoji.aoi_x;
-        
-//         arrFields.push({
-//             name:`${GProperties.emoji.r1}${rarity}: ${id} ${stock}`,
-//             value:displayName
-//         });
-        
-//         if(idx>maxIdx||(idx<maxIdx && i==cardDataInventory.length-1)){
-//             arrPages.push(Embed.builder(
-//                 stripIndents`**Duplicate:**/${Properties.limit.card}
-//                 **Normal:** ${total.normal}/ ${max} 
-//                 **Gold:** ${total.gold}/${max}`,objUserData,{
-//                 color:Embed.color[color],
-//                 title:`${iconColor} ${GlobalFunctions.capitalize(pack)}/${alterEgo} Inventory:`,
-//                 thumbnail:icon,
-//                 fields:arrFields
-//             }));
-//             arrFields = [];
-//             idx = 0;
-//         } else {
-//             idx++;
-//         }
-
-//     }
-
-//     return paginationEmbed(interaction,arrPages,DiscordStyles.Button.pagingButtonList);
-
-//     // for(var item in cardDataInventory){
-//     //     console.log(item);
-//     //     ctr++;
-//     // }
-
-//     // console.log(color);
-//     //init embed
-//     // var objEmbed = Embed.builder(``,objUserData, {
-//     //     color:Embed.color[]
-//     // });
-
-// }
+const emoji = {
+    rarity(is_gold, rarity){
+        if(is_gold){
+            return `🌟`;
+        } else {
+            switch(rarity){
+                case 7:
+                    return "<:r7:935903814358270023>";
+                case 6:
+                    return "<:r6:935903799317499954>";
+                default:
+                    return "<:r1:935903782770966528>";
+            }
+        }
+    }
+}
 
 class CardInventory extends DataCard {
-    UPDATE_KEY = [
-        DBM_Card_Inventory.columns.id_user,
-        DBM_Card_Inventory.columns.id_card,
-    ];
-    
-    data = {
-        id:null,
-        id_user:null,
-        id_card:null,
-        level:null,
-        level_special:null,
-        stock:null,
-        is_gold:null,
-        created_at:null,
-    };
+    //contains protected columns, used for constructor
+    id_user=null;
+    id_card=null;
+    level=null;
+    level_special=null;
+    stock=null;
+    is_gold=null;
+    created_at=null;
 
     //modifier
     emoji = {
         rarity:null
     }
 
+    isPackCompleted = false;
+
     constructor(cardInventoryData, cardData={}){
         super(cardData);
+        // console.log(super.dc);
         
-        if(cardInventoryData==null){
-            return this.data = null;
-        }
+        if(cardInventoryData==null) return null;
 
         for(var key in cardInventoryData){
-            this.data[key] = cardInventoryData[key];
+            this[key] = cardInventoryData[key];
+            // ALLOWED.includes(key)?
+            //     this[key] = cardInventoryData[key]:
+            //     ;
         }
 
-        //check for rarity enhancement
-        if(this.data[DBM_Card_Inventory.columns.is_gold]){
-            this.emoji.rarity = `🌟`;
-        } else {
-            switch(this.data[DBM_Card_Data.columns.rarity]){
-                case 7:
-                    this.emoji.rarity = "<:r7:935903814358270023>";
-                case 6:
-                    this.emoji.rarity = "<:r6:935903799317499954>";
-                default:
-                    this.emoji.rarity = "<:r1:935903782770966528>";
-            }
-        }
-
+        //get rarity emoji
+        this.emoji.rarity = emoji.rarity(this.is_gold, this.rarity);
     }
 
-    static async getData(userId, cardId){
+    static async getDataById(userId, cardId){
         var mapWhere = new Map();
         mapWhere.set(DBM_Card_Inventory.columns.id_user, userId);
         mapWhere.set(DBM_Card_Inventory.columns.id_card, cardId);
@@ -209,25 +79,46 @@ class CardInventory extends DataCard {
         }
     }
 
-    isAvailable(){
-        return this.data!=null ? true:false;
+    /**
+     * @description will return search results by pack in multiple object
+     */
+    static async getDataByPack(userId, pack){
+        var query = `select cd.${DBM_Card_Data.columns.id_card}, cd.${DBM_Card_Data.columns.pack}, cd.${DBM_Card_Data.columns.name}, cd.${DBM_Card_Data.columns.rarity}, cd.${DBM_Card_Data.columns.img_url}, cd.${DBM_Card_Data.columns.hp_base}, cd.${DBM_Card_Data.columns.atk_base}, inv.${DBM_Card_Inventory.columns.id_user}, inv.${DBM_Card_Inventory.columns.is_gold}, inv.${DBM_Card_Inventory.columns.stock}, inv.${DBM_Card_Inventory.columns.level}
+        from ${DBM_Card_Data.TABLENAME} cd 
+        left join ${DBM_Card_Inventory.TABLENAME} inv 
+        on cd.${DBM_Card_Data.columns.id_card} = inv.${DBM_Card_Inventory.columns.id_card} and 
+        inv.${DBM_Card_Inventory.columns.id_user} = ?
+        where cd.${DBM_Card_Data.columns.pack}=?`;
+
+        var result = await DBConn.conn.query(query, [userId, pack]);
+        if(result[0]!=null){
+            return result;
+        } else {
+            return null;
+        }
     }
 
-    getId(){
-        if(this.isAvailable()){
-            if(DBM_Card_Inventory.columns.id_card in this.data){
-                return this.data[DBM_Card_Inventory.columns.id_card];
-            }
+    static async getTotalByPack(userId){
+        var query = `select cd.${DBM_Card_Data.columns.pack}, count(inv.${DBM_Card_Inventory.columns.id_user}) as total, 
+        cd.${DBM_Card_Data.columns.color}, cd.${DBM_Card_Data.columns.series} 
+        from ${DBM_Card_Data.TABLENAME} cd 
+        left join ${DBM_Card_Inventory.TABLENAME} inv 
+        on cd.${DBM_Card_Data.columns.id_card}=inv.${DBM_Card_Inventory.columns.id_card} and 
+        inv.${DBM_Card_Inventory.columns.id_user}=? 
+        group by cd.${DBM_Card_Data.columns.pack}`;
+        var cardDataInventory = await DBConn.conn.query(query, [userId]);
+        return cardDataInventory;
+    }
+
+    getIdCard(){
+        if(this.isAvailable(this.id_card)){
+            return this.id_card;
         }
-        
-        return null;
     }
 
     getIdUser(){
-        if(this.isAvailable()){
-            if(DBM_Card_Inventory.columns.id_user in this.data){
-                return this.data[DBM_Card_Inventory.columns.id_user];
-            }
+        if(this.isAvailable(this.id_user)){
+            return this[DBM_Card_Inventory.columns.id_user];
         }
         
         return null;
@@ -235,9 +126,7 @@ class CardInventory extends DataCard {
 
     getLevel(){
         if(this.isAvailable()){
-            if(DBM_Card_Inventory.columns.level in this.data){
-                return this.data[DBM_Card_Inventory.columns.level];
-            }
+            return this[DBM_Card_Inventory.columns.level];
         }
         
         return null;
@@ -245,9 +134,7 @@ class CardInventory extends DataCard {
 
     getLevelSpecial(){
         if(this.isAvailable()){
-            if(DBM_Card_Inventory.columns.level_special in this.data){
-                return this.data[DBM_Card_Inventory.columns.level_special];
-            }
+            return this[DBM_Card_Inventory.columns.level_special];
         }
         
         return null;
@@ -255,9 +142,7 @@ class CardInventory extends DataCard {
 
     getStock(){
         if(this.isAvailable()){
-            if(DBM_Card_Inventory.columns.stock in this.data){
-                return this.data[DBM_Card_Inventory.columns.stock];
-            }
+            return this[DBM_Card_Inventory.columns.stock];
         }
         
         return -1;
@@ -265,14 +150,33 @@ class CardInventory extends DataCard {
 
     isGold(){
         if(this.isAvailable()){
-            if(DBM_Card_Inventory.columns.is_gold in this.data){
-                return Boolean(this.data[DBM_Card_Inventory.columns.is_gold]);
-            }
+            return Boolean(this[DBM_Card_Inventory.columns.is_gold]);
         }
         
         return false;
     }
-    
+
+    /**
+     * @param {string} key custom key to be added
+     * @param {string} value custom value to be added
+     */
+    addKeyVal(key, value){
+        if(PROTECTED_KEY.includes(key)==false){
+            this[key] = value;
+        }
+    }
+
+    /**
+     * @param {string} key get custom added key
+     */
+    getKeyVal(key){
+        return this[key];
+    }
+
+    isCompleted(){
+        return false;
+    }
+
     // static async getPackTotal(userId, pack){
     //     var query = `SELECT count(*) as total  
     //     FROM ${DBM_Card_Data.TABLENAME} cd, ${DBM_Card_Inventory.TABLENAME} inv 
@@ -286,44 +190,8 @@ class CardInventory extends DataCard {
     //     }
     // }
 
-    updateStockParam(userId, cardId, cardInventoryData=null, qty=1){
-        //         if(cardInventoryData==null){
-        //             //add new card
-        //             var mapAdd = new Map();
-        //             mapAdd.set(DBM_Card_Inventory.columns.id_card,cardId);
-        //             mapAdd.set(DBM_Card_Inventory.columns.id_user,userId);
-        //             if(qty>=1){
-        //                 mapAdd.set(DBM_Card_Inventory.columns.stock,qty);
-        //             }
-                    
-        //             await DB.insert(DBM_Card_Inventory.TABLENAME,mapAdd);
-        //         } else {
-        //             //get old card stock
-        //             var stock = cardInventoryData[DBM_Card_Inventory.columns.stock];
-                    
-        //             if(qty>=0&&stock+qty<GProperties.limit.card){
-        //                 stock+= qty;
-        //             } else if(qty<0){
-        //                 stock-=- qty;
-        //             } else {
-        //                 stock= GProperties.limit.card;
-        //             }
-                    
-        //             if(qty<0&&stock-qty<=0) stock=0; //prevent negative
-        
-        //             var mapSet = new Map();
-        //             mapSet.set(DBM_Card_Inventory.columns.stock,stock);
-        //             var mapWhere = new Map();
-        //             mapWhere.set(DBM_Card_Inventory.columns.id_card, cardInventoryData[DBM_Card_Data.columns.id_card]);
-        //             mapWhere.set(DBM_Card_Inventory.columns.id_user, userId);
-        //             await DB.update(DBM_Card_Inventory.TABLENAME, mapSet, mapWhere);
-        //             return stock//return with stock
-        //         }
-            
-    }
-
     async updateData(){
-        if(this.UPDATE_KEY.length<=0) return;
+        // if(this[UPDATE_KEY].length<=0) return;
         
         let column = [//columns to be updated:
             DBM_Card_Inventory.columns.level,
@@ -337,12 +205,12 @@ class CardInventory extends DataCard {
 
         for(let key in column){
             let colVal = column[key];
-            paramSet.set(column[key], this.data[colVal]);
+            paramSet.set(column[key], this[colVal]);
         }
         
-        for(let key in this.UPDATE_KEY){
-            let updateKey = this.UPDATE_KEY[key];
-            paramWhere.set(this.UPDATE_KEY[key],this.data[updateKey]);
+        for(let key in UPDATE_KEY){
+            let updateKey = UPDATE_KEY[key];
+            paramWhere.set(UPDATE_KEY[key],this[updateKey]);
         }
 
         await DB.update(DBM_Card_Inventory.TABLENAME, paramSet, paramWhere);
