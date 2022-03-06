@@ -1,4 +1,5 @@
-const stripIndents = require("common-tags/lib/stripIndents")
+const dedent = require("dedent-js");
+const stripIndents = require("common-tags/lib/stripIndents");
 const {MessageActionRow, MessageSelectMenu, MessageButton, MessageEmbed, Discord, User} = require('discord.js');
 const DB = require('../../database/DatabaseCore');
 const DBConn = require('../../storage/dbconn');
@@ -9,13 +10,14 @@ const paginationEmbed = require('discordjs-button-pagination');
 const DBM_Card_Data = require('../../database/model/DBM_Card_Data');
 const DBM_Card_Inventory = require('../../database/model/DBM_Card_Inventory');
 
-const DataModule = require("./Data");
-const DataCard = DataModule.Card;
-const DataCardInventory = DataModule.CardInventory;
+const Data = require("./Data");
+const DataUser = Data.User;
+const DataCard = Data.Card;
+const DataCardInventory = Data.CardInventory;
 const {Series, SPack} = require("./data/Series");
 const {Character, CPack} = require("./data/Character");
 const GProperties = require('./Properties');
-const GEmbed = require('./Embed');
+const Embed = require('./Embed');
 
 // const GuildModule = require("./Guild");
 
@@ -37,6 +39,10 @@ async function init() {
     // //init yes 5 gogo data
     // await Series.yes5gogo.init();
     // console.log("Card Modules : Loaded ✓");
+}
+
+class Validation extends require("./Validation") {
+    
 }
 
 // class Inventory {
@@ -86,7 +92,67 @@ class Modifier {
     }
 }
 
+class EventListener {
+    static async printDetail(discordUser, idCard, interaction, isPrivate=true){
+        //print card detail
+        var userId = discordUser.id;
+        var arrPages = []; //prepare paging embed
+        // var cardData = await CardModule.getCardData(idCard);
+        var dataCard = await DataCard.getCardData(idCard);
+        if(dataCard==null){
+            return interaction.reply(Validation.Card.embedNotFound(discordUser));
+        }
+
+        var dataCardInventory = await DataCardInventory.getDataByIdUser(userId, idCard);
+        if(dataCardInventory==null){
+            return interaction.reply(Validation.Card.embedNotHave(discordUser));
+        }
+        
+        var card = new DataCardInventory(
+            dataCardInventory,
+            dataCard
+        )
+
+        var idCard = card.id_card;
+        var name = card.name;
+        var rarity = card.rarity;
+        var color = card.color;
+        var img = card.getImgDisplay();
+        var series = new Series(card.series);
+        var character = new Character(card.pack);
+        var receivedAt = card.received_at;
+
+        var level = card.level;
+        var levelSpecial = card.level_special;
+        var maxHp = card.maxHp;
+        var maxSp = card.maxSp;
+        var atk = card.atk;
+        
+
+        // var cureData = CpackModule[pack].Avatar.normal;
+        arrPages.push(Embed.builder(
+        dedent(`**${rarity}${card.emoji.rarity} Level:** ${level}/${card.maxLevel} | **Next EXP:** ${card.nextColorPoint}P
+        **Passive Skill:**
+        
+
+        **Battle Stats:**
+        ${card.emoji.hp}: ${maxHp} | ${card.emoji.atk}: ${atk} 
+        ${card.emoji.sp} SP Max: ${maxSp} 
+        💖 **Special:** ${character.specialAttack} Lv.${card.level_special}`),
+        Embed.builderUser.author(discordUser,character.fullname),{
+            color:color,
+            image:img,
+            title:`${name}`,
+            footer:{
+                text:`Received at: ${receivedAt}`,
+                iconURL:Embed.builderUser.getAvatarUrl(discordUser)
+            }
+        }));
+
+        paginationEmbed(interaction, arrPages, DiscordStyles.Button.pagingButtonList, isPrivate);
+    }
+}
+
 module.exports = {
-    init, Modifier, 
-    // getCardData, getCardDataMultiple
+    init, Modifier, EventListener
 }

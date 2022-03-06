@@ -7,6 +7,13 @@ const GProperties = require('../Properties');
 const SeriesModule = require("./Series");
 // const SPack = SeriesModule.SPack;
 
+const limit = Object.freeze({
+    colorPoint:3000,
+    seriesPoint:2000,
+    peacePoint:5,
+    card:99
+});
+
 class User {
     id_user= null;
     server_id_login= null;
@@ -32,12 +39,8 @@ class User {
         jewel:"jewel"
     }
 
-    limit = Object.freeze({
-        colorPoint:3000,
-        seriesPoint:2000,
-        peacePoint:5,
-        card:99
-    });
+    static limit = limit;
+    limit = limit;
 
     constructor(userData){
         for(var key in userData){

@@ -89,6 +89,7 @@ class Character {
     hint_spawn = null;
     total = null;//total of pack
     series = null;
+    specialAttack = null;
 
     /**
      * @param {string} pack pack in string
@@ -97,6 +98,8 @@ class Character {
         for(var key in CPack[pack].properties){
             this[key] = CPack[pack].properties[key];
         }
+
+        this.specialAttack = CPack[pack].Avatar.normal.special_attack;
     }
 
     static setTotal(pack, total){

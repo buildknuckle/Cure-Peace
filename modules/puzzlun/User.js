@@ -24,12 +24,16 @@ const DataCard = Data.Card;
 const DataCardInventory = Data.CardInventory;
 // const CpackModule = require("./Cpack");
 const {Series, SPack} = require("./data/Series");
+const {Character } = require('./data/Character');
 
 const CardModule = require('./card');
 // const QuestModule = require('./Quest');
 
 const GEmbed = require("./Embed");
-const Validation = require("./Validation");
+
+class Validation extends require("./Validation") {
+    
+}
 
 // async function isLogin(objUserData, guildId){
 //     var userId = objUserData.id;
@@ -303,26 +307,16 @@ const Validation = require("./Validation");
 // }
 
 class EventListener {
-    static async printInventory(discordUser, pack, interaction){
+    static async printInventory(discordUser, pack, interaction, isPrivate){
         var userId = discordUser.id;
         var arrPages = []; //prepare paging embed
         
-        var cardInventory = await DataCardInventory.getDataByPack(userId, pack);
         //validation if pack exists/not
-        if(cardInventory==null){
+        var cardDataInventory = await DataCardInventory.getDataByPack(userId, pack);
+        if(cardDataInventory==null){
             return interaction.reply(Validation.Pack.embedNotFound(discordUser));
         }
 
-        return;
-
-        var pack = cardDataInventory[0][DBM_Card_Data.columns.pack];
-        var color = CpackModule[pack].Properties.color; var iconColor = GProperties.emoji[`color_${color}`];
-        var series = CpackModule[pack].Properties.series; var iconSeries = Series[series].Properties.icon.mascot_emoji;
-        var alterEgo = CpackModule[pack].Properties.alter_ego;
-        var icon = CpackModule[pack].Properties.icon;
-        var max = CpackModule[pack].Properties.total;
-
-        var idx = 0; var maxIdx = 4; var txtInventory = ``;
         var total = {
             normal:cardDataInventory.filter(
                 function (item) {
@@ -340,42 +334,51 @@ class EventListener {
                 }
             ), DBM_Card_Inventory.columns.stock)
         };
-        
+
+        //process first card info
+        var cardInfo = new DataCardInventory(cardDataInventory[0], cardDataInventory[0]);
+        var character = new Character(cardInfo.pack);
+        var alterEgo = character.alter_ego;
+        var color = cardInfo.color;
+        var icon = character.icon;
+        var iconColor = Color[color].emoji;
+        var series = new Series(cardInfo.series);
+        var iconSeries = series.emoji.mascot;
+        var maxPack = cardInfo.packTotal;
+            
         var arrFields = [];
+        var idx = 0; var maxIdx = 4; var txtInventory = ``;
         for(var i=0;i<cardDataInventory.length;i++){
-            var cardInventory = cardDataInventory[i];
-            var rarity = cardInventory[DBM_Card_Data.columns.rarity];
+            var card = new DataCardInventory(cardDataInventory[i], cardDataInventory[i]);
+            let id = card.id_card; let level = card.level;
+            let img = card.img_url;
+            let displayName = `[${GlobalFunctions.cutText(card.name,30)}](${img})`;
+            let stock = card.stock;
+            let rarity = card.rarity;
+            let hp = card.maxHp;
+            let atk = card.atk;
 
-            arrFields.push({
-                name:`${CardModule.Emoji.rarity(rarity)}${rarity}: ${id} ${stock}`,
-                value:stripIndents`${displayName} Lv.${level}`
-            });
-
-            if(cardInventory[DBM_Card_Inventory.columns.id_user]){
-                var id = `${cardInventory[DBM_Card_Data.columns.id_card]}`;
-                var img = cardInventory[DBM_Card_Data.columns.img_url];
-                var displayName = `[${GlobalFunctions.cutText(cardInventory[DBM_Card_Data.columns.name],30)}](${img})`;
-                var stock = cardInventory[DBM_Card_Inventory.columns.stock]>0 ?
-                `${GProperties.color[color].icon_card}x${cardInventory[DBM_Card_Inventory.columns.stock]}`:"";
-                var level = cardInventory[DBM_Card_Inventory.columns.level];
-                var hp = CardModule.Parameter.getHp(level, cardInventory[DBM_Card_Data.columns.hp_base]);
-                var atk = CardModule.Parameter.getHp(level, cardInventory[DBM_Card_Data.columns.atk_base]);
-
-                txtInventory+=`**${CardModule.Emoji.rarity(rarity, cardInventory)}${rarity}: ${id} ${stock}**\n`;
+            if(card.isHaveCard()){
+                txtInventory+=`**${cardInfo.emoji.rarity}${rarity}: ${id}** ${Color[color].emoji_card}x${stock}\n`;
+                // txtInventory+=`${displayName} \n\n`;
                 txtInventory+=`${displayName} Lv.${level}\n❤️:${hp} | ⚔️:${atk}\n\n`;
             } else {
-                txtInventory+=`**${CardModule.Emoji.rarity(rarity)}${rarity}: ???**\n???\n\n`;
+                txtInventory+=`**${card.emoji.rarity}${rarity}: ???**\n???\n\n`;
             }
             
+            //check for max page content
             if(idx>maxIdx||(idx<maxIdx && i==cardDataInventory.length-1)){
-                arrPages.push(GEmbed.builder(
-                    `**Normal:** ${total.normal}/${max} | **Gold:** ${total.gold}/${max}\n${GProperties.color[color].icon_card}: ${total.duplicate}/${Properties.limit.card*cardDataInventory.length}\n`+
+                let embed = 
+                GEmbed.builder(
+                    `**Normal:** ${total.normal}/${maxPack} | **Gold:** ${total.gold}/${maxPack}\n${Color[color].emoji_card}x${total.duplicate}/${maxPack*DataUser.limit.card}\n`+
                     `\n${txtInventory}`,discordUser,{
                     color:GEmbed.color[color],
                     title:`${iconSeries} ${GlobalFunctions.capitalize(pack)}/${alterEgo} Inventory:`,
                     thumbnail:icon,
                     // fields:arrFields
-                }));
+                })
+
+                arrPages.push(embed);
                 arrFields = []; txtInventory="";
                 idx = 0;
             } else {
@@ -383,7 +386,7 @@ class EventListener {
             }
         }
 
-        return arrPages;
+        return paginationEmbed(interaction,arrPages,DiscordStyles.Button.pagingButtonList, isPrivate);
     }
 
     static async printStatus(discordUser, guildId){
@@ -460,6 +463,7 @@ class EventListener {
         var objEmbed = GEmbed.builder(txtMainStatus, author, {
             title:`Main Status:`,
             color:GEmbed.color[setColor],
+            thumbnail:seriesData.icon,
             fields: [
                 {name: `${Color.pink.emoji}${userData.Color.canLevelUp(Color.pink) ? "🆙":""} Lvl. ${userData.Color.getLevel(Color.pink)}/${userData.Color.getPoint(Color.pink)} Pts:`,
                 value: ``,inline:true},
@@ -595,8 +599,6 @@ class EventListener {
 
         return arrPages;
         
-        return;
-
         //======page 5: avatar======
         // var pageIndex = 4;
         // var avatarData = await this.getAvatarData(objUserData.id);

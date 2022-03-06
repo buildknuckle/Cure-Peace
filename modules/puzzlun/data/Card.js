@@ -8,6 +8,9 @@ const SpackModule = require("./Series");
 const GProperties = require('../Properties');
 
 class Card {
+    static tablename = DBM_Card_Data.TABLENAME;
+    static columns = DBM_Card_Data.columns;
+
     id_card=null;
     color=null;
     series=null;
@@ -36,9 +39,9 @@ class Card {
         }
     }
 
-    static async getData(cardId){
+    static async getCardData(idCard){
         var mapWhere = new Map();
-        mapWhere.set(DBM_Card_Data.columns.id_card,cardId);
+        mapWhere.set(DBM_Card_Data.columns.id_card, idCard);
         var cardData = await DB.select(DBM_Card_Data.TABLENAME,mapWhere);
         if(cardData[0]!=null){
             return cardData[0];
@@ -61,53 +64,43 @@ class Card {
     }
 
     getIdCard(){
-        return this.isAvailable(this[DBM_Card_Data.columns.id_card])?
-            this[DBM_Card_Data.columns.id_card]:null;
+        return this.id_card;
     }
 
     getColor(){
-        return this.isAvailable(this[DBM_Card_Data.columns.color])?
-            this[DBM_Card_Data.columns.color]:null;
+        return this.color;
     }
 
     getSeries(){
-        return this.isAvailable(thisthis[DBM_Card_Data.columns.series])?
-            this[DBM_Card_Data.columns.series]:null;
+        return this.series;
     }
 
     getPack(){
-        return this.isAvailable(this[DBM_Card_Data.columns.pack])?
-            this[DBM_Card_Data.columns.pack]:null;
+        return this.pack;
     }
 
     getRarity(){
-        return this.isAvailable(this[DBM_Card_Data.columns.rarity])?
-            this[DBM_Card_Data.columns.rarity]:null;
+        return this.rarity;
     }
 
     getName(){
-        return this.isAvailable(this[DBM_Card_Data.columns.name])?
-            this[DBM_Card_Data.columns.name]:null;
+        return this.name;
     }
 
     getImg(){
-        return this.isAvailable(this[DBM_Card_Data.columns.img_url])?
-            this[DBM_Card_Data.columns.img_url]:null;
+        return this.img_url;
     }
 
     getImgGold(){
-        return this.isAvailable(this[DBM_Card_Data.columns.img_url_upgrade1])?
-            this[DBM_Card_Data.columns.img_url_upgrade1]:null;
+        return this.img_url_upgrade1;
     }
 
     getHpBase(){
-        return this.isAvailable(this[DBM_Card_Data.columns.hp_base])?
-            this[DBM_Card_Data.columns.hp_base]:null;
+        return this.hp_base;
     }
 
     getAtkBase(){
-        return this.isAvailable(this[DBM_Card_Data.columns.atk_base])?
-            this[DBM_Card_Data.columns.atk_base]:null;
+        return this.atk_base;
     }
 
     isSpawnable(){

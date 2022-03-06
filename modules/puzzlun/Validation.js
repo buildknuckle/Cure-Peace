@@ -8,7 +8,7 @@ const EmbedColor = Embed.color;
 const imgSet = require("./Properties").imgSet;
 
 class User {
-    static async isAvailable(userDiscord, username, interaction){//check if username is available on server/not
+    static async isAvailable(discordUser, username, interaction){//check if username is available on server/not
         if(username!=null){
             var memberExists = true;
     
@@ -16,7 +16,7 @@ class User {
             .then(
                 async members=> {
                     if(members.size>=1){
-                        userDiscord = members.first().user
+                        discordUser = members.first().user
                         
                     } else {
                         memberExists = false;
@@ -25,7 +25,7 @@ class User {
             );
     
             if(!memberExists){
-                await interaction.reply(Embed.errorMini(`:x: I can't find that username, please re-enter with specific nickname/username.`,userDiscord, true, {
+                await interaction.reply(Embed.errorMini(`:x: I can't find that username, please re-enter with specific nickname/username.`,discordUser, true, {
                     title:`Cannot find that user`,
                     thumbnail:imgSet.mofu.error
                 }));
@@ -33,7 +33,7 @@ class User {
             }
         }
     
-        return userDiscord;
+        return discordUser;
     }
 
     static embedIsLogin(objUserData, guildId){
@@ -56,7 +56,7 @@ class Pack {
         return pack in CPack ? true:false;
     }
 
-    static embedNotFound(userDiscord){
+    static embedNotFound(discordUser){
         var packByColor = {pink:``,blue:``,yellow:``,purple:``,red:``,green:``,white:``};
         for(var pack in CPack){
             var character = new Character(pack);
@@ -66,7 +66,7 @@ class Pack {
         }
         
         return {embeds:[
-            Embed.builder(":x: I can't find that card pack. Here are the list for available card pack:", userDiscord, {
+            Embed.builder(":x: I can't find that card pack. Here are the list for available card pack:", discordUser, {
                 color:EmbedColor.danger,
                 fields:[
                     {
@@ -108,12 +108,26 @@ class Pack {
             })
         ], ephemeral:true};
     }
+}
 
+class Card {
+    static embedNotFound(discordUser){
+        return Embed.errorMini(`I cannot find that precure card id.`,discordUser, true, {
+            title:`❌ Card not found`
+        });
+    }
+
+    static embedNotHave(discordUser){
+        return Embed.errorMini(`You don't have this precure card yet.`,discordUser, true, {
+            title:`❌ Card not available`
+        });
+    }
 }
 
 class Validation {
     static User = User;
     static Pack = Pack;
+    static Card = Card;
 }
 
 // cardDataNotFound(objUserData){

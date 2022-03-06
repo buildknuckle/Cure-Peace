@@ -159,8 +159,8 @@ module.exports = {
                 var userSearchResult = await Validation.User.isAvailable(userDiscord, parameterUsername, interaction);
                 if(!userSearchResult) return; else userDiscord = userSearchResult;
 
-                var arrPages = await UserModule.EventListener.printInventory(userDiscord, pack, interaction);
-                paginationEmbed(interaction,arrPages,DiscordStyles.Button.pagingButtonList, parameterUsername==null?true:false);
+                await UserModule.EventListener.printInventory(userDiscord, pack, interaction, parameterUsername==null?true:false);
+                // paginationEmbed(interaction,arrPages,DiscordStyles.Button.pagingButtonList, parameterUsername==null?true:false);
                 break;
             case "set":
                 switch(commandSubcommand){
@@ -186,7 +186,7 @@ module.exports = {
                 var cardId = interaction.options._hoistedOptions[0].value.toLowerCase();
                 var isPrivate = interaction.options._hoistedOptions.hasOwnProperty(1) ? 
                 interaction.options._hoistedOptions[1].value:true;
-                return await UserModule.Card.printDetail(userDiscord, cardId, interaction, isPrivate);
+                return await CardModule.EventListener.printDetail(userDiscord, cardId, interaction, isPrivate);
                 break;
         }
 
