@@ -6,7 +6,7 @@ const GlobalFunctions = require('../modules/GlobalFunctions');
 
 const paginationEmbed = require('../modules/DiscordPagination');
 
-const DataModule = require("../modules/puzzlun/Data");
+// const DataModule = require("../modules/puzzlun/Data");
 const CardModule = require("../modules/puzzlun/Card");
 // const Avatar = require("../modules/puzzlun/Avatar");
 const UserModule = require("../modules/puzzlun/User");

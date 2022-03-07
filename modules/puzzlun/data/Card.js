@@ -4,8 +4,6 @@ const DBConn = require('../../../storage/dbconn');
 const DBM_Card_Data = require('../../../database/model/DBM_Card_Data');
 
 const {Character, CPack} = require("./Character");
-const SpackModule = require("./Series");
-const GProperties = require('../Properties');
 
 class Card {
     static tablename = DBM_Card_Data.TABLENAME;
@@ -120,6 +118,10 @@ class Card {
             return CPack[pack].Properties.total;
         }
         return 0;
+    }
+
+    static getId(cardData){
+        return cardData[this.columns.id_card];
     }
 
 }

@@ -30,7 +30,10 @@ const emoji = {
                     return "<:r1:935903782770966528>";
             }
         }
-    }
+    },
+    hp:"❤️",
+    atk:"⚔️",
+    sp:"🌟"
 }
 
 const parameter =  {
@@ -205,9 +208,9 @@ class CardInventory extends DataCard {
     //modifier
     emoji = {
         rarity:null,
-        hp:"❤️",
-        atk:"⚔️",
-        sp:"🌟"
+        hp:emoji.hp,
+        atk:emoji.atk,
+        sp:emoji.sp
     }
 
     isPackCompleted = false;

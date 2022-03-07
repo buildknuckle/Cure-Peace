@@ -30,6 +30,8 @@ module.exports = {
             }
 
             client.guilds.cache.forEach(async guild => {
+                let guildId = guild.id;
+                await PuzzlunInit.initGuild(guildId, guild);//init/one time load for all necessary guild data
                 // await GuildModule.init(guild.id);//init/one time load for all necessary guild data
 
                 console.log(`connected to: ${guild.id} - ${guild.name}`);

@@ -8,10 +8,10 @@ const GlobalFunctions = require('../GlobalFunctions.js');
 
 const paginationEmbed = require('../DiscordPagination');
 
-const GProperties = require('./Properties');
-const Color = GProperties.color;
-const Currency = GProperties.currency;
-const Emoji = GProperties.emoji;
+const Properties = require('./Properties');
+const Color = Properties.color;
+const Currency = Properties.currency;
+const Emoji = Properties.emoji;
 
 const DBM_Card_Data = require('../../database/model/DBM_Card_Data');
 const DBM_Card_Inventory = require('../../database/model/DBM_Card_Inventory');
