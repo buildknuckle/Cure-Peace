@@ -15,6 +15,9 @@ const UserModule = require("../modules/puzzlun/User");
 // const InstanceBattle = require("../modules/puzzlun/InstanceBattle");
 // const Spawner = require("../modules/puzzlun/Spawner");
 const Validation = require("../modules/puzzlun/Validation");
+const SpawnerModule = require("../modules/puzzlun/data/Spawner");
+const Spawner = SpawnerModule.Spawner;
+const SCardNormal = SpawnerModule.CardNormal;
 
 module.exports = {
     name: 'card',
@@ -136,8 +139,8 @@ module.exports = {
         var commandSubcommand = interaction.options._subcommand;
         const guildId = interaction.guild.id;
 
-        var userDiscord = interaction.user;
-        var userId = userDiscord.id;
+        var discordUser = interaction.user;
+        var userId = discordUser.id;
 
         switch(command){
             //STATUS MENU: open card status
@@ -145,10 +148,10 @@ module.exports = {
                 var parameterUsername = interaction.options._hoistedOptions.hasOwnProperty(0) ? 
                 interaction.options._hoistedOptions[0].value : null;
                 
-                var userSearchResult = await Validation.User.isAvailable(userDiscord, parameterUsername, interaction);
-                if(!userSearchResult) return; else userDiscord = userSearchResult;
+                var userSearchResult = await Validation.User.isAvailable(discordUser, parameterUsername, interaction);
+                if(!userSearchResult) return; else discordUser = userSearchResult;
                 
-                var arrPages = await UserModule.EventListener.printStatus(userDiscord, guildId);
+                var arrPages = await UserModule.EventListener.printStatus(discordUser, guildId);
                 paginationEmbed(interaction,arrPages,DiscordStyles.Button.pagingButtonList, parameterUsername==null?true:false);
                 break;
             case "inventory":
@@ -156,10 +159,10 @@ module.exports = {
                 var parameterUsername = interaction.options._hoistedOptions.hasOwnProperty(1) ? 
                 interaction.options._hoistedOptions[1].value : null;
 
-                var userSearchResult = await Validation.User.isAvailable(userDiscord, parameterUsername, interaction);
-                if(!userSearchResult) return; else userDiscord = userSearchResult;
+                var userSearchResult = await Validation.User.isAvailable(discordUser, parameterUsername, interaction);
+                if(!userSearchResult) return; else discordUser = userSearchResult;
 
-                await UserModule.EventListener.printInventory(userDiscord, pack, interaction, parameterUsername==null?true:false);
+                await UserModule.EventListener.printInventory(discordUser, pack, interaction, parameterUsername==null?true:false);
                 // paginationEmbed(interaction,arrPages,DiscordStyles.Button.pagingButtonList, parameterUsername==null?true:false);
                 break;
             case "set":
@@ -172,7 +175,7 @@ module.exports = {
                         var isPrivate = interaction.options._hoistedOptions.hasOwnProperty(2) ? 
                         interaction.options._hoistedOptions[2].value:true;
 
-                        await Avatar.EventListener.set(userDiscord, idCard, formation, interaction, isPrivate);
+                        await Avatar.EventListener.set(discordUser, idCard, formation, interaction, isPrivate);
 
                         break;
                 }
@@ -186,7 +189,7 @@ module.exports = {
                 var cardId = interaction.options._hoistedOptions[0].value.toLowerCase();
                 var isPrivate = interaction.options._hoistedOptions.hasOwnProperty(1) ? 
                 interaction.options._hoistedOptions[1].value:true;
-                return await CardModule.EventListener.printDetail(userDiscord, cardId, interaction, isPrivate);
+                return await CardModule.EventListener.printDetail(discordUser, cardId, interaction, isPrivate);
                 break;
         }
 
@@ -206,63 +209,61 @@ module.exports = {
         var customId = interaction.customId;
         const guildId = interaction.guild.id;
 
-        var objUserData = {
-            id:interaction.user.id,
-            username:interaction.user.username,
-            avatarUrl:interaction.user.avatarURL()
-        }
+        var discordUser = interaction.user;
+        var userId = discordUser.id;
 
         //check for user login
-        var loginCheck = await UserModule.isLogin(objUserData,guildId);
-        if(loginCheck!=true){
-            return interaction.reply(loginCheck);//return error message
-        }
+        // var loginCheck = await UserModule.isLogin(objUserData,guildId);
+        // if(loginCheck!=true){
+        //     return interaction.reply(loginCheck);//return error message
+        // }
 
         switch(customId){
-            case "catch_normal":
-                var ret = await CardModule.EventListener.captureNormal(objUserData, guildId, false);
+            case Spawner.buttonId.catch_normal:
+            case Spawner.buttonId.catch_boost:
+                var ret = await Spawner.onCardCaptureNormal(discordUser, guildId);
                 return interaction.reply(ret);
                 break;
-            case "catch_boost":
-                var ret = await CardModule.EventListener.captureNormal(objUserData, guildId, true);
-                return interaction.reply(ret);
-                break;
-            case "catch_color":
-                var ret = await CardModule.EventListener.captureColor(objUserData, guildId, false);
-                return interaction.reply(ret);
-                break;
-            case "catch_color_boost":
-                var ret = await CardModule.EventListener.captureColor(objUserData, guildId, true);
-                return interaction.reply(ret);
-                break;
-            case "catch_series":
-                var ret = await Spawner.EventListener.captureSeries(objUserData, guildId, false);
-                return interaction.reply(ret);
-                break;
-            case "catch_series_boost":
-                var ret = await CardModule.EventListener.captureSeries(objUserData, guildId, true);
-                return interaction.reply(ret);
-                break;
-            //jankenpon:
-            case "jankenpon_rock":
-            case "jankenpon_paper":
-            case "jankenpon_scissors":
-                var ret = await CardModule.EventListener.captureJankenpon(objUserData, guildId, customId.split("_")[1]);
-                return interaction.reply(ret);
-                break;
-            //number
-            case "number_lower":
-            case "number_higher":
-                var ret = await CardModule.EventListener.captureNumber(objUserData, guildId, customId.split("_")[1]);
-                return interaction.reply(ret);
-                break;
+            // case "catch_boost":
+            //     var ret = await CardModule.EventListener.captureNormal(objUserData, guildId, true);
+            //     return interaction.reply(ret);
+            //     break;
+            // case "catch_color":
+            //     var ret = await CardModule.EventListener.captureColor(objUserData, guildId, false);
+            //     return interaction.reply(ret);
+            //     break;
+            // case "catch_color_boost":
+            //     var ret = await CardModule.EventListener.captureColor(objUserData, guildId, true);
+            //     return interaction.reply(ret);
+            //     break;
+            // case "catch_series":
+            //     var ret = await Spawner.EventListener.captureSeries(objUserData, guildId, false);
+            //     return interaction.reply(ret);
+            //     break;
+            // case "catch_series_boost":
+            //     var ret = await CardModule.EventListener.captureSeries(objUserData, guildId, true);
+            //     return interaction.reply(ret);
+            //     break;
+            // //jankenpon:
+            // case "jankenpon_rock":
+            // case "jankenpon_paper":
+            // case "jankenpon_scissors":
+            //     var ret = await CardModule.EventListener.captureJankenpon(objUserData, guildId, customId.split("_")[1]);
+            //     return interaction.reply(ret);
+            //     break;
+            // //number
+            // case "number_lower":
+            // case "number_higher":
+            //     var ret = await CardModule.EventListener.captureNumber(objUserData, guildId, customId.split("_")[1]);
+            //     return interaction.reply(ret);
+            //     break;
         }
 
         //BATTLE COMMANDS
-        if(customId.includes("battle_scanInfo_")){
-            var ret = await BattleModule.EventListener.scanBattleInfoTsunagarus(objUserData, guildId, interaction, customId);
-            return ret;
-        }
+        // if(customId.includes("battle_scanInfo_")){
+        //     var ret = await BattleModule.EventListener.scanBattleInfoTsunagarus(objUserData, guildId, interaction, customId);
+        //     return ret;
+        // }
 
     },
     async executeComponentSelectMenu(interaction){

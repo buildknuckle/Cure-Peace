@@ -1,6 +1,6 @@
 const {MessageActionRow, MessageSelectMenu, MessageButton, MessageEmbed, Discord} = require('discord.js');
-const DB = require('../../../database/DatabaseCore');
-const DBM_Card_Tradeboard = require('../../../database/model/DBM_Tradeboard');
+const DB = require('../../database/DatabaseCore');
+const DBM_Card_Tradeboard = require('../../database/model/DBM_Tradeboard');
 
 module.exports = class TradeBoard {
     static async getTradeboardData(id_guild,id_user){

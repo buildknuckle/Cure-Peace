@@ -22,10 +22,12 @@ class Guild {
     spawn_data = null;
 
     //modifier
-    timer;//to store timer interval functions
-    Spawner;
+    spawner = null;
 
-    constructor(guildData){
+    /**
+     * @param interval Interval in minutes
+     */
+    constructor(guildData=null){
         for(var key in guildData){
             this[key] = guildData[key];
         }
@@ -50,18 +52,6 @@ class Guild {
         return await resultCheckExist[0];
     }
 
-    static getSpawn(guildId){
-
-        return;
-        if(!(guildId in this.spawn)){
-            this.spawn[guildId] = null;
-        }
-
-        if(this.spawn[guildId]!==null){
-            return true;
-        }
-    }
-
     static getData(guildId){
         return this.data[guildId];
     }
@@ -70,14 +60,31 @@ class Guild {
         this.data[guildId] = Guild;
     }
 
-    setSpawner(spawnType, spawnData, Spawner){
+    //get spawner class
+    // static getSpawner(guildId){
+    //     var guild = new Guild(this.data[guildId]);
+    //     return guild.spawner;
+    // }
+
+    setSpawner(spawnType, spawnData, Spawner, spawnToken=null){
+        if(spawnToken!==null){
+            this.spawn_token = spawnToken;
+        }
+
         this.spawn_type = spawnType;
         this.spawn_data = spawnData;
-        this.Spawner = Spawner;
+        this.spawner = Spawner;
+
+        Guild.setData(this.id_guild, this);//update latest guild data
+    }
+
+    updateData(){
+        //set data to guiild object
+        Guild.setData(this.id_guild, this);
     }
 
     //store to db:
-    async updateData(){//update all data
+    async updateDb(){//update all data
         let column = [//columns to be updated:
             columns.id_channel_spawn,
             columns.id_roleping_cardcatcher,
@@ -104,7 +111,7 @@ class Guild {
         await DB.update(tablename, paramSet, paramWhere);
     }
 
-    async updateSpawnData(){//update spawn data only
+    async updateDbSpawnerData(){//update spawn data only
         let column = [//columns to be updated:
             columns.id_last_message_spawn,
             columns.spawn_token,
@@ -128,8 +135,8 @@ class Guild {
         await DB.update(tablename, paramSet, paramWhere);
     }
 
-    initSpawnTimer(){
-        
+    setGuildChannel(guildChannel){
+        this.guildChannel = guildChannel;
     }
 
     // getData(){
@@ -144,7 +151,7 @@ class Guild {
 
     //check if spawn_interval not null
     isSpawnActive(){
-        if(this.spawn_interval!==null){
+        if(this.spawner!==null){
             return true;
         } else {
             return false;

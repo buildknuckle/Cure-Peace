@@ -13,8 +13,8 @@ const DBM_Guild_Data = require('../../database/model/DBM_Guild_Data');
 
 const CpackModule = require("./Cpack");
 const SpackModule = require("./Series");
-const UserModule = require("./User");
-const CardModule = require("./Card");
+const UserModule = require("../puzzlun/User");
+const CardModule = require("../puzzlun/Card");
 
 class Embed {
     static notifNotEnoughBoostPoint(boostCost, objUserData){

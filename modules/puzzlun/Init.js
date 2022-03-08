@@ -1,6 +1,7 @@
 const CardModules = require("./Card");
 const DataGuild = require("./data/Guild");
-const Spawner  = require("./data/Spawner");
+const SpawnerModules  = require("./data/Spawner");
+const Spawner = SpawnerModules.Spawner;
 
 async function init(){
     //load card modules
@@ -8,21 +9,38 @@ async function init(){
 }
 
 async function initGuild(guildId, discordGuild){
-    var guildData = await DataGuild.getDBData(guildId);
-    var dataGuild = new DataGuild(guildData);
+    var dataGuild = new DataGuild(
+        await DataGuild.getDBData(guildId)
+    );
     DataGuild.setData(guildId, dataGuild);
 
-
+    //init for card spawn
     if(dataGuild.id_channel_spawn!=null){
         var assignedChannel = dataGuild.id_channel_spawn;
-        // var b = Spawner.Timer.start;
     
         //check if channel exists/not
         var guildChannel = discordGuild.channels.cache.find(ch => ch.id === assignedChannel);
         if(guildChannel){
-            Spawner.Timer.start(guildChannel);
-            // guildChannel.send({content:"init ok"});
+            var spawner = new Spawner();
+            await spawner.init(guildId, guildChannel, dataGuild.spawn_interval,
+            dataGuild.spawn_type, dataGuild.spawn_data);
+
+            // var spawner = new CardNormal();
+            // await spawner.init(guildId, guildChannel, dataGuild.spawn_interval,
+            // dataGuild.spawn_type, dataGuild.spawn_data);
+            // console.log(spawner);
+            
+            // var b = new Spawner.type.normal(spawner.data);
+            // console.log(b.embedSpawn.components[0]);
+            // DataGuild.setSpawner(guildId, spawner);
+            // await spawner.random();
+            // dataGuild.updateData();
+            // console.log(DataGuild.data);
+            // console.log(DataGuild.getData(guildId));
+            // spawner.guildChannel.send({content:"init ok"});
         }
+
+        // console.log(DataGuild.data);
     }
     
 

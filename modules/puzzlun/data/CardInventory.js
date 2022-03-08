@@ -291,7 +291,7 @@ class CardInventory extends DataCard {
     Parameter;
     Data;
 
-    constructor(cardInventoryData, cardData={}){
+    constructor(cardInventoryData){
         super(cardData);
         // this.Data = new Data();
         // this.Parameter = new Parameter(cardInventoryData, cardData);
@@ -432,6 +432,37 @@ class CardInventory extends DataCard {
         }
     }
 
+    //db
+    async updateStock(qty=1){
+        console.log("UPDATED");
+    }
+
+    async update(){
+        // if(this[UPDATE_KEY].length<=0) return;
+        
+        let column = [//columns to be updated:
+            DBM_Card_Inventory.columns.level,
+            DBM_Card_Inventory.columns.level_special,
+            DBM_Card_Inventory.columns.stock,
+            DBM_Card_Inventory.columns.is_gold,
+        ]
+
+        let paramSet = new Map();
+        let paramWhere = new Map();
+
+        for(let key in column){
+            let colVal = column[key];
+            paramSet.set(column[key], super[colVal]);
+        }
+        
+        for(let key in UPDATE_KEY){
+            let updateKey = UPDATE_KEY[key];
+            paramWhere.set(UPDATE_KEY[key],this[updateKey]);
+        }
+
+        await DB.update(DBM_Card_Inventory.TABLENAME, paramSet, paramWhere);
+    }
+
     // static async updateStockParam(userId, cardId, cardInventoryData=null, qty=1){
     //     if(cardInventoryData==null){
     //         //add new card
@@ -467,41 +498,6 @@ class CardInventory extends DataCard {
     //     }
     
     // }
-}
-
-class Data {
-    constructor(){
-    }
-
-    updateStock(){
-        console.log("UPDATED");
-    }
-
-    async update(){
-        // if(this[UPDATE_KEY].length<=0) return;
-        
-        let column = [//columns to be updated:
-            DBM_Card_Inventory.columns.level,
-            DBM_Card_Inventory.columns.level_special,
-            DBM_Card_Inventory.columns.stock,
-            DBM_Card_Inventory.columns.is_gold,
-        ]
-
-        let paramSet = new Map();
-        let paramWhere = new Map();
-
-        for(let key in column){
-            let colVal = column[key];
-            paramSet.set(column[key], super[colVal]);
-        }
-        
-        for(let key in UPDATE_KEY){
-            let updateKey = UPDATE_KEY[key];
-            paramWhere.set(UPDATE_KEY[key],this[updateKey]);
-        }
-
-        await DB.update(DBM_Card_Inventory.TABLENAME, paramSet, paramWhere);
-    }
 }
 
 module.exports = CardInventory;

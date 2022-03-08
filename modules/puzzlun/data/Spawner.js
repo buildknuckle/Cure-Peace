@@ -9,9 +9,9 @@ const DataCard = require('./Card');
 const DataUser = require('./User');
 const {Series} = require('./Series');
 const {Character} = require('./Character');
-const GProperties = require("../Properties");
-const Color = GProperties.color;
-const Emoji = GProperties.emoji;
+const Properties = require("../Properties");
+const Color = Properties.color;
+const Emoji = Properties.emoji;
 
 class Embed extends require("../Embed") {
     static notifNotEnoughBoostPoint(boostCost, objUserData){
@@ -202,34 +202,161 @@ class Embed extends require("../Embed") {
 //     }
 // });
 
-const catchRate = Object.freeze({
-
-})
-
 class Timer {
-    timer=null;
-
-    constructor(){
-
-    }
-
-    static start(guildChannel, objEmbed){
-        return setInterval(function(){
-            guildChannel.send(objEmbed);
-        }, 5000)
-    }
-
     //convert mins to seconds
     static minToSec(min){
-        return min*60;
+        // return (min*60)*1000;
+        return min*1000;//for testing only
     }
 }
 
-class CardNormal {
-    static properties = "normal";
+const type = {
+    cardNormal:"cardNormal"
+}
 
-    type = "normal";
-    cardData=null;
+const buttonId = Object.freeze({
+    catch_normal:"catch_normal",
+    catch_boost:"catch_boost"
+});
+
+class Spawner {
+    // static type = type;
+    static Timer = Timer;
+    static buttonId = buttonId;
+
+    interval = null;//in minutes
+    timer = null;
+    type = null;
+    spawnData = null;//to be saved for db
+    data = null;//contains class of the spawned
+    guildId = null;
+    idRoleping = {
+        cardcatcher:null
+    }
+    guildChannel = null;//contains discord guild channel to send the spawn notif
+
+    constructor(Spawner=null){
+        if(Spawner!=null){
+            for(var key in Spawner){
+                this[key] = Spawner[key];
+            }
+        }
+    }
+
+    async init(guildId, guildChannel, interval,
+        spawn_type=null, spawn_data=null){
+        this.guildId = guildId;
+        this.guildChannel = guildChannel;
+        this.interval = interval;
+        if(spawn_type!==null || spawn_data!==null){
+            this.type = spawn_type;
+            switch(this.type){
+                case type.cardNormal:
+                    var spawn = new CardNormal();
+                    spawn.setData(await DataCard.getCardData(spawn_data));
+                    this.spawnData = spawn.spawnData;
+                    this.data = spawn;
+                    
+                    break;
+            }
+        }
+
+        //save spawner data to guild
+        var dataGuild = new DataGuild(DataGuild.getData(this.guildId));
+        dataGuild.setSpawner(this.type, this.spawnData, this);
+
+        //start the timer
+        // await this.startTimer();
+    }
+
+    async randomizeSpawn(){
+        var rnd = GlobalFunctions.randomNumber(0,100);
+        rnd = 0;
+        if(rnd<100){
+            this.type = type.cardNormal;
+            var spawn = new CardNormal();
+            spawn.setData(await CardNormal.getRandomCard());
+            this.spawnData = spawn.spawnData;
+            this.data = spawn;
+
+            //send embed to guild channel
+            await this.guildChannel.send(spawn.embedSpawn);
+        }
+
+        //save spawner data to guild
+        // DataGuild.setSpawner(this.guildId, this);
+        var rndSpawnToken = GlobalFunctions.randomNumber(0,1000).toString();//update spawn token
+        var dataGuild = new DataGuild(DataGuild.getData(this.guildId));
+        dataGuild.setSpawner(this.type, this.spawnData, this.data, rndSpawnToken);
+
+        //save latest spawner data to guild
+        await dataGuild.updateDbSpawnerData();
+
+        // console.log(DataGuild.getData(this.guildId));
+        //update to db
+        // var dataGuild = new DataGuild(DataGuild.getData(this.guildId));
+        // DataGuild.setData(this.guildId, )
+    }
+
+    // setData(data){
+    //     this.data = data;
+    // }
+
+    //timer method
+    //newInterval in minutes
+    updateTimer(newInterval){
+        if(this.timer!==null){ //clear interval if timer exists
+            clearInterval(this.timer);
+        }
+
+        this.interval = newInterval;
+        this.timer = setInterval(()=>this.randomizeSpawn()
+        ,Timer.minToSec(this.interval));
+    }
+
+    stopTimer(){
+        if(this.timer!==null){ //clear interval if timer exists
+            clearInterval(this.timer);
+        }
+    }
+
+    async startTimer(){
+        if(this.interval==null) return;
+        this.timer = setInterval(async ()=>this.randomizeSpawn()
+        ,Timer.minToSec(this.interval));
+    }
+
+    //button event listener
+    //normal card capture
+    static onCardCaptureNormal(discordUser, guildId){
+        var userId = discordUser.id;
+        
+        //get spawnerdata from guild
+        var dataGuild = new DataGuild(DataGuild.getData(guildId));
+        var dataSpawner = new Spawner(dataGuild.spawner);
+        // var normalSpawn = new CardNormal(dataSpawner);
+        // normalSpawn.normalCapture()
+        console.log(spawner);
+    }
+
+    //method to be called
+    // startRandomSpawn(){
+    //     if(this.interval==null) return;
+    //     switch(this.type){
+    //         case type.cardNormal.value:
+    //             break;
+    //     }
+    //     //  = DataGuild.getSpawner(this.guildId);
+    // }
+
+}
+
+class CardNormal {
+    static value = "cardNormal";
+    
+    spawnData = null;//to be saved for db
+    cardData = null;
+    idRoleping = null;
     peacePointCost = {
         1:1,
         2:2
@@ -238,8 +365,14 @@ class CardNormal {
         1:80,
         2:70
     }
+    embedSpawn = null;
 
-    constructor(){
+    constructor(CardNormal=null){
+        if(CardNormal!=null){
+            for(var key in CardNormal){
+                this[key] = CardNormal[key];
+            }
+        }
         // this.cardData=cardData;
         // for(var key in cardData){
         //     this[key] = cardData[key];
@@ -258,7 +391,12 @@ class CardNormal {
         return resultData[0];
     }
 
-    getEmbedSpawn(){
+    //method to be called
+    //set card data & embed
+    setData(cardData){
+        this.cardData = cardData;//set card data
+        
+        //set embed spawn
         if(this.cardData==null) return;
         var card = new DataCard(this.cardData);
         var id = card.id_card; var pack = card.pack;
@@ -283,102 +421,31 @@ class CardNormal {
             footer:Embed.builderUser.footer(`${series.name} Card (${id}) | ✔️ ${this.catchRate[rarity]}%`)
         });
         
-        return ({embeds:[objEmbed], components: [DiscordStyles.Button.row([
-            DiscordStyles.Button.base("card.catch_normal","✨ Catch!","PRIMARY"),
-            DiscordStyles.Button.base("card.catch_boost","🆙 Boost","PRIMARY"),
+        this.embedSpawn = ({embeds:[objEmbed], components: [DiscordStyles.Button.row([
+            DiscordStyles.Button.base(`card.${buttonId.catch_normal}`,"✨ Catch!","PRIMARY"),
+            DiscordStyles.Button.base(`card.${buttonId.catch_boost}`,"🆙 Boost","PRIMARY"),
         ])]});
+
+        this.spawnData = id;//set card id as spawnData
     }
 
-    getCardData(){
-        return this.cardData;
-    }
-
-    setCardData(cardData){
-        this.cardData = cardData;
-    }
-
-    //method to be called
-    async spawn(guildId, interval){
-        var embedSpawn = this.getEmbedSpawn();
+    //
+    normalCapture(){
         
-        if(this.cardData==null) return;
-        var dataGuild = new DataGuild(DataGuild.getData(guildId));
-        dataGuild.spawn_type = this.type;
-        dataGuild.spawn_data = new DataCard(this.cardData).id_card;
-        dataGuild.Spawner = this;
-        //save to guild object
-        await dataGuild.updateSpawnData();
-        return;
-    }
-    
-    getSpawnData(){
-        if(this.cardData==null) return;
-        return DataCard.getId(this.cardData);
     }
 
-    onCapture(){
-
-    }
+    // async spawn(guildId, guildChannel, interval){
+    //     var embedSpawn = this.getEmbedSpawn();
+        
+    //     if(this.cardData==null) return;
+    //     var dataGuild = new DataGuild(DataGuild.getData(guildId));
+    //     dataGuild.spawn_type = this.type;
+    //     dataGuild.spawn_data = DataCard.getId(this.cardData);
+    //     dataGuild.spawner = this;
+    //     //save to guild object
+    //     await dataGuild.updateDbSpawnData();
+    //     return;
+    // }
 }
 
-const type = {
-    normal:CardNormal
-}
-
-class Spawner {
-    static type = type;
-    static Timer = Timer;
-
-    interval = null;//in minutes
-    timer = null;
-    type = null;
-    data = null;
-
-    constructor(type){
-        console.log(type);
-        // if(spawnData!==null){
-        //     for(var key in spawnData){
-        //         this[key] = spawnData[key];
-        //     }
-        // }
-
-        // console.log("OK");
-        // console.log(spawnData);
-    }
-
-    setData(data){
-        this.data = "A";
-    }
-
-    getData(){
-        return{
-            timer: this.timer,
-            type: this.type,
-            data: this.data,
-        }
-    }
-
-    setTimer(timer, interval){
-        // this.timer = setInterval(function(){
-
-        // },1000);
-    }
-
-    getTimer(timer){
-        // this.timer = timer;
-    }
-
-    resetTimer(timer){
-
-    }
-
-    randomize(){
-
-    }
-
-    getSpawnType(){
-        return this.type;
-    }
-}
-
-module.exports = Spawner;
+module.exports = { Spawner, CardNormal };
