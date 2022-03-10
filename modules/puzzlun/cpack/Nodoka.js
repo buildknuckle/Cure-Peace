@@ -1,6 +1,7 @@
 const GlobalFunctions = require('../../GlobalFunctions');
 
 var properties = {
+    name:"nodoka",
     icon:"https://waa.ai/JEVL.png",
     color:"pink",
     fullname:"Nodoka Hanadera",

@@ -1,4 +1,5 @@
 var properties = {
+    name:"chiyu",
     icon:"https://waa.ai/JEwe.png",
     color:"blue",
     fullname:"Chiyu Sawaizumi",

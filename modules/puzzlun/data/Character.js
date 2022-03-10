@@ -82,6 +82,7 @@ const CPack = {
 };
 
 class Character {
+    name = null;
     icon = null;
     color = null;
     fullname = null;

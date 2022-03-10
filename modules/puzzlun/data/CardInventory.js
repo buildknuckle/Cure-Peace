@@ -16,6 +16,10 @@ const UPDATE_KEY = [
     DBM_Card_Inventory.columns.id_card,
 ];
 
+const limit = Object.freeze({
+    card:99
+});
+
 const emoji = {
     rarity(is_gold, rarity){
         if(is_gold){
@@ -36,73 +40,72 @@ const emoji = {
     sp:"🌟"
 }
 
-const parameter =  {
-    maxLevel(rarity){
-        switch(rarity){
-            case 1: return 20;
-            case 2: return 25;
-            case 3: return 35;
-            case 4: return 40;
-            case 5: return 50;
-            case 6: case 7:
-                return 60;
-            default: return 20;
-        }
-    },
-    maxHp(level,base_hp){
-        return level>1 ? level+base_hp:base_hp;
-    },
-    maxSp(color){
-        switch(color){
-            case "pink":
-                return 4;
-                break;
-            case "blue":
-                return 3;
-                break;
-            case "red":
-                return 3;
-                break;
-            case "yellow":
-                return 6;
-                break;
-            case "green":
-                return 6;
-                break;
-            case "purple":
-                return 5;
-                break;
-            case "white":
-                return 5;
-                break;
-        }
-    },
-    atk(level,base_atk){
-        return level>1 ? level+base_atk:base_atk;
-    },
-    nextColorPoint(level,qty=1){
-        var tempExp = 0;
-        if(qty<=1){
-            tempExp+=(level+1)*10;
-        } else {
-            //parameter:3: level 1->4
-            for(var i=0;i<qty;i++){
-                tempExp+=(level+1)*10;
-                level+=1;
-            }
-        }
+// const parameter =  {
+//     maxLevel(rarity){
+//         switch(rarity){
+//             case 1: return 20;
+//             case 2: return 25;
+//             case 3: return 35;
+//             case 4: return 40;
+//             case 5: return 50;
+//             case 6: case 7: return 60;
+//             default: return 20;
+//         }
+//     },
+//     maxHp(level,base_hp){
+//         return level>1 ? level+base_hp:base_hp;
+//     },
+//     maxSp(color){
+//         switch(color){
+//             case "pink":
+//                 return 4;
+//                 break;
+//             case "blue":
+//                 return 3;
+//                 break;
+//             case "red":
+//                 return 3;
+//                 break;
+//             case "yellow":
+//                 return 6;
+//                 break;
+//             case "green":
+//                 return 6;
+//                 break;
+//             case "purple":
+//                 return 5;
+//                 break;
+//             case "white":
+//                 return 5;
+//                 break;
+//         }
+//     },
+//     atk(level,base_atk){
+//         return level>1 ? level+base_atk:base_atk;
+//     },
+//     nextColorPoint(level,qty=1){
+//         var tempExp = 0;
+//         if(qty<=1){
+//             tempExp+=(level+1)*10;
+//         } else {
+//             //parameter:3: level 1->4
+//             for(var i=0;i<qty;i++){
+//                 tempExp+=(level+1)*10;
+//                 level+=1;
+//             }
+//         }
         
-        return tempExp;
-    },
-    getNextSpecialTotal(level){
-        //get the card stock requirement to level up the specials
-        switch(level){
-            case 1: return 1;
-            case 2: return 2;
-            default: return 4;
-        }
-    }
-}
+//         return tempExp;
+//     },
+//     getNextSpecialTotal(level){
+//         //get the card stock requirement to level up the specials
+//         switch(level){
+//             case 1: return 1;
+//             case 2: return 2;
+//             default: return 4;
+//         }
+//     }
+// }
 
 // class Parameter {
 //     maxHp = 0;
@@ -195,7 +198,8 @@ class CardInventory extends DataCard {
     //contains protected columns, used for constructor
     static tablename = DBM_Card_Inventory.TABLENAME;
     static columns = DBM_Card_Inventory.columns;
-    static parameter = parameter;
+    static limit = limit;
+    static emoji = emoji;
 
     id_user=null;
     id_card=null;
@@ -206,13 +210,6 @@ class CardInventory extends DataCard {
     received_at=null;
 
     //modifier
-    emoji = {
-        rarity:null,
-        hp:emoji.hp,
-        atk:emoji.atk,
-        sp:emoji.sp
-    }
-
     isPackCompleted = false;
 
     // parameter =  {
@@ -284,14 +281,11 @@ class CardInventory extends DataCard {
     // }
     maxLevel=null;
     maxHp=null;
-    maxSp=null;
+    // maxSp=null;
     atk=null;
     nextColorPoint=null;
 
-    Parameter;
-    Data;
-
-    constructor(cardInventoryData){
+    constructor(cardInventoryData, cardData=null){
         super(cardData);
         // this.Data = new Data();
         // this.Parameter = new Parameter(cardInventoryData, cardData);
@@ -312,12 +306,18 @@ class CardInventory extends DataCard {
             //     ;
         }
 
-        this.emoji.rarity = emoji.rarity(this.is_gold, this.rarity);//get rarity emoji
-        this.maxHp = parameter.maxHp(this.level, this.hp_base);//assign max hp
-        this.maxSp = parameter.maxSp(this.color);
-        this.atk = parameter.atk(this.level, this.atk_base);
-        this.maxLevel = parameter.maxLevel(this.rarity);
-        this.nextColorPoint = parameter.nextColorPoint(this.level);
+        if(cardData!=null){
+            for(var key in cardData){
+                this[key] = cardData[key];
+            }
+        }
+
+        // this.emoji.rarity = emoji.rarity(this.is_gold, this.rarity);//get rarity emoji
+        // this.maxHp = parameter.maxHp(this.level, this.hp_base);//assign max hp
+        this.maxHp = this.parameter.maxHp(this.level, this.hp_base);//assign max hp
+        this.atk = this.parameter.atk(this.level, this.atk_base);
+        this.maxLevel = this.parameter.maxLevel(this.rarity);
+        this.nextColorPoint = this.parameter.nextColorPoint(this.level);
     }
 
     static async getDataByIdUser(userId, cardId){
@@ -363,6 +363,30 @@ class CardInventory extends DataCard {
         group by cd.${DBM_Card_Data.columns.pack}`;
         var cardDataInventory = await DBConn.conn.query(query, [userId]);
         return cardDataInventory;
+    }
+
+    static async updateStock(userId, cardId, qty=1, notifReturn=false){
+        //check if card existed/not
+        var cardInventoryData = await this.getDataByIdUser(userId, cardId);
+        if(cardInventoryData==null){//insert if not found
+            qty-=1;
+            if(qty<0) qty = 0;//ensures qty is not negative
+            var paramInsert = new Map();
+            paramInsert.set(this.columns.id_card, cardId);
+            paramInsert.set(this.columns.id_user, userId);
+            paramInsert.set(this.columns.stock, qty);
+            try {
+                await DB.insert(this.tablename, paramInsert);
+            } catch{}
+
+            if(notifReturn) return -1;//will return -1 if notifReturn is set to true
+        } else {
+            var cardInventory = new CardInventory(cardInventoryData);
+            cardInventory.stock+=qty;
+            await cardInventory.updateStock();
+
+            if(notifReturn) return cardInventory.stock;//will return new stock if notifReturn is set to true
+        }
     }
 
     getIdCard(){
@@ -432,14 +456,41 @@ class CardInventory extends DataCard {
         }
     }
 
-    //db
-    async updateStock(qty=1){
-        console.log("UPDATED");
+    validationStock(){
+        if(this.stock<0) this.stock = 0;//ensures stock is not negative
+        if(this.stock>limit.card) this.stock = limit.card;//ensures stock is not over limit
     }
 
+    //db
+    /**
+     * @description update the stock
+     */
+    async updateStock(){
+        this.validationStock();
+        let column = [//columns to be updated:
+            DBM_Card_Inventory.columns.stock,
+        ]
+
+        let paramSet = new Map();
+        let paramWhere = new Map();
+        for(let key in column){
+            let colVal = column[key];
+            paramSet.set(column[key], this[colVal]);
+        }
+
+        for(let key in UPDATE_KEY){
+            let updateKey = UPDATE_KEY[key];
+            paramWhere.set(UPDATE_KEY[key],this[updateKey]);
+        }
+        await DB.update(DBM_Card_Inventory.TABLENAME, paramSet, paramWhere);
+    }
+
+    /**
+     * @description update all data
+     */
     async update(){
         // if(this[UPDATE_KEY].length<=0) return;
-        
+        this.validationStock();
         let column = [//columns to be updated:
             DBM_Card_Inventory.columns.level,
             DBM_Card_Inventory.columns.level_special,
@@ -452,7 +503,7 @@ class CardInventory extends DataCard {
 
         for(let key in column){
             let colVal = column[key];
-            paramSet.set(column[key], super[colVal]);
+            paramSet.set(column[key], this[colVal]);
         }
         
         for(let key in UPDATE_KEY){

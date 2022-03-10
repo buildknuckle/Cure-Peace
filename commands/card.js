@@ -18,6 +18,8 @@ const Validation = require("../modules/puzzlun/Validation");
 const SpawnerModule = require("../modules/puzzlun/data/Spawner");
 const Spawner = SpawnerModule.Spawner;
 const SCardNormal = SpawnerModule.CardNormal;
+// const SpawnerEventListener = SpawnerModule.EventListener;
+// const EventListener = require("../modules/puzzlun/EventListener");
 
 module.exports = {
     name: 'card',
@@ -217,13 +219,17 @@ module.exports = {
         // if(loginCheck!=true){
         //     return interaction.reply(loginCheck);//return error message
         // }
+        if(customId.includes(Spawner.buttonId.catch_normal)){
+            await SCardNormal.onCapture(discordUser, guildId, customId, interaction, false);
+        } else if(customId.includes(Spawner.buttonId.catch_boost)){
+            await SCardNormal.onCapture(discordUser, guildId, customId, interaction, true);
+        }
 
         switch(customId){
-            case Spawner.buttonId.catch_normal:
-            case Spawner.buttonId.catch_boost:
-                var ret = await Spawner.onCardCaptureNormal(discordUser, guildId);
-                return interaction.reply(ret);
-                break;
+            // case Spawner.buttonId.catch_boost:
+            //     var ret = await Spawner.onCardCaptureNormal(discordUser, guildId);
+            //     return interaction.reply(ret);
+            //     break;
             // case "catch_boost":
             //     var ret = await CardModule.EventListener.captureNormal(objUserData, guildId, true);
             //     return interaction.reply(ret);

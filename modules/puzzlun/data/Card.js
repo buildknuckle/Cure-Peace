@@ -5,10 +5,96 @@ const DBM_Card_Data = require('../../../database/model/DBM_Card_Data');
 
 const {Character, CPack} = require("./Character");
 
+const emoji = {
+    rarity(rarity){
+        switch(rarity){
+            case 7:
+                return "<:r7:935903814358270023>";
+            case 6:
+                return "<:r6:935903799317499954>";
+            default:
+                return "<:r1:935903782770966528>";
+        }
+    },
+    hp:"❤️",
+    atk:"⚔️",
+    sp:"🌟"
+}
+
+const parameter =  {
+    maxLevel(rarity){
+        switch(rarity){
+            case 1: return 20;
+            case 2: return 25;
+            case 3: return 35;
+            case 4: return 40;
+            case 5: return 50;
+            case 6: case 7: return 60;
+            default: return 20;
+        }
+    },
+    maxHp(level,base_hp){
+        return level>1 ? level+base_hp:base_hp;
+    },
+    maxSp(color){
+        switch(color){
+            case "pink":
+                return 4;
+                break;
+            case "blue":
+                return 3;
+                break;
+            case "red":
+                return 3;
+                break;
+            case "yellow":
+                return 6;
+                break;
+            case "green":
+                return 6;
+                break;
+            case "purple":
+                return 5;
+                break;
+            case "white":
+                return 5;
+                break;
+        }
+    },
+    atk(level,base_atk){
+        return level>1 ? level+base_atk:base_atk;
+    },
+    nextColorPoint(level,qty=1){
+        var tempExp = 0;
+        if(qty<=1){
+            tempExp+=(level+1)*10;
+        } else {
+            //parameter:3: level 1->4
+            for(var i=0;i<qty;i++){
+                tempExp+=(level+1)*10;
+                level+=1;
+            }
+        }
+        
+        return tempExp;
+    },
+    getNextSpecialTotal(level){
+        //get the card stock requirement to level up the specials
+        switch(level){
+            case 1: return 1;
+            case 2: return 2;
+            default: return 4;
+        }
+    }
+}
+
 class Card {
     static tablename = DBM_Card_Data.TABLENAME;
     static columns = DBM_Card_Data.columns;
+    static parameter = parameter;
+    static emoji = emoji;
 
+    parameter = parameter;
     id_card=null;
     color=null;
     series=null;
@@ -35,6 +121,9 @@ class Card {
         if(this.pack in CPack){
             this.packTotal = CPack[this.pack].properties.total;
         }
+
+        // this.emoji.rarity = emoji.rarity(this.rarity);//get rarity emoji
+        this.maxSp = parameter.maxSp(this.color);
     }
 
     static async getCardData(idCard){

@@ -318,12 +318,12 @@ class EventListener {
         }
 
         var total = {
-            normal:cardDataInventory.filter(
+            normal: cardDataInventory.filter(
                 function (item) {
                     return item[DBM_Card_Inventory.columns.id_user] != null;
                 }
             ).length,
-            gold:cardDataInventory.filter(
+            gold: cardDataInventory.filter(
                 function (item) {
                     return item[DBM_Card_Inventory.columns.is_gold] == 1;
                 }
@@ -357,23 +357,24 @@ class EventListener {
             let rarity = card.rarity;
             let hp = card.maxHp;
             let atk = card.atk;
+            let maxSp = DataCardInventory.parameter.maxSp(color);
 
             if(card.isHaveCard()){
-                txtInventory+=`**${cardInfo.emoji.rarity}${rarity}: ${id}** ${Color[color].emoji_card}x${stock}\n`;
+                txtInventory+=`**${DataCard.emoji.rarity(rarity)}${rarity}: ${id}** ${Color[color].emoji_card}x${stock}\n`;
                 // txtInventory+=`${displayName} \n\n`;
-                txtInventory+=`${displayName} Lv.${level}\n❤️:${hp} | ⚔️:${atk}\n\n`;
+                txtInventory+=`${displayName} **Lv.${level}**\n${DataCardInventory.emoji.hp} Hp: ${hp} | ${DataCardInventory.emoji.atk} Atk: ${atk} | ${DataCardInventory.emoji.sp} Max Sp: ${maxSp}\n\n`;
             } else {
-                txtInventory+=`**${card.emoji.rarity}${rarity}: ???**\n???\n\n`;
+                txtInventory+=`**${DataCard.emoji.rarity(rarity)}${rarity}: ???**\n???\n\n`;
             }
             
             //check for max page content
             if(idx>maxIdx||(idx<maxIdx && i==cardDataInventory.length-1)){
                 let embed = 
                 GEmbed.builder(
-                    `**Normal:** ${total.normal}/${maxPack} | **Gold:** ${total.gold}/${maxPack}\n${Color[color].emoji_card}x${total.duplicate}/${maxPack*DataUser.limit.card}\n`+
+                    `**Normal:** ${total.normal}/${maxPack} | **Gold:** ${total.gold}/${maxPack}\n${Color[color].emoji_card}x${total.duplicate}/${maxPack*DataCardInventory.limit.card}\n`+
                     `\n${txtInventory}`,discordUser,{
                     color:GEmbed.color[color],
-                    title:`${iconSeries} ${GlobalFunctions.capitalize(pack)}/${alterEgo} Inventory:`,
+                    title:`${iconSeries} ${GlobalFunctions.capitalize(character.name)}/${alterEgo} Inventory:`,
                     thumbnail:icon,
                     // fields:arrFields
                 })
@@ -427,20 +428,19 @@ class EventListener {
         var cardDataInventoryGold = await DBConn.conn.query(queryGold, [userId]);
 
         for(var i=0;i<cardDataInventory.length;i++){
-            // console.log(cardDataInventoryGold[i].total_gold);
-            var cardInventoryData = new DataCardInventory(cardDataInventory[i],cardDataInventory[i]);
-            var color = cardInventoryData.color;
-            var pack = cardInventoryData.pack;
-            var packTotal = cardInventoryData.packTotal;
-            cardInventoryData.addKeyVal("total_gold", cardDataInventoryGold[i].total_gold);
+            var cardInventory = new DataCardInventory(cardDataInventory[i], cardDataInventory[i]);
+            var color = cardInventory.color;
+            var pack = cardInventory.pack;
+            var packTotal = cardInventory.packTotal;
+            cardInventory.addKeyVal("total_gold", cardDataInventoryGold[i].total_gold);
 
             //set for completion emoji
-            cardInventoryData.emoji.completion = "";
-            if(cardInventoryData.total>=cardInventoryData.packTotal){
-                cardInventoryData.getKeyVal("total_gold")>packTotal ?
-                cardInventoryData.emoji.completion = "☑️" : cardInventoryData.emoji.completion = "✅";
+            cardInventory.addKeyVal("emoji_completion", "");
+            if(cardInventory.total>=cardInventory.packTotal){
+                cardInventory.getKeyVal("total_gold")>packTotal ?
+                cardInventory.addKeyVal("emoji_completion", "☑️") : cardInventory.addKeyVal("emoji_completion", "✅");
             }
-            objCardInventory[color][pack] = cardInventoryData;
+            objCardInventory[color][pack] = cardInventory;
         }
     
         //prepare the embed
@@ -465,25 +465,25 @@ class EventListener {
             color:GEmbed.color[setColor],
             thumbnail:seriesData.icon,
             fields: [
-                {name: `${Color.pink.emoji}${userData.Color.canLevelUp(Color.pink) ? "🆙":""} Lvl. ${userData.Color.getLevel(Color.pink)}/${userData.Color.getPoint(Color.pink)} Pts:`,
+                {name: `${Color.pink.emoji}${userData.Color.canLevelUp(Color.pink.value) ? "🆙":""} Lvl. ${userData.Color.getLevel(Color.pink.value)}/${userData.Color.getPoint(Color.pink.value)} Pts:`,
                 value: ``,inline:true},
 
-                {name: `${Color.blue.emoji}${userData.Color.canLevelUp(Color.blue) ? "🆙":""} Lvl. ${userData.Color.getLevel(Color.blue)}/${userData.Color.getPoint(Color.blue)} Pts:`,
+                {name: `${Color.blue.emoji}${userData.Color.canLevelUp(Color.blue.value) ? "🆙":""} Lvl. ${userData.Color.getLevel(Color.blue.value)}/${userData.Color.getPoint(Color.blue.value)} Pts:`,
                 value: ``,inline:true},
                 
-                {name: `${Color.yellow.emoji}${userData.Color.canLevelUp(Color.yellow) ? "🆙":""} Lvl. ${userData.Color.getLevel(Color.yellow)}/${userData.Color.getPoint(Color.yellow)} Pts:`,
+                {name: `${Color.yellow.emoji}${userData.Color.canLevelUp(Color.yellow.value) ? "🆙":""} Lvl. ${userData.Color.getLevel(Color.yellow.value)}/${userData.Color.getPoint(Color.yellow.value)} Pts:`,
                 value: ``,inline:true},
 
-                {name: `${Color.purple.emoji}${userData.Color.canLevelUp(Color.purple) ? "🆙":""} Lvl. ${userData.Color.getLevel(Color.purple)}/${userData.Color.getPoint(Color.purple)} Pts:`,
+                {name: `${Color.purple.emoji}${userData.Color.canLevelUp(Color.purple.value) ? "🆙":""} Lvl. ${userData.Color.getLevel(Color.purple.value)}/${userData.Color.getPoint(Color.purple.value)} Pts:`,
                 value: ``,inline:true},
 
-                {name: `${Color.red.emoji}${userData.Color.canLevelUp(Color.red) ? "🆙":""} Lvl. ${userData.Color.getLevel(Color.red)}/${userData.Color.getPoint(Color.red)} Pts:`,
+                {name: `${Color.red.emoji}${userData.Color.canLevelUp(Color.red.value) ? "🆙":""} Lvl. ${userData.Color.getLevel(Color.red.value)}/${userData.Color.getPoint(Color.red.value)} Pts:`,
                 value: ``,inline:true},
 
-                {name: `${Color.green.emoji}${userData.Color.canLevelUp(Color.green) ? "🆙":""} Lvl. ${userData.Color.getLevel(Color.green)}/${userData.Color.getPoint(Color.green)} Pts:`,
+                {name: `${Color.green.emoji}${userData.Color.canLevelUp(Color.green.value) ? "🆙":""} Lvl. ${userData.Color.getLevel(Color.green.value)}/${userData.Color.getPoint(Color.green.value)} Pts:`,
                 value: ``,inline:true},
 
-                {name: `${Color.white.emoji}${userData.Color.canLevelUp(Color.white) ? "🆙":""} Lvl. ${userData.Color.getLevel(Color.white)}/${userData.Color.getPoint(Color.white)} Pts:`,
+                {name: `${Color.white.emoji}${userData.Color.canLevelUp(Color.white.value) ? "🆙":""} Lvl. ${userData.Color.getLevel(Color.white.value)}/${userData.Color.getPoint(Color.white.value)} Pts:`,
                 value: ``,inline:true},
             ],
             footer:{
@@ -497,9 +497,8 @@ class EventListener {
                 var obj = objCardInventory[color][pack];
                 var cardInventory = new DataCardInventory(obj,obj);
                 
-
                 objEmbed.fields[idxColor].value += 
-                `${cardInventory.emoji.completion} ${GlobalFunctions.capitalize(cardInventory.pack)}: ${cardInventory.total}/${cardInventory.getPackTotal()}\n`;
+                `${cardInventory.getKeyVal("emoji_completion")} ${GlobalFunctions.capitalize(cardInventory.pack)}: ${cardInventory.total}/${cardInventory.getPackTotal()}\n`;
             }
             idxColor++;
         }
@@ -563,7 +562,7 @@ class EventListener {
                 var cardInventory = new DataCardInventory(obj,obj);
                 
                 objEmbed.fields[idxColor].value += 
-                `${cardInventory.emoji.completion} ${GlobalFunctions.capitalize(cardInventory.pack)}: ${cardInventory.getKeyVal("total")}/${userData.limit.card*3}\n`;
+                `${cardInventory.getKeyVal("emoji_completion")} ${GlobalFunctions.capitalize(cardInventory.pack)}: ${cardInventory.getKeyVal("total")}/${DataCardInventory.limit.card*3}\n`;
             }
             idxColor++;
         }
@@ -573,13 +572,13 @@ class EventListener {
         //======page 4: gold card======
         objEmbed.title = `Status - Gold Card:`;
         objEmbed.fields = [
-            { name: `${GProperties.color.pink.emoji_card} Pink:`, value: ``, inline: true}, 
-            { name: `${GProperties.color.blue.emoji_card} Blue:`, value: ``, inline: true},
-            { name: `${GProperties.color.yellow.emoji_card} Yellow:`, value: ``, inline: true}, 
-            { name: `${GProperties.color.purple.emoji_card} Purple:`, value: ``, inline: true },
-            { name: `${GProperties.color.red.emoji_card} Red:`, value: ``, inline: true }, 
-            { name: `${GProperties.color.green.emoji_card} Green:`, value: ``, inline: true },
-            { name: `${GProperties.color.white.emoji_card} White:`, value: ``, inline: true }
+            { name: `${Color.pink.emoji_card} Pink:`, value: ``, inline: true}, 
+            { name: `${Color.blue.emoji_card} Blue:`, value: ``, inline: true},
+            { name: `${Color.yellow.emoji_card} Yellow:`, value: ``, inline: true}, 
+            { name: `${Color.purple.emoji_card} Purple:`, value: ``, inline: true },
+            { name: `${Color.red.emoji_card} Red:`, value: ``, inline: true }, 
+            { name: `${Color.green.emoji_card} Green:`, value: ``, inline: true },
+            { name: `${Color.white.emoji_card} White:`, value: ``, inline: true }
         ];
     
         //print embed of normal card duplicate
@@ -587,10 +586,10 @@ class EventListener {
         for(var color in objCardInventory){
             for(var pack in objCardInventory[color]){
                 var obj = objCardInventory[color][pack];
-                var cardInventory = new DataCardInventory(obj,obj);
+                var cardInventory = new DataCardInventory(obj, obj);
                 
                 objEmbed.fields[idxColor].value += 
-                `${cardInventory.emoji.completion} ${GlobalFunctions.capitalize(cardInventory.pack)}: ${cardInventory.getKeyVal("total_gold")}/${cardInventory.packTotal}\n`;
+                `${cardInventory.getKeyVal("emoji_completion")} ${GlobalFunctions.capitalize(cardInventory.pack)}: ${cardInventory.getKeyVal("total_gold")}/${cardInventory.packTotal}\n`;
             }
             idxColor++;
         }

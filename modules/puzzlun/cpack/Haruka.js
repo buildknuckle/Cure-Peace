@@ -1,6 +1,7 @@
 const DBM_Card_Inventory = require('../../../database/model/DBM_Card_Inventory');
 
 var properties = {
+    name:"haruka",
     icon:"https://waa.ai/JEVN.png",
     color:"pink",
     fullname:"Haruka Haruno",

@@ -1,11 +1,12 @@
 var properties = {
-   icon:"https://waa.ai/f4i4.png",
-   color:"purple",
-   fullname:"Yuri Tsukikage",
-   alter_ego:"Cure Moonlight",
-   hint_spawn:"The flower that shines in the moon's light, <x>!",
-   total:0,
-   series:"heartcatch",
+    name:"yuri",
+    icon:"https://waa.ai/f4i4.png",
+    color:"purple",
+    fullname:"Yuri Tsukikage",
+    alter_ego:"Cure Moonlight",
+    hint_spawn:"The flower that shines in the moon's light, <x>!",
+    total:0,
+    series:"heartcatch",
 }
 
 class Avatar {

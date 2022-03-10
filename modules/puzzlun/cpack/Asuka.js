@@ -1,4 +1,5 @@
 var properties = {
+    name:"asuka",
     icon:"https://waa.ai/f4vH.png",
     color:"red",
     fullname:"Asuka Takizawa",

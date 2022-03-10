@@ -1,4 +1,5 @@
 var properties = {
+    name:"madoka",
     icon:"https://waa.ai/JEwU.png",
     color:"purple",
     fullname:"Madoka Kaguya",

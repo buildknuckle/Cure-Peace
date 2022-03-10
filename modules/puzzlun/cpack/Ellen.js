@@ -2,6 +2,7 @@ const DBM_Card_Inventory = require('../../../database/model/DBM_Card_Inventory')
 const GlobalFunctions = require('../../GlobalFunctions');
 
 var properties = {
+    name:"ellen",
     icon:"https://waa.ai/JEw4.png",
     color:"blue",
     fullname:"Ellen Kurokawa",

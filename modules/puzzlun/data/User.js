@@ -3,18 +3,30 @@ const DBConn = require('../../../storage/dbconn');
 
 const DBM_User_Data = require('../../../database/model/DBM_User_Data');
 
-const GProperties = require('../Properties');
-const SeriesModule = require("./Series");
+const Properties = require('../Properties');
+const GColor = Properties.color;
+const GCurrency = Properties.currency;
+const {DataSeries, SPack} = require("./Series");
 // const SPack = SeriesModule.SPack;
 
+//database modifier
+const PROTECTED_KEY = Object.keys(DBM_User_Data.columns);
+const UPDATE_KEY = [
+    DBM_User_Data.columns.id_user,
+];
+
 const limit = Object.freeze({
+    colorLevel:30,
     colorPoint:3000,
     seriesPoint:2000,
-    peacePoint:5,
-    card:99
+    peacePoint:5
 });
 
 class User {
+    //contains protected columns, used for constructor
+    static tablename = DBM_User_Data.TABLENAME;
+    static columns = DBM_User_Data.columns;
+
     id_user= null;
     server_id_login= null;
     token_sale= null;
@@ -23,6 +35,8 @@ class User {
     set_color= null;
     set_series= null;
     currency_data= null;
+    color_data= null;
+    series_data= null;
 
     Currency;
     Color;
@@ -45,6 +59,7 @@ class User {
     constructor(userData){
         for(var key in userData){
             var val = userData[key];
+            this[key] = val;
             switch(key){
                 case DBM_User_Data.columns.currency_data:
                     this.Currency = new Currency(JSON.parse(val));
@@ -59,42 +74,28 @@ class User {
                     this.Series = new Series(JSON.parse(val));
                     break;
                 default:
-                    this[key] = val;
                     break;
             }
             
         }
     }
 
-    static async getData(id_user, guildId = null){
-        //{"mofucoin":0}
-    
-        //{"pink":{"level":1,"point":0},"blue":{"level":1,"point":0},"yellow":{"level":1,"point":0},"green":{"level":1,"point":0},"red":{"level":1,"point":0},"purple":{"level":1,"point":0},"white":{"level":1,"point":0}}
-    
-        //{"max_heart":0,"splash_star":0,"yes5gogo":0,"fresh":0,"heartcatch":0,"suite":0,"smile":0,"dokidoki":0,"happiness_charge":0,"go_princess":0,"mahou_tsukai":0,"kirakira":0,"hugtto":0,"star_twinkle":0,"healin_good":0,"tropical_rouge":0}
-    
-        //if guildId provided it'll check whether user has login to server/not
+    static async getData(id_user){
         var parameterWhere = new Map();
         parameterWhere.set(DBM_User_Data.columns.id_user,id_user);
-        var resultCheckExist = await DB.select(DBM_User_Data.TABLENAME,parameterWhere);
+        var userData = await DB.select(DBM_User_Data.TABLENAME,parameterWhere);
     
-        if(resultCheckExist[0]==null){ //insert if not found
+        if(userData[0]==null){ //insert if not found
             var parameter = new Map();
             parameter.set(DBM_User_Data.columns.id_user,id_user);
             await DB.insert(DBM_User_Data.TABLENAME,parameter);
             //reselect after insert new data
             parameterWhere = new Map();
             parameterWhere.set(DBM_User_Data.columns.id_user,id_user);
-            resultCheckExist = await DB.select(DBM_User_Data.TABLENAME,parameterWhere);
+            userData = await DB.select(DBM_User_Data.TABLENAME,parameterWhere);
         }
-    
-        resultCheckExist = resultCheckExist[0];
-    
-        if(guildId == null||guildId !== null && resultCheckExist[DBM_User_Data.columns.server_id_login]==guildId){
-            return await resultCheckExist;
-        } else {
-            return null;
-        }
+        
+        return userData[0];
     }
 
     // async updateData(userStatusData, options){
@@ -243,9 +244,9 @@ class User {
     //     return SpackModule[series].Properties.location.name;
     // }
 
-    getSeriesData(){
-        return JSON.parse(this[DBM_User_Data.columns.series_data]);
-    }
+    // getSeriesData(){
+    //     return this[DBM_User_Data.columns.series_data];
+    // }
 
     getSeriesPoint(series){
         return this.Series.getPoint(series);
@@ -283,83 +284,59 @@ class User {
         return level>=2? level*5:0;
     }
 
-}
-
-class Currency {
-    mofucoin=0;
-    jewel=0;
-
-    limit = {
-        mofucoin:3000,
-        jewel:1000
+    validationBasic(){
+        if(this.peace_point<=0) this.peace_point =0;//peace point validation
     }
 
-    constructor(currencyData){
-        for(var key in currencyData){
-            this[key] = currencyData[key];
-        }
-    }
+    //database:
+    /**
+     * @description update all data
+     */
+    async update(){
+        this.validationBasic();
+        this.Color.validation();
 
-}
+        // this.currency_data = ;//update latest currency_data
+        this.color_data = this.Color.getData();
+        this.series_data = this.Series.getData();
 
-class Color {
-    pink = {level:1,point:0};
-    blue = {level:1,point:0};
-    yellow = {level:1,point:0};
-    green = {level:1,point:0};
-    red = {level:1,point:0};
-    purple = {level:1,point:0};
-    white = {level:1,point:0};
-    
-    constructor(colorData){
-        for(var key in colorData){
-            this[key] = colorData[key];
-        }
-    }
-
-    getAverageLevel(){
-        var colorData = [ 
-            this.pink.level, this.blue.level, this.yellow.level, this.green.level,
-            this.red.level, this.purple.level, this.white.level
+        let column = [//columns to be updated:
+            DBM_User_Data.columns.server_id_login,
+            DBM_User_Data.columns.token_sale,
+            DBM_User_Data.columns.token_cardspawn,
+            DBM_User_Data.columns.peace_point,
+            DBM_User_Data.columns.set_color,
+            DBM_User_Data.columns.set_series,
+            DBM_User_Data.columns.currency_data,
+            DBM_User_Data.columns.color_data,
+            DBM_User_Data.columns.series_data,
         ];
-    
-        var total = 0;
-        for(var i = 0; i < colorData.length; i++) 
-            total += colorData[i];
+
+        let paramSet = new Map();
+        let paramWhere = new Map();
+
+        for(let key in column){
+            let colVal = column[key];
+            paramSet.set(column[key], this[colVal]);
+        }
         
-        return Math.ceil(total / colorData.length);
-    }
-    
-    /**
-     * @param {any} color Color taken from properties constant
-     */
-    getLevel(color){
-        return this[color.value].level;
+        for(let key in UPDATE_KEY){
+            let updateKey = UPDATE_KEY[key];
+            paramWhere.set(UPDATE_KEY[key],this[updateKey]);
+        }
+
+        await DB.update(DBM_User_Data.TABLENAME, paramSet, paramWhere);
     }
 
-    /**
-     * @param {any} color Color taken from properties constant
-     */
-    getPoint(color){
-        return this[color.value].point;
-    }
-
-    /**
-     * @param {any} color Color taken from properties constant
-     */
-    canLevelUp(color, totalLevelUp=1){
-        return this[color.value].point>(this[color.value].level+totalLevelUp)*100 ? 
-            true:false;
-    }
 }
 
 class Daily {
     lastCheckInDate = "";
     lastQuestDate = "";
     quest = {
-        card:[],
+        card:{},
         kirakiraDelivery:[],
-        battle:[]
+        battle:{}
     }
 
     constructor(dailyData){
@@ -383,9 +360,136 @@ class Daily {
     getCardQuestTotal(){
         return this.quest.card.length;
     }
+    
+}
+
+class Currency {
+    static arrCurrency = [GCurrency.mofucoin.value, GCurrency.jewel.value];
+    mofucoin=0;
+    jewel=0;
+
+    limit = {
+        mofucoin:3000,
+        jewel:1000
+    }
+
+    constructor(currencyData){
+        for(var key in currencyData){
+            this[key] = currencyData[key];
+        }
+    }
+
+    getData(){
+        var currencyData = {};
+        for(var key in Currency.arrCurrency){
+            var currency = Currency.arrCurrency[key];
+            currencyData[currency] = this[currency];
+        }
+
+        return JSON.stringify(currencyData);
+    }
+}
+
+class Color {
+    static arrColor = [ 
+        GColor.pink.value, GColor.blue.value, GColor.yellow.value, GColor.green.value,
+        GColor.red.value, GColor.purple.value, GColor.white.value
+    ];
+
+    pink = {level:1,point:0};
+    blue = {level:1,point:0};
+    yellow = {level:1,point:0};
+    green = {level:1,point:0};
+    red = {level:1,point:0};
+    purple = {level:1,point:0};
+    white = {level:1,point:0};
+    
+    constructor(colorData){
+        for(var key in colorData){
+            this[key] = colorData[key];
+        }
+    }
+
+    getAverageLevel(){
+        var total = 0;
+        var arrColor = [ 
+            this.pink.level, this.blue.level, this.yellow.level, this.green.level,
+            this.red.level, this.purple.level, this.white.level
+        ];
+        for(var i = 0; i < arrColor.length; i++) 
+            total += arrColor[i];
+        
+        return Math.ceil(total / arrColor.length);
+    }
+    
+    /**
+     * @param {string} color selected color in string
+     */
+    getLevel(color){
+        return this[color].level;
+    }
+
+    /**
+     * @param {string} color selected color in string
+     */
+    getPoint(color){
+        return this[color].point;
+    }
+
+    /**
+     * @param {string} color selected color in string
+     */
+    canLevelUp(color, totalLevelUp=1){
+        return this[color].point>(this[color].level+totalLevelUp)*100 ? 
+            true:false;
+    }
+
+    validation(){
+        for(var key in Color.arrColor){
+            var color = Color.arrColor[key];
+            //level
+            if(this[color].level>limit.colorLevel) this[color].level= limit.colorLevel;
+
+            //point
+            if(this[color].point<0) this[color].point= 0;
+            if(this[color].point>limit.colorPoint) this[color].point= limit.colorPoint;
+        }
+    }
+
+    /**
+     * @description get latest color data in stringified json
+     */
+    getData(){
+        var colorData = {};
+        for(var key in Color.arrColor){
+            var color = Color.arrColor[key];
+            colorData[color] = this[color];
+        }
+        return JSON.stringify(colorData);
+    }
+
 }
 
 class Series {
+    static arrSeries = [
+        SPack.max_heart.properties.value,
+        SPack.splash_star.properties.value,
+        SPack.yes5gogo.properties.value,
+        SPack.fresh.properties.value,
+        SPack.heartcatch.properties.value,
+        SPack.suite.properties.value,
+        SPack.smile.properties.value,
+        SPack.dokidoki.properties.value,
+        SPack.happiness_charge.properties.value,
+        SPack.go_princess.properties.value,
+        SPack.mahou_tsukai.properties.value,
+        SPack.kirakira.properties.value,
+        SPack.hugtto.properties.value,
+        SPack.star_twinkle.properties.value,
+        SPack.healin_good.properties.value,
+        SPack.tropical_rouge.properties.value,
+    ]; 
+
     max_heart=0; 
     splash_star=0;
     yes5gogo=0;
@@ -394,7 +498,7 @@ class Series {
     suite=0;
     smile=0;
     dokidoki=0;
-    happiness=0;
+    happiness_charge=0;
     go_princess=0;
     mahou_tsukai=0;
     kirakira=0;
@@ -414,6 +518,26 @@ class Series {
      */
     getPoint(series){
         return this[series];
+    }
+
+    validation(){
+        for(var key in Series.arrSeries){
+            var series = Series.arrSeries[key];
+
+            //point
+            if(this[series]<0) this[series]= 0;
+            if(this[series]>limit.seriesPoint) this[series]= limit.seriesPoint;
+        }
+    }
+
+    //get latest color data in stringified json
+    getData(){
+        var seriesData = {};
+        for(var key in Series.arrSeries){
+            var series = Series.arrSeries[key];
+            seriesData[series] = this[series];
+        }
+        return JSON.stringify(seriesData);
     }
 }
 

@@ -1,4 +1,5 @@
 var properties = {
+    name:"komachi",
     icon:"https://waa.ai/JEwi.png",
     color:"green",
     fullname:"Komachi Akimoto",

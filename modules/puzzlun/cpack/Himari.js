@@ -1,6 +1,7 @@
 const GlobalFunctions = require('../../GlobalFunctions');
 
 var properties = {
+    name:"himari",
     icon:"https://waa.ai/JEw9.png",
     color:"yellow",
     fullname:"Himari Arisugawa",

@@ -60,15 +60,12 @@ class Guild {
         this.data[guildId] = Guild;
     }
 
-    //get spawner class
-    // static getSpawner(guildId){
-    //     var guild = new Guild(this.data[guildId]);
-    //     return guild.spawner;
-    // }
-
-    setSpawner(spawnType, spawnData, Spawner, spawnToken=null){
+    setSpawner(spawnType, spawnData, Spawner, spawnToken=null, messageId=null){
         if(spawnToken!==null){
             this.spawn_token = spawnToken;
+        }
+        if(messageId!==null){
+            this.id_last_message_spawn = messageId;
         }
 
         this.spawn_type = spawnType;

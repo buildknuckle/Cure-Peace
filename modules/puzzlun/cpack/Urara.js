@@ -1,4 +1,5 @@
 var properties = {
+    name:"urara",
     icon:"https://waa.ai/JEwt.png",
     color:"yellow",
     fullname:"Urara Kasugano",

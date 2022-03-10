@@ -34,7 +34,7 @@ class Embed {
         },
     }
 
-    static failMini(description, discordUser=null, options = {}){
+    static failMini(description, discordUser=null, isPrivate = false, options = {}){
         var objEmbed = new MessageEmbed({
             color: Embed.color.danger,
             description: description.toString(),
@@ -49,19 +49,21 @@ class Embed {
         if(`fields` in options) objEmbed.fields = options.fields;
         if(`footer` in options) objEmbed.footer = options.footer;
     
-        if(discordUser!==null){
+        if("username" in discordUser){
             objEmbed.author = {
                 name: discordUser.username.toString(),
                 icon_url: discordUser.avatarURL()
             }
+        } else {
+            objEmbed.author = discordUser;
         }
         
-        return objEmbed;
+        return {embeds:[objEmbed], ephemeral: isPrivate ? true:false};
     }
 
     static errorMini(description, discordUser=null, isPrivateEmbed = false, options = {}){
         var objEmbed = new MessageEmbed({
-            color: color.danger,
+            color: Embed.color.danger,
             description: description.toString(),
             thumbnail:{
                 url:GProperties.imgSet.mofu.error,
@@ -71,7 +73,7 @@ class Embed {
         if(`color` in options){
             objEmbed.color = options.color.startsWith("#") ? options.color:color[options.color];
         } else {
-            objEmbed.color = color.danger;
+            objEmbed.color = Embed.color.danger;
         }
     
         if(`title` in options) objEmbed.title = options.title;
@@ -80,19 +82,19 @@ class Embed {
         if(`fields` in options) objEmbed.fields = options.fields;
         if(`footer` in options) objEmbed.footer = options.footer;
     
-        if(discordUser!==null){
+        if("username" in discordUser){
             objEmbed.author = {
                 name: discordUser.username.toString(),
                 icon_url: discordUser.avatarURL()
             }
+        } else {
+            objEmbed.author = discordUser;
         }
         
-        var ret = {embeds:[objEmbed], ephemeral: isPrivateEmbed ? true:false}
-    
-        return ret;
+        return {embeds:[objEmbed], ephemeral: isPrivateEmbed ? true:false};
     }
 
-    static successMini(description, discordUser=null, options = {}, color=null, isPrivate = false){
+    static successMini(description, discordUser=null, isPrivate = false, options = {}){
         var objEmbed = new MessageEmbed({
             description: description.toString(),
             thumbnail:{
@@ -112,14 +114,16 @@ class Embed {
         if(`fields` in options) objEmbed.fields = options.fields;
         if(`footer` in options) objEmbed.footer = options.footer;
     
-        if(discordUser!==null){
+        if("username" in discordUser){
             objEmbed.author = {
                 name: discordUser.username.toString(),
                 icon_url: discordUser.avatarURL()
             }
+        } else {
+            objEmbed.author = discordUser;
         }
         
-        return objEmbed;
+        return {embeds:[objEmbed], ephemeral: isPrivate ? true:false};
     }
 
     //footer parameter: { text: 'Some footer text here', iconURL: 'https://i.imgur.com/AfFp7pu.png' }
@@ -129,7 +133,7 @@ class Embed {
         });
     
         if(`color` in options){
-            objEmbed.color = options.color.startsWith("#") ? options.color:color[options.color];
+            objEmbed.color = options.color.startsWith("#") ? options.color:this.color[options.color];
         } else {
             objEmbed.color = color.yellow;
         }
@@ -141,15 +145,13 @@ class Embed {
         if(`fields` in options) objEmbed.fields = options.fields;
         if(`footer` in options) objEmbed.footer = options.footer;
     
-        if(discordUser!==null){
-            if(discordUser.avatarURL!==undefined){
-                objEmbed.author = {
-                    name: discordUser.username.toString(),
-                    icon_url: discordUser.avatarURL()
-                }
-            } else {
-                objEmbed.author = discordUser;
+        if("username" in discordUser){
+            objEmbed.author = {
+                name: discordUser.username.toString(),
+                icon_url: discordUser.avatarURL()
             }
+        } else {
+            objEmbed.author = discordUser;
         }
         
         return objEmbed;
@@ -161,18 +163,20 @@ class Embed {
         });
     
         if(color!==null){
-            objEmbed.color = color.startsWith("#") ? color:Embed.color[color];
+            objEmbed.color = color.startsWith("#") ? color:this.color[color];
         } else {
             objEmbed.color = Embed.color.yellow;
         }
     
         if(objFields!==null) objEmbed.fields = objFields;
     
-        if(discordUser!==null){
+        if("username" in discordUser){
             objEmbed.author = {
                 name: discordUser.username.toString(),
                 icon_url: discordUser.avatarURL()
             }
+        } else {
+            objEmbed.author = discordUser;
         }
         
         return {embeds:[objEmbed], ephemeral: isPrivate ? true:false};
@@ -191,11 +195,13 @@ class Embed {
     
         if(objFields!==null) objEmbed.fields = objFields;
     
-        if(discordUser!==null){
+        if("username" in discordUser){
             objEmbed.author = {
                 name: discordUser.username.toString(),
                 icon_url: discordUser.avatarURL()
             }
+        } else {
+            objEmbed.author = discordUser;
         }
         
         var ret = {embeds:[objEmbed], ephemeral: isPrivate ? true:false}

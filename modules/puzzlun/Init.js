@@ -1,4 +1,5 @@
 const CardModules = require("./Card");
+const DataUser = require("./data/User");
 const DataGuild = require("./data/Guild");
 const SpawnerModules  = require("./data/Spawner");
 const Spawner = SpawnerModules.Spawner;
@@ -23,7 +24,9 @@ async function initGuild(guildId, discordGuild){
         if(guildChannel){
             var spawner = new Spawner();
             await spawner.init(guildId, guildChannel, dataGuild.spawn_interval,
-            dataGuild.spawn_type, dataGuild.spawn_data);
+            dataGuild.spawn_token, dataGuild.spawn_type, dataGuild.spawn_data);
+            // await spawner.startTimer();
+            // console.log(spawner);
 
             // var spawner = new CardNormal();
             // await spawner.init(guildId, guildChannel, dataGuild.spawn_interval,
