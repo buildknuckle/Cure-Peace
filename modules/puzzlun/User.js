@@ -452,12 +452,12 @@ class EventListener {
     
         //prepare the embed
         var txtMainStatus = dedent(`🪐 **Location:** ${seriesData.location.name}@${seriesData.name}
-        ${DataUser.peacePoint.emoji} **${DataUser.peacePoint.name}:** ${userData.peace_point}/${userData.limit.peacePoint}
+        ${DataUser.peacePoint.emoji} **${DataUser.peacePoint.name}:** ${userData.peace_point}/${DataUser.limit.peacePoint}
         ${Emoji.mofuheart} **Daily Card Quest:** ${userData.Daily.getCardQuestTotal()}/3
 
         ${Currency.mofucoin.emoji} **Currency:**
-        ${userData.Currency.mofucoin}/${userData.Currency.limit.mofucoin} ${Currency.mofucoin.emoji}
-        ${userData.Currency.jewel}/${userData.Currency.limit.jewel} ${Currency.jewel.emoji}`);
+        ${userData.Currency.mofucoin}/${DataUser.limit.currency.mofucoin} ${Currency.mofucoin.emoji}
+        ${userData.Currency.jewel}/${DataUser.limit.currency.jewel} ${Currency.jewel.emoji}`);
 
         var author = GEmbed.builderUser.author(discordUser, `${discordUser.username} (Lvl.${userLevel})`);
         var objEmbed = GEmbed.builder(txtMainStatus, author, {
@@ -514,7 +514,7 @@ class EventListener {
         for(var key in SPack){
             let series = new Series(key);
             objEmbed.description+=
-            `${series.emoji.mascot} ${userData.Series.getPoint(series.value)}/${userData.limit.seriesPoint} ${series.getCurrencyName()} (${series.name})\n`;
+            `${series.emoji.mascot} ${userData.Series.getPoint(series.value)}/${DataUser.limit.seriesPoint} ${series.getCurrencyName()} (${series.name})\n`;
         }
         
         arrPages[1] = new MessageEmbed(objEmbed); //add embed to pages

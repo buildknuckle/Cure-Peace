@@ -219,11 +219,8 @@ module.exports = {
         // if(loginCheck!=true){
         //     return interaction.reply(loginCheck);//return error message
         // }
-        if(customId.includes(Spawner.buttonId.catch_normal)){
-            await SCardNormal.onCapture(discordUser, guildId, customId, interaction, false);
-        } else if(customId.includes(Spawner.buttonId.catch_boost)){
-            await SCardNormal.onCapture(discordUser, guildId, customId, interaction, true);
-        }
+
+        await Spawner.eventListener(discordUser, guildId, customId, interaction);
 
         switch(customId){
             // case Spawner.buttonId.catch_boost:

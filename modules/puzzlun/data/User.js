@@ -15,13 +15,6 @@ const UPDATE_KEY = [
     DBM_User_Data.columns.id_user,
 ];
 
-const limit = Object.freeze({
-    colorLevel:30,
-    colorPoint:3000,
-    seriesPoint:2000,
-    peacePoint:5
-});
-
 class User {
     //contains protected columns, used for constructor
     static tablename = DBM_User_Data.TABLENAME;
@@ -53,8 +46,17 @@ class User {
         jewel:"jewel"
     }
 
-    static limit = limit;
-    limit = limit;
+    static limit = Object.freeze({
+        colorLevel:30,
+        colorPoint:3000,
+        seriesPoint:2000,
+        peacePoint:5,
+        currency:{
+            mofucoin:3000,
+            jewel:1000
+        }
+    });
+    // limit = limit;
 
     constructor(userData){
         for(var key in userData){
@@ -285,7 +287,8 @@ class User {
     }
 
     validationBasic(){
-        if(this.peace_point<=0) this.peace_point =0;//peace point validation
+        if(this.peace_point<=0) this.peace_point= 0;//peace point validation
+        if(this.peace_point>=User.limit.peacePoint) this.peace_point= User.limit.peacePoint;//peace point validation
     }
 
     //database:
@@ -365,13 +368,9 @@ class Daily {
 
 class Currency {
     static arrCurrency = [GCurrency.mofucoin.value, GCurrency.jewel.value];
+
     mofucoin=0;
     jewel=0;
-
-    limit = {
-        mofucoin:3000,
-        jewel:1000
-    }
 
     constructor(currencyData){
         for(var key in currencyData){
@@ -448,11 +447,11 @@ class Color {
         for(var key in Color.arrColor){
             var color = Color.arrColor[key];
             //level
-            if(this[color].level>limit.colorLevel) this[color].level= limit.colorLevel;
+            if(this[color].level>User.limit.colorLevel) this[color].level= User.limit.colorLevel;
 
             //point
             if(this[color].point<0) this[color].point= 0;
-            if(this[color].point>limit.colorPoint) this[color].point= limit.colorPoint;
+            if(this[color].point>User.limit.colorPoint) this[color].point= User.limit.colorPoint;
         }
     }
 
@@ -526,7 +525,7 @@ class Series {
 
             //point
             if(this[series]<0) this[series]= 0;
-            if(this[series]>limit.seriesPoint) this[series]= limit.seriesPoint;
+            if(this[series]>User.limit.seriesPoint) this[series]= User.limit.seriesPoint;
         }
     }
 

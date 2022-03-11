@@ -10,58 +10,38 @@ async function init(){
 }
 
 async function initGuild(guildId, discordGuild){
-    var dataGuild = new DataGuild(
+    var guild = new DataGuild(
         await DataGuild.getDBData(guildId)
     );
-    DataGuild.setData(guildId, dataGuild);
+    DataGuild.setData(guildId, guild);
 
     //init for card spawn
-    if(dataGuild.id_channel_spawn!=null){
-        var assignedChannel = dataGuild.id_channel_spawn;
+    if(guild.id_channel_spawn!=null){
+        var assignedChannel = guild.id_channel_spawn;
     
         //check if channel exists/not
         var guildChannel = discordGuild.channels.cache.find(ch => ch.id === assignedChannel);
         if(guildChannel){
             var spawner = new Spawner();
-            await spawner.init(guildId, guildChannel, dataGuild.spawn_interval,
-            dataGuild.spawn_token, dataGuild.spawn_type, dataGuild.spawn_data);
-            // await spawner.startTimer();
-            // console.log(spawner);
+            // await spawner.init(guildId, guildChannel, guild.spawn_interval,
+            // guild.spawn_token, guild.spawn_type, guild.spawn_data,
+            // guild.id_roleping_cardcatcher);
 
-            // var spawner = new CardNormal();
-            // await spawner.init(guildId, guildChannel, dataGuild.spawn_interval,
-            // dataGuild.spawn_type, dataGuild.spawn_data);
-            // console.log(spawner);
-            
-            // var b = new Spawner.type.normal(spawner.data);
-            // console.log(b.embedSpawn.components[0]);
-            // DataGuild.setSpawner(guildId, spawner);
-            // await spawner.random();
-            // dataGuild.updateData();
-            // console.log(DataGuild.data);
-            // console.log(DataGuild.getData(guildId));
-            // spawner.guildChannel.send({content:"init ok"});
+            spawner.guildId = guildId;
+            spawner.guildChannel = guildChannel;
+            spawner.interval = guild.spawn_interval;
+            spawner.token = guild.spawn_token;
+            spawner.idRoleping.cardcatcher = guild.id_roleping_cardcatcher;
+            if(guild.spawn_type!==null || guild.spawn_data!==null){
+                spawner.type = guild.spawn_type;
+                spawner.spawnData = guild.spawn_data;
+                await spawner.setSpawnData();
+            }
+
+            await spawner.startTimer();
+            guild.setSpawner(spawner.type, spawner.spawnData, spawner);
         }
-
-        // console.log(DataGuild.data);
     }
-    
-
-    // b();
-    // console.log(b);
-    // console.log(DataGuild.getData(guildId));
-
-    // await client.channels.cache.find(ch => ch.id === '793074374663995412')
-    // .send(sendParam)
-    // DataGuild.data[guildId] = dataGuild;
-    // if(dataGuild.isSpawnActive()){
-    //     this.Spawner = new DataSpawner(this.spawn_type, this.spawn_data);
-    // }
-    // console.log(DataGuild.data[guildId]);
-    
-    // setInterval(function(){
-    //     console.log(`TIMER ${guildId}`);
-    // }, 1000);
 }
 
 module.exports = {

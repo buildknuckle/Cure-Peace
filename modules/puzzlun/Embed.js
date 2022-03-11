@@ -36,7 +36,7 @@ class Embed {
 
     static failMini(description, discordUser=null, isPrivate = false, options = {}){
         var objEmbed = new MessageEmbed({
-            color: Embed.color.danger,
+            color: this.color.danger,
             description: description.toString(),
             thumbnail:{
                 url:GProperties.imgSet.mofu.panic,
@@ -63,7 +63,7 @@ class Embed {
 
     static errorMini(description, discordUser=null, isPrivateEmbed = false, options = {}){
         var objEmbed = new MessageEmbed({
-            color: Embed.color.danger,
+            color: this.color.danger,
             description: description.toString(),
             thumbnail:{
                 url:GProperties.imgSet.mofu.error,
@@ -71,9 +71,9 @@ class Embed {
         });
     
         if(`color` in options){
-            objEmbed.color = options.color.startsWith("#") ? options.color:color[options.color];
+            objEmbed.color = options.color.startsWith("#") ? options.color:this.color[options.color];
         } else {
-            objEmbed.color = Embed.color.danger;
+            objEmbed.color = this.color.danger;
         }
     
         if(`title` in options) objEmbed.title = options.title;
@@ -103,9 +103,9 @@ class Embed {
         });
         
         if(`color` in options){
-            objEmbed.color = color.startsWith("#") ? color:Embed.color[color];
+            objEmbed.color = color.startsWith("#") ? color:this.color[color];
         } else {
-            objEmbed.color = Embed.color.green;
+            objEmbed.color = this.color.green;
         }
     
         if(`title` in options) objEmbed.title = options.title;
@@ -135,7 +135,7 @@ class Embed {
         if(`color` in options){
             objEmbed.color = options.color.startsWith("#") ? options.color:this.color[options.color];
         } else {
-            objEmbed.color = color.yellow;
+            objEmbed.color = this.color.yellow;
         }
     
         if(`title` in options) objEmbed.title = options.title;
@@ -165,7 +165,7 @@ class Embed {
         if(color!==null){
             objEmbed.color = color.startsWith("#") ? color:this.color[color];
         } else {
-            objEmbed.color = Embed.color.yellow;
+            objEmbed.color = this.color.yellow;
         }
     
         if(objFields!==null) objEmbed.fields = objFields;
@@ -188,9 +188,9 @@ class Embed {
         });
     
         if(color!==null){
-            objEmbed.color = color.startsWith("#") ? color:Embed.color[color];
+            objEmbed.color = color.startsWith("#") ? color:this.color[color];
         } else {
-            objEmbed.color = Embed.color.yellow;
+            objEmbed.color = this.color.yellow;
         }
     
         if(objFields!==null) objEmbed.fields = objFields;

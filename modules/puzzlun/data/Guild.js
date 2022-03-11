@@ -52,14 +52,25 @@ class Guild {
         return await resultCheckExist[0];
     }
 
+    /**
+     * @description get public guild data
+     */
     static getData(guildId){
         return this.data[guildId];
     }
 
+    /**
+     * @description set guild data publically
+     */
     static setData(guildId, Guild){
         this.data[guildId] = Guild;
     }
 
+    /**
+     * @param {string} spawnType the spawn type
+     * @param {string} spawnData spawnData to be saved into db
+     * @param Spawner class of Spawner
+     */
     setSpawner(spawnType, spawnData, Spawner, spawnToken=null, messageId=null){
         if(spawnToken!==null){
             this.spawn_token = spawnToken;
@@ -72,11 +83,11 @@ class Guild {
         this.spawn_data = spawnData;
         this.spawner = Spawner;
 
-        Guild.setData(this.id_guild, this);//update latest guild data
+        this.updateData();//update latest guild data
     }
 
     updateData(){
-        //set data to guiild object
+        //set data to guild object
         Guild.setData(this.id_guild, this);
     }
 
