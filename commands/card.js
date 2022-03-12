@@ -220,7 +220,7 @@ module.exports = {
         //     return interaction.reply(loginCheck);//return error message
         // }
 
-        await Spawner.eventListener(discordUser, guildId, customId, interaction);
+        await Spawner.eventListenerButton(discordUser, guildId, customId, interaction);
 
         switch(customId){
             // case Spawner.buttonId.catch_boost:
@@ -272,6 +272,9 @@ module.exports = {
     async executeComponentSelectMenu(interaction){
         var customId = interaction.customId;
         const guildId = interaction.guild.id;
+
+        var discordUser = interaction.user;
+        var userId = discordUser.id;
         
         var objUserData = {
             id:interaction.user.id,
@@ -279,48 +282,49 @@ module.exports = {
             avatarUrl:interaction.user.avatarURL()
         }
 
+        await Spawner.eventListenerSelect(discordUser, guildId, customId, interaction);
         //check for user login
-        var loginCheck = await UserModule.isLogin(objUserData,guildId);
-        if(loginCheck!=true){
-            await interaction.update({ components: interaction.components });
-            return interaction.followUp(loginCheck);//return error message
-        }
+        // var loginCheck = await UserModule.isLogin(objUserData,guildId);
+        // if(loginCheck!=true){
+        //     await interaction.update({ components: interaction.components });
+        //     return interaction.followUp(loginCheck);//return error message
+        // }
 
-        switch(customId){
-            case "act_mini_tsunagarus":
-                var ret = await CardModule.EventListener.captureCheckActAnswer(objUserData, guildId, interaction.values[0],CardModule.Spawner.spawnDataType.act.dataKey.typeVal.mini_tsunagarus);
-                return interaction.reply(ret);
-                break;
-            case "act_suite_notes_count":
-                var ret = await CardModule.EventListener.captureCheckActAnswer(objUserData, guildId, interaction.values[0],CardModule.Spawner.spawnDataType.act.dataKey.typeVal.suite_notes_count);
-                return interaction.reply(ret);
-                break;
-            case "act_star_twinkle_constellation":
-                var ret = await CardModule.EventListener.captureCheckActAnswer(objUserData, guildId, interaction.values[0],CardModule.Spawner.spawnDataType.act.dataKey.typeVal.star_twinkle_constellation);
-                return interaction.reply(ret);
-                break;
-            case "act_star_twinkle_counting":
-                var ret = await CardModule.EventListener.captureCheckActAnswer(objUserData, guildId, interaction.values[0],CardModule.Spawner.spawnDataType.act.dataKey.typeVal.star_twinkle_counting);
-                return interaction.reply(ret);
-                break;
-            case "quiz_answer":
-                var ret = await CardModule.EventListener.captureQuiz(objUserData, guildId, interaction.values[0]);
-                return interaction.reply(ret);
-                break;
-            case "battle_join_chokkins":
-                var ret = await BattleModule.EventListener.joinChokkins(objUserData, guildId, BattleModule.Enemy.tsunagarus.chokkins.value , interaction.values[0],interaction);
-                return ret;
-                break;
-            case "battle_command_chokkins":
-                console.log(interaction.values[0]);
-                break;
-        }
+        // switch(customId){
+        //     case "act_mini_tsunagarus":
+        //         var ret = await CardModule.EventListener.captureCheckActAnswer(objUserData, guildId, interaction.values[0],CardModule.Spawner.spawnDataType.act.dataKey.typeVal.mini_tsunagarus);
+        //         return interaction.reply(ret);
+        //         break;
+        //     case "act_suite_notes_count":
+        //         var ret = await CardModule.EventListener.captureCheckActAnswer(objUserData, guildId, interaction.values[0],CardModule.Spawner.spawnDataType.act.dataKey.typeVal.suite_notes_count);
+        //         return interaction.reply(ret);
+        //         break;
+        //     case "act_star_twinkle_constellation":
+        //         var ret = await CardModule.EventListener.captureCheckActAnswer(objUserData, guildId, interaction.values[0],CardModule.Spawner.spawnDataType.act.dataKey.typeVal.star_twinkle_constellation);
+        //         return interaction.reply(ret);
+        //         break;
+        //     case "act_star_twinkle_counting":
+        //         var ret = await CardModule.EventListener.captureCheckActAnswer(objUserData, guildId, interaction.values[0],CardModule.Spawner.spawnDataType.act.dataKey.typeVal.star_twinkle_counting);
+        //         return interaction.reply(ret);
+        //         break;
+        //     case "quiz_answer":
+        //         var ret = await CardModule.EventListener.captureQuiz(objUserData, guildId, interaction.values[0]);
+        //         return interaction.reply(ret);
+        //         break;
+        //     case "battle_join_chokkins":
+        //         var ret = await BattleModule.EventListener.joinChokkins(objUserData, guildId, BattleModule.Enemy.tsunagarus.chokkins.value , interaction.values[0],interaction);
+        //         return ret;
+        //         break;
+        //     case "battle_command_chokkins":
+        //         console.log(interaction.values[0]);
+        //         break;
+        // }
 
-        //BATTLE COMMANDS
-        if(customId.includes("battle_join_")){
-            var ret = await BattleModule.EventListener.joinSolo(guildId, objUserData, interaction, customId, interaction.values[0]);
-            return ret;
-        }
+        // //BATTLE COMMANDS
+        // if(customId.includes("battle_join_")){
+        //     var ret = await BattleModule.EventListener.joinSolo(guildId, objUserData, interaction, customId, interaction.values[0]);
+        //     return ret;
+        // }
 
     }
 }

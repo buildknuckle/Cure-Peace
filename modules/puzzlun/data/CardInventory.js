@@ -365,6 +365,28 @@ class CardInventory extends DataCard {
         return cardDataInventory;
     }
 
+    static async getPackTotal(userId, pack){
+        var query = `SELECT cd.${super.columns.pack}, count(inv.${this.columns.id_card}) as total
+        from ${super.tablename} cd  
+        left join ${this.tablename} inv 
+        on (cd.${super.columns.id_card}=inv.${this.columns.id_card} and 
+        inv.${this.columns.id_user}=?)
+        where cd.${super.columns.pack}=?`;
+        var packTotalData = await DBConn.conn.query(query, [userId, pack]);
+        return packTotalData[0]["total"];
+    }
+
+    // async getInventoryPackTotal(pack){
+    //     var query = `SELECT cd.${DataCard.columns.pack}, count(inv.${CardInventory.columns.id_card}) as total
+    //     from ${DataCard.tablename} cd  
+    //     left join ${CardInventory.tablename} inv 
+    //     on (cd.${DataCard.columns.id_card}=inv.${CardInventory.columns.id_card} and 
+    //     inv.${CardInventory.columns.id_user}=?)
+    //     where cd.${DataCard.columns.pack}=?`;
+    //     var packTotalData = await DBConn.conn.query(query, [this.id_user, pack]);
+    //     return packTotalData[0]["total"];
+    // }
+
     static async updateStock(userId, cardId, qty=1, notifReturn=false){
         //check if card existed/not
         var cardInventoryData = await this.getDataByIdUser(userId, cardId);

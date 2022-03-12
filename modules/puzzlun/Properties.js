@@ -35,7 +35,8 @@ class Properties {
             error: "https://waa.ai/JEw5.png",
             panic: "https://waa.ai/JEwr.png",
             peek: "https://waa.ai/JEyE.png",
-            wave: "https://waa.ai/SXby.png"
+            wave: "https://waa.ai/SXby.png",
+            thumbsup: "https://waa.ai/fuoH.png"
         }
     })
     
