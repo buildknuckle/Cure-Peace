@@ -111,6 +111,7 @@ class Embed {
         if(`title` in options) objEmbed.title = options.title;
         if(`objFields` in options) objEmbed.fields = objFields;
         if(`image` in options) objEmbed.image = { url:options.image }
+        if(`thumbnail` in options) objEmbed.thumbnail = { url: options.thumbnail }
         if(`fields` in options) objEmbed.fields = options.fields;
         if(`footer` in options) objEmbed.footer = options.footer;
     

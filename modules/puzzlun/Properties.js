@@ -8,6 +8,7 @@ class Properties {
         aoi_check_green:"<:aoi_check_green:935956208727232522>",
         aoi_x:"<:aoi_x:935956209264107591>",
         mofuheart:"<:mofuheart:824281257276866560>",
+        mofuthumbsup:"<:mofuthumbsup:952441310755823686>",
         
         //mascot
         m1_mepple:"<:m1_mepple:936237021293322290>",

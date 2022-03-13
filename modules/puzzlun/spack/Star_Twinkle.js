@@ -13,7 +13,13 @@ const properties = {
     location:{
         name:"Mihoshi Town",
         icon:"https://static.wikia.nocookie.net/prettycure/images/0/05/Mihoshi_Town.png",
-    },
+    }
+}
+
+const imgSet = {
+    gibberishFuwa:"https://waa.ai/fuoA.png",
+    lunHappy:"https://waa.ai/fuoL.png",
+    lunSad:"https://waa.ai/fuob.png"
 }
 
 const teams = {
@@ -27,7 +33,7 @@ const teams = {
 const monsters = require("../enpack/monsters/Nottrigger");
 
 class Spawner {
-    fuwaConstellation = {
+    static fuwaConstellation = {
         aries:{
             name:"Aries Fuwa",
             img_url:["https://cdn.discordapp.com/attachments/841371817704947722/841519710062247936/image0.png","https://cdn.discordapp.com/attachments/841371817704947722/841519710285332490/image1.png"]
@@ -100,5 +106,5 @@ class Spawner {
 }
 
 module.exports = {
-    properties, teams, monsters, Spawner
+    properties, imgSet, teams, monsters, Spawner
 }
