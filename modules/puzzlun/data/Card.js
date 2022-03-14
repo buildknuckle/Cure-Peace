@@ -38,27 +38,13 @@ const parameter =  {
     },
     maxSp(color){
         switch(color){
-            case "pink":
-                return 4;
-                break;
-            case "blue":
-                return 3;
-                break;
-            case "red":
-                return 3;
-                break;
-            case "yellow":
-                return 6;
-                break;
-            case "green":
-                return 6;
-                break;
-            case "purple":
-                return 5;
-                break;
-            case "white":
-                return 5;
-                break;
+            case "pink": return 4; break;
+            case "blue": return 3; break;
+            case "red": return 3; break;
+            case "yellow": return 6; break;
+            case "green": return 6; break;
+            case "purple": return 5; break;
+            case "white": return 5; break;
         }
     },
     atk(level,base_atk){

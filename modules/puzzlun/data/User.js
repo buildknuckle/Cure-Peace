@@ -50,7 +50,7 @@ class User {
         colorLevel:30,
         colorPoint:3000,
         seriesPoint:2000,
-        peacePoint:5,
+        peacePoint:6,
         currency:{
             mofucoin:3000,
             jewel:1000
@@ -279,7 +279,7 @@ class User {
     }
 
     static getColorLevelBonus(level){
-        return level>=2 ? level*5:0;
+        return level>=2 ? level*3:0;
     }
 
     static getUserLevelBonus(level){

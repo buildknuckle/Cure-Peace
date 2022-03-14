@@ -22,7 +22,7 @@ class Embed extends require("../Embed") {
         return GEmbed.failMini(`:x: you need **${boostCost} peace point** to use the boost capture.`, objUserData)
     }
 
-    static notifNewCard(discordUser, cardData, baseRewards={qty:1, color:0,series:0}, updatedTotalPack, 
+    static notifNewCard(discordUser, cardData, baseRewards={qty:1, color:0, series:0, boostColor:"", boostSeries:""}, updatedTotalPack, 
         options = {notifFront:"",notifBack:"",rewards:""}){
         var arrPages = [];
 
@@ -38,13 +38,16 @@ class Embed extends require("../Embed") {
         var img = card.img_url; var color = card.color;
         var series = new Series(card.series);
 
-        var colorPoint = baseRewards.color;
-        var seriesPoint = baseRewards.series;
-
         var notifFront = `${"notifFront" in options ? options.notifFront:""}`;
-        var notifCard = `${Color[color].emoji_card} ${baseRewards.qty}x new card: ${id} ${baseRewards.qty>1?" ⏫":""}`;
-        var notifColorPoints = `${Color[color].emoji} ${colorPoint} ${color} points ${colorPoint>rarity?" ⏫":""}`;
-        var notifSeriesPoints = `${series.emoji.mascot} ${seriesPoint} ${series.currency.name} ${seriesPoint>rarity?" ⏫":""}`;
+        var notifCard = `${Color[color].emoji_card} ${baseRewards.qty}x card: ${id} ${baseRewards.qty>1?" ⏫":""}`;//received card
+        //color points:
+        var notifColorPoints = `${Color[color].emoji} ${baseRewards.color} ${color} points`;
+        if("boostColor" in baseRewards) notifColorPoints+=` ${baseRewards.boostColor}`;
+
+        //series points:
+        var notifSeriesPoints = `${series.emoji.mascot} ${baseRewards.series} ${series.currency.name}`;
+        if("boostSeries" in baseRewards) notifSeriesPoints+=` ${baseRewards.boostSeries}`;
+
         var notifBack = `${"notifBack" in options ? options.notifBack:""}`;
         var optRewards = `${"rewards" in options ? options.rewards:""}`;
 
@@ -96,36 +99,39 @@ class Embed extends require("../Embed") {
         return arrPages;
     }
 
-    static notifDuplicateCard(discordUser, cardData, baseRewards={qty:1, color:0,series:0}, updatedStock, 
+    static notifDuplicateCard(discordUser, cardData, baseRewards={qty:1, color:0, series:0, boostColor:"", boostSeries:""}, updatedStock, 
         options = {notifFront:"",notifBack:"",rewards:""}){
         //user data:
         var userId = discordUser.id;
 
         //card data
         var card = new DataCard(cardData);
-        var id = card.id_card; var rarity = card.rarity;
+        var id = card.id_card;
         var character = new Character(card.pack); var series = new Series(card.series); 
         var name = card.name; var img = card.img_url; 
         var color = card.color;
 
-        var colorPoint = baseRewards.color;
-        var seriesPoint = baseRewards.series;
-
         var notifFront = `${"notifFront" in options ? options.notifFront:""}`;
-        var notifCard = `${Color[color].emoji_card} ${baseRewards.qty}x dup card: ${id} ${baseRewards.qty>1?" ⏫":""}`;
-        var notifColorPoints = `${Color[color].emoji} ${colorPoint} ${color} points ${colorPoint>rarity?" ⏫":""}`;
-        var notifSeriesPoints = `${series.emoji.mascot} ${seriesPoint} ${series.currency.name} ${seriesPoint>rarity?" ⏫":""}`;
+        var notifCard = `${Color[color].emoji_card} ${baseRewards.qty}x card: ${id} ${baseRewards.qty>1?" ⏫":""}`;
+        //color points:
+        var notifColorPoints = `${Color[color].emoji} ${baseRewards.color} ${color} points`;
+        if("boostColor" in baseRewards) notifColorPoints+=` ${baseRewards.boostColor}`;
+
+        //series points:
+        var notifSeriesPoints = `${series.emoji.mascot} ${baseRewards.series} ${series.currency.name}`;
+        if("boostSeries" in baseRewards) notifSeriesPoints+=` ${baseRewards.boostSeries}`;
+
         var notifBack = `${"notifBack" in options ? options.notifBack:""}`;
         var optRewards = `${"rewards" in options ? options.rewards:""}`;
 
-        return this.builder(`${notifFront}${Emoji.mofuheart} <@${userId}> has received another ${character.name} card: **${id}**.${notifBack}`, discordUser, {
+        return this.builder(`${notifFront}${Emoji.mofuheart} <@${userId}> has received another ${character.name} card${notifBack}`, discordUser, {
             color: color,
-            title: name,
+            title: `Duplicate Card`,
             thumbnail:img,
             fields:[
             {
                 name:`Rewards Received:`,
-                value:dedent(`${notifCard}
+                value:dedent(`${notifCard} (${GlobalFunctions.cutText(name, 20)})
                 ${notifColorPoints}
                 ${notifSeriesPoints}${optRewards}`),
                 inline:false
@@ -141,15 +147,14 @@ class Embed extends require("../Embed") {
 
         //card data
         var card = new DataCard(cardData);
-        var rarity = card.rarity; var pack = card.pack; 
         var color = card.color; var series = new Series(card.series);
 
         var colorPoint = baseRewards.color;
         var seriesPoint = baseRewards.series;
 
         var notifFront = options.notifFront;
-        var notifColorPoints = `${Color[color].emoji} ${colorPoint} ${color} points ${colorPoint>rarity?" ⏫":""}`;
-        var notifSeriesPoints = `${series.emoji.mascot} ${seriesPoint} ${series.currency.name} ${seriesPoint>rarity?" ⏫":""}`;
+        var notifColorPoints = `${Color[color].emoji} ${colorPoint} ${color} points`;
+        var notifSeriesPoints = `${series.emoji.mascot} ${seriesPoint} ${series.currency.name}`;
         var notifBack = options.notifBack;
 
         var builder = this.failMini(`${notifFront}:x: <@${userId}> has failed to catch the card this time.${notifBack}`, 
@@ -167,96 +172,6 @@ class Embed extends require("../Embed") {
     }
 }
 
-// normal:{
-//     value:"normal",
-//     name:"normal",
-//     dataKey:{
-//         spawnId: "spawnId",
-//         type: "type",
-//         spawnSubId: "spawnSubId"//for special spawn such as pinky
-//     }
-// },
-// act:{
-//     value:"act",
-//     name:"act",
-//     dataKey:{
-//         spawnId : "spawnId",
-//         type: "type",
-//         value:"value",
-//         typeVal: {
-//             jankenpon:"jankenpon",
-//             mini_tsunagarus:"mini_tsunagarus",
-//             suite_notes_count:"suite_notes_count",
-//             star_twinkle_constellation:"star_twinkle_constellation",
-//             star_twinkle_counting:"star_twinkle_counting"
-//         },  
-//     }
-// },//act (activities)
-// quiz:{
-//     value:"quiz",
-//     name:"quiz",
-//     dataKey:{
-//         spawnId : "spawnId",
-//         value:"value"
-//     }
-// },
-// number:{
-//     value:"number",
-//     name:"number",
-//     dataKey:{
-//         spawnId:"spawnId",
-//         number:"number"
-//     }
-// },
-// color:{
-//     value:"color",
-//     name:"color",
-//     dataKey:{
-//         rarity:"rarity",
-//         bonus_color:"bonus_color"
-//     }
-// },
-// series:{
-//     value:"series",
-//     name:"series",
-//     dataKey:{
-//         rarity:"rarity",
-//         bonus_series:"bonus_series"
-//     }
-// },
-// cure:{
-//     value:"cure",
-//     name:"cure",
-//     dataKey:{
-//         rarity:"rarity",
-//         bonus_color:"bonus_color",
-//         bonus_series:"bonus_series",
-//     }
-// }
-
-// const boosterCost = Object.freeze({
-//     normal:{
-//         1:1,
-//         2:2,
-//     },
-//     number:{
-//         3:3,
-//         4:4
-//     },
-//     color:{
-//         4:4,
-//         5:5,
-//     },
-//     series:{
-//         4:4,
-//         5:5,
-//     },
-//     grand:{
-//         4:5,
-//         5:5,
-//     }
-// });
-
 class Timer {
     //convert mins to seconds
     static minToSec(min){
@@ -269,7 +184,10 @@ class Spawner {
     static type = {
         cardNormal:"cardNormal",
         act:"act",
-        cardColor:"cardColor"
+        cardColor:"cardColor",
+        cardSeries:"cardSeries",
+        quiz:"quiz",
+        numberGuess:"numberGuess"
     };
 
     token = null;//contains spawn token
@@ -317,8 +235,19 @@ class Spawner {
                 }
                 break;
             case Spawner.type.cardColor:
-                var spawn = new CardColor();
-                await spawn.initSpawnData(this.spawnData);
+                var spawnColor = new CardColor();
+                await spawnColor.initSpawnData(this.spawnData);
+                this.data = spawnColor;
+                break;
+            case Spawner.type.quiz:
+                var spawnQuiz = new Quiz();
+                await spawnQuiz.initSpawnData(this.spawnData);
+                this.data = spawnQuiz;
+                break;
+            case Spawner.type.numberGuess:
+                var spawnNumber = new NumberGuess();
+                await spawnNumber.initSpawnData(this.spawnData);
+                this.data = spawnNumber;
                 break;
         }
     }
@@ -329,9 +258,8 @@ class Spawner {
         this.token = rndSpawnToken;
 
         var rnd = GlobalFunctions.randomNumber(0,100);
-        rnd = 30;//only for testing
+        rnd = 50;//only for testing
         var spawn;
-        // var message = {id:"B"}//only for testing
         if(rnd<10){//normal card spawn
             this.type = Spawner.type.cardNormal;
             spawn = new CardNormal(await CardNormal.getRandomCard(), this.token);
@@ -345,6 +273,16 @@ class Spawner {
         } else if(rnd==30){
             this.type = Spawner.type.cardColor;
             spawn = new CardColor(await CardColor.getAllCardData(), this.token);
+            this.spawnData = spawn.getSpawnData();
+            this.data = spawn;
+        } else if(rnd==40){
+            this.type = Spawner.type.quiz;
+            spawn = new Quiz(await Quiz.getRandomCard(), this.token);
+            this.spawnData = spawn.getSpawnData();
+            this.data = spawn;
+        } else if(rnd==50){
+            this.type = Spawner.type.numberGuess;
+            spawn = new NumberGuess(await NumberGuess.getRandomCard(), this.token);
             this.spawnData = spawn.getSpawnData();
             this.data = spawn;
         }
@@ -366,10 +304,6 @@ class Spawner {
         dataGuild.setSpawner(this.type, this.spawnData, this, rndSpawnToken, message.id);//save latest spawner data to guild
         await dataGuild.updateDbSpawnerData();//update latest spawn to db
     }
-
-    // setData(data){
-    //     this.data = data;
-    // }
 
     //timer method
     //newInterval in minutes
@@ -409,12 +343,10 @@ class Spawner {
         return true;
     }
 
-    validationPeaceBoost(discordUser, userPeacePoint, cost, interaction){
-        if(userPeacePoint<cost){
-            return interaction.reply(Embed.errorMini(`:x: You need ${cost} peace point ${DataUser.peacePoint.emoji} to use boost capture.`,discordUser,true));
-        }
+    static validationPeaceBoost(discordUser, userPeacePoint, cost, interaction){
+        return userPeacePoint<cost?
+            interaction.reply(Embed.errorMini(`:x: You need ${cost} peace point to use boost capture.`,discordUser,true)): true;
 
-        return true;
     }
 
     async removeSpawn(){
@@ -465,6 +397,25 @@ class Spawner {
                     break;
                 }
                 break;
+            case Spawner.type.cardColor:
+                switch(command){
+                    case CardColor.buttonId.catch_normal:
+                        await CardColor.onCapture(discordUser, userData, guildData, interaction, false);
+                        break;
+                    case CardColor.buttonId.catch_boost:
+                        await CardColor.onCapture(discordUser, userData, guildData, interaction, true);
+                        break;
+                }
+                break;
+            case Spawner.type.numberGuess:
+                await NumberGuess.onCapture(discordUser, userData, guildData, interaction, command);
+
+                // switch(command){
+                //     case NumberGuess.buttonId.lower:
+
+                //         break;
+                // }
+                break;
         }
     }
 
@@ -480,13 +431,13 @@ class Spawner {
         //process command
         var type = customId.split(joiner).shift();
         var commandToken = customId.split(joiner).pop();
-        var command = customId.split(joiner).slice(1, -1).join(joiner);
         var value = interaction.values[0];
 
         //spawn validation
         if(spawner.validationSpawn(discordUser, userData, commandToken, interaction)!=true) return;
         switch(type){
             case Spawner.type.act:
+                var command = customId.split(joiner).slice(1, -1).join(joiner);
                 var subType = command;
                 switch(subType){
                     case ActMiniTsunagarus.selectId:
@@ -496,6 +447,9 @@ class Spawner {
                         await ActSeries.onCapture(discordUser, userData, guildData, value, interaction);
                         break;
                 }
+                break;
+            case Spawner.type.quiz:
+                await Quiz.onCapture(discordUser, userData, guildData, value, interaction);
                 break;
         }
     }
@@ -569,22 +523,9 @@ class CardNormal {
         return resultData[0];
     }
 
-    //method to be called
-    //set card data & embed
-    // setData(CardNormal){
-    //     for(var key in CardNormal){
-    //         this[key] = CardNormal[key];
-    //     }
-    // }
-
-    getBonusCaptureRate(refColorLevel){
-        return refColorLevel>1 ? 
-            3*refColorLevel:0;
-    }
-
     capture(refColorLevel){
         var rarity = this.cardData.rarity;
-        var catchRate = CardNormal.catchRate[rarity]+this.getBonusCaptureRate(refColorLevel);
+        var catchRate = CardNormal.catchRate[rarity]+DataUser.getColorLevelBonus(refColorLevel);
         var chance = GlobalFunctions.randomNumber(0, 100);
         if(chance<catchRate){
             return true;
@@ -595,13 +536,17 @@ class CardNormal {
 
     getRewards(userColor, userSeries, isSuccess = true){
         var rarity = this.cardData.rarity;
-        var rewards = {qty:1, color:rarity, series:rarity};//base rewards
+        var rewards = {qty:1, color:rarity, series:rarity, boostColor:"", boostSeries:""};//base rewards
         
         if(isSuccess){
             var color = this.cardData.color;
             var series = this.cardData.series;
-            if(userColor==color) rewards.color*=2;
-            if(userSeries==series) rewards.series*=2;
+            if(userColor==color){
+                rewards.color*=2; rewards.boostColor = "⏫";
+            }
+            if(userSeries==series) {
+                rewards.series*=2; rewards.boostSeries = "⏫";
+            }
             if(userColor==color && userSeries==series) rewards.qty=2;
         } else {
             rewards = {color:rarity, series:rarity};//base rewards
@@ -641,7 +586,7 @@ class CardNormal {
             captured = spawn.capture(colorLevel);//check if captured/not
         }
         
-        var baseRewards = spawn.getRewards(user.set_color, user.set_series);
+        var baseRewards = spawn.getRewards(user.set_color, user.set_series, captured);
         user.token_cardspawn = spawner.token;//update user spawn token
         user.Color[color].point+= baseRewards.color;//update color points on user
         user.Series[series]+= baseRewards.series;//update series points on user
@@ -661,8 +606,7 @@ class CardNormal {
                 return interaction.reply({embeds:[Embed.notifDuplicateCard(discordUser, cardData, baseRewards, stock, {notifFront:txtBoostCapture})]});
             }
         } else {
-            return interaction.reply(Embed.notifFailCatch(discordUser, cardData, 
-                spawn.getRewards(user.set_color, user.set_series, false)));
+            return interaction.reply(Embed.notifFailCatch(discordUser, cardData, baseRewards));
         }
     }
 }
@@ -700,15 +644,14 @@ class Act {
             var cardData = await ActJankenpon.getRandomCard();
             var spawn = new ActJankenpon(cardData, token);
             return spawn;
-        } else if(rnd==2){
+        } else if(rnd==2){//mini tsunagarus
             var arrCardData = await ActMiniTsunagarus.getRandomCard();
             var spawn = new ActMiniTsunagarus(arrCardData, token);
             return spawn;
-        } else if(rnd==3){
+        } else if(rnd==3){//series quiz
             var series = GlobalFunctions.randomArrayItem([
                 // new Series("suite").value,
                 new Series("star_twinkle").value
-                // SPack.star_twinkle.properties.value
             ]);
             
             var arrCardData = await ActSeries.getRandomCard(series);
@@ -829,13 +772,17 @@ class ActJankenpon extends Act {
 
     getRewards(userColor, userSeries, isSuccess = true){
         var rarity = this.cardData.rarity;
-        var rewards = {qty:1, color:rarity, series:rarity};//base rewards
+        var rewards = {qty:1, color:rarity, series:rarity, boostColor:"", boostSeries:""};//base rewards
         
         if(isSuccess){
             var color = this.cardData.color;
             var series = this.cardData.series;
-            if(userColor==color) rewards.color*=2;
-            if(userSeries==series) rewards.series*=2;
+            if(userColor==color){
+                rewards.color*=2; rewards.boostColor = "⏫";
+            }
+            if(userSeries==series) {
+                rewards.series*=2; rewards.boostSeries = "⏫";
+            }
             if(userColor==color && userSeries==series) rewards.qty=2;
         } else {
             rewards = {color:rarity, series:rarity};//base rewards
@@ -855,24 +802,19 @@ class ActJankenpon extends Act {
         var card = spawn.cardData;
         var cardId = card.id_card;
         var color = card.color;
-        var rarity = card.rarity;
         var series = new Series(card.series);
 
         //process jankenpon
         var arrEmbeds = []; var choice = command.split("_")[1];
         var rndJankenpon = GlobalFunctions.randomPropertyKey(ActJankenpon.jankenponData);
-        var baseRewards = spawn.getRewards(user.set_color, user.set_series);
-
-        //process points & peace points rewards
-        user.Color[color].point+= baseRewards.color;//update color points on user
-        user.Series[series]+= baseRewards.series;//update series points on user
-
-        var colorPoints = baseRewards.color;
-        var seriesPoints = baseRewards.series;
-
-        var notifColorPoints = `${Color[color].emoji} ${colorPoints} ${color} points ${colorPoints>rarity ? " ⏫":""}`;
-        var notifSeriesPoints = `${series.emoji.mascot} ${seriesPoints} ${series.currency.name} ${seriesPoints>rarity ? " ⏫":""}`;
+        
         if(ActJankenpon.jankenponData[rndJankenpon].choiceResults[choice]){//results: win
+            var baseRewards = spawn.getRewards(user.set_color, user.set_series);
+
+            //process points & peace points rewards
+            user.Color[color].point+= baseRewards.color;//update color points on user
+            user.Series[series.value]+= baseRewards.series;//update series points on user
+            
             user.peace_point+= ActJankenpon.rewardsPeacePoint;//update peace points on user
             user.token_cardspawn = spawner.token;//update user spawn token
             spawner.userAttempt.push(userId);//add user attempt to spawner list
@@ -882,7 +824,7 @@ class ActJankenpon extends Act {
             var embedWin = Embed.builder(
                 `I picked ${ActJankenpon.jankenponData[rndJankenpon].icon} **${ActJankenpon.jankenponData[rndJankenpon].value}**! Yay yay yay! You win!`,
                 discordUser,{
-                    color:Embed.color.yellow,
+                    color:Embed.color.success,
                     title:"✅ You Win!",
                     thumbnail:ActJankenpon.jankenponData[rndJankenpon].img
                 }
@@ -904,6 +846,15 @@ class ActJankenpon extends Act {
                 ]});
             }
         } else if(ActJankenpon.jankenponData[rndJankenpon].value==choice){ //results: draw
+            var baseRewards = spawn.getRewards(user.set_color, user.set_series);
+
+            var notifColorPoints = `${Color[color].emoji} ${baseRewards.color} ${color} points ${baseRewards.boostColor}`;
+            var notifSeriesPoints = `${series.emoji.mascot} ${baseRewards.series} ${series.currency.name} ${baseRewards.boostSeries}`;
+
+            //process points & peace points rewards
+            user.Color[color].point+= baseRewards.color;//update color points on user
+            user.Series[series.value]+= baseRewards.series;//update series points on user
+
             arrEmbeds.push(Embed.builder(
                 `Hey we both went with ${ActJankenpon.jankenponData[rndJankenpon].icon} **${ActJankenpon.jankenponData[rndJankenpon].value}**! It's a draw!\nYou have another chance to use the jankenpon command.`,discordUser,
                 {
@@ -926,12 +877,7 @@ class ActJankenpon extends Act {
                 discordUser,{
                     color:Embed.color.danger,
                     title:"❌ You Lost",
-                    thumbnail:ActJankenpon.jankenponData[rndJankenpon].img,
-                    fields:[{
-                        name:`Received:`,
-                        value:dedent(`${notifColorPoints}
-                        ${notifSeriesPoints}`)
-                    }]
+                    thumbnail:ActJankenpon.jankenponData[rndJankenpon].img
                 }
             ));
             await interaction.reply({embeds:arrEmbeds});
@@ -1008,7 +954,6 @@ class ActMiniTsunagarus extends Act {
             this.spawnData.cardId.push(card.id_card);
         }
 
-        // var tempAnswer = arrAnswerList[0];
         var answer = arrAnswerList.indexOf(arrAnswerList[0]);
         
         var tempAnswer = arrAnswerList[0];
@@ -1052,26 +997,25 @@ class ActMiniTsunagarus extends Act {
             components: [DiscordStyles.SelectMenus.basic(`card.${Spawner.type.act}_${ActMiniTsunagarus.selectId}_${token}`,"Select the answers",arrOptions)]}
     }
 
-    getRewards(userColor, userSeries, cardData, isSuccess = true){
+    getRewards(userColor, userSeries, cardData){
         var card = new DataCard(cardData);
         var rarity = card.rarity;
         var color = card.color;
         var series = card.series;
 
-        var rewards = {qty:1, color:rarity, series:rarity};//base rewards
-        if(isSuccess){
-            if(userColor==color) rewards.color*=2;
-            if(userSeries==series) rewards.series*=2;
-            if(userColor==color && userSeries==series) rewards.qty=2;
-        } else {
-            rewards = {color:rarity, series:rarity};//base rewards
+        var rewards = {qty:1, color:rarity, series:rarity, boostColor:"", boostSeries:""};//base rewards
+        if(userColor==color){
+            rewards.color*=2; rewards.boostColor = "⏫";
         }
+        if(userSeries==series) {
+            rewards.series*=2; rewards.boostSeries = "⏫";
+        }
+        if(userColor==color && userSeries==series) rewards.qty=2;
         
         return rewards;
     }
 
     static async getRandomCard(){
-        //randomize smile card
         var mapWhere = new Map();
         mapWhere.set(DBM_Card_Data.columns.rarity, 3);
         mapWhere.set(DBM_Card_Data.columns.is_spawnable, 1);
@@ -1111,22 +1055,14 @@ class ActMiniTsunagarus extends Act {
             var pack = card.pack;
 
             //process user rewards
-            var baseRewards = spawn.getRewards(user.set_color, user.set_series, rndCardData, isSuccess);
+            var baseRewards = spawn.getRewards(user.set_color, user.set_series, rndCardData);
             
             user.Color[color].point+= baseRewards.color;//update color points on user
-            user.Series[series]+= baseRewards.series;//update series points on user
+            user.Series[series.value]+= baseRewards.series;//update series points on user
 
             var stock = await DataCardInventory.updateStock(userId, cardId, baseRewards.qty, true);
 
-            // await interaction.channel.send(
-            //     Embed.successMini(`✅ You've successfully defeat the mini tsunagarus ~mofu!`, 
-            //     discordUser, true, {
-            //         title:`Mini Tsunagarus Defeated!`,
-            //         thumbnail:Properties.imgSet.mofu.thumbsup
-            //     })
-            // );
-
-            var txtNotifFront = `\n${Properties.emoji.mofuthumbsup} **Mini Tsunagarus Defeated!**\n You've successfully defeat the mini tsunagarus ~mofu!\n\n`;
+            var txtNotifFront = `\n${Properties.emoji.mofuthumbsup} **Mini Tsunagarus Defeated!**\n You've successfully defeat the mini tsunagarus!\n\n`;
 
             if(stock<=-1){
                 var newTotal = await DataCardInventory.getPackTotal(userId, pack);//get new pack total
@@ -1172,7 +1108,11 @@ class ActSeries extends Act {
         seriesType: null,
         series: null,
         cardId: [],
-        answer: null
+        answer: null,
+        baseRewards: {
+            color: null,
+            series: null,
+        }
     };
 
     cardData = [];
@@ -1189,6 +1129,11 @@ class ActSeries extends Act {
             this.cardData = arrCardData;
             this.randomize(arrCardData, token, series);
         }
+    }
+
+    setSpawnData(ActSeries){
+        this.spawnData = ActSeries.spawnData;
+        this.cardData = ActSeries.cardData;
     }
 
     async initSpawnData(parsedSpawnData){
@@ -1216,8 +1161,6 @@ class ActSeries extends Act {
                 this.spawnData.seriesType = ActSeries.seriestype.suiteNotesCount;
 
                 //suite notes counting
-                var total = 0;//init default
-
                 var objNotes = [
                     {icon:"🎶",sign: "+",value:GlobalFunctions.randomNumber(5,10)},
                     {icon:"🎵",sign: GlobalFunctions.randomNumber(0,1)<=0?"+":"-",value:GlobalFunctions.randomNumber(2,7)},
@@ -1234,7 +1177,11 @@ class ActSeries extends Act {
 
                 //generate notes
                 var txtField=`🎶`;
-                total = objNotes[0].value;//init first note number
+                var total = objNotes[0].value;//init first note number
+                this.spawnData.baseRewards = {
+                    color: GlobalFunctions.randomNumber(total, total+20),
+                    series: GlobalFunctions.randomNumber(total, total+10)
+                }
 
                 for(var i=0;i<4;i++){
                     var rndKey = GlobalFunctions.randomNumber(0,Object.keys(objNotes).length-1);
@@ -1252,23 +1199,12 @@ class ActSeries extends Act {
                 var arrAnswerList = GlobalFunctions.shuffleArray([total,GlobalFunctions.randomNumber(total-3,total-4),GlobalFunctions.randomNumber(total-1,total-2),GlobalFunctions.randomNumber(total+1,total+2)]);
 
                 // arrAnswerList = arrAnswerList.sort((a, b) => a - b); // For ascending sort
-                var answer = arrAnswerList.indexOf(total);
-                switch(answer){
-                    case 0:
-                        this.spawnData.answer = "a";
-                        break;
-                    case 1:
-                        this.spawnData.answer = "b";
-                        break;
-                    case 2:
-                        this.spawnData.answer = "c";
-                        break;
-                    case 3:
-                        this.spawnData.answer = "d";
-                        break;
-                    case 4:
-                        this.spawnData.answer = "e";
-                        break;
+                switch(arrAnswerList.indexOf(total)){
+                    case 0: this.spawnData.answer = "a"; break;
+                    case 1: this.spawnData.answer = "b"; break;
+                    case 2: this.spawnData.answer = "c"; break;
+                    case 3: this.spawnData.answer = "d"; break;
+                    case 4: this.spawnData.answer = "e"; break;
                 }
 
                 var arrOptions = [];
@@ -1324,6 +1260,11 @@ class ActSeries extends Act {
                         var arrAnswerList = [];
                         arrAnswerList.push(randObj.name);
 
+                        this.spawnData.baseRewards = { //set base rewards
+                            color: 12,
+                            series: 12
+                        }
+
                         for(var i=0;i<=2;i++){
                             var tempAnswer = GlobalFunctions.randomProperty(fuwaConstellation);
                             if(arrAnswerList.includes(tempAnswer.name)){
@@ -1337,21 +1278,11 @@ class ActSeries extends Act {
                         arrAnswerList = arrAnswerList.sort((a, b) => a - b); // For ascending sort
                         answer = arrAnswerList.indexOf(answer);
                         switch(answer){
-                            case 0:
-                                this.spawnData.answer = "a";
-                                break;
-                            case 1:
-                                this.spawnData.answer = "b";
-                                break;
-                            case 2:
-                                this.spawnData.answer = "c";
-                                break;
-                            case 3:
-                                this.spawnData.answer = "d";
-                                break;
-                            case 4:
-                                this.spawnData.answer = "e";
-                                break;
+                            case 0: this.spawnData.answer = "a"; break;
+                            case 1: this.spawnData.answer = "b"; break;
+                            case 2: this.spawnData.answer = "c"; break;
+                            case 3: this.spawnData.answer = "d"; break;
+                            case 4: this.spawnData.answer = "e"; break;
                         }
 
                         //select menu start
@@ -1387,7 +1318,6 @@ class ActSeries extends Act {
                         var targetStar = GlobalFunctions.randomArrayItem(arrStars);
                         for(var i=0;i<5;i++){
                             var twinkleRandom = GlobalFunctions.randomNumber(2,10);
-                            // totalStars+=twinkleRandom;
                             for(var j=0; j<twinkleRandom; j++){
                                 txtStar += GlobalFunctions.randomArrayItem(arrStars);
                             }
@@ -1397,6 +1327,10 @@ class ActSeries extends Act {
                         var totalStars = txtStar.split("").filter(txt => txt.includes(targetStar)).length;
                         targetStar = targetStar.replaceAll("0","⭐").replaceAll("1","🌟");
                         txtStar = txtStar.replaceAll("0","⭐").replaceAll("1","🌟");
+                        this.spawnData.baseRewards = { //set base rewards
+                            color: GlobalFunctions.randomNumber(totalStars, totalStars+12),
+                            series: GlobalFunctions.randomNumber(totalStars, totalStars+12)
+                        }
         
                         var arrAnswerList = [totalStars,totalStars+1,totalStars+2,totalStars+3];
                         arrAnswerList = GlobalFunctions.shuffleArray(arrAnswerList);
@@ -1454,6 +1388,26 @@ class ActSeries extends Act {
         return arrCardData;
     }
 
+    getRewards(userColor, userSeries, rndCardData){
+        let card = new DataCard(rndCardData);
+        var color = card.color;
+        var series = card.series;
+
+        //base rewards
+        var rewards = {qty:1, 
+            color: this.spawnData.baseRewards.color, series: this.spawnData.baseRewards.series, 
+            boostColor:"", boostSeries:""};
+        if(userColor==color){
+            rewards.color*=2; rewards.boostColor = "⏫";
+        }
+        if(userSeries==series) {
+            rewards.series*=2; rewards.boostSeries = "⏫";
+        }
+        if(userColor==color && userSeries==series) rewards.qty=2;
+        
+        return rewards;
+    }
+
     static async onCapture(discordUser, userData, guildData, 
         value, interaction){
         var userId = discordUser.id;
@@ -1461,7 +1415,7 @@ class ActSeries extends Act {
 
         var dataGuild = new DataGuild(guildData); //get spawnerdata from guild
         var spawner = new Spawner(dataGuild.spawner);
-        var spawn = new ActMiniTsunagarus();
+        var spawn = new ActSeries();
         spawn.setSpawnData(spawner.data);
 
         var answer = spawn.spawnData.answer;
@@ -1481,10 +1435,10 @@ class ActSeries extends Act {
             var pack = card.pack;
 
             //process user rewards
-            var baseRewards = spawn.getRewards(user.set_color, user.set_series, rndCardData, isSuccess);
+            var baseRewards = spawn.getRewards(user.set_color, user.set_series, rndCardData);
             
             user.Color[color].point+= baseRewards.color;//update color points on user
-            user.Series[series]+= baseRewards.series;//update series points on user
+            user.Series[series.value]+= baseRewards.series;//update series points on user
 
             var stock = await DataCardInventory.updateStock(userId, cardId, baseRewards.qty, true);
 
@@ -1522,12 +1476,12 @@ class CardColor {
 
     static catchRate = {
         4:50,
-        5:40
+        5:30
     }
 
     static bonusCatchRate = {
-        4:70,
-        5:60
+        4:60,
+        5:50
     }
 
     static peacePointCost = {
@@ -1541,13 +1495,13 @@ class CardColor {
     };//to be saved for db
 
     cardData={//contains randomized/set card data
-        [Color.pink.value]:[],
-        [Color.blue.value]:[],
-        [Color.yellow.value]:[],
-        [Color.purple.value]:[],
-        [Color.red.value]:[],
-        [Color.green.value]:[],
-        [Color.white.value]:[],
+        pink:[],
+        blue:[],
+        yellow:[],
+        purple:[],
+        red:[],
+        green:[],
+        white:[],
     };
     
     embedSpawn = null;
@@ -1596,37 +1550,570 @@ class CardColor {
         }
     }
 
-    initSpawnData(spawnData){
+    async initSpawnData(spawnData){
+        this.spawnData = JSON.parse(spawnData);
+        var cardData = await CardColor.getAllCardData(this.spawnData.rarity);
+        for(var i=0;i<cardData.length;i++){
+            var color = cardData[i][DataCard.columns.color];
+            this.cardData[color].push(cardData[i]);
+        }
+    }
 
+    setSpawnData(spawnerData){//called during card capture
+        for(var key in spawnerData){
+            this[key] = spawnerData[key];
+        }
     }
 
     getSpawnData(){
         return JSON.stringify(this.spawnData);
     }
 
-    static async getAllCardData(){
+    static async getAllCardData(rarity = GlobalFunctions.randomNumber(4,5)){
         var query = `SELECT * 
         FROM ${DataCard.tablename}  
         WHERE ${DataCard.columns.is_spawnable}=? AND ${DataCard.columns.rarity}=?  
         ORDER BY ${DataCard.columns.color} ASC`;
-        var cardData = await DBConn.conn.query(query, [1, GlobalFunctions.randomNumber(4, 5)]);
+        var cardData = await DBConn.conn.query(query, [1, rarity]);
         return cardData;
+    }
+
+    capture(userColor, refColorLevel){
+        var catchRate = CardColor.catchRate[this.spawnData.rarity];
+        if(userColor==this.spawnData.colorBonus){
+            catchRate = CardColor.bonusCatchRate[this.spawnData.rarity];
+        }
+
+        catchRate+=DataUser.getColorLevelBonus(refColorLevel);
+        var chance = GlobalFunctions.randomNumber(0, 100);
+        return chance<catchRate ? true: false;
+    }
+
+    getRewards(userColor, userSeries, cardData, isSuccess = true){
+        var card = new DataCard(cardData);
+        var rarity = card.rarity;
+
+        var rewards = {qty:1, color:rarity, series:rarity, boostColor:"", boostSeries:""};//base rewards
+        
+        if(isSuccess){
+            var color = card.color;
+            var series = card.series;
+            if(userColor==color){
+                rewards.color*=2; rewards.boostColor = "⏫";
+            }
+            if(userSeries==series) {
+                rewards.series*=2; rewards.boostSeries = "⏫";
+            }
+            if(userColor==color && userSeries==series) rewards.qty=2;
+        } else {
+            rewards = {color:rarity, series:rarity};//base rewards
+        }
+        
+        return rewards;
     }
 
     static async onCapture(discordUser, userData, guildData, 
         interaction, isBoostCaptured){
         var userId = discordUser.id;
         var user = new DataUser(userData);
-        var setColor = user.set_color;
+
+        var dataGuild = new DataGuild(guildData); //get spawnerdata from guild
+        var spawner = new Spawner(dataGuild.spawner);
+        var spawn = new CardColor();
+        spawn.setSpawnData(spawner.data);
+
+        var cardData = GlobalFunctions.randomArrayItem(spawn.cardData[user.set_color]);//randomize card data from color set
+        var card = new DataCard(cardData);
+        var cardId = card.id_card;
+        var color = card.color;
+        var pack = card.pack;
+        var series = new Series(card.series);
+
+        var captured = false;
+        var txtBoostCapture = "";
+        if(isBoostCaptured){
+            var cost = CardColor.peacePointCost[spawn.spawnData.rarity];//cost of peace point
+            if(Spawner.validationPeaceBoost(discordUser, user.peace_point, cost, interaction)!=true) return;
+            captured = true;
+            user.peace_point-=cost;//update peace point
+            txtBoostCapture = `${DataUser.peacePoint.emoji} Boost capture has been used!\n`;
+        } else {
+            captured = spawn.capture(user.set_color, user.Color[user.set_color].level);
+        }
+
+        var baseRewards = spawn.getRewards(user.set_color, user.set_series, cardData, captured);
+        user.token_cardspawn = spawner.token;//update user spawn token
+        user.Color[color].point+= baseRewards.color;//update color points on user
+        user.Series[series.value]+= baseRewards.series;//update series points on user
+        await user.update();//update all data
+
+        spawner.userAttempt.push(userId);//add user attempt to spawner list
+        dataGuild.setSpawner(spawner.type, spawner.spawnData, spawner, spawner.token);//save latest spawner data to guild
+
+        if(captured){
+            var stock = await DataCardInventory.updateStock(userId, cardId, baseRewards.qty, true);
+            if(stock<=-1){
+                var newTotal = await DataCardInventory.getPackTotal(userId, pack);
+                await spawner.removeSpawn();//remove spawn if new
+                return paginationEmbed(interaction, Embed.notifNewCard(discordUser, cardData, baseRewards, newTotal,{notifFront:txtBoostCapture}),
+                DiscordStyles.Button.pagingButtonList);
+            } else {
+                return interaction.reply({embeds:[Embed.notifDuplicateCard(discordUser, cardData, baseRewards, stock, {notifFront:txtBoostCapture})]});
+            }
+        } else {
+            return interaction.reply(Embed.notifFailCatch(discordUser, cardData, baseRewards));
+        }
+    }
+}
+
+class Quiz {
+    static value = Spawner.type.quiz;
+    static selectId = Spawner.type.quiz;
+    spawnData = {//to be saved for db
+        cardId: [],
+        answer: null
+    };
+
+    cardData = [];
+
+    constructor(arrCardData=null, token= null){
+        if(arrCardData!=null){//init new
+            for(var key in arrCardData){
+                arrCardData[key] = new DataCard(arrCardData[key]);
+                this.spawnData.cardId.push(arrCardData[key][DataCard.columns.id_card]);
+            }
+    
+            this.cardData = arrCardData;
+            this.randomize(arrCardData, token);
+        }
+    }
+
+    randomize(arrCardData=[], token){
+        var card = new DataCard(arrCardData[0]);//get original character
+        var rarity =card.rarity;
+        var character = new Character(card.pack);
+        var series = new Series(card.series);
+        
+        var arrAnswerList = []; //prepare the answer list
+        for(var i=0;i<arrCardData.length;i++){
+            let card = new DataCard(arrCardData[i]);
+            arrAnswerList.push(card.pack);
+        }
+
+        //shuffle the answer
+        arrAnswerList = GlobalFunctions.shuffleArray(arrAnswerList);
+        //get the answer
+        // var answer = arrAnswerList.indexOf(pack);
+        switch(arrAnswerList.indexOf(card.pack)){
+            case 0: this.spawnData.answer = "a"; break;
+            case 1: this.spawnData.answer = "b"; break;
+            case 2: this.spawnData.answer = "c"; break;
+            case 3: this.spawnData.answer = "d"; break;
+        }
+
+        //select menu start
+        var arrOptions = [];
+        for(var i=0;i<arrAnswerList.length;i++){
+            let character = new Character(arrAnswerList[i]);
+            let series = new Series(character.series);
+            arrOptions.push({
+                label: `${character.fullname} (${series.name})`,
+                description: `Answer with: ${character.fullname}`
+            });
+            switch(i){
+                case 0: arrOptions[i].value = "a"; break;
+                case 1: arrOptions[i].value = "b"; break;
+                case 2: arrOptions[i].value = "c"; break;
+                case 3: arrOptions[i].value = "d"; break;
+            }
+        }
+
+        //select menu end
+
+        var objEmbed = Embed.builder(`The series theme/motif was about: **${series.theme}** and I'm known as **${character.alter_ego}**. Who am I?`,
+        Embed.builderUser.authorCustom(`${rarity}⭐ Precure Quiz`),
+        {
+            image:Properties.imgSet.mofu.peek,
+            title:`❔ It's Quiz Time!`
+        });
+
+        this.embedSpawn = {embeds:[objEmbed],
+            components: [DiscordStyles.SelectMenus.basic(`card.${Spawner.type.quiz}_${Quiz.selectId}_${token}`,"Select the answers",arrOptions)]}
+    }
+
+    getSpawnData(){
+        return JSON.stringify(this.spawnData);
+    }
+
+    getRewards(userColor, userSeries, cardData){
+        var card = new DataCard(cardData);
+        var rarity = card.rarity;
+        var color = card.color;
+        var series = card.series;
+
+        var rewards = {qty:1, color:rarity, series:rarity, boostColor:"", boostSeries:""};//base rewards
+        if(userColor==color){
+            rewards.color*=2; rewards.boostColor = "⏫";
+        }
+        if(userSeries==series) {
+            rewards.series*=2; rewards.boostSeries = "⏫";
+        }
+        if(userColor==color && userSeries==series) rewards.qty=2;
+        
+        return rewards;
+    }
+
+    async initSpawnData(spawnData){
+        this.spawnData = JSON.parse(spawnData);
+        for(var key in this.spawnData.cardId){
+            this.cardData.push(new DataCard(
+                await DataCard.getCardData(this.spawnData.cardId[key])
+            ));
+        }
+    }
+
+    setSpawnData(spawnerData){
+        this.spawnData = spawnerData.spawnData;
+        this.cardData = spawnerData.cardData;
+    }
+
+    static async getRandomCard(){
+        var mapWhere = new Map();
+        mapWhere.set(DBM_Card_Data.columns.rarity, 3);
+        mapWhere.set(DBM_Card_Data.columns.is_spawnable, 1);
+
+        var arrCardData = [];
+        var resultData = await DB.selectRandomNonDuplicate(DBM_Card_Data.TABLENAME, mapWhere, DBM_Card_Data.columns.pack, 4);
+        for(var i=0;i<resultData.length;i++){
+            arrCardData.push(resultData[i]);
+        }
+        return arrCardData;
+    }
+
+    static async onCapture(discordUser, userData, guildData, 
+        value, interaction){
+        var userId = discordUser.id;
+        var user = new DataUser(userData);
+
+        var dataGuild = new DataGuild(guildData); //get spawnerdata from guild
+        var spawner = new Spawner(dataGuild.spawner);
+        var spawn = new Quiz();
+        spawn.setSpawnData(spawner.data);
+
+        var answer = spawn.spawnData.answer;
+        var isSuccess = value==answer? true:false;
+
+        spawner.userAttempt.push(userId);//add user attempt to spawner list
+        dataGuild.setSpawner(spawner.type, spawner.spawnData, spawner, spawner.token);//save latest spawner data to guild
+
+        //check for answer
+        if(isSuccess){//success
+            //randomize card rewards
+            var rndCardData = GlobalFunctions.randomArrayItem(spawn.cardData);
+            var card = new DataCard(rndCardData);//randomized card
+            var cardId = card.id_card;
+            var color = card.color;
+            var series = new Series(card.series);
+            var pack = card.pack;
+
+            //process user rewards
+            var baseRewards = spawn.getRewards(user.set_color, user.set_series, rndCardData);
+            
+            user.Color[color].point+= baseRewards.color;//update color points on user
+            user.Series[series.value]+= baseRewards.series;//update series points on user
+
+            var stock = await DataCardInventory.updateStock(userId, cardId, baseRewards.qty, true);
+
+            var txtNotifFront = `\n${Properties.emoji.mofuthumbsup} **Correct Answer!**\n You guessed the answer correctly ~mofu!\n\n`;
+
+            if(stock<=-1){
+                var newTotal = await DataCardInventory.getPackTotal(userId, pack);//get new pack total
+                await spawner.removeSpawn();//remove spawn if new
+                await paginationEmbed(interaction, Embed.notifNewCard(discordUser, rndCardData, baseRewards, newTotal,
+                    {notifFront: txtNotifFront}), 
+                DiscordStyles.Button.pagingButtonList);
+            } else {
+                await interaction.reply({embeds:[
+                    Embed.notifDuplicateCard(discordUser, rndCardData, baseRewards, stock, {notifFront: txtNotifFront})
+                ]});
+            }
+        } else {
+            await interaction.reply(Embed.failMini(`:x: Sorry, that's not the answer ~mofu!`,discordUser, false, {
+                title:`Wrong Answer!`
+            }));
+        }
+
+        user.token_cardspawn = spawner.token;//update user spawn token
+        await user.update();//update all data
+    }   
+}
+
+class NumberGuess {
+    static value = Spawner.type.numberGuess;
+    static buttonId = Object.freeze({
+        lower:"lower",
+        higher:"higher",
+        boost:"boost"
+    });
+
+    static results = Object.freeze({
+        same:"same"
+    });
+
+    static peacePointCost = {
+        3:3,
+        4:4
+    };
+
+    spawnData = {
+        rndNumber: null,
+        cardId: null
+    }; //to be saved for db
+    cardData;
+
+    constructor(cardData=null, token=null){
+        if(cardData!=null){
+            this.cardData = new DataCard(cardData);
+            //init embed spawn
+            let card = this.cardData;
+            let id = card.id_card;
+            let color = card.color;
+            let rarity = card.rarity
+            this.spawnData.rndNumber = GlobalFunctions.randomNumber(2, 11);
+
+            var objEmbed = Embed.builder(`Guess whether the hidden number **(1-12)** will be **lower** or **higher** than the current number: **${this.spawnData.rndNumber}**`,
+            Embed.builderUser.authorCustom(`${rarity}⭐ Number Spawn: ${GlobalFunctions.capitalize(color)} Edition`),
+            {
+                color: Embed.color[color],
+                title:`:game_die: It's Lucky Number Time!`,
+                image:Properties.imgSet.mofu.peek,
+                fields: [
+                    {
+                        name:"Number Guess Command:",
+                        value:`• Press **Lower/Higher** to guess the hidden number\n• Press 🆙 **Boost** to boost capture with ${NumberGuess.peacePointCost[rarity]} ${DataUser.peacePoint.emoji}`
+                    }
+                ],
+            });
+
+            this.embedSpawn = ({embeds:[objEmbed], components: [DiscordStyles.Button.row([
+                DiscordStyles.Button.base(`card.${Spawner.type.numberGuess}_${NumberGuess.buttonId.lower}_${token}`,"▼ Lower","PRIMARY"),
+                DiscordStyles.Button.base(`card.${Spawner.type.numberGuess}_${NumberGuess.buttonId.higher}_${token}`,"▲ Higher","PRIMARY"),
+                DiscordStyles.Button.base(`card.${Spawner.type.numberGuess}_${NumberGuess.buttonId.boost}_${token}`,"🆙 Boost","SUCCESS"),
+            ])]});
+
+            this.spawnData.cardId = id;//set card id as spawnData
+        }
+    }
+
+    async initSpawnData(spawnData){
+        this.spawnData = JSON.parse(spawnData);
+        this.cardData = new DataCard(await DataCard.getCardData(this.spawnData.cardId));
+    }
+
+    setSpawnData(spawnData){
+        for(var key in spawnData){
+            this[key] = spawnData[key];
+        }
+    }
+
+    getSpawnData(){
+        return JSON.stringify(this.spawnData);
+    }
+
+    getRewards(userColor, userSeries){
+        var rarity = this.cardData.rarity;
+        var rewards = {qty:1, color:rarity, series:rarity, boostColor:"", boostSeries:""};//base rewards
+        
+        var color = this.cardData.color;
+        var series = this.cardData.series;
+        if(userColor==color){
+            rewards.color*=2; rewards.boostColor = "⏫";
+        }
+        if(userSeries==series) {
+            rewards.series*=2; rewards.boostSeries = "⏫";
+        }
+        if(userColor==color && userSeries==series) rewards.qty=2;
+        
+        return rewards;
+    }
+
+    guess(choice){
+        var rnd = GlobalFunctions.randomNumber(1, 12);
+        this.hiddenNumber = rnd;//pass the hidden number
+        if((choice==NumberGuess.buttonId.lower && rnd<this.spawnData.rndNumber)||
+        (choice==NumberGuess.buttonId.higher && rnd>this.spawnData.rndNumber)){
+            return true;
+        } else if(rnd==this.spawnData.rndNumber){
+            return NumberGuess.results.same;
+        } else {
+            return false;
+        }
+    }
+
+    static async getRandomCard(){
+        //spawn normal card
+        var mapWhere = new Map();
+        mapWhere.set(DataCard.columns.rarity, GlobalFunctions.randomNumber(3, 4));
+        mapWhere.set(DataCard.columns.is_spawnable,1);
+        // mapWhere.set(DBM_Card_Data.columns.pack,"megumi");//only for debugging
+
+        var resultData = await DB.selectRandom(DataCard.tablename, mapWhere);
+        return resultData[0];
+    }
+
+    static async onCapture(discordUser, userData, guildData,
+        interaction, command){
+        var isBoostCaptured = false;
+        if(command==NumberGuess.buttonId.boost) isBoostCaptured = true;
+        var userId = discordUser.id;
+        var user = new DataUser(userData);
 
         var dataGuild = new DataGuild(guildData); //get spawnerdata from guild
         var spawner = new Spawner(dataGuild.spawner);
         
         //process chance
-        var cardData = spawner.data.cardData;
+        var spawn = new NumberGuess();
+        spawn.setSpawnData(spawner.data);
         
+        var cardData = spawn.cardData;
+        var card = cardData;
+        var cardId = spawn.cardData.id_card;
+        var color = card.color;
+        var pack = card.pack;
+        var series = new Series(card.series);
+        
+        var results;
+        var txtNotifFront = "";
+        if(isBoostCaptured){
+            var cost = NumberGuess.peacePointCost[card.rarity];//cost of peace point
+            if(Spawner.validationPeaceBoost(discordUser, user.peace_point, cost, interaction)!=true) return;
+            results = true;
+            user.peace_point-=cost;//update peace point
+            txtNotifFront = `${DataUser.peacePoint.emoji} Boost capture has been used!\n`;
+        } else {
+            results = spawn.guess(command);//check if captured/not
+        }
 
+        if(results==true){//correct
+            spawner.userAttempt.push(userId);//add user attempt to spawner list
+            dataGuild.setSpawner(spawner.type, spawner.spawnData, spawner, spawner.token);//save latest spawner data to guild
+
+            var baseRewards = spawn.getRewards(user.set_color, user.set_series);
+            user.token_cardspawn = spawner.token;//update user spawn token
+            user.Color[color].point+= baseRewards.color;//update color points on user
+            user.Series[series.value]+= baseRewards.series;//update series points on user
+            
+            var stock = await DataCardInventory.updateStock(userId, cardId, baseRewards.qty, true);
+            if(isBoostCaptured==false){
+                txtNotifFront+= `\n${Properties.emoji.mofuthumbsup} **Nice Guess!**\nThe next hidden number was **${spawn.hiddenNumber}** and you guessed it: **${command}**\n\n`;
+            }
+
+            if(stock<=-1){
+                var newTotal = await DataCardInventory.getPackTotal(userId, pack);
+                await spawner.removeSpawn();//remove spawn if new
+                await paginationEmbed(interaction, Embed.notifNewCard(discordUser, cardData, baseRewards, newTotal,{notifFront:txtNotifFront}),DiscordStyles.Button.pagingButtonList);
+            } else {
+                await interaction.reply({embeds:[Embed.notifDuplicateCard(discordUser, cardData, baseRewards, stock, {notifFront:txtNotifFront})]});
+            }
+        } else if(results==NumberGuess.results.same){//same numbers
+            var baseRewards = spawn.getRewards(user.set_color, user.set_series);
+
+            var notifColorPoints = `${Color[color].emoji} ${baseRewards.color} ${color} points ${baseRewards.boostColor}`;
+            var notifSeriesPoints = `${series.emoji.mascot} ${baseRewards.series} ${series.currency.name} ${baseRewards.boostSeries}`;
+
+            //process points & peace points rewards
+            user.Color[color].point+= baseRewards.color;//update color points on user
+            user.Series[series.value]+= baseRewards.series;//update series points on user
+
+            await interaction.reply({embeds:[
+                Embed.builder(`The next hidden number was **${spawn.hiddenNumber}** and you guessed it: **${command}**\nIt's a draw!\nYou have another chance to use the number guess command.`,discordUser,
+                {
+                    title:"🔁 Once More!",
+                    thumbnail:Properties.imgSet.mofu.ok,
+                    fields:[{
+                        name:`Received:`,
+                        value:dedent(`${notifColorPoints}
+                        ${notifSeriesPoints}`)
+                    }]
+                }
+            )
+            ]});
+        } else {//results: lose
+            user.token_cardspawn = spawner.token;//update user spawn token
+            spawner.userAttempt.push(userId);//add user attempt to spawner list
+            dataGuild.setSpawner(spawner.type, spawner.spawnData, spawner, spawner.token);//save latest spawner data to guild
+            await interaction.reply({embeds:[
+                Embed.builder(
+                    `The next hidden number was **${spawn.hiddenNumber}** and you guessed it: **${command}**`,
+                    discordUser,{
+                        color:Embed.color.danger,
+                        title:"❌ Wrong guess",
+                        thumbnail:Properties.imgSet.mofu.error
+                    }
+                )]
+            });
+        }
+        
+        await user.update();//update all data
     }
+    
 }
+
+// class CardSeries {
+//     static value = Spawner.type.cardSeries;
+//     static buttonId = Object.freeze({
+//         catch_normal:"catch_normal",
+//         catch_boost:"catch_boost"
+//     });
+
+//     static catchRate = {
+//         4:50,
+//         5:30
+//     }
+
+//     static bonusCatchRate = {
+//         4:60,
+//         5:50
+//     }
+
+//     static peacePointCost = {
+//         4:4,
+//         5:5
+//     };
+
+//     spawnData = {
+//         rarity: null,
+//         seriesBonus: null
+//     };//to be saved for db
+
+//     cardData={//contains randomized/set card data
+//         max_heart:[],
+//         splash_star:[],
+//         yes5gogo:[],
+//         fresh:[],
+//         heartcatch:[],
+//         suite:[],
+//         smile:[],
+//         dokidoki:[],
+//         happiness_charge:[],
+//         go_princess:[],
+//         mahou_tsukai:[],
+//         kirakira:[],
+//         hugtto:[],
+//         star_twinkle:[],
+//         healin_good:[],
+//     };
+    
+//     embedSpawn = null;
+
+//     static async getAllCardData(rarity = GlobalFunctions.randomNumber(4,5)){
+//         var query = `SELECT * 
+//         FROM ${DataCard.tablename}  
+//         WHERE ${DataCard.columns.is_spawnable}=? AND ${DataCard.columns.rarity}=?  
+//         ORDER BY ${DataCard.columns.series} ASC`;
+//         var cardData = await DBConn.conn.query(query, [1, rarity]);
+//         return cardData;
+//     }
+// }
 
 module.exports = { Spawner, CardNormal, ActJankenpon };
