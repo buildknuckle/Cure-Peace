@@ -30,45 +30,31 @@ module.exports = {
         {
             name: "status",
             description: "Open card status menu.",
-            type: 2,
+            type: 1,
             options: [
                 {
-                    name: "open-status-menu",
-                    description: "Open card status menu.",
-                    type: 1,
-                    options: [
-                        {
-                            name: "username",
-                            description: "Enter username to view card status from other user.",
-                            type: 3,
-                            required:false
-                        }
-                    ]
+                    name: "username",
+                    description: "Enter username to view card status from other user.",
+                    type: 3,
+                    required:false
                 }
             ]
         },
         {
             name: "inventory",
             description: "Open card inventory menu.",
-            type: 2,
+            type: 1,
             options: [
                 {
-                    name: "open-menu",
-                    description: "Open card inventory menu.",
-                    type: 1,
-                    options: [
-                        {
-                            name: "card-pack",
-                            description: "Enter the card pack. Example: nagisa",
-                            type: 3,
-                            required:true
-                        },
-                        {
-                            name: "username",
-                            description: "Enter username to view card inventory from other user.",
-                            type: 3
-                        }
-                    ]
+                    name: "card-pack",
+                    description: "Enter the card pack. Example: nagisa",
+                    type: 3,
+                    required:true
+                },
+                {
+                    name: "username",
+                    description: "Enter username to view card inventory from other user.",
+                    type: 3
                 }
             ]
         },
@@ -146,27 +132,8 @@ module.exports = {
 
         switch(command){
             //STATUS MENU: open card status
-            case "status":
-                var parameterUsername = interaction.options._hoistedOptions.hasOwnProperty(0) ? 
-                interaction.options._hoistedOptions[0].value : null;
-                
-                var userSearchResult = await Validation.User.isAvailable(discordUser, parameterUsername, interaction);
-                if(!userSearchResult) return; else discordUser = userSearchResult;
-                
-                var arrPages = await UserModule.EventListener.printStatus(discordUser, guildId);
-                paginationEmbed(interaction,arrPages,DiscordStyles.Button.pagingButtonList, parameterUsername==null?true:false);
-                break;
-            case "inventory":
-                var pack = interaction.options._hoistedOptions[0].value;
-                var parameterUsername = interaction.options._hoistedOptions.hasOwnProperty(1) ? 
-                interaction.options._hoistedOptions[1].value : null;
-
-                var userSearchResult = await Validation.User.isAvailable(discordUser, parameterUsername, interaction);
-                if(!userSearchResult) return; else discordUser = userSearchResult;
-
-                await UserModule.EventListener.printInventory(discordUser, pack, interaction, parameterUsername==null?true:false);
-                // paginationEmbed(interaction,arrPages,DiscordStyles.Button.pagingButtonList, parameterUsername==null?true:false);
-                break;
+            
+            
             case "set":
                 switch(commandSubcommand){
                     case "avatar":
@@ -187,11 +154,32 @@ module.exports = {
         if(command!==null) return;
 
         switch(commandSubcommand){
+            case "status":
+                var parameterUsername = interaction.options._hoistedOptions.hasOwnProperty(0) ? 
+                interaction.options._hoistedOptions[0].value : null;
+                
+                var userSearchResult = await Validation.User.isAvailable(discordUser, parameterUsername, interaction);
+                if(!userSearchResult) return; else discordUser = userSearchResult;
+                
+                var arrPages = await UserModule.EventListener.printStatus(discordUser, guildId);
+                paginationEmbed(interaction,arrPages,DiscordStyles.Button.pagingButtonList, parameterUsername==null?true:false);
+                break;
             case "detail":
                 var cardId = interaction.options._hoistedOptions[0].value.toLowerCase();
                 var isPrivate = interaction.options._hoistedOptions.hasOwnProperty(1) ? 
                 interaction.options._hoistedOptions[1].value:true;
                 return await CardModule.EventListener.printDetail(discordUser, cardId, interaction, isPrivate);
+                break;
+            case "inventory":
+                var pack = interaction.options._hoistedOptions[0].value;
+                var parameterUsername = interaction.options._hoistedOptions.hasOwnProperty(1) ? 
+                interaction.options._hoistedOptions[1].value : null;
+
+                var userSearchResult = await Validation.User.isAvailable(discordUser, parameterUsername, interaction);
+                if(!userSearchResult) return; else discordUser = userSearchResult;
+
+                await UserModule.EventListener.printInventory(discordUser, pack, interaction, parameterUsername==null?true:false);
+                // paginationEmbed(interaction,arrPages,DiscordStyles.Button.pagingButtonList, parameterUsername==null?true:false);
                 break;
         }
 

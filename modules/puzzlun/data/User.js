@@ -7,6 +7,9 @@ const Properties = require('../Properties');
 const GColor = Properties.color;
 const GCurrency = Properties.currency;
 const {DataSeries, SPack} = require("./Series");
+const GlobalFunctions = require('../../GlobalFunctions');
+// const Quest = require("./Quest");
+// const CardQuest = Quest.Card;
 // const SPack = SeriesModule.SPack;
 
 //database modifier
@@ -30,6 +33,7 @@ class User {
     currency_data= null;
     color_data= null;
     series_data= null;
+    daily_data= null;
 
     Currency;
     Color;
@@ -275,7 +279,7 @@ class User {
     }
 
     hasLogin(){//check if already login/not
-        return this.getLastCheckInDate()==new Date().setHours(24, 0, 0, 0) ? true:false;
+        return this.getLastCheckInDate()==GlobalFunctions.getCurrentDate() ? true:false;
     }
 
     static getColorLevelBonus(level){
@@ -298,10 +302,14 @@ class User {
     async update(){
         this.validationBasic();
         this.Color.validation();
+        this.Series.validation();
+        this.Currency.validation();
 
         // this.currency_data = ;//update latest currency_data
         this.color_data = this.Color.getData();
         this.series_data = this.Series.getData();
+        this.currency_data = this.Currency.getData();
+        this.daily_data = this.Daily.getData();
 
         let column = [//columns to be updated:
             DBM_User_Data.columns.server_id_login,
@@ -313,6 +321,7 @@ class User {
             DBM_User_Data.columns.currency_data,
             DBM_User_Data.columns.color_data,
             DBM_User_Data.columns.series_data,
+            DBM_User_Data.columns.daily_data,
         ];
 
         let paramSet = new Map();
@@ -334,10 +343,12 @@ class User {
 }
 
 class Daily {
+    static arrDaily = ["lastCheckInDate","lastQuestDate","quest"];
+
     lastCheckInDate = "";
     lastQuestDate = "";
     quest = {
-        card:{},
+        card: [],
         kirakiraDelivery:[],
         battle:{}
     }
@@ -363,7 +374,23 @@ class Daily {
     getCardQuestTotal(){
         return this.quest.card.length;
     }
+
+    setCardQuest(arrCardId){
+        this.quest.card = arrCardId;
+    }
     
+    //get latest daily data in stringified json
+    getData(){
+        var seriesData = {};
+        for(var key in Daily.arrDaily){
+            var obj = Daily.arrDaily[key];
+            seriesData[obj] = this[obj];
+        }
+        return JSON.stringify(seriesData);
+    }
+
+    
+
 }
 
 class Currency {
@@ -375,6 +402,16 @@ class Currency {
     constructor(currencyData){
         for(var key in currencyData){
             this[key] = currencyData[key];
+        }
+    }
+
+    validation(){
+        for(var key in Currency.arrCurrency){
+            var currency = Currency.arrCurrency[key];
+
+            //point
+            if(this[currency]<0) this[series]= 0;
+            if(this[currency]>User.limit.currency[currency]) this[currency]= User.limit.currency[currency];
         }
     }
 

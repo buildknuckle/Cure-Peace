@@ -376,6 +376,14 @@ class CardInventory extends DataCard {
         return packTotalData[0]["total"];
     }
 
+    static async getTotalAll(userId){
+        var query = `SELECT count(*) as total 
+        FROM ${this.tablename} 
+        WHERE ${this.columns.id_user}=?`;
+        var total = await DBConn.conn.query(query, [userId]);
+        return total[0]["total"];
+    }
+
     // async getInventoryPackTotal(pack){
     //     var query = `SELECT cd.${DataCard.columns.pack}, count(inv.${CardInventory.columns.id_card}) as total
     //     from ${DataCard.tablename} cd  
