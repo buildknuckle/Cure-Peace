@@ -6,7 +6,7 @@ const properties = {
         mascot:"<:m12_pekorin:936237024149659689>",
     },
     currency:{
-        name:"Kirakiraru",
+        name:"kirakiraru",
         emoji:"<:m12_pekorin:936237024149659689>"
     },
     theme:"sweets, animals and creativity",

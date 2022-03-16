@@ -6,7 +6,7 @@ const properties = {
         mascot:"<:m1_mepple:936237021293322290>",
     },
     currency:{
-        name:"Heartiel Points",
+        name:"heartiel points",
         emoji:"<:m1_mepple:936237021293322290>"
     },
     theme:"yin & yang",

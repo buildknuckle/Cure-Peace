@@ -6,7 +6,7 @@ const properties = {
         mascot:"<:m4_chiffon:936237021616275496>",
     },
     currency:{
-        name:"Linkrun Points",
+        name:"linkrun points",
         emoji:"<:m4_chiffon:936237021616275496>"
     },
     theme:"fruits, clovers, card suits, and dancing",

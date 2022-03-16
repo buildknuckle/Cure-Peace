@@ -6,7 +6,7 @@ const properties = {
         mascot:"<:m14_fuwa:936237029157658625>",
     },
     currency:{
-        name:"Twinkle Points",
+        name:"twinkle points",
         emoji:"<:m14_fuwa:936237029157658625>"
     },
     theme:"space, astrology and imagination",

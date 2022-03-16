@@ -6,7 +6,7 @@ const properties = {
         mascot:"<:m16_kururun:936237022274781215>",
     },
     currency:{
-        name:"Tropi Points",
+        name:"tropi points",
         emoji:"<:m16_kururun:936237022274781215>"
     },
     theme:"mermaids and club activities",

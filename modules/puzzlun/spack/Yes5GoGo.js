@@ -6,7 +6,7 @@ const properties = {
         mascot:"<:m3_coco:936237022044110898>",
     },
     currency:{
-        name:"Palmin Points",
+        name:"palmin points",
         emoji:"<:m3_coco:936237022044110898>"
     },
     theme:"natural elements, human characteristics and emotions",

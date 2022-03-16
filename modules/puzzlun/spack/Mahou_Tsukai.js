@@ -6,7 +6,7 @@ const properties = {
         mascot:"<:m11_mofurun:936237023465984050>",
     },
     currency:{
-        name:"Linkle Points",
+        name:"linkle points",
         emoji:"<:m11_mofurun:936237023465984050>",
     },
     theme:"sorcery, gemstones and friendship",

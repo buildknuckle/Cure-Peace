@@ -6,7 +6,7 @@ const properties = {
         mascot:"<:m8_davi:936237025609261106>",
     },
     currency:{
-        name:"Lovead Points",
+        name:"lovead points",
         emoji:"<:m8_davi:936237025609261106>"
     },
     theme:"emotions and selflessness",

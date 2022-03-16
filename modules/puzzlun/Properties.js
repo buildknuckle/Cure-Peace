@@ -37,7 +37,7 @@ class Properties {
             panic: "https://waa.ai/JEwr.png",
             peek: "https://waa.ai/JEyE.png",
             wave: "https://waa.ai/SXby.png",
-            thumbsup: "https://waa.ai/fuoH.png"
+            thumbsup: "https://waa.ai/ftvM.png"
         }
     })
     

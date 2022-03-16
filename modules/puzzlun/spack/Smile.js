@@ -6,7 +6,7 @@ const properties = {
         mascot:"<:m7_candy:936237023747014726>",
     },
     currency:{
-        name:"Decor Points",
+        name:"decor points",
         emoji:"<:m7_candy:936237023747014726>"
     },
     theme:"fairy tales",

@@ -8,8 +8,6 @@ const GColor = Properties.color;
 const GCurrency = Properties.currency;
 const {DataSeries, SPack} = require("./Series");
 const GlobalFunctions = require('../../GlobalFunctions');
-// const Quest = require("./Quest");
-// const CardQuest = Quest.Card;
 // const SPack = SeriesModule.SPack;
 
 //database modifier
@@ -25,6 +23,7 @@ class User {
 
     id_user= null;
     server_id_login= null;
+    last_checkIn_date= null;
     token_sale= null;
     token_cardspawn= null;
     peace_point= null;
@@ -33,12 +32,10 @@ class User {
     currency_data= null;
     color_data= null;
     series_data= null;
-    daily_data= null;
 
     Currency;
     Color;
     Series;
-    Daily;
 
     static peacePoint = {
         emoji:"<:peacepoint:936238606660554773>",
@@ -67,16 +64,13 @@ class User {
             var val = userData[key];
             this[key] = val;
             switch(key){
-                case DBM_User_Data.columns.currency_data:
+                case User.columns.currency_data:
                     this.Currency = new Currency(JSON.parse(val));
                     break;
-                case DBM_User_Data.columns.color_data:
+                case User.columns.color_data:
                     this.Color = new Color(JSON.parse(val));
                     break;
-                case DBM_User_Data.columns.daily_data:
-                    this.Daily = new Daily(JSON.parse(val));
-                    break;
-                case DBM_User_Data.columns.series_data:
+                case User.columns.series_data:
                     this.Series = new Series(JSON.parse(val));
                     break;
                 default:
@@ -86,19 +80,19 @@ class User {
         }
     }
 
-    static async getData(id_user){
+    static async getData(userId){
         var parameterWhere = new Map();
-        parameterWhere.set(DBM_User_Data.columns.id_user,id_user);
-        var userData = await DB.select(DBM_User_Data.TABLENAME,parameterWhere);
+        parameterWhere.set(User.columns.id_user, userId);
+        var userData = await DB.select(User.tablename,parameterWhere);
     
         if(userData[0]==null){ //insert if not found
             var parameter = new Map();
-            parameter.set(DBM_User_Data.columns.id_user,id_user);
-            await DB.insert(DBM_User_Data.TABLENAME,parameter);
+            parameter.set(User.columns.id_user, userId);
+            await DB.insert(User.tablename,parameter);
             //reselect after insert new data
             parameterWhere = new Map();
-            parameterWhere.set(DBM_User_Data.columns.id_user,id_user);
-            userData = await DB.select(DBM_User_Data.TABLENAME,parameterWhere);
+            parameterWhere.set(User.columns.id_user, userId);
+            userData = await DB.select(User.tablename,parameterWhere);
         }
         
         return userData[0];
@@ -262,24 +256,13 @@ class User {
         return this.Color.getAverageLevel();
     }
 
-    getDailyData(){
-        return JSON.parse(this[DBM_User_Data.columns.daily_data]);
-    }
 
     getLastCheckInDate(){
-        return this.Daily.getLastCheckInDate();
-    }
-
-    getLastQuestDate(){
-        return this.Daily.getLastCheckInDate();
-    }
-
-    getCardQuest(){
-        return this.Daily.getCardQuest();
+        return this.last_checkIn_date;
     }
 
     hasLogin(){//check if already login/not
-        return this.getLastCheckInDate()==GlobalFunctions.getCurrentDate() ? true:false;
+        return this.last_checkIn_date==GlobalFunctions.getCurrentDate() ? true:false;
     }
 
     static getColorLevelBonus(level){
@@ -288,6 +271,19 @@ class User {
 
     static getUserLevelBonus(level){
         return level>=2? level*5:0;
+    }
+
+    static isNewcomer(totalAllCard){
+        return totalAllCard<=0?
+            true:false;
+    }
+
+    static async getUserTotalByLocation(series){
+        var query = `SELECT count(*) as total  
+        FROM ${this.tablename}
+        WHERE ${this.columns.set_series}=?`;
+        var userTotal = await DBConn.conn.query(query, [series]);
+        return userTotal[0]["total"];
     }
 
     validationBasic(){
@@ -309,19 +305,18 @@ class User {
         this.color_data = this.Color.getData();
         this.series_data = this.Series.getData();
         this.currency_data = this.Currency.getData();
-        this.daily_data = this.Daily.getData();
 
         let column = [//columns to be updated:
-            DBM_User_Data.columns.server_id_login,
-            DBM_User_Data.columns.token_sale,
-            DBM_User_Data.columns.token_cardspawn,
-            DBM_User_Data.columns.peace_point,
-            DBM_User_Data.columns.set_color,
-            DBM_User_Data.columns.set_series,
-            DBM_User_Data.columns.currency_data,
-            DBM_User_Data.columns.color_data,
-            DBM_User_Data.columns.series_data,
-            DBM_User_Data.columns.daily_data,
+            User.columns.server_id_login,
+            User.columns.last_checkIn_date,
+            User.columns.token_sale,
+            User.columns.token_cardspawn,
+            User.columns.peace_point,
+            User.columns.set_color,
+            User.columns.set_series,
+            User.columns.currency_data,
+            User.columns.color_data,
+            User.columns.series_data,
         ];
 
         let paramSet = new Map();
@@ -337,59 +332,8 @@ class User {
             paramWhere.set(UPDATE_KEY[key],this[updateKey]);
         }
 
-        await DB.update(DBM_User_Data.TABLENAME, paramSet, paramWhere);
+        await DB.update(User.tablename, paramSet, paramWhere);
     }
-
-}
-
-class Daily {
-    static arrDaily = ["lastCheckInDate","lastQuestDate","quest"];
-
-    lastCheckInDate = "";
-    lastQuestDate = "";
-    quest = {
-        card: [],
-        kirakiraDelivery:[],
-        battle:{}
-    }
-
-    constructor(dailyData){
-        for(var key in dailyData){
-            this[key] = dailyData[key];
-        }
-    }
-
-    getLastCheckInDate(){
-        return this.lastCheckInDate;
-    }
-
-    getLastQuestDate(){
-        return this.lastQuestDate;
-    }
-
-    getCardQuest(){
-        return this.quest.card;
-    }
-
-    getCardQuestTotal(){
-        return this.quest.card.length;
-    }
-
-    setCardQuest(arrCardId){
-        this.quest.card = arrCardId;
-    }
-    
-    //get latest daily data in stringified json
-    getData(){
-        var seriesData = {};
-        for(var key in Daily.arrDaily){
-            var obj = Daily.arrDaily[key];
-            seriesData[obj] = this[obj];
-        }
-        return JSON.stringify(seriesData);
-    }
-
-    
 
 }
 

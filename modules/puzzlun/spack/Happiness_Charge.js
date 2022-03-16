@@ -6,7 +6,7 @@ const properties = {
         mascot:"<:m9_ribbon:936237024602628096>",
     },
     currency:{
-        name:"Precard Points",
+        name:"precard points",
         emoji:"<:m9_ribbon:936237024602628096>"
     },
     theme:"mirrors, fashion, dancing and romance",

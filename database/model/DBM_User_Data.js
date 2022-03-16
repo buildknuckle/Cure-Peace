@@ -4,7 +4,7 @@ class DBM_User_Data {
     static columns = {
         id_user: "id_user",
         server_id_login: "server_id_login",
-        daily_data: "daily_data",
+        last_checkIn_date: "last_checkIn_date",
         token_sale: "token_sale",
         token_cardspawn: "token_cardspawn",
         peace_point: "peace_point",
@@ -14,6 +14,7 @@ class DBM_User_Data {
         currency_data:"currency_data",
         series_data:"series_data",
         gardening_data:"gardening_data",
+        dailyQuest_data:"dailyQuest_data"
     };
 }
 

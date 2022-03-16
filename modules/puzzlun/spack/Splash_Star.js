@@ -6,7 +6,7 @@ const properties = {
         mascot:"<:m2_flappy:936237022111219742>",
     },
     currency:{
-        name:"Miracle Drop Points",
+        name:"miracle drop points",
         emoji:"<:m2_flappy:936237022111219742>"
     },
     theme:"flower, bird, wind and moon",

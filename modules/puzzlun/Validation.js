@@ -130,14 +130,4 @@ class Validation {
     static Card = Card;
 }
 
-// cardDataNotFound(objUserData){
-//     return GEmbed.errorMini(`:x: I can't find that precure card.`, objUserData, true);
-// },
-
-// notOwnCard(objUserData){
-//     return GEmbed.errorMini(`:x: You don't have this card yet.`, objUserData, true);
-// }
-
-
-
 module.exports = Validation;

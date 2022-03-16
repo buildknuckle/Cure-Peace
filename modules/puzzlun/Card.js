@@ -131,15 +131,14 @@ class EventListener {
 
         // var cureData = CpackModule[pack].Avatar.normal;
         arrPages.push(Embed.builder(
-        dedent(`**${rarity}${card.emoji.rarity} Level:** ${level}/${card.maxLevel} | **Next EXP:** ${card.nextColorPoint}P
-        **Passive Skill:**
-        
-
+        dedent(`**${DataCardInventory.emoji.rarity(card.is_gold, rarity)}${rarity} Level:** ${level}/${card.maxLevel} | **Next EXP:** ${card.nextColorPoint}P
         **Battle Stats:**
-        ${card.emoji.hp}: ${maxHp} | ${card.emoji.atk}: ${atk} 
-        ${card.emoji.sp} SP Max: ${maxSp} 
-        💖 **Special:** ${character.specialAttack} Lv.${card.level_special}`),
-        Embed.builderUser.author(discordUser,character.fullname),{
+        ${DataCardInventory.emoji.hp} **Hp:** ${maxHp} | ${DataCardInventory.emoji.atk} **Atk:** ${atk} 
+        ${DataCardInventory.emoji.sp} **Sp Max:** ${maxSp} 
+        💖 **Special:** ${character.specialAttack} Lv.${card.level_special}
+        
+        **Passive Skill:**`),
+        Embed.builderUser.author(discordUser,character.fullname, character.icon),{
             color:color,
             image:img,
             title:`${name}`,

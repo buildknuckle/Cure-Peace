@@ -6,7 +6,7 @@ const properties = {
         mascot:"<:m10_aroma:936237022056710154>",
     },
     currency:{
-        name:"Princess Points",
+        name:"princess points",
         emoji:"<:m10_aroma:936237022056710154>"
     },
     theme:"princesses, personal goals and dreams",

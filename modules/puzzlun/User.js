@@ -21,6 +21,7 @@ const DBM_Card_Inventory = require('../../database/model/DBM_Card_Inventory');
 const Data = require("./Data");
 const DataUser = Data.User;
 const DataCard = Data.Card;
+const {UserQuest, DailyCardQuest} = require("./data/Quest");
 const DataCardInventory = Data.CardInventory;
 // const CpackModule = require("./Cpack");
 const {Series, SPack} = require("./data/Series");
@@ -397,6 +398,7 @@ class EventListener {
     
         var userData = new DataUser(await DataUser.getData(userId));
         var userLevel = userData.getAverageColorLevel();//average color level
+        var userQuest = new UserQuest(await UserQuest.getData(userId));
     
         //init the object
         var objCardInventory = {
@@ -453,11 +455,11 @@ class EventListener {
         //prepare the embed
         var txtMainStatus = dedent(`🪐 **Location:** ${seriesData.location.name}@${seriesData.name}
         ${DataUser.peacePoint.emoji} **${DataUser.peacePoint.name}:** ${userData.peace_point}/${DataUser.limit.peacePoint}
-        ${Emoji.mofuheart} **Daily Card Quest:** ${userData.Daily.getCardQuestTotal()}/3
+        ${Emoji.mofuheart} **Daily Card Quest:** ${userQuest.DailyCardQuest.getTotal()}/${DailyCardQuest.max}
 
-        ${Currency.mofucoin.emoji} **Currency:**
-        ${userData.Currency.mofucoin}/${DataUser.limit.currency.mofucoin} ${Currency.mofucoin.emoji}
-        ${userData.Currency.jewel}/${DataUser.limit.currency.jewel} ${Currency.jewel.emoji}`);
+        **Currency:**
+        ${Currency.mofucoin.emoji} **Mofucoin:** ${userData.Currency.mofucoin}/${DataUser.limit.currency.mofucoin} 
+        ${Currency.jewel.emoji} **Jewel:** ${userData.Currency.jewel}/${DataUser.limit.currency.jewel}`);
 
         var author = GEmbed.builderUser.author(discordUser, `${discordUser.username} (Lvl.${userLevel})`);
         var objEmbed = GEmbed.builder(txtMainStatus, author, {

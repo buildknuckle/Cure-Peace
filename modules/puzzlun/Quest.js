@@ -16,32 +16,6 @@ const DBM_User_Data = require('../../database/model/DBM_User_Data');
 const DBM_Card_Data = require('../../database/model/DBM_Card_Data');
 const DBM_Card_Inventory = require("../../database/model/DBM_Card_Inventory");
 
-class Properties {
-    static dataKey = {
-        lastCheckInDate:"lastCheckInDate",
-        lastQuestDate:"lastQuestDate",
-        quest:"quest",
-        //quest key:
-        battle:"battle",
-        kirakiraDelivery:"kirakiraDelivery",
-        card:"card",
-    }
-    
-    static questDataKey = {
-        card:{
-            id:"id",
-            colorPoint:"colorPoint",
-            seriesPoint:"seriesPoint",
-            mofucoin:"mofucoin",
-            item:"item",
-            //for query results:
-            cardData:"cardData"
-        },
-        kirakiraDelivery:{},
-        battle:{},
-    }
-}
-
 class Card {
     static async generateQuest(objUserData, userStatusData){
         var questDate = GlobalFunctions.getCurrentDate();

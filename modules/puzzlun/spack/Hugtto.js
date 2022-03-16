@@ -6,7 +6,7 @@ const properties = {
         mascot:"<:m13_hariham:936237022803275777>",
     },
     currency:{
-        name:"Mirai Crystal Points",
+        name:"mirai crystal points",
         emoji:"<:m13_hariham:936237022803275777>"
     },
     theme:"destiny, future, heroism, parenting, and jobs",

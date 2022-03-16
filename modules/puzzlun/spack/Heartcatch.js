@@ -6,7 +6,7 @@ const properties = {
         mascot:"<:m5_cyphre:936237021599518801>",
     },
     currency:{
-        name:"Heart Seed Points",
+        name:"heart seed points",
         emoji:"<:m5_cyphre:936237021599518801>"
     },
     theme:"Flowers and Hanakotoba",

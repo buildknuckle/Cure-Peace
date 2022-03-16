@@ -6,7 +6,7 @@ const properties = {
         mascot:"<:m15_rabirin:936237024724262923>",
     },
     currency:{
-        name:"Elemental Points",
+        name:"elemental points",
         emoji:"<:m15_rabirin:936237024724262923>"
     },
     theme:"health, nature, and animals",

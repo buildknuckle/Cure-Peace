@@ -6,7 +6,7 @@ const properties = {
         mascot:"<:m6_hummy:936237021716946964>",
     },
     currency:{
-        name:"Melody Note Points",
+        name:"melody note points",
         emoji:"<:m6_hummy:936237021716946964>"
     },
     theme:":musical_note: musical theme",

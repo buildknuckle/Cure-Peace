@@ -79,7 +79,15 @@ async function selectIn(tableName, columns, valWhere){
         arrParameterized.push(val);
     });
     query = query.replace(/,\s*$/, "");//remove last comma and any whitespace
+    query+=`) ORDER BY FIELD(${columns}, `;
+    
+    valWhere.forEach(val => {
+        query+=` ?, `;
+        arrParameterized.push(val);
+    });
+    query = query.replace(/,\s*$/, "");//remove last comma and any whitespace
     query+=`)`;
+
     return await DB.conn.query(query, arrParameterized);
 }
 

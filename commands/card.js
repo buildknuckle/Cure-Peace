@@ -17,7 +17,6 @@ const UserModule = require("../modules/puzzlun/User");
 const Validation = require("../modules/puzzlun/Validation");
 const SpawnerModule = require("../modules/puzzlun/data/Spawner");
 const Spawner = SpawnerModule.Spawner;
-const SCardNormal = SpawnerModule.CardNormal;
 // const SpawnerEventListener = SpawnerModule.EventListener;
 // const EventListener = require("../modules/puzzlun/EventListener");
 

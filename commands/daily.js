@@ -1,4 +1,5 @@
 const {MessageActionRow, MessageButton, MessageEmbed, Discord, Emoji} = require('discord.js');
+const dedent = require('dedent-js');
 const paginationEmbed = require('../modules/DiscordPagination');
 const DiscordStyles = require('../modules/DiscordStyles');
 const GlobalFunctions = require('../modules/GlobalFunctions.js');
@@ -8,12 +9,13 @@ const DBConn = require('../storage/dbconn');
 const Properties = require("../modules/puzzlun/Properties");
 const Color = Properties.color;
 const User = require("../modules/puzzlun/data/User");
+const {UserQuest, DailyCardQuest} = require("../modules/puzzlun/data/Quest");
 const Card = require("../modules/puzzlun/data/Card");
 const CardInventory = require("../modules/puzzlun/data/CardInventory");
 const {Series, SPack} = require('../modules/puzzlun/data/Series');
 const Embed = require('../modules/puzzlun/Embed');
-const dedent = require('dedent-js');
 
+const Validation = require('../modules/puzzlun/Validation');
 
 module.exports = {
 	name: 'daily',
@@ -74,7 +76,7 @@ module.exports = {
             options:[
                 {
                     name: "list",
-                    description: "Receive new quests/open the quests list",
+                    description: "Open the daily quests list",
                     type: 1,
                 },
                 {
@@ -107,9 +109,160 @@ module.exports = {
                 switch(subcommand){
                     case "list":
                         var user = new User(await User.getData(userId));
-                        if(user.Daily.quuser.Daily.getCardQuestTotal<=0){
-
+                        //validation if user has logged in
+                        if(user.hasLogin()==false){
+                            return interaction.reply(
+                                Embed.errorMini(`:x: Your current card quest are no longer available. Receive new card quest with: **/daily check-in**`, discordUser, true)
+                            );
                         }
+                        
+                        //validation if user have quest/not
+                        var userQuest = new UserQuest(await UserQuest.getData(userId));
+                        var dailyCardQuest = userQuest.DailyCardQuest;
+                        if(!dailyCardQuest.isAvailable()){
+                            return interaction.reply({embeds:[
+                                Embed.builder(`You have completed all daily card quest for today.`,discordUser, {
+                                    color:Embed.color.success,
+                                    thumbnail:Properties.imgSet.mofu.thumbsup,
+                                    title:`✅ Daily card quest completed!`
+                                })
+                            ]});
+                        }
+
+                        await dailyCardQuest.initCardData();
+
+                        var txtCardQuest = ``;
+                        for(var key in dailyCardQuest.arrCardData){
+                            var card = new Card(dailyCardQuest.arrCardData[key]);
+                            var rarity = card.rarity;
+                            var rewards = DailyCardQuest.reward[rarity];
+
+                            var txtReward = `${Properties.currency.mofucoin.emoji} ${rewards.mofucoin}, `;
+                            txtReward += `${Color[card.color].emoji} ${rewards.color}, `;
+                            txtReward += `${new Series(card.series).emoji.mascot} ${rewards.series}, `;
+                            if("jewel" in rewards){
+                                txtReward += `${Properties.currency.jewel.emoji} ${rewards.jewel}`;
+                            }
+                            txtReward = txtReward.replace(/,\s*$/, "");
+
+                            txtCardQuest+=dedent(`${CardInventory.emoji.rarity(false, card.rarity)}${card.rarity}: ${card.id_card} - ${GlobalFunctions.cutText(card.name,18)}`);
+                            
+                            var cardInventoryData = await CardInventory.getDataByIdUser(userId, card.id_card);
+                            if(cardInventoryData!=null){
+                                var cardInventory = new CardInventory(cardInventoryData, dailyCardQuest.arrCardData[key]);
+                                if(cardInventory.stock>=1){
+                                    txtCardQuest+=` (✅ Available)`;
+                                }
+                            }
+                            txtCardQuest+=`\n**Reward:**  ${txtReward}\n\n`;
+                        }
+                        txtCardQuest+=dedent(`**Completion Bonus:** ${Properties.currency.jewel.emoji} ${DailyCardQuest.rewardCompletion.jewel}
+                        (Received upon completing all card quest)`);
+
+                        return interaction.reply({
+                            embeds:[Embed.builder(dedent(`Submit any of these card to receive various rewards: 
+
+                            ${txtCardQuest}`), discordUser, {
+                                title:`Daily Card Quest (${dailyCardQuest.getTotal()}/${DailyCardQuest.max})`,
+                                thumbnail:Properties.imgSet.mofu.ok,
+                                footer:Embed.builderUser.footer(`Submit the card quest with: /daily quest submit`)
+                            })]
+                        });
+                        break;
+                    case "submit":
+                        var user = new User(await User.getData(userId));
+                        //check in validation
+                        if(user.hasLogin()==false){
+                            return interaction.reply(
+                                Embed.errorMini(`:x: Your card quest has expired. Please receive new card quest with: **/daily check-in**`, discordUser, true)
+                            );
+                        }
+
+                        var selectedCardId = interaction.options._hoistedOptions[0].value.toLowerCase();
+                        var userQuest = new UserQuest(await UserQuest.getData(userId));
+                        var dailyCardQuest = userQuest.DailyCardQuest;
+                        await dailyCardQuest.initCardData();
+                        //card validation
+                        if(dailyCardQuest.checkCardAvailable(selectedCardId)==false){
+                            return interaction.reply(
+                                Embed.errorMini(`:x: This card is not available on daily card quest for today.`, discordUser, true)
+                            );
+                        }
+
+                        //validation: check if user have card/not
+                        var cardInventoryData = await CardInventory.getDataByIdUser(userId, selectedCardId);
+                        if(cardInventoryData==null){
+                            return interaction.reply(Validation.Card.embedNotHave(discordUser));
+                        }
+
+                        //validation: check card stock
+                        var cardInventory = new CardInventory(cardInventoryData, dailyCardQuest.arrCardData[selectedCardId]);
+                        if(cardInventory.stock<=0){
+                            return interaction.reply(Embed.errorMini(`You need 1x **${cardInventory.id_card} - ${cardInventory.name}** to submit this card quest.`,discordUser, true, {
+                                title:`Not Enough Card`
+                            }));
+                        }
+
+                        cardInventory.stock-=1;//remove card stock by 1
+                        await cardInventory.update();//update user card inventory data
+
+                        dailyCardQuest.remove(selectedCardId);//remove selected card quest
+                        await userQuest.update();//update quest data
+                        
+                        var rarity = cardInventory.rarity;
+                        var series = new Series(cardInventory.series);
+                        
+                        //distribute rewards
+                        var reward = DailyCardQuest.reward[rarity];
+                        user.Currency.mofucoin+=reward.mofucoin;//mofucoin
+                        user.Color[cardInventory.color].point+=reward.color;//color points
+                        user.Series[series.value]+=reward.series;//series points
+                        if("jewel" in reward) user.Currency.jewel+=reward.jewel;//jewel
+                        if(dailyCardQuest.getTotal()<=0){//bonus completion rewards
+                            user.Currency.jewel+=DailyCardQuest.rewardCompletion.jewel;
+                        }
+                        await user.update();//validate & update user data
+
+                        
+                        var txtReward = `${Properties.currency.mofucoin.emoji} ${reward.mofucoin} mofucoin (${user.Currency.mofucoin}/${User.limit.currency.mofucoin})\n`;//mofucoin
+
+                        txtReward += `${Color[cardInventory.color].emoji} ${reward.color} ${cardInventory.color} points (${user.Color[cardInventory.color].point}/${User.limit.colorPoint})\n`;//color pionts
+
+                        txtReward += `${series.emoji.mascot} ${reward.series} ${series.currency.name.toLowerCase()} (${user.Series[series.value]}/${User.limit.seriesPoint})\n`;//series points
+                        
+                        if("jewel" in reward){
+                            txtReward += `${Properties.currency.jewel.emoji} ${reward.jewel} ${Properties.currency.jewel.name.toLowerCase()} (${user.Currency.jewel}/${User.limit.currency.jewel})`;
+                        }
+                        txtReward = txtReward.replace(/,\s*$/, "");
+
+                        //print embed
+                        var txtCardQuest = `You have submitted: ${cardInventory.id_card} - ${GlobalFunctions.cutText(cardInventory.name,15)}.`;
+                        var txtTitle = `✅ Daily Card Quest Submitted!`;
+                        var imgThumbnail = Properties.imgSet.mofu.ok;
+                        var txtFooter = `Remaining card quest: ${userQuest.DailyCardQuest.getTotal()}/${DailyCardQuest.max}`;
+
+                        if(dailyCardQuest.getTotal()<=0){
+                            txtCardQuest+=`\nYou have completed all card quest for today!`;
+                            txtReward+=`\n**Completion Bonus:** ${Properties.currency.jewel.emoji} ${DailyCardQuest.rewardCompletion.jewel} ${Properties.currency.jewel.name.toLowerCase()}`;
+                            txtTitle = `✅ Daily Card Quest Completed!`;
+                            imgThumbnail = Properties.imgSet.mofu.thumbsup;
+                            txtFooter = "";
+                        }
+
+                        return interaction.reply({
+                            embeds:[Embed.builder(dedent(txtCardQuest), discordUser, {
+                                color: cardInventory.color,
+                                title: txtTitle,
+                                thumbnail: imgThumbnail,
+                                fields:[
+                                    {
+                                        name:`${CardInventory.emoji.rarity(false, rarity)}${rarity} Rewards Received:`,
+                                        value:txtReward
+                                    }
+                                ],
+                                footer:Embed.builderUser.footer(txtFooter)
+                            })]
+                        });
                         break;
                 }
                 break;
@@ -122,12 +275,13 @@ module.exports = {
                 var resetTime = new Date();
                 resetTime.setHours(24, 0, 0, 0);
                 var timeRemaining = GlobalFunctions.getDateTimeDifference(resetTime.getTime(),new Date().getTime());
-                timeRemaining = timeRemaining.hours + " Hour " + timeRemaining.minutes + " Min";
+                timeRemaining = timeRemaining.hours + " Hours " + timeRemaining.minutes + " Mins";
                 var arrPages = [];
 
                 if(user.hasLogin()){
-                    var objEmbed = Embed.errorMini(`:x: You have already received your daily rewards for today.\nNext daily available in: **${timeRemaining}**`, discordUser, true);
-                    return interaction.reply(objEmbed);
+                    return interaction.reply(
+                        Embed.errorMini(`:x: You have already received your daily rewards for today.\nNext daily available in: **${timeRemaining}**`, discordUser, true)
+                    );
                 }
 
                 var selectedColor = interaction.options._hoistedOptions[0].value;
@@ -177,7 +331,8 @@ module.exports = {
 
                 //check if user have 10 cards/not
                 var txtNewbieBonus = "";
-                if(await CardInventory.getTotalAll(userId)<=0){
+                var isNewcomer = User.isNewcomer(await CardInventory.getTotalAll(userId));
+                if(isNewcomer){
                     txtNewbieBonus="\n\n**You have received 10 bonus starter card!**\n";
 
                     var query = `
@@ -208,8 +363,12 @@ module.exports = {
                     }
                 }
 
+                //update daily token
+                user.last_checkIn_date = GlobalFunctions.getCurrentDate();
+                await user.update();
+
                 arrPages.push(
-                    Embed.builder(dedent(`✅ <@${userId}> has successfully checked in for the daily!
+                    Embed.builder(dedent(`✅ <@${userId}> has successfully logged in for the daily!
 
                     **Rewards received:** ${dailyRewards.iconBoost}
                     ${dailyRewards.txtColor}
@@ -218,286 +377,54 @@ module.exports = {
                     ${Properties.currency.jewel.emoji} ${dailyRewards.jewel} jewel (${user.Currency.jewel}/${User.limit.currency.jewel})${txtNewbieBonus}`),
                     discordUser,{
                         color:dailyRewards.embedColor,
-                        title:`Check In Complete!`,
-                        thumbnail:Properties.imgSet.mofu.ok,
+                        title:isNewcomer ? `Welcome to Puzzlun Peacecure!`: `Welcome back!`,
+                        thumbnail:Properties.imgSet.mofu.wave,
                         footer:Embed.builderUser.footer(`Next daily available in: ${timeRemaining}`)
                     })
                 );
 
                 //generate 3 card quest
+                var userQuest = new UserQuest(await UserQuest.getData(userId));
+                var dailyCardQuest = userQuest.DailyCardQuest;
+                await dailyCardQuest.randomizeCardData();
+                await userQuest.update();
+
                 var txtCardQuest = ``;
-                var arrCardQuest = [];
-                var query = `(SELECT * FROM ${Card.tablename} 
-                WHERE ${Card.columns.rarity}=2 AND ${Card.columns.is_spawnable}=1 
-                ORDER BY rand() LIMIT 1) UNION ALL 
-                (SELECT * FROM ${Card.tablename} 
-                WHERE ${Card.columns.rarity}=3 AND ${Card.columns.is_spawnable}=1 
-                ORDER BY rand() LIMIT 2) UNION ALL 
-                (SELECT * FROM ${Card.tablename} 
-                WHERE ${Card.columns.rarity}=4 AND ${Card.columns.is_spawnable}=1 
-                ORDER BY rand() LIMIT 1)`;
-                var rndCardQuest = await DBConn.conn.query(query, []);
-                for(var i=0;i<rndCardQuest.length;i++){
-                    var card = new Card(rndCardQuest[i]);
-                    txtCardQuest+=`${Color[card.color].emoji_card} ${CardInventory.emoji.rarity(false, card.rarity)}${card.rarity} **${card.id_card}**: ${GlobalFunctions.cutText(card.name,18)}\n\n`;
-                    arrCardQuest.push(card.id_card);
+                for(var key in dailyCardQuest.arrCardData){
+                    var card = new Card(dailyCardQuest.arrCardData[key]);
+                    var rarity = card.rarity;
+                    var rewards = DailyCardQuest.reward[rarity];
+
+                    var txtReward = `${Properties.currency.mofucoin.emoji} ${rewards.mofucoin}, `;
+                    txtReward += `${Color[card.color].emoji} ${rewards.color}, `;
+                    txtReward += `${new Series(card.series).emoji.mascot} ${rewards.series}, `;
+                    if("jewel" in rewards){
+                        txtReward += `${Properties.currency.jewel.emoji} ${rewards.jewel}`;
+                    }
+                    txtReward = txtReward.replace(/,\s*$/, "");
+
+                    txtCardQuest+=dedent(`${CardInventory.emoji.rarity(false, card.rarity)}${card.rarity}: ${card.id_card} - ${GlobalFunctions.cutText(card.name,18)}
+                    **Reward:**  ${txtReward}`);
+                    txtCardQuest+=`\n\n`;
                 }
 
-                user.Daily.setCardQuest(arrCardQuest);
-                
+                txtCardQuest+=dedent(`**Completion Bonus:** ${Properties.currency.jewel.emoji} ${DailyCardQuest.rewardCompletion.jewel}
+                (Received upon completing all card quest)`);
 
                 arrPages.push(
-                    Embed.builder(dedent(`Here are the requested card list for today:
+                    Embed.builder(dedent(`Here are the requested cards for today:
+
                     ${txtCardQuest}`), discordUser, {
-                        title:`New Card Quest Received!`,
+                        title:`New Card Quest Received! (${dailyCardQuest.getTotal()}/${DailyCardQuest.max})`,
+                        thumbnail:Properties.imgSet.mofu.ok,
                         footer:Embed.builderUser.footer(`Access the card quest anytime with: /daily quest list`)
                     })
                 );
                 
-                //update daily token
-                user.Daily.lastCheckInDate = GlobalFunctions.getCurrentDate();
-                // await user.update();
 
-                
                 // await interaction.reply({embeds:[objEmbed]});
                 return await paginationEmbed(interaction, arrPages, DiscordStyles.Button.pagingButtonList);
-
                 break;
         }
-
-        // // console.log(interaction.options._hoistedOptions[0]);
-
-        
-        //     case "quest":
-
-        //     var userCardData = await CardModule.getCardUserStatusData(userId);
-        //     var lastDate = -1; var requestedIdCard = "";
-        //     var requestedCards = ""; var requestedRewards = "";
-
-        //     //get latest taken date & data if not null
-        //     if(userCardData[DBM_Card_User_Data.columns.daily_quest]!=null){
-        //         var jsonParsedData = JSON.parse(userCardData[DBM_Card_User_Data.columns.daily_quest]);
-        //         lastDate = jsonParsedData[CardModule.Quest.questData.last_daily_quest];
-        //     }
-
-        //     switch(commandSubcommand){
-        //         case "list":
-        //             objEmbed.description = `<@${userId}>, here are the requested cards list for today:\nYou can submit the quest with: **p!daily quest submit <card id>**`;
-        //             objEmbed.author = {
-        //                 name: `Daily Quest`,
-        //                 icon_url: CardModule.Properties.imgResponse.imgOk
-        //             }
-    
-        //             var lastDate = -1; var requestedIdCard = "";
-    
-        //             var requestedCards = ""; var requestedRewards = "";
-    
-        //             //get latest taken date & data if not null
-        //             if(userCardData[DBM_Card_User_Data.columns.daily_quest]!=null){
-        //                 var jsonParsedData = JSON.parse(userCardData[DBM_Card_User_Data.columns.daily_quest]);
-        //                 lastDate = jsonParsedData[CardModule.Quest.questData.last_daily_quest];
-        //             }
-
-        //             if(lastDate==-1||lastDate!=new Date().getDate()){
-        //                 //check for daily quest if already requested/not
-        //                 var objQuestData = "{";
-        //                 requestedCards = ""; requestedRewards = "";
-        //                 //get 4 randomized card
-        //                 var query = `SELECT * FROM 
-        //                 (
-        //                     SELECT cd.${DBM_Card_Data.columns.id_card},cd.${DBM_Card_Data.columns.name},cd.${DBM_Card_Data.columns.pack},cd.${DBM_Card_Data.columns.rarity},idat.${DBM_Item_Data.columns.id} as id_item,idat.${DBM_Item_Data.columns.name} as item_name 
-        //                         FROM ${DBM_Card_Data.TABLENAME} cd,${DBM_Item_Data.TABLENAME} idat 
-        //                         WHERE cd.${DBM_Card_Data.columns.rarity}<=? AND 
-        //                         idat.${DBM_Item_Data.columns.category} in ('card','ingredient','ingredient_rare') 
-        //                         GROUP BY cd.${DBM_Card_Data.columns.id_card},idat.${DBM_Item_Data.columns.id} 
-        //                         ORDER BY rand() LIMIT 4 
-        //                 ) T1 
-        //                 ORDER BY T1.rarity`;
-        //                 var randomizedCardData = await DBConn.conn.promise().query(query, [3]);
-                        
-        //                 randomizedCardData[0].forEach(entry => {
-        //                     // idCard+=`${entry[DBM_Card_Data.columns.id_card]},`;
-        //                     objQuestData+=`"${entry[DBM_Card_Data.columns.id_card]}":"${entry["id_item"]}",`;
-        //                     //randomize the reward:
-        //                     requestedCards+=`-**[${entry[DBM_Card_Data.columns.pack]}] ${entry[DBM_Card_Data.columns.id_card]}** - ${GlobalFunctions.cutText(entry[DBM_Card_Data.columns.name],12)}\n`;
-        //                     requestedRewards+=`**${entry["id_item"]}**: ${GlobalFunctions.cutText(entry["item_name"],12)} & ${CardModule.Quest.getQuestReward(entry[DBM_Card_Data.columns.rarity])} MC&SP\n`;
-        //                 });
-    
-        //                 objQuestData = objQuestData.replace(/,\s*$/, "");
-        //                 objQuestData+="}";
-    
-        //                 objEmbed.fields = [
-        //                     {
-        //                         name:`Card Quest List:`,
-        //                         value:requestedCards,
-        //                         inline:true
-        //                     },
-        //                     {
-        //                         name:`Item & MC Reward:`,
-        //                         value:requestedRewards,
-        //                         inline:true
-        //                     }
-        //                 ];
-    
-        //                 // idCard = idCard.replace(/,\s*$/, "");
-        //                 await CardModule.Quest.setQuestData(userId,objQuestData);
-        //             } else if(lastDate==new Date().getDate()){
-        //                 if(Object.keys(jsonParsedData[CardModule.Quest.questData.dataQuest]).length>=1){
-        //                     var questData = jsonParsedData[CardModule.Quest.questData.dataQuest];
-        //                     var arrItemReward = [];
-    
-        //                     Object.keys(questData).forEach(function(key){
-        //                         requestedIdCard+=`"${key}",`;
-        //                         arrItemReward.push(questData[key]);
-        //                     });
-        //                     requestedIdCard = requestedIdCard.replace(/,\s*$/, "");
-    
-        //                     var query = `SELECT * 
-        //                     FROM ${DBM_Card_Data.TABLENAME} 
-        //                     WHERE ${DBM_Card_Data.columns.id_card} IN (${requestedIdCard}) 
-        //                     ORDER BY ${DBM_Card_Data.columns.rarity}`;
-    
-        //                     var cardData = await DBConn.conn.promise().query(query);
-        //                     var ctr = 0;//for item data
-        //                     for(var key in cardData[0]){
-        //                         var entry = cardData[0][key];
-        //                         requestedCards+=`-**[${entry[DBM_Card_Data.columns.pack]}] ${entry[DBM_Card_Data.columns.id_card]}** - ${GlobalFunctions.cutText(entry[DBM_Card_Data.columns.name],17)}\n`;
-    
-        //                         //get the item reward
-        //                         var itemData = await ItemModule.getItemData(arrItemReward[ctr]); ctr++;
-        //                         requestedRewards+=`**${itemData[DBM_Item_Data.columns.id]}**: ${GlobalFunctions.cutText(itemData[DBM_Item_Data.columns.name],12)} & ${CardModule.Quest.getQuestReward(entry[DBM_Card_Data.columns.rarity])} MC&SP\n`;
-        //                     }
-    
-        //                     objEmbed.fields = [{
-        //                         name:`Quest List:`,
-        //                         value:requestedCards,
-        //                         inline:true
-        //                     },
-        //                     {
-        //                         name:`Item & MC Reward:`,
-        //                         value:requestedRewards,
-        //                         inline:true
-        //                     }];
-        //                 } else {
-        //                     objEmbed.description = "You have no more daily quest for today.";
-        //                 }
-                        
-        //             }
-        //             return interaction.reply({embeds:[new MessageEmbed(objEmbed)]});
-        //             break;
-        //         case "submit":
-
-        //             //submit the daily quest
-        //             if(lastDate!=new Date().getDate()){
-        //                 objEmbed.thumbnail = {
-        //                     url:CardModule.Properties.imgResponse.imgError
-        //                 }
-        //                 objEmbed.description = `:x: Sorry, you cannot submit this quests anymore. Please request new daily quest with **daily quest  list** command.`;
-        //                 return interaction.reply({embeds:[new MessageEmbed(objEmbed)]});
-        //             }
-
-        //             var cardId = interaction.options._hoistedOptions[0].value.toLowerCase();
-
-        //             //check if card ID exists/not
-        //             var cardData = await CardModule.getCardData(cardId);
-        //             if(cardData==null){
-        //                 objEmbed.thumbnail = {
-        //                     url:CardModule.Properties.imgResponse.imgError
-        //                 }
-        //                 objEmbed.description = ":x: I can't find that card ID.";
-
-        //                 return interaction.reply({embeds:[new MessageEmbed(objEmbed)]});
-        //             }
-
-        //             //lowercase the card id
-        //             cardId = cardId.toLowerCase();
-
-        //             var jsonParsedData = JSON.parse(userCardData[DBM_Card_User_Data.columns.daily_quest]);
-        //             var requestedIdCard = jsonParsedData[CardModule.Quest.questData.dataQuest];
-                    
-        //             var idCardExists = false;
-
-        //             var itemRewardData = null;
-        //             for(var key in requestedIdCard){
-        //                 var idItemReward = requestedIdCard[key];
-        //                 if(key.toLowerCase()==cardId){
-        //                     itemRewardData = await ItemModule.getItemData(idItemReward);
-        //                     idCardExists = true;
-        //                 }
-        //             }
-
-        //             //check for card quest id
-        //             if(!idCardExists){
-        //                 objEmbed.thumbnail = {
-        //                     url:CardModule.Properties.imgResponse.imgError
-        //                 }
-        //                 objEmbed.description = `:x: That card id is not on the quest list today.`;
-        //                 return interaction.reply({embeds:[new MessageEmbed(objEmbed)]});
-        //             }
-
-        //             //check if user have card/not
-        //             var userCardStock = await CardModule.getUserCardStock(userId,cardId);
-        //             if(userCardStock<=0){
-        //                 objEmbed.thumbnail = {
-        //                     url:CardModule.Properties.imgResponse.imgError
-        //                 }
-        //                 objEmbed.description = `:x: You need another: **${cardData[DBM_Card_Data.columns.name]}** to submit the card quest.`;
-        //                 return interaction.reply({embeds:[new MessageEmbed(objEmbed)]});
-        //             } else {
-        //                 var mofucoinReward = CardModule.Quest.getQuestReward(cardData[DBM_Card_Data.columns.rarity]);
-        //                 //update card stock
-        //                 var query = `UPDATE ${DBM_Card_Inventory.TABLENAME} 
-        //                 SET  ${DBM_Card_Inventory.columns.stock}=${DBM_Card_Inventory.columns.stock}-1 
-        //                 WHERE ${DBM_Card_Inventory.columns.id_user}=? AND 
-        //                 ${DBM_Card_Inventory.columns.id_card}=?`;
-        //                 await DBConn.conn.promise().query(query,[userId,cardId]);
-
-        //                 //update mofucoin
-        //                 await CardModule.updateMofucoin(userId,mofucoinReward);
-        //                 //update series point
-        //                 var seriesId = CardModule.Properties.seriesCardCore[cardData[DBM_Card_Data.columns.series]].series_point;
-        //                 var seriesCurrency = CardModule.Properties.seriesCardCore[seriesId].currency;
-                        
-        //                 var objSeries = new Map();
-        //                 objSeries.set(seriesId,mofucoinReward);
-        //                 await CardModule.updateSeriesPoint(userId,objSeries);
-
-        //                 //add item reward
-        //                 if(itemRewardData!=null){
-        //                     await ItemModule.addNewItemInventory(userId,itemRewardData[DBM_Item_Data.columns.id]);
-        //                 }
-
-        //                 //update the quest data:
-        //                 delete requestedIdCard[cardId];
-                        
-        //                 var parameterSet = new Map();
-        //                 parameterSet.set(DBM_Card_User_Data.columns.daily_quest,JSON.stringify(jsonParsedData));
-        //                 var parameterWhere = new Map();
-        //                 parameterWhere.set(DBM_Card_User_Data.columns.id_user,userId);
-        //                 await DB.update(DBM_Card_User_Data.TABLENAME,parameterSet,parameterWhere);
-                        
-        //                 objEmbed.author = {
-        //                     name: userUsername,
-        //                     icon_url: userAvatarUrl
-        //                 }
-        //                 objEmbed.title = "Daily Quest Completed!";
-        //                 objEmbed.thumbnail = {
-        //                     url:CardModule.Properties.imgResponse.imgOk
-        //                 }
-        //                 objEmbed.description = `You have submit the daily card quest: **${cardData[DBM_Card_Data.columns.id_card]} - ${cardData[DBM_Card_Data.columns.name]}**.`;
-        //                 objEmbed.fields = [
-        //                     {
-        //                         name:"Rewards Received:",
-        //                         value:`>**Item:** ${itemRewardData[DBM_Item_Data.columns.name]} (**${itemRewardData[DBM_Item_Data.columns.id]}**)\n>${mofucoinReward} Mofucoin\n>${mofucoinReward} ${seriesCurrency}`
-        //                     }
-        //                 ];
-        //                 return interaction.reply({embeds:[new MessageEmbed(objEmbed)]});
-        //             }
-
-        //             break;
-        //     }
-        //         break;
-        // }
-
     }
 };
