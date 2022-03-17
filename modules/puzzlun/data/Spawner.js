@@ -11,6 +11,7 @@ const DataGuild = require('./Guild');
 const DataCard = require('./Card');
 const DataCardInventory = require('./CardInventory');
 const DataUser = require('./User');
+const {InstanceBattle} = require('./Instance');
 const {Series, SPack} = require('./Series');
 const {Character, CPack} = require('./Character');
 const Properties = require("../Properties");
@@ -187,7 +188,8 @@ class Spawner {
         cardColor:"cardColor",
         cardSeries:"cardSeries",
         quiz:"quiz",
-        numberGuess:"numberGuess"
+        numberGuess:"numberGuess",
+        battle:"battle"
     };
 
     token = null;//contains spawn token
@@ -285,6 +287,9 @@ class Spawner {
             spawn = new NumberGuess(await NumberGuess.getRandomCard(), this.token);
             this.spawnData = spawn.getSpawnData();
             this.data = spawn;
+        } else if(rnd==60){
+            this.type = Spawner.type.battle;
+
         }
 
         //merge embedspawn with id roleping if provided
@@ -2055,6 +2060,26 @@ class NumberGuess {
         }
         
         await user.update();//update all data
+    }
+    
+}
+
+class Battle {
+    static value = Spawner.type.battle;
+    instance={};
+    embedSpawn = null;
+    constructor(token = null){
+
+
+        this.embedSpawn = ({embeds:[objEmbed], components: [DiscordStyles.Button.row([
+            DiscordStyles.Button.base(`card.${Spawner.type.battle}_${NumberGuess.buttonId.lower}_${token}`,"▼ Lower","PRIMARY"),
+            DiscordStyles.Button.base(`card.${Spawner.type.numberGuess}_${NumberGuess.buttonId.higher}_${token}`,"▲ Higher","PRIMARY"),
+            DiscordStyles.Button.base(`card.${Spawner.type.numberGuess}_${NumberGuess.buttonId.boost}_${token}`,"🆙 Boost","SUCCESS"),
+        ])]});
+    }
+
+    join(userId){
+        this.instance[userId] = new InstanceBattle(userId, )
     }
     
 }

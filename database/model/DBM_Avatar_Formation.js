@@ -1,5 +1,5 @@
-class DBM_Card_Battle {
-    static TABLENAME = "card_avatar";
+class DBM_Avatar_Formation {
+    static TABLENAME = "avatar_formation";
 
     static columns = {
         id_user: "id_user",
@@ -10,4 +10,4 @@ class DBM_Card_Battle {
     }
 }
 
-module.exports = DBM_Card_Battle;
+module.exports = DBM_Avatar_Formation;

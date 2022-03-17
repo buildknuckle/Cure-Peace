@@ -210,5 +210,14 @@ module.exports = {
    },
    emojify(string){//return all emoji into smaller size on mobile
       return `${string}𝅺`
+   },
+   filterDiscordInteractionKey(_hoistedOptions, keyFilter, defaultValue=null){
+      var ret = _hoistedOptions.filter(el=>{
+         return el.name==keyFilter
+     }).map(obj=>{
+         return obj.value
+     })[0];
+     if(ret===undefined) ret = defaultValue;
+     return ret;
    }
 }

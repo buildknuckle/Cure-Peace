@@ -8,6 +8,7 @@ const DataCard = require("./Card");
 // const SpackModule = require("./Series");
 const GProperties = require('../Properties');
 const GlobalFunctions = require('../../GlobalFunctions');
+const {Character, CPack} = require("./Character");
 
 //database modifier
 const PROTECTED_KEY = Object.keys(DBM_Card_Inventory.columns);
@@ -419,6 +420,14 @@ class CardInventory extends DataCard {
         }
     }
 
+    levelSync(newLevel){
+        this.level = newLevel;
+        this.maxHp = this.parameter.maxHp(this.level, this.hp_base);//assign max hp
+        this.atk = this.parameter.atk(this.level, this.atk_base);
+        this.maxLevel = this.parameter.maxLevel(this.rarity);
+        this.nextColorPoint = this.parameter.nextColorPoint(this.level);
+    }
+
     getIdCard(){
         if(this.isAvailable(this.id_card)){
             return this.id_card;
@@ -478,6 +487,10 @@ class CardInventory extends DataCard {
         return false;
     }
 
+    getRarityEmoji(){
+        return CardInventory.emoji.rarity(this.is_gold, this.rarity);
+    }
+
     getImgDisplay(){
         if(this.isGold()){
             return this.img_url_upgrade1;
@@ -486,7 +499,9 @@ class CardInventory extends DataCard {
         }
     }
 
-    validationStock(){
+    validation(){
+        if(this.level>=this.parameter.maxLevel(this.rarity))//ensures level is not reaching cap
+            this.level = this.parameter.maxLevel(this.rarity);
         if(this.stock<0) this.stock = 0;//ensures stock is not negative
         if(this.stock>limit.card) this.stock = limit.card;//ensures stock is not over limit
     }
@@ -496,7 +511,7 @@ class CardInventory extends DataCard {
      * @description update the stock
      */
     async updateStock(){
-        this.validationStock();
+        this.validation();
         let column = [//columns to be updated:
             DBM_Card_Inventory.columns.stock,
         ]
@@ -520,7 +535,7 @@ class CardInventory extends DataCard {
      */
     async update(){
         // if(this[UPDATE_KEY].length<=0) return;
-        this.validationStock();
+        this.validation();
         let column = [//columns to be updated:
             DBM_Card_Inventory.columns.level,
             DBM_Card_Inventory.columns.level_special,
