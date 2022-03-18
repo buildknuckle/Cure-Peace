@@ -1,15 +1,11 @@
-const Properties = {
+const properties = {
     value:"nottrigger",
     name:"Nottrigger",
     catchphrase:"Nottrigger!",
     chaos_meter:"darken",
-	data:{}//will be loaded from init
-}
-
-class Nottrigger {
-    
+	series:"star_twinkle"
 }
 
 module.exports = {
-    Properties, Nottrigger
+    properties
 }

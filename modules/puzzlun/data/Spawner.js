@@ -11,9 +11,11 @@ const DataGuild = require('./Guild');
 const DataCard = require('./Card');
 const DataCardInventory = require('./CardInventory');
 const DataUser = require('./User');
-const {InstanceBattle} = require('./Instance');
+const {InstancePartyAct, TreasureHunt} = require('./Instance');
 const {Series, SPack} = require('./Series');
 const {Character, CPack} = require('./Character');
+const {Enemy, EnPack} = require('./Enemy');
+const {Party} = require('./Party');
 const Properties = require("../Properties");
 const Color = Properties.color;
 const Emoji = Properties.emoji;
@@ -189,7 +191,8 @@ class Spawner {
         cardSeries:"cardSeries",
         quiz:"quiz",
         numberGuess:"numberGuess",
-        battle:"battle"
+        instancePartyAct:InstancePartyAct.type,
+        battle:"battle",
     };
 
     token = null;//contains spawn token
@@ -260,7 +263,7 @@ class Spawner {
         this.token = rndSpawnToken;
 
         var rnd = GlobalFunctions.randomNumber(0,100);
-        rnd = 50;//only for testing
+        rnd = 60;//only for testing
         var spawn;
         if(rnd<10){//normal card spawn
             this.type = Spawner.type.cardNormal;
@@ -288,9 +291,13 @@ class Spawner {
             this.spawnData = spawn.getSpawnData();
             this.data = spawn;
         } else if(rnd==60){
-            this.type = Spawner.type.battle;
-
+            this.type = Spawner.type.instancePartyAct;
+            spawn = InstancePartyAct.randomize(this.token);
+            this.spawnData = spawn.spawnType;
+            this.data = spawn;
         }
+
+        this.stopTimer();
 
         //merge embedspawn with id roleping if provided
         if(this.idRoleping.cardcatcher!==null){
@@ -414,12 +421,16 @@ class Spawner {
                 break;
             case Spawner.type.numberGuess:
                 await NumberGuess.onCapture(discordUser, userData, guildData, interaction, command);
-
-                // switch(command){
-                //     case NumberGuess.buttonId.lower:
-
-                //         break;
-                // }
+                break;
+            case Spawner.type.instancePartyAct:
+                switch(command){
+                    case InstancePartyAct.buttonId.commence:
+                        await InstancePartyAct.join(discordUser, guildData, interaction);
+                        break;
+                    default:
+                        await InstancePartyAct.eventListener(discordUser, guildData, command, interaction);
+                        break;
+                }
                 break;
         }
     }
@@ -567,7 +578,7 @@ class CardNormal {
         var user = new DataUser(userData);
 
         var dataGuild = new DataGuild(guildData); //get spawnerdata from guild
-        var spawner = new Spawner(dataGuild.spawner);
+        var spawner = dataGuild.spawner;
         
         //process chance
         var cardData = spawner.data.cardData;
@@ -2064,6 +2075,55 @@ class NumberGuess {
     
 }
 
+// class Instance {
+//     static value = Spawner.type.treasureHunt;
+//     static buttonId = Object.freeze({
+//         join:"join"
+//     });
+//     spawnData = Spawner.type.treasureHunt;
+//     instance = {};
+
+//     constructor(token=""){
+//         if(token!=null){
+//             var objEmbed = Embed.builder(`${Properties.emoji.mofuheart} Party up and search for hidden treasure!`,
+//             Embed.builderUser.authorCustom(`Treasure Hunt Spawn`),
+//             {
+//                 title:`It's Treasure Hunting Time!`,
+//                 image:Properties.imgSet.mofu.ok,
+                
+//             });
+
+//             this.embedSpawn = ({embeds:[objEmbed], components: [DiscordStyles.Button.row([
+//                 DiscordStyles.Button.base(`card.${Spawner.type.treasureHunt}_${TreasureHunt.buttonId.join}_${token}`,"Join","PRIMARY"),
+//             ])]});
+//         }
+//     }
+
+//     join(userId){
+//         if(!(userId in this.instance)){
+            
+//         }
+//     }
+
+//     static async onJoin(discordUser, userData, guildData, interaction){
+//         //join instance
+//         var userId = discordUser.id;
+//         var user = new DataUser(userData);
+        
+//         //validation if user in party/not
+//         var guild = new DataGuild(guildData); //get spawnerdata from guild
+//         var partyData = await Party.getData(guild.id_guild, userId);
+//         if(partyData==null){
+//             return interaction.reply(Embed.validationNotInParty(discordUser));
+//         }
+
+//         var spawner = new Spawner(guild.spawner);
+//         var spawn = new TreasureHunt();
+//         spawn.join();//check if instance exists/not
+
+//     }
+// }
+
 class Battle {
     static value = Spawner.type.battle;
     instance={};
@@ -2079,7 +2139,11 @@ class Battle {
     }
 
     join(userId){
-        this.instance[userId] = new InstanceBattle(userId, )
+        this.instance[userId] = new BattleSolo(userId, )
+    }
+
+    async randomize(){
+
     }
     
 }

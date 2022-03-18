@@ -91,6 +91,30 @@ async function selectIn(tableName, columns, valWhere){
     return await DB.conn.query(query, arrParameterized);
 }
 
+async function selectLike(tableName, parameterWhere=null, parameterOrderBy=null){
+    var arrParameterized = [];
+    var query = `SELECT * FROM ${tableName} `;
+    if(parameterWhere!=null){
+        query+=" WHERE ";
+        //WHERE
+        for (const [key, value] of parameterWhere.entries()) {
+            query += ` ${key} LIKE ? OR `;
+            arrParameterized.push(value);
+        }
+
+        query = query.replace(/OR\s*$/, "");//remove last OR and any whitespace
+    }
+    
+    if(parameterOrderBy!=null){
+        query+=" ORDER BY ";
+        for (const [key, value] of parameterOrderBy.entries()) {
+            query += ` ${key} ${value}, `;
+        }
+    }
+    query = query.replace(/,\s*$/, "");//remove last comma and any whitespace
+    return await DB.conn.query(query, arrParameterized);
+}
+
 async function selectRandom(tableName, parameterWhere = null, totalRandom = 1){
     //select 1 random row
     var arrParameterized = [];
@@ -239,4 +263,4 @@ async function count(tableName,parameterWhere=null){
 }
 
 module.exports = {DB,select,selectRandom,selectRandomNonDuplicate,selectAll,
-    selectOr, selectIn, insert, insertMultiple,update,del,count};
+    selectOr, selectIn, selectLike, insert, insertMultiple,update,del,count};

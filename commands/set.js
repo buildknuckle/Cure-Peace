@@ -15,7 +15,7 @@ const {AvatarFormation, PrecureAvatar} = require('../modules/puzzlun/Data/Avatar
 module.exports = {
     name: 'set',
     cooldown: 5,
-    description: 'Contains all card command',
+    description: 'Contains all set command',
     args: true,
     options:[
         {

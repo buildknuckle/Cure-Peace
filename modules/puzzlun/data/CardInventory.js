@@ -558,42 +558,6 @@ class CardInventory extends DataCard {
 
         await DB.update(DBM_Card_Inventory.TABLENAME, paramSet, paramWhere);
     }
-
-    // static async updateStockParam(userId, cardId, cardInventoryData=null, qty=1){
-    //     if(cardInventoryData==null){
-    //         //add new card
-    //         var mapAdd = new Map();
-    //         mapAdd.set(DBM_Card_Inventory.columns.id_card,cardId);
-    //         mapAdd.set(DBM_Card_Inventory.columns.id_user,userId);
-    //         if(qty>=1){
-    //             mapAdd.set(DBM_Card_Inventory.columns.stock,qty);
-    //         }
-            
-    //         await DB.insert(DBM_Card_Inventory.TABLENAME,mapAdd);
-    //     } else {
-    //         //get old card stock
-    //         var stock = cardInventoryData[DBM_Card_Inventory.columns.stock];
-            
-    //         if(qty>=0&&stock+qty<Properties.limit.card){
-    //             stock+= qty;
-    //         } else if(qty<0){
-    //             stock-=- qty;
-    //         } else {
-    //             stock= Properties.limit.card;
-    //         }
-            
-    //         if(qty<0&&stock-qty<=0) stock=0; //prevent negative
-
-    //         var mapSet = new Map();
-    //         mapSet.set(DBM_Card_Inventory.columns.stock,stock);
-    //         var mapWhere = new Map();
-    //         mapWhere.set(DBM_Card_Inventory.columns.id_card, cardInventoryData[DBM_Card_Data.columns.id_card]);
-    //         mapWhere.set(DBM_Card_Inventory.columns.id_user, userId);
-    //         await DB.update(DBM_Card_Inventory.TABLENAME, mapSet, mapWhere);
-    //         return stock//return with stock
-    //     }
-    
-    // }
 }
 
 module.exports = CardInventory;

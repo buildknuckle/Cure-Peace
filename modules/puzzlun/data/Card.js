@@ -4,6 +4,7 @@ const DBConn = require('../../../storage/dbconn');
 const DBM_Card_Data = require('../../../database/model/DBM_Card_Data');
 
 const {Character, CPack} = require("./Character");
+const {Series} = require("./Series");
 
 const emoji = {
     rarity(rarity){
@@ -95,6 +96,8 @@ class Card {
     patch_ver=null;
     created_at=null;
 
+    Series;
+
     //modifier:
     packTotal = null;
 
@@ -107,6 +110,8 @@ class Card {
         if(this.pack in CPack){
             this.packTotal = CPack[this.pack].properties.total;
         }
+
+        this.Series = new Series(this.series);
 
         // this.emoji.rarity = emoji.rarity(this.rarity);//get rarity emoji
         this.maxSp = parameter.maxSp(this.color);

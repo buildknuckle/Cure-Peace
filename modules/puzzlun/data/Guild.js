@@ -22,12 +22,15 @@ class Guild {
     spawn_data = null;
 
     //modifier
-    spawner = null;
+    spawner;
 
     /**
      * @param interval Interval in minutes
      */
     constructor(guildData=null){
+        var spawner = require("./Spawner");
+        this.spawner = new spawner.Spawner();
+
         for(var key in guildData){
             this[key] = guildData[key];
         }

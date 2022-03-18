@@ -1,18 +1,17 @@
-class DBM_Card_Party {
-    static TABLENAME = "card_party";
+class DBM_Party_Data {
+    static TABLENAME = "party_data";
 
     static columns = {
         id: "id",
         id_guild: "id_guild",
-        id_user: "id_user",
         name: "name",
-        party_data: "party_data",
+        id_leader: "id_leader",
+        id_member: "id_member",
         party_point: "party_point",
-        special_point: "special_point",
         spawn_token: "spawn_token",
         last_charge: "last_charge",
         created_at:"created_at"
     };
 }
 
-module.exports = DBM_Card_Party;
+module.exports = DBM_Party_Data;

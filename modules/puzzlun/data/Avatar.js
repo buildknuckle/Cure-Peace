@@ -123,7 +123,7 @@ class PrecureAvatar {
     formation = {
         name: null,
         value: null,
-        columns: AvatarFormation.columns.id_main
+        columns: null
     }
 
     /**

@@ -23,9 +23,6 @@ async function initGuild(guildId, discordGuild){
         var guildChannel = discordGuild.channels.cache.find(ch => ch.id === assignedChannel);
         if(guildChannel){
             var spawner = new Spawner();
-            // await spawner.init(guildId, guildChannel, guild.spawn_interval,
-            // guild.spawn_token, guild.spawn_type, guild.spawn_data,
-            // guild.id_roleping_cardcatcher);
 
             spawner.guildId = guildId;
             spawner.guildChannel = guildChannel;

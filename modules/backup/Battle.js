@@ -11,7 +11,7 @@ const DBM_Card_Inventory = require('../../database/model/DBM_Card_Inventory');
 const DBM_User_Data = require('../../database/model/DBM_User_Data');
 const DBM_Guild_Data = require('../../database/model/DBM_Guild_Data');
 const DBM_Enemy_Data = require('../../database/model/DBM_Enemy_Data');
-const DBM_Card_Avatar = require('../../database/model/DBM_Card_Avatar');
+const DBM_Card_Avatar = require('../../database/model/DBM_Avatar_Formation');
 
 const CpackModule = require("./Characters");
 const SpackModule = require("./Series");

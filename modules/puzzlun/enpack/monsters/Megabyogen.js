@@ -1,15 +1,11 @@
-const Properties = {
+const properties = {
     value:"megabyogen",
     name:"Megabyogen",
     catchphrase:"Mega!",
     chaos_meter:"virus",
-	data:{}//will be loaded from init
-}
-
-class Megabyogen {
-
+	series:"healin_good"
 }
 
 module.exports = {
-    Properties, Megabyogen
+    properties
 }
