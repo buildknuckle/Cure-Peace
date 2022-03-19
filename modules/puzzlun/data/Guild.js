@@ -24,13 +24,12 @@ class Guild {
     //modifier
     spawner;
 
-    /**
-     * @param interval Interval in minutes
-     */
     constructor(guildData=null){
-        var spawner = require("./Spawner");
-        this.spawner = new spawner.Spawner();
-
+        if(guildData!=null){
+            var spawner = require("./Spawner");
+            this.spawner = new spawner.Spawner();
+        }
+        
         for(var key in guildData){
             this[key] = guildData[key];
         }
@@ -94,6 +93,16 @@ class Guild {
         Guild.setData(this.id_guild, this);
     }
 
+    async removeSpawn(){
+        this.spawn_token = null;
+        this.spawn_type = null;
+        this.spawn_data = null;
+        this.spawner.type = null;
+        this.spawner.data = null;
+        this.updateData();
+        await this.updateDb();
+    }
+
     //store to db:
     async updateDb(){//update all data
         let column = [//columns to be updated:
@@ -111,7 +120,7 @@ class Guild {
 
         for(let key in column){
             let colVal = column[key];
-            paramSet.set(column[key], super[colVal]);
+            paramSet.set(column[key], this[colVal]);
         }
         
         for(let key in update_key){
@@ -122,29 +131,29 @@ class Guild {
         await DB.update(tablename, paramSet, paramWhere);
     }
 
-    async updateDbSpawnerData(){//update spawn data only
-        let column = [//columns to be updated:
-            columns.id_last_message_spawn,
-            columns.spawn_token,
-            columns.spawn_type,
-            columns.spawn_data,
-        ]
+    // async updateDbSpawnerData(){//update spawn data only
+    //     let column = [//columns to be updated:
+    //         columns.id_last_message_spawn,
+    //         columns.spawn_token,
+    //         columns.spawn_type,
+    //         columns.spawn_data,
+    //     ]
 
-        let paramSet = new Map();
-        let paramWhere = new Map();
+    //     let paramSet = new Map();
+    //     let paramWhere = new Map();
 
-        for(let key in column){
-            let colVal = column[key];
-            paramSet.set(column[key], this[colVal]);
-        }
+    //     for(let key in column){
+    //         let colVal = column[key];
+    //         paramSet.set(column[key], this[colVal]);
+    //     }
         
-        for(let key in update_key){
-            let updateKey = update_key[key];
-            paramWhere.set(update_key[key], this[updateKey]);
-        }
+    //     for(let key in update_key){
+    //         let updateKey = update_key[key];
+    //         paramWhere.set(update_key[key], this[updateKey]);
+    //     }
 
-        await DB.update(tablename, paramSet, paramWhere);
-    }
+    //     await DB.update(tablename, paramSet, paramWhere);
+    // }
 
     setGuildChannel(guildChannel){
         this.guildChannel = guildChannel;

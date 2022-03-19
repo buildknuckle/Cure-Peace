@@ -26,7 +26,6 @@ class Party {
     id_leader = null;
     id_member = [];
     party_point = null;
-    spawn_token = null;
     last_charge = null;
 
     constructor(partyData=null){
@@ -73,6 +72,12 @@ class Party {
 
     leave(userId){
         this.id_member = GlobalFunctions.removeArrayItem(this.id_member, userId);
+    }
+
+    getAllIdMembers(){
+        let allMembers = this.id_member;
+        allMembers.unshift(this.id_leader);
+        return allMembers;
     }
 
     async remove(){

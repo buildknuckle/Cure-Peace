@@ -7,10 +7,10 @@ const DB = require('../../../database/DatabaseCore');
 const DBConn = require('../../../storage/dbconn');
 const DiscordStyles = require("../../DiscordStyles");
 const DBM_Card_Data = require('../../../database/model/DBM_Card_Data');
-const DataGuild = require('./Guild');
-const DataCard = require('./Card');
-const DataCardInventory = require('./CardInventory');
-const DataUser = require('./User');
+const Guild = require('./Guild');
+const Card = require('./Card');
+const CardInventory = require('./CardInventory');
+const User = require('./User');
 const {InstancePartyAct, TreasureHunt} = require('./Instance');
 const {Series, SPack} = require('./Series');
 const {Character, CPack} = require('./Character');
@@ -35,7 +35,7 @@ class Embed extends require("../Embed") {
         var userAvatar = this.builderUser.getAvatarUrl(discordUser);
 
         //card data
-        var card = new DataCard(cardData);
+        var card = new Card(cardData);
         var id = card.id_card; var rarity = card.rarity;
         var character = new Character(card.pack); var name = card.name.toString();
         var img = card.img_url; var color = card.color;
@@ -56,7 +56,7 @@ class Embed extends require("../Embed") {
 
         var author = this.builderUser.author(discordUser, `New ${capitalize(card.pack)} Pack!`, character.icon);
 
-        arrPages[0] = this.builder(dedent(`${notifFront}${Properties.emoji.mofuheart} <@${userId}> has received new ${rarity}${DataCard.emoji.rarity(rarity)} ${capitalize(card.pack)} card!\n
+        arrPages[0] = this.builder(dedent(`${notifFront}${Properties.emoji.mofuheart} <@${userId}> has received new ${rarity}${Card.emoji.rarity(rarity)} ${capitalize(card.pack)} card!\n
         **Rewards:**
         ${notifCard}
         ${notifColorPoints}
@@ -79,9 +79,9 @@ class Embed extends require("../Embed") {
         //base stats:
         arrPages[1] = this.builder(dedent(`${notifFront}
         **Base Stats:**
-        ${DataCard.emoji.hp} **HP:** ${card.hp_base}
-        ${DataCard.emoji.sp} **Max SP:** ${card.maxSp}
-        ${DataCard.emoji.atk} **Atk:** ${card.atk_base}`), 
+        ${Card.emoji.hp} **HP:** ${card.hp_base}
+        ${Card.emoji.sp} **Max SP:** ${card.maxSp}
+        ${Card.emoji.atk} **Atk:** ${card.atk_base}`), 
         author, {
         color: this.color[color],
         title: name,
@@ -108,7 +108,7 @@ class Embed extends require("../Embed") {
         var userId = discordUser.id;
 
         //card data
-        var card = new DataCard(cardData);
+        var card = new Card(cardData);
         var id = card.id_card;
         var character = new Character(card.pack); var series = new Series(card.series); 
         var name = card.name; var img = card.img_url; 
@@ -140,7 +140,7 @@ class Embed extends require("../Embed") {
                 inline:false
             }],
             footer: {
-                text: `Stock: ${updatedStock}/${DataCardInventory.limit.card}`
+                text: `Stock: ${updatedStock}/${CardInventory.limit.card}`
         }});
     }
 
@@ -149,7 +149,7 @@ class Embed extends require("../Embed") {
         var userId = discordUser.id;
 
         //card data
-        var card = new DataCard(cardData);
+        var card = new Card(cardData);
         var color = card.color; var series = new Series(card.series);
 
         var colorPoint = baseRewards.color;
@@ -195,18 +195,19 @@ class Spawner {
         battle:"battle",
     };
 
-    token = null;//contains spawn token
+    guildId = null;
+    // token = null;//contains spawn token
     interval = null;//in minutes
     timer = null;
-    type = null;
-    spawnData = null;//to be saved for db
+    // type = null;
+    // spawnData = null;//to be saved for db
     data = null;//contains class of the spawned
-    guildId = null;
     idRoleping = {
         cardcatcher:null
     }
     guildChannel = null;//contains discord guild channel to send the spawn notif
     userAttempt = [];//contains list of all user who already used the spawn attempt
+    message = null;
 
     constructor(Spawner=null){
         if(Spawner!=null){
@@ -216,16 +217,18 @@ class Spawner {
         }
     }
 
+    //to be called from init
     async setSpawnData(){
-        switch(this.type){
+        var guild = new Guild(Guild.getData(this.guildId));
+        switch(guild.spawn_type){
             case Spawner.type.cardNormal:
-                this.data = new CardNormal(await DataCard.getCardData(this.spawnData), this.token);
+                this.data = new CardNormal(await Card.getCardData(this.spawnData));
                 break;
             case Spawner.type.act:
                 var parsedSpawnData = JSON.parse(this.spawnData);
                 switch(parsedSpawnData.subtype){
                     case Act.subtype.jankenpon:
-                        this.data = new ActJankenpon(await DataCard.getCardData(parsedSpawnData.cardId), this.token);
+                        this.data = new ActJankenpon(await Card.getCardData(parsedSpawnData.cardId), this.token);
                         break;
                     case Act.subtype.miniTsunagarus:
                         var spawn = new ActMiniTsunagarus();
@@ -258,6 +261,8 @@ class Spawner {
     }
 
     async randomizeSpawn(){
+        var guild = new Guild(Guild.getData(this.guildId));
+
         //randomize new spawn token:
         var rndSpawnToken = GlobalFunctions.randomNumber(0,1000).toString();
         this.token = rndSpawnToken;
@@ -266,55 +271,56 @@ class Spawner {
         rnd = 60;//only for testing
         var spawn;
         if(rnd<10){//normal card spawn
-            this.type = Spawner.type.cardNormal;
+            guild.spawn_type = Spawner.type.cardNormal;
             spawn = new CardNormal(await CardNormal.getRandomCard(), this.token);
-            this.spawnData = spawn.spawnData;
-            this.data = spawn;
+            guild.spawn_data = spawn.spawnData;
+            // this.spawnData = spawn.spawnData;
         } else if(rnd==20){//activity
-            this.type = Spawner.type.act;
+            guild.spawn_type = Spawner.type.act;
             spawn = await Act.randomSubtype(this.token);
-            this.spawnData = spawn.getSpawnData();
-            this.data = spawn;
-        } else if(rnd==30){
-            this.type = Spawner.type.cardColor;
+            // this.spawnData = spawn.getSpawnData();
+            guild.spawn_data = spawn.getSpawnData();
+        } else if(rnd==30){//color card
+            guild.spawn_type = Spawner.type.cardColor;
             spawn = new CardColor(await CardColor.getAllCardData(), this.token);
-            this.spawnData = spawn.getSpawnData();
-            this.data = spawn;
-        } else if(rnd==40){
-            this.type = Spawner.type.quiz;
+            // this.spawnData = spawn.getSpawnData();
+            guild.spawn_data = spawn.getSpawnData();
+        } else if(rnd==40){//quiz
+            guild.spawn_type = Spawner.type.quiz;
             spawn = new Quiz(await Quiz.getRandomCard(), this.token);
-            this.spawnData = spawn.getSpawnData();
-            this.data = spawn;
-        } else if(rnd==50){
-            this.type = Spawner.type.numberGuess;
+            guild.spawn_data = spawn.getSpawnData();
+        } else if(rnd==50){//number guess
+            guild.spawn_type = Spawner.type.numberGuess;
             spawn = new NumberGuess(await NumberGuess.getRandomCard(), this.token);
-            this.spawnData = spawn.getSpawnData();
-            this.data = spawn;
-        } else if(rnd==60){
-            this.type = Spawner.type.instancePartyAct;
+            guild.spawn_data = spawn.getSpawnData();
+        } else if(rnd==60){//party act instance
+            guild.spawn_type = Spawner.type.instancePartyAct;
             spawn = InstancePartyAct.randomize(this.token);
-            this.spawnData = spawn.spawnType;
-            this.data = spawn;
+            guild.spawn_data = spawn.spawnType;
         }
 
-        this.stopTimer();
+        this.data = spawn;
 
         //merge embedspawn with id roleping if provided
         if(this.idRoleping.cardcatcher!==null){
             spawn.embedSpawn = GlobalFunctions.mergeObjects(spawn.embedSpawn, {content:`<@&${this.idRoleping.cardcatcher}>`});
         }
 
-        var message = await this.guildChannel.send(spawn.embedSpawn);
-        // console.log(spawn.embedSpawn.components[0]);
+        this.message = await this.guildChannel.send(spawn.embedSpawn);
         
         // this.stopTimer();//only for testing
         // return;
 
         this.userAttempt = [];//reset listed user attempt
         //save spawner data to guild
-        var dataGuild = new DataGuild(DataGuild.getData(this.guildId));
-        dataGuild.setSpawner(this.type, this.spawnData, this, rndSpawnToken, message.id);//save latest spawner data to guild
-        await dataGuild.updateDbSpawnerData();//update latest spawn to db
+        // guild.spawn_type = type;
+        guild.spawn_token = rndSpawnToken;
+        guild.id_last_message_spawn = this.message.id;
+        guild.spawner = this;
+        guild.updateData();
+
+        // guild.setSpawner(this.type, this.spawnData, this, rndSpawnToken, message.id);//save latest spawner data to guild
+        await guild.updateDb();//update latest spawn to db
     }
 
     //timer method
@@ -341,14 +347,15 @@ class Spawner {
         ,Timer.minToSec(this.interval));
     }
 
-    validationSpawn(discordUser, userData, commandToken, interaction){
-        var user = new DataUser(userData);
+    validationSpawn(discordUser, userData, spawnType, spawnToken, commandToken, interaction){
+        var user = new User(userData);
         var userToken = user.token_cardspawn;
-        if(this.type==null){
-            return interaction.reply(Embed.errorMini(`:x: There are no card spawning right now.`,discordUser,true));
-        } else if(userToken==this.token || this.userAttempt.includes(user.id_user)){ //check if capture token same/not
+        // if(spawnType==null){
+        //     return interaction.reply(Embed.errorMini(`:x: There are no card spawning right now.`,discordUser,true));
+        // } else 
+        if(userToken==spawnToken || this.userAttempt.includes(user.id_user)){ //check if capture token same/not
             return interaction.reply(Embed.errorMini(`:x: You have already used the capture attempt. Please wait for next card spawn.`,discordUser,true));
-        } else if(commandToken!=this.token){
+        } else if(commandToken!=spawnToken){
             return interaction.reply(Embed.errorMini(`:x: This capture command is not valid for current spawn.`,discordUser,true));
         }
 
@@ -361,24 +368,33 @@ class Spawner {
 
     }
 
-    async removeSpawn(){
-        this.spawnData = null;
-        this.token = null;
+    // async removeSpawn(){
+    //     this.spawnData = null;
+    //     this.token = null;
 
-        //save spawner data to guild
-        var dataGuild = new DataGuild(DataGuild.getData(this.guildId));
-        dataGuild.setSpawner(null, null, null, null);//save latest spawner data to guild
-        await dataGuild.updateDbSpawnerData();//update latest spawn to db
+    //     //save spawner data to guild
+    //     var guild = new Guild(Guild.getData(this.guildId));
+    //     guild.spawner.data = this;
+    //     console.log(this);
+    //     // guild.spawner.data = this;
+    //     // guild.spawner.spawnData = null;
+    //     guild.updateData();
+    //     // guild.setSpawner(null, null, null, null);//save latest spawner data to guild
+    //     await guild.updateDbSpawnerData();//update latest spawn to db
+    // }
+
+    async messageCaptured(){
+        if(this.message!=null) await this.message.delete();
     }
 
     static async eventListenerButton(discordUser, guildId, customId, interaction){
         var userId = discordUser.id;
-        var userData = await DataUser.getData(userId);
+        var userData = await User.getData(userId);
         
         var joiner = "_";
-        var guildData = DataGuild.getData(guildId);
-        var dataGuild = new DataGuild(guildData); //get spawnerdata from guild
-        var spawner = new Spawner(dataGuild.spawner);
+        var guildData = Guild.getData(guildId);
+        var guild = new Guild(guildData); //get spawnerdata from guild
+        var spawner = guild.spawner;
 
         //process command
         var type = customId.split(joiner).shift();
@@ -386,7 +402,7 @@ class Spawner {
         var command = customId.split(joiner).slice(1, -1).join(joiner);
 
         //spawn validation
-        if(spawner.validationSpawn(discordUser, userData, commandToken, interaction)!=true) return;
+        if(spawner.validationSpawn(discordUser, userData, guild.spawn_type, guild.spawn_token, commandToken, interaction)!=true) return;
         
         switch(type){
             case Spawner.type.cardNormal: //normal card spawn
@@ -437,12 +453,12 @@ class Spawner {
 
     static async eventListenerSelect(discordUser, guildId, customId, interaction){
         var userId = discordUser.id;
-        var userData = await DataUser.getData(userId);
+        var userData = await User.getData(userId);
 
         var joiner = "_";
-        var guildData = DataGuild.getData(guildId);
-        var dataGuild = new DataGuild(guildData); //get spawnerdata from guild
-        var spawner = new Spawner(dataGuild.spawner);
+        var guildData = Guild.getData(guildId);
+        var guild = new Guild(guildData); //get spawnerdata from guild
+        var spawner = guild.spawner;
 
         //process command
         var type = customId.split(joiner).shift();
@@ -450,7 +466,7 @@ class Spawner {
         var value = interaction.values[0];
 
         //spawn validation
-        if(spawner.validationSpawn(discordUser, userData, commandToken, interaction)!=true) return;
+        if(spawner.validationSpawn(discordUser, userData, guild.spawn_type, guild.spawn_token, commandToken, interaction)!=true) return;
         switch(type){
             case Spawner.type.act:
                 var command = customId.split(joiner).slice(1, -1).join(joiner);
@@ -494,7 +510,7 @@ class CardNormal {
 
     constructor(cardData=null, token=null){
         if(cardData!=null){
-            this.cardData = new DataCard(cardData);
+            this.cardData = new Card(cardData);
             //init embed spawn
             let card = this.cardData;
             let id = card.id_card; let pack = card.pack;
@@ -512,7 +528,7 @@ class CardNormal {
                 fields: [
                     {
                         name:"Card Capture Command:",
-                        value:`• Press **Catch!** to capture this card\n• Press 🆙 **Boost** to boost capture with ${CardNormal.peacePointCost[rarity]} ${DataUser.peacePoint.emoji}`
+                        value:`• Press **Catch!** to capture this card\n• Press 🆙 **Boost** to boost capture with ${CardNormal.peacePointCost[rarity]} ${User.peacePoint.emoji}`
                     }
                 ],
                 image:img,
@@ -531,17 +547,17 @@ class CardNormal {
     static async getRandomCard(){
         //spawn normal card
         var mapWhere = new Map();
-        mapWhere.set(DataCard.columns.rarity,2);
-        mapWhere.set(DataCard.columns.is_spawnable,1);
+        mapWhere.set(Card.columns.rarity,2);
+        mapWhere.set(Card.columns.is_spawnable,1);
         // mapWhere.set(DBM_Card_Data.columns.pack,"megumi");//only for debugging
 
-        var resultData = await DB.selectRandom(DataCard.tablename, mapWhere);
+        var resultData = await DB.selectRandom(Card.tablename, mapWhere);
         return resultData[0];
     }
 
     capture(refColorLevel){
         var rarity = this.cardData.rarity;
-        var catchRate = CardNormal.catchRate[rarity]+DataUser.getColorLevelBonus(refColorLevel);
+        var catchRate = CardNormal.catchRate[rarity]+User.getColorLevelBonus(refColorLevel);
         var chance = GlobalFunctions.randomNumber(0, 100);
         if(chance<catchRate){
             return true;
@@ -575,10 +591,10 @@ class CardNormal {
     //normal card capture
     static async onCapture(discordUser, userData, guildData, interaction, isBoostCaptured){
         var userId = discordUser.id;
-        var user = new DataUser(userData);
+        var user = new User(userData);
 
-        var dataGuild = new DataGuild(guildData); //get spawnerdata from guild
-        var spawner = dataGuild.spawner;
+        var guild = new Guild(guildData); //get spawnerdata from guild
+        var spawner = guild.spawner;
         
         //process chance
         var cardData = spawner.data.cardData;
@@ -597,7 +613,7 @@ class CardNormal {
             if(Spawner.validationPeaceBoost(discordUser, user.peace_point, cost, interaction)!=true) return;
             captured = true;
             user.peace_point-=cost;//update peace point
-            txtBoostCapture = `${DataUser.peacePoint.emoji} Boost capture has been used!\n`;
+            txtBoostCapture = `${User.peacePoint.emoji} Boost capture has been used!\n`;
         } else {
             captured = spawn.capture(colorLevel);//check if captured/not
         }
@@ -609,13 +625,14 @@ class CardNormal {
         await user.update();//update all data
 
         spawner.userAttempt.push(userId);//add user attempt to spawner list
-        dataGuild.setSpawner(spawner.type, spawner.spawnData, spawner, spawner.token);//save latest spawner data to guild
+        // dataGuild.setSpawner(spawner.type, spawner.spawnData, spawner, spawner.token);//save latest spawner data to guild
 
         if(captured){
-            var stock = await DataCardInventory.updateStock(userId, cardId, baseRewards.qty, true);
+            var stock = await CardInventory.updateStock(userId, cardId, baseRewards.qty, true);
             if(stock<=-1){
-                var newTotal = await DataCardInventory.getPackTotal(userId, pack);
-                await spawner.removeSpawn();//remove spawn if new
+                await guild.removeSpawn();
+                var newTotal = await CardInventory.getPackTotal(userId, pack);
+                await spawner.messageCaptured();
                 return paginationEmbed(interaction, Embed.notifNewCard(discordUser, cardData, baseRewards, newTotal,{notifFront:txtBoostCapture}),
                 DiscordStyles.Button.pagingButtonList);
             } else {
@@ -646,7 +663,7 @@ class Act {
 
     constructor(cardData=null, token=null){//token will be used for command id
         if(cardData!=null){
-            this.cardData = new DataCard(cardData);
+            this.cardData = new Card(cardData);
             //init embed spawn
             let card = this.cardData;
             this.spawnData.cardId = card.id_card;
@@ -655,14 +672,11 @@ class Act {
 
     static async randomSubtype(token){
         var rnd = GlobalFunctions.randomNumber(0,100);
-        rnd=3;//onlny for debugging
         if(rnd<=1){//jankenpon spawn
-            var cardData = await ActJankenpon.getRandomCard();
-            var spawn = new ActJankenpon(cardData, token);
+            var spawn = new ActJankenpon(await ActJankenpon.getRandomCard(), token);
             return spawn;
         } else if(rnd==2){//mini tsunagarus
-            var arrCardData = await ActMiniTsunagarus.getRandomCard();
-            var spawn = new ActMiniTsunagarus(arrCardData, token);
+            var spawn = new ActMiniTsunagarus(await ActMiniTsunagarus.getRandomCard(), token);
             return spawn;
         } else if(rnd==3){//series quiz
             var series = GlobalFunctions.randomArrayItem([
@@ -670,8 +684,7 @@ class Act {
                 new Series("star_twinkle").value
             ]);
             
-            var arrCardData = await ActSeries.getRandomCard(series);
-            var spawn = new ActSeries(arrCardData, token, series);
+            var spawn = new ActSeries(await ActSeries.getRandomCard(series), token, series);
             return spawn;
         }
     }
@@ -809,16 +822,16 @@ class ActJankenpon extends Act {
 
     static async onCapture(discordUser, userData, guildData, command, interaction){
         var userId = discordUser.id;
-        var user = new DataUser(userData);
+        var user = new User(userData);
 
-        var dataGuild = new DataGuild(guildData); //get spawnerdata from guild
-        var spawner = new Spawner(dataGuild.spawner);
+        var guild = new Guild(guildData); //get spawnerdata from guild
+        var spawner = guild.spawner;
         var spawn = new ActJankenpon(spawner.data.cardData);
         var cardData = spawner.data.cardData;
         var card = spawn.cardData;
         var cardId = card.id_card;
         var color = card.color;
-        var series = new Series(card.series);
+        var series = card.Series;
 
         //process jankenpon
         var arrEmbeds = []; var choice = command.split("_")[1];
@@ -835,7 +848,7 @@ class ActJankenpon extends Act {
             user.token_cardspawn = spawner.token;//update user spawn token
             spawner.userAttempt.push(userId);//add user attempt to spawner list
 
-            var notifRewards = `\n${DataUser.peacePoint.emoji} ${ActJankenpon.rewardsPeacePoint} peace point`;
+            var notifRewards = `\n${User.peacePoint.emoji} ${ActJankenpon.rewardsPeacePoint} peace point`;
 
             var embedWin = Embed.builder(
                 `I picked ${ActJankenpon.jankenponData[rndJankenpon].icon} **${ActJankenpon.jankenponData[rndJankenpon].value}**! Yay yay yay! You win!`,
@@ -846,16 +859,15 @@ class ActJankenpon extends Act {
                 }
             );
 
-            var stock = await DataCardInventory.updateStock(userId, cardId, baseRewards.qty, true);
+            var stock = await CardInventory.updateStock(userId, cardId, baseRewards.qty, true);
             if(stock<=-1){
-                var newTotal = await DataCardInventory.getPackTotal(userId, card.pack);
-                await spawner.removeSpawn();//remove spawn if new
+                var newTotal = await CardInventory.getPackTotal(userId, card.pack);
+                await guild.spawner.messageCaptured();
+                await guild.removeSpawn();//remove spawn if new
                 await interaction.channel.send({embeds:[embedWin]});
                 await paginationEmbed(interaction, Embed.notifNewCard(discordUser, cardData, baseRewards, newTotal, {rewards:notifRewards}),
                 DiscordStyles.Button.pagingButtonList);
             } else {
-                spawner.userAttempt.push(userId);//add user attempt to spawner list
-                dataGuild.setSpawner(spawner.type, spawner.spawnData, spawner, spawner.token);//save latest spawner data to guild
                 await interaction.reply({embeds:[
                     embedWin,
                     Embed.notifDuplicateCard(discordUser, cardData, baseRewards, stock, {rewards:notifRewards})
@@ -887,7 +899,7 @@ class ActJankenpon extends Act {
         } else {//results: lose
             user.token_cardspawn = spawner.token;//update user spawn token
             spawner.userAttempt.push(userId);//add user attempt to spawner list
-            dataGuild.setSpawner(spawner.type, spawner.spawnData, spawner, spawner.token);//save latest spawner data to guild
+            // guild.setSpawner(spawner.type, spawner.spawnData, spawner, spawner.token);//save latest spawner data to guild
             arrEmbeds.push(Embed.builder(
                 `I picked ${ActJankenpon.jankenponData[rndJankenpon].icon} **${ActJankenpon.jankenponData[rndJankenpon].value}**! Oh no, you lost.`,
                 discordUser,{
@@ -922,7 +934,7 @@ class ActMiniTsunagarus extends Act {
         
         if(arrCardData!=null){//init new
             for(var key in arrCardData){
-                arrCardData[key] = new DataCard(arrCardData[key]);
+                arrCardData[key] = new Card(arrCardData[key]);
             }
     
             this.cardData = arrCardData;
@@ -933,8 +945,8 @@ class ActMiniTsunagarus extends Act {
     async initSpawnData(parsedSpawnData){
         this.spawnData = parsedSpawnData;
         for(var key in this.spawnData.cardId){
-            this.cardData.push(new DataCard(
-                await DataCard.getCardData(this.spawnData.cardId[key])
+            this.cardData.push(new Card(
+                await Card.getCardData(this.spawnData.cardId[key])
             ));
         }
     }
@@ -945,7 +957,7 @@ class ActMiniTsunagarus extends Act {
     }
 
     randomize(arrCardData=[], token){
-        var card = new DataCard(arrCardData[0]);
+        var card = new Card(arrCardData[0]);
         var rarity =card.rarity;
         var pack = card.pack;
 
@@ -962,7 +974,7 @@ class ActMiniTsunagarus extends Act {
 
         //push all the listed card
         for(var i=0;i<arrCardData.length;i++){
-            let card = new DataCard(arrCardData[i]);
+            let card = new Card(arrCardData[i]);
             var pack = card.pack;
             var series = new Series(card.series).name;
 
@@ -1014,7 +1026,7 @@ class ActMiniTsunagarus extends Act {
     }
 
     getRewards(userColor, userSeries, cardData){
-        var card = new DataCard(cardData);
+        var card = new Card(cardData);
         var rarity = card.rarity;
         var color = card.color;
         var series = card.series;
@@ -1047,10 +1059,10 @@ class ActMiniTsunagarus extends Act {
     static async onCapture(discordUser, userData, guildData, 
         value, interaction){
         var userId = discordUser.id;
-        var user = new DataUser(userData);
+        var user = new User(userData);
 
-        var dataGuild = new DataGuild(guildData); //get spawnerdata from guild
-        var spawner = new Spawner(dataGuild.spawner);
+        var guild = new Guild(guildData); //get spawnerdata from guild
+        var spawner = guild.spawner;
         var spawn = new ActMiniTsunagarus();
         spawn.setSpawnData(spawner.data);
 
@@ -1058,13 +1070,13 @@ class ActMiniTsunagarus extends Act {
         var isSuccess = value==answer? true:false;
 
         spawner.userAttempt.push(userId);//add user attempt to spawner list
-        dataGuild.setSpawner(spawner.type, spawner.spawnData, spawner, spawner.token);//save latest spawner data to guild
+        // dataGuild.setSpawner(spawner.type, spawner.spawnData, spawner, spawner.token);//save latest spawner data to guild
 
         //check for answer
         if(isSuccess){//success
             //randomize card rewards
             var rndCardData = GlobalFunctions.randomArrayItem(spawn.cardData);
-            var card = new DataCard(rndCardData);//randomized card
+            var card = new Card(rndCardData);//randomized card
             var cardId = card.id_card;
             var color = card.color;
             var series = new Series(card.series);
@@ -1076,13 +1088,14 @@ class ActMiniTsunagarus extends Act {
             user.Color[color].point+= baseRewards.color;//update color points on user
             user.Series[series.value]+= baseRewards.series;//update series points on user
 
-            var stock = await DataCardInventory.updateStock(userId, cardId, baseRewards.qty, true);
+            var stock = await CardInventory.updateStock(userId, cardId, baseRewards.qty, true);
 
             var txtNotifFront = `\n${Properties.emoji.mofuthumbsup} **Mini Tsunagarus Defeated!**\n You've successfully defeat the mini tsunagarus!\n\n`;
 
             if(stock<=-1){
-                var newTotal = await DataCardInventory.getPackTotal(userId, pack);//get new pack total
-                await spawner.removeSpawn();//remove spawn if new
+                var newTotal = await CardInventory.getPackTotal(userId, pack);//get new pack total
+                await spawner.messageCaptured();
+                await guild.removeSpawn();//remove spawn if new
                 await paginationEmbed(interaction, Embed.notifNewCard(discordUser, rndCardData, baseRewards, newTotal,
                     {notifFront: txtNotifFront}), 
                 DiscordStyles.Button.pagingButtonList);
@@ -1138,7 +1151,7 @@ class ActSeries extends Act {
         
         if(arrCardData!=null){//init new
             for(var key in arrCardData){
-                arrCardData[key] = new DataCard(arrCardData[key]);
+                arrCardData[key] = new Card(arrCardData[key]);
             }
     
             this.spawnData.series = series;
@@ -1155,20 +1168,20 @@ class ActSeries extends Act {
     async initSpawnData(parsedSpawnData){
         this.spawnData = parsedSpawnData;
         for(var key in this.spawnData.cardId){
-            this.cardData.push(new DataCard(
-                await DataCard.getCardData(this.spawnData.cardId[key])
+            this.cardData.push(new Card(
+                await Card.getCardData(this.spawnData.cardId[key])
             ));
         }
     }
 
     randomize(arrCardData=[], token, series){
-        var card = new DataCard(arrCardData[0]);
+        var card = new Card(arrCardData[0]);
         var rarity = card.rarity;
         var pack = card.pack;
 
         //push all the listed card
         for(var i=0;i<arrCardData.length;i++){
-            let card = new DataCard(arrCardData[i]);
+            let card = new Card(arrCardData[i]);
             this.spawnData.cardId.push(card.id_card);
         }
 
@@ -1405,7 +1418,7 @@ class ActSeries extends Act {
     }
 
     getRewards(userColor, userSeries, rndCardData){
-        let card = new DataCard(rndCardData);
+        let card = new Card(rndCardData);
         var color = card.color;
         var series = card.series;
 
@@ -1427,10 +1440,10 @@ class ActSeries extends Act {
     static async onCapture(discordUser, userData, guildData, 
         value, interaction){
         var userId = discordUser.id;
-        var user = new DataUser(userData);
+        var user = new User(userData);
 
-        var dataGuild = new DataGuild(guildData); //get spawnerdata from guild
-        var spawner = new Spawner(dataGuild.spawner);
+        var guild = new Guild(guildData); //get spawnerdata from guild
+        var spawner = guild.spawner;
         var spawn = new ActSeries();
         spawn.setSpawnData(spawner.data);
 
@@ -1438,13 +1451,13 @@ class ActSeries extends Act {
         var isSuccess = value==answer? true:false;
 
         spawner.userAttempt.push(userId);//add user attempt to spawner list
-        dataGuild.setSpawner(spawner.type, spawner.spawnData, spawner, spawner.token);//save latest spawner data to guild
+        // dataGuild.setSpawner(spawner.type, spawner.spawnData, spawner, spawner.token);//save latest spawner data to guild
 
         //check for answer
         if(isSuccess){//success
             //randomize card rewards
             var rndCardData = GlobalFunctions.randomArrayItem(spawn.cardData);
-            var card = new DataCard(rndCardData);//randomized card
+            var card = new Card(rndCardData);//randomized card
             var cardId = card.id_card;
             var color = card.color;
             var series = new Series(card.series);
@@ -1456,12 +1469,13 @@ class ActSeries extends Act {
             user.Color[color].point+= baseRewards.color;//update color points on user
             user.Series[series.value]+= baseRewards.series;//update series points on user
 
-            var stock = await DataCardInventory.updateStock(userId, cardId, baseRewards.qty, true);
+            var stock = await CardInventory.updateStock(userId, cardId, baseRewards.qty, true);
 
             var txtNotifFront = `\n${Properties.emoji.mofuthumbsup} **Correct Answer!**\n You guessed the answer correctly ~mofu!\n\n`;
             if(stock<=-1){
-                var newTotal = await DataCardInventory.getPackTotal(userId, pack);//get new pack total
-                await spawner.removeSpawn();//remove spawn if new
+                var newTotal = await CardInventory.getPackTotal(userId, pack);//get new pack total
+                await spawner.messageCaptured();
+                await guild.removeSpawn();//remove spawn if new
                 await paginationEmbed(interaction, Embed.notifNewCard(discordUser, rndCardData, baseRewards, newTotal,
                     {notifFront:txtNotifFront}), 
                 DiscordStyles.Button.pagingButtonList);
@@ -1535,7 +1549,7 @@ class CardColor {
             ]);
 
             for(var i=0;i<cardData.length;i++){
-                var color = cardData[i][DataCard.columns.color];
+                var color = cardData[i][Card.columns.color];
                 this.cardData[color].push(cardData[i]);
             }
             
@@ -1553,7 +1567,7 @@ class CardColor {
                     },
                     {
                         name:"Card Capture Command:",
-                        value:`• Press **Catch!** to capture this color card\n• Press 🆙 **Boost** to boost capture with ${CardColor.peacePointCost[this.spawnData.rarity]} ${DataUser.peacePoint.emoji}`
+                        value:`• Press **Catch!** to capture this color card\n• Press 🆙 **Boost** to boost capture with ${CardColor.peacePointCost[this.spawnData.rarity]} ${User.peacePoint.emoji}`
                     }
                 ],
                 footer:Embed.builderUser.footer(`✔️ Base Catch Rate: ${CardColor.catchRate[this.spawnData.rarity]}%`)
@@ -1570,7 +1584,7 @@ class CardColor {
         this.spawnData = JSON.parse(spawnData);
         var cardData = await CardColor.getAllCardData(this.spawnData.rarity);
         for(var i=0;i<cardData.length;i++){
-            var color = cardData[i][DataCard.columns.color];
+            var color = cardData[i][Card.columns.color];
             this.cardData[color].push(cardData[i]);
         }
     }
@@ -1587,9 +1601,9 @@ class CardColor {
 
     static async getAllCardData(rarity = GlobalFunctions.randomNumber(4,5)){
         var query = `SELECT * 
-        FROM ${DataCard.tablename}  
-        WHERE ${DataCard.columns.is_spawnable}=? AND ${DataCard.columns.rarity}=?  
-        ORDER BY ${DataCard.columns.color} ASC`;
+        FROM ${Card.tablename}  
+        WHERE ${Card.columns.is_spawnable}=? AND ${Card.columns.rarity}=?  
+        ORDER BY ${Card.columns.color} ASC`;
         var cardData = await DBConn.conn.query(query, [1, rarity]);
         return cardData;
     }
@@ -1600,13 +1614,13 @@ class CardColor {
             catchRate = CardColor.bonusCatchRate[this.spawnData.rarity];
         }
 
-        catchRate+=DataUser.getColorLevelBonus(refColorLevel);
+        catchRate+=User.getColorLevelBonus(refColorLevel);
         var chance = GlobalFunctions.randomNumber(0, 100);
         return chance<catchRate ? true: false;
     }
 
     getRewards(userColor, userSeries, cardData, isSuccess = true){
-        var card = new DataCard(cardData);
+        var card = new Card(cardData);
         var rarity = card.rarity;
 
         var rewards = {qty:1, color:rarity, series:rarity, boostColor:"", boostSeries:""};//base rewards
@@ -1631,19 +1645,19 @@ class CardColor {
     static async onCapture(discordUser, userData, guildData, 
         interaction, isBoostCaptured){
         var userId = discordUser.id;
-        var user = new DataUser(userData);
+        var user = new User(userData);
 
-        var dataGuild = new DataGuild(guildData); //get spawnerdata from guild
-        var spawner = new Spawner(dataGuild.spawner);
+        var guild = new Guild(guildData); //get spawnerdata from guild
+        var spawner = guild.spawner;
         var spawn = new CardColor();
         spawn.setSpawnData(spawner.data);
 
         var cardData = GlobalFunctions.randomArrayItem(spawn.cardData[user.set_color]);//randomize card data from color set
-        var card = new DataCard(cardData);
+        var card = new Card(cardData);
         var cardId = card.id_card;
         var color = card.color;
         var pack = card.pack;
-        var series = new Series(card.series);
+        var series = card.Series;
 
         var captured = false;
         var txtBoostCapture = "";
@@ -1652,7 +1666,7 @@ class CardColor {
             if(Spawner.validationPeaceBoost(discordUser, user.peace_point, cost, interaction)!=true) return;
             captured = true;
             user.peace_point-=cost;//update peace point
-            txtBoostCapture = `${DataUser.peacePoint.emoji} Boost capture has been used!\n`;
+            txtBoostCapture = `${User.peacePoint.emoji} Boost capture has been used!\n`;
         } else {
             captured = spawn.capture(user.set_color, user.Color[user.set_color].level);
         }
@@ -1664,13 +1678,14 @@ class CardColor {
         await user.update();//update all data
 
         spawner.userAttempt.push(userId);//add user attempt to spawner list
-        dataGuild.setSpawner(spawner.type, spawner.spawnData, spawner, spawner.token);//save latest spawner data to guild
+        guild.setSpawner(spawner.type, spawner.spawnData, spawner, spawner.token);//save latest spawner data to guild
 
         if(captured){
-            var stock = await DataCardInventory.updateStock(userId, cardId, baseRewards.qty, true);
+            var stock = await CardInventory.updateStock(userId, cardId, baseRewards.qty, true);
             if(stock<=-1){
-                var newTotal = await DataCardInventory.getPackTotal(userId, pack);
-                await spawner.removeSpawn();//remove spawn if new
+                var newTotal = await CardInventory.getPackTotal(userId, pack);
+                await spawner.messageCaptured();
+                await guild.removeSpawn();//remove spawn if new
                 return paginationEmbed(interaction, Embed.notifNewCard(discordUser, cardData, baseRewards, newTotal,{notifFront:txtBoostCapture}),
                 DiscordStyles.Button.pagingButtonList);
             } else {
@@ -1695,8 +1710,8 @@ class Quiz {
     constructor(arrCardData=null, token= null){
         if(arrCardData!=null){//init new
             for(var key in arrCardData){
-                arrCardData[key] = new DataCard(arrCardData[key]);
-                this.spawnData.cardId.push(arrCardData[key][DataCard.columns.id_card]);
+                arrCardData[key] = new Card(arrCardData[key]);
+                this.spawnData.cardId.push(arrCardData[key][Card.columns.id_card]);
             }
     
             this.cardData = arrCardData;
@@ -1705,14 +1720,14 @@ class Quiz {
     }
 
     randomize(arrCardData=[], token){
-        var card = new DataCard(arrCardData[0]);//get original character
+        var card = new Card(arrCardData[0]);//get original character
         var rarity =card.rarity;
         var character = new Character(card.pack);
         var series = new Series(card.series);
         
         var arrAnswerList = []; //prepare the answer list
         for(var i=0;i<arrCardData.length;i++){
-            let card = new DataCard(arrCardData[i]);
+            let card = new Card(arrCardData[i]);
             arrAnswerList.push(card.pack);
         }
 
@@ -1762,7 +1777,7 @@ class Quiz {
     }
 
     getRewards(userColor, userSeries, cardData){
-        var card = new DataCard(cardData);
+        var card = new Card(cardData);
         var rarity = card.rarity;
         var color = card.color;
         var series = card.series;
@@ -1782,8 +1797,8 @@ class Quiz {
     async initSpawnData(spawnData){
         this.spawnData = JSON.parse(spawnData);
         for(var key in this.spawnData.cardId){
-            this.cardData.push(new DataCard(
-                await DataCard.getCardData(this.spawnData.cardId[key])
+            this.cardData.push(new Card(
+                await Card.getCardData(this.spawnData.cardId[key])
             ));
         }
     }
@@ -1809,10 +1824,10 @@ class Quiz {
     static async onCapture(discordUser, userData, guildData, 
         value, interaction){
         var userId = discordUser.id;
-        var user = new DataUser(userData);
+        var user = new User(userData);
 
-        var dataGuild = new DataGuild(guildData); //get spawnerdata from guild
-        var spawner = new Spawner(dataGuild.spawner);
+        var guild = new Guild(guildData); //get spawnerdata from guild
+        var spawner = guild.spawner;
         var spawn = new Quiz();
         spawn.setSpawnData(spawner.data);
 
@@ -1820,16 +1835,16 @@ class Quiz {
         var isSuccess = value==answer? true:false;
 
         spawner.userAttempt.push(userId);//add user attempt to spawner list
-        dataGuild.setSpawner(spawner.type, spawner.spawnData, spawner, spawner.token);//save latest spawner data to guild
+        // guild.setSpawner(spawner.type, spawner.spawnData, spawner, spawner.token);//save latest spawner data to guild
 
         //check for answer
         if(isSuccess){//success
             //randomize card rewards
             var rndCardData = GlobalFunctions.randomArrayItem(spawn.cardData);
-            var card = new DataCard(rndCardData);//randomized card
+            var card = new Card(rndCardData);//randomized card
             var cardId = card.id_card;
             var color = card.color;
-            var series = new Series(card.series);
+            var series = card.Series;
             var pack = card.pack;
 
             //process user rewards
@@ -1838,13 +1853,14 @@ class Quiz {
             user.Color[color].point+= baseRewards.color;//update color points on user
             user.Series[series.value]+= baseRewards.series;//update series points on user
 
-            var stock = await DataCardInventory.updateStock(userId, cardId, baseRewards.qty, true);
+            var stock = await CardInventory.updateStock(userId, cardId, baseRewards.qty, true);
 
             var txtNotifFront = `\n${Properties.emoji.mofuthumbsup} **Correct Answer!**\n You guessed the answer correctly ~mofu!\n\n`;
 
             if(stock<=-1){
-                var newTotal = await DataCardInventory.getPackTotal(userId, pack);//get new pack total
-                await spawner.removeSpawn();//remove spawn if new
+                var newTotal = await CardInventory.getPackTotal(userId, pack);//get new pack total
+                await spawner.messageCaptured();
+                await guild.removeSpawn();//remove spawn if new
                 await paginationEmbed(interaction, Embed.notifNewCard(discordUser, rndCardData, baseRewards, newTotal,
                     {notifFront: txtNotifFront}), 
                 DiscordStyles.Button.pagingButtonList);
@@ -1861,7 +1877,7 @@ class Quiz {
 
         user.token_cardspawn = spawner.token;//update user spawn token
         await user.update();//update all data
-    }   
+    }
 }
 
 class NumberGuess {
@@ -1889,7 +1905,7 @@ class NumberGuess {
 
     constructor(cardData=null, token=null){
         if(cardData!=null){
-            this.cardData = new DataCard(cardData);
+            this.cardData = new Card(cardData);
             //init embed spawn
             let card = this.cardData;
             let id = card.id_card;
@@ -1906,7 +1922,7 @@ class NumberGuess {
                 fields: [
                     {
                         name:"Number Guess Command:",
-                        value:`• Press **Lower/Higher** to guess the hidden number\n• Press 🆙 **Boost** to boost capture with ${NumberGuess.peacePointCost[rarity]} ${DataUser.peacePoint.emoji}`
+                        value:`• Press **Lower/Higher** to guess the hidden number\n• Press 🆙 **Boost** to boost capture with ${NumberGuess.peacePointCost[rarity]} ${User.peacePoint.emoji}`
                     }
                 ],
             });
@@ -1923,7 +1939,7 @@ class NumberGuess {
 
     async initSpawnData(spawnData){
         this.spawnData = JSON.parse(spawnData);
-        this.cardData = new DataCard(await DataCard.getCardData(this.spawnData.cardId));
+        this.cardData = new Card(await Card.getCardData(this.spawnData.cardId));
     }
 
     setSpawnData(spawnData){
@@ -1969,11 +1985,11 @@ class NumberGuess {
     static async getRandomCard(){
         //spawn normal card
         var mapWhere = new Map();
-        mapWhere.set(DataCard.columns.rarity, GlobalFunctions.randomNumber(3, 4));
-        mapWhere.set(DataCard.columns.is_spawnable,1);
+        mapWhere.set(Card.columns.rarity, GlobalFunctions.randomNumber(3, 4));
+        mapWhere.set(Card.columns.is_spawnable,1);
         // mapWhere.set(DBM_Card_Data.columns.pack,"megumi");//only for debugging
 
-        var resultData = await DB.selectRandom(DataCard.tablename, mapWhere);
+        var resultData = await DB.selectRandom(Card.tablename, mapWhere);
         return resultData[0];
     }
 
@@ -1982,10 +1998,10 @@ class NumberGuess {
         var isBoostCaptured = false;
         if(command==NumberGuess.buttonId.boost) isBoostCaptured = true;
         var userId = discordUser.id;
-        var user = new DataUser(userData);
+        var user = new User(userData);
 
-        var dataGuild = new DataGuild(guildData); //get spawnerdata from guild
-        var spawner = new Spawner(dataGuild.spawner);
+        var guild = new Guild(guildData); //get spawnerdata from guild
+        var spawner = guild.spawner;
         
         //process chance
         var spawn = new NumberGuess();
@@ -1996,7 +2012,7 @@ class NumberGuess {
         var cardId = spawn.cardData.id_card;
         var color = card.color;
         var pack = card.pack;
-        var series = new Series(card.series);
+        var series = card.Series;
         
         var results;
         var txtNotifFront = "";
@@ -2005,28 +2021,29 @@ class NumberGuess {
             if(Spawner.validationPeaceBoost(discordUser, user.peace_point, cost, interaction)!=true) return;
             results = true;
             user.peace_point-=cost;//update peace point
-            txtNotifFront = `${DataUser.peacePoint.emoji} Boost capture has been used!\n`;
+            txtNotifFront = `${User.peacePoint.emoji} Boost capture has been used!\n`;
         } else {
             results = spawn.guess(command);//check if captured/not
         }
 
         if(results==true){//correct
             spawner.userAttempt.push(userId);//add user attempt to spawner list
-            dataGuild.setSpawner(spawner.type, spawner.spawnData, spawner, spawner.token);//save latest spawner data to guild
+            // dataGuild.setSpawner(spawner.type, spawner.spawnData, spawner, spawner.token);//save latest spawner data to guild
 
             var baseRewards = spawn.getRewards(user.set_color, user.set_series);
             user.token_cardspawn = spawner.token;//update user spawn token
             user.Color[color].point+= baseRewards.color;//update color points on user
             user.Series[series.value]+= baseRewards.series;//update series points on user
             
-            var stock = await DataCardInventory.updateStock(userId, cardId, baseRewards.qty, true);
+            var stock = await CardInventory.updateStock(userId, cardId, baseRewards.qty, true);
             if(isBoostCaptured==false){
                 txtNotifFront+= `\n${Properties.emoji.mofuthumbsup} **Nice Guess!**\nThe next hidden number was **${spawn.hiddenNumber}** and you guessed it: **${command}**\n\n`;
             }
 
             if(stock<=-1){
-                var newTotal = await DataCardInventory.getPackTotal(userId, pack);
-                await spawner.removeSpawn();//remove spawn if new
+                var newTotal = await CardInventory.getPackTotal(userId, pack);
+                await spawner.messageCaptured();
+                await guild.removeSpawn();//remove spawn if new
                 await paginationEmbed(interaction, Embed.notifNewCard(discordUser, cardData, baseRewards, newTotal,{notifFront:txtNotifFront}),DiscordStyles.Button.pagingButtonList);
             } else {
                 await interaction.reply({embeds:[Embed.notifDuplicateCard(discordUser, cardData, baseRewards, stock, {notifFront:txtNotifFront})]});
@@ -2057,7 +2074,7 @@ class NumberGuess {
         } else {//results: lose
             user.token_cardspawn = spawner.token;//update user spawn token
             spawner.userAttempt.push(userId);//add user attempt to spawner list
-            dataGuild.setSpawner(spawner.type, spawner.spawnData, spawner, spawner.token);//save latest spawner data to guild
+            // guild.setSpawner(spawner.type, spawner.spawnData, spawner, spawner.token);//save latest spawner data to guild
             await interaction.reply({embeds:[
                 Embed.builder(
                     `The next hidden number was **${spawn.hiddenNumber}** and you guessed it: **${command}**`,
@@ -2074,55 +2091,6 @@ class NumberGuess {
     }
     
 }
-
-// class Instance {
-//     static value = Spawner.type.treasureHunt;
-//     static buttonId = Object.freeze({
-//         join:"join"
-//     });
-//     spawnData = Spawner.type.treasureHunt;
-//     instance = {};
-
-//     constructor(token=""){
-//         if(token!=null){
-//             var objEmbed = Embed.builder(`${Properties.emoji.mofuheart} Party up and search for hidden treasure!`,
-//             Embed.builderUser.authorCustom(`Treasure Hunt Spawn`),
-//             {
-//                 title:`It's Treasure Hunting Time!`,
-//                 image:Properties.imgSet.mofu.ok,
-                
-//             });
-
-//             this.embedSpawn = ({embeds:[objEmbed], components: [DiscordStyles.Button.row([
-//                 DiscordStyles.Button.base(`card.${Spawner.type.treasureHunt}_${TreasureHunt.buttonId.join}_${token}`,"Join","PRIMARY"),
-//             ])]});
-//         }
-//     }
-
-//     join(userId){
-//         if(!(userId in this.instance)){
-            
-//         }
-//     }
-
-//     static async onJoin(discordUser, userData, guildData, interaction){
-//         //join instance
-//         var userId = discordUser.id;
-//         var user = new DataUser(userData);
-        
-//         //validation if user in party/not
-//         var guild = new DataGuild(guildData); //get spawnerdata from guild
-//         var partyData = await Party.getData(guild.id_guild, userId);
-//         if(partyData==null){
-//             return interaction.reply(Embed.validationNotInParty(discordUser));
-//         }
-
-//         var spawner = new Spawner(guild.spawner);
-//         var spawn = new TreasureHunt();
-//         spawn.join();//check if instance exists/not
-
-//     }
-// }
 
 class Battle {
     static value = Spawner.type.battle;

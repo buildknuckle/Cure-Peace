@@ -146,7 +146,7 @@ class Embed {
         if(`fields` in options) objEmbed.fields = options.fields;
         if(`footer` in options) objEmbed.footer = options.footer;
     
-        if("username" in discordUser){
+        if(discordUser!=null && "username" in discordUser){
             objEmbed.author = {
                 name: discordUser.username.toString(),
                 icon_url: discordUser.avatarURL()

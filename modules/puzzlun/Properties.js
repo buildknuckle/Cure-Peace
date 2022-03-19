@@ -110,12 +110,12 @@ class Properties {
     static currency = Object.freeze({
         mofucoin:{
             value:"mofucoin",
-            name:"Mofucoin",
+            name:"mofucoin",
             emoji:"<:mofucoin:936238607331639356>"
         },
         jewel:{
             value:"jewel",
-            name:"Jewel",
+            name:"jewel",
             emoji:"<:jewel:936238609248448532>"
         },
     })

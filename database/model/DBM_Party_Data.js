@@ -8,7 +8,6 @@ class DBM_Party_Data {
         id_leader: "id_leader",
         id_member: "id_member",
         party_point: "party_point",
-        spawn_token: "spawn_token",
         last_charge: "last_charge",
         created_at:"created_at"
     };

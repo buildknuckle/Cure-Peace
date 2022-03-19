@@ -111,7 +111,7 @@ class Card {
             this.packTotal = CPack[this.pack].properties.total;
         }
 
-        this.Series = new Series(this.series);
+        if(this.series!=null) this.Series = new Series(this.series);
 
         // this.emoji.rarity = emoji.rarity(this.rarity);//get rarity emoji
         this.maxSp = parameter.maxSp(this.color);
