@@ -15,6 +15,62 @@ class Embed {
         success:"#66d94a"
     });
 
+    // discordUser = null;
+    // description = null;
+    // title = null;
+    // image = null;
+    // thumbnail = null;
+    // color = null;
+    // author = {
+    //     name:null,
+    //     icon_url:null
+    // }
+    // footer = {
+    //     text: null,
+    //     iconUrl: null
+    // }
+    // isPrivate = false;
+
+    // constructor(discordUser=null){
+    //     if(discordUser!=null) this.discordUser = discordUser;
+    // }
+
+    // builder(){
+    //     var objEmbed = new MessageEmbed({
+    //         description: description.toString(),
+    //     });
+
+    //     if(this.color==null){
+    //         objEmbed.color = Embed.color.yellow;
+    //     } else if(`color` in options) {
+
+    //     }
+    
+    //     if(`color` in options){
+    //         objEmbed.color = options.color.startsWith("#") ? options.color:this.color[options.color];
+    //     } else {
+    //         objEmbed.color = Embed.color.yellow;
+    //     }
+    
+    //     if(`title` in options) objEmbed.title = options.title;
+    //     if(`objFields` in options) objEmbed.fields = objFields;
+    //     if(`thumbnail` in options) objEmbed.thumbnail = { url: options.thumbnail }
+    //     if(`image` in options) objEmbed.image = { url:options.image }
+    //     if(`fields` in options) objEmbed.fields = options.fields;
+    //     if(`footer` in options) objEmbed.footer = options.footer;
+    
+    //     if(discordUser!=null && "username" in discordUser){
+    //         objEmbed.author = {
+    //             name: discordUser.username.toString(),
+    //             icon_url: discordUser.avatarURL()
+    //         }
+    //     } else {
+    //         objEmbed.author = discordUser;
+    //     }
+        
+    //     return objEmbed;
+    // }
+
     static builderUser = {
         getAvatarUrl(discordUser){
             return discordUser.avatarURL();

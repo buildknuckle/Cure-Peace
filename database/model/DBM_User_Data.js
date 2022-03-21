@@ -6,7 +6,7 @@ class DBM_User_Data {
         server_id_login: "server_id_login",
         last_checkIn_date: "last_checkIn_date",
         token_sale: "token_sale",
-        token_cardspawn: "token_cardspawn",
+        // token_cardspawn: "token_cardspawn",
         peace_point: "peace_point",
         set_color:"set_color",
         set_series:"set_series",

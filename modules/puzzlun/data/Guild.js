@@ -17,9 +17,9 @@ class Guild {
     id_roleping_cardcatcher = null;
     id_last_message_spawn = null;
     spawn_interval = null;
-    spawn_token = null;
-    spawn_type = null;
-    spawn_data = null;
+    // spawn_token = null;
+    // spawn_type = null;
+    // spawn_data = null;
 
     //modifier
     spawner;
@@ -69,36 +69,23 @@ class Guild {
     }
 
     /**
-     * @param {string} spawnType the spawn type
-     * @param {string} spawnData spawnData to be saved into db
      * @param Spawner class of Spawner
+     * @param {string} idLastMessageSpawn last message id
      */
-    setSpawner(spawnType, spawnData, Spawner, spawnToken=null, messageId=null){
-        if(spawnToken!==null){
-            this.spawn_token = spawnToken;
-        }
-        if(messageId!==null){
-            this.id_last_message_spawn = messageId;
-        }
-
-        this.spawn_type = spawnType;
-        this.spawn_data = spawnData;
+    setSpawner(Spawner){
         this.spawner = Spawner;
-
         this.updateData();//update latest guild data
     }
 
+    //set data to guild object publically
     updateData(){
-        //set data to guild object
         Guild.setData(this.id_guild, this);
     }
 
     async removeSpawn(){
-        this.spawn_token = null;
-        this.spawn_type = null;
-        this.spawn_data = null;
+        this.spawner.token = null;
         this.spawner.type = null;
-        this.spawner.data = null;
+        this.spawner.spawn = null;
         this.updateData();
         await this.updateDb();
     }
@@ -108,11 +95,7 @@ class Guild {
         let column = [//columns to be updated:
             columns.id_channel_spawn,
             columns.id_roleping_cardcatcher,
-            columns.id_last_message_spawn,
             columns.spawn_interval,
-            columns.spawn_token,
-            columns.spawn_type,
-            columns.spawn_data,
         ]
 
         let paramSet = new Map();
@@ -130,30 +113,6 @@ class Guild {
 
         await DB.update(tablename, paramSet, paramWhere);
     }
-
-    // async updateDbSpawnerData(){//update spawn data only
-    //     let column = [//columns to be updated:
-    //         columns.id_last_message_spawn,
-    //         columns.spawn_token,
-    //         columns.spawn_type,
-    //         columns.spawn_data,
-    //     ]
-
-    //     let paramSet = new Map();
-    //     let paramWhere = new Map();
-
-    //     for(let key in column){
-    //         let colVal = column[key];
-    //         paramSet.set(column[key], this[colVal]);
-    //     }
-        
-    //     for(let key in update_key){
-    //         let updateKey = update_key[key];
-    //         paramWhere.set(update_key[key], this[updateKey]);
-    //     }
-
-    //     await DB.update(tablename, paramSet, paramWhere);
-    // }
 
     setGuildChannel(guildChannel){
         this.guildChannel = guildChannel;

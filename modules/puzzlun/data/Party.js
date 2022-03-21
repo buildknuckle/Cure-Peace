@@ -6,6 +6,8 @@ const DBM_Party_Data = require('../../../database/model/DBM_Party_Data');
 const GlobalFunctions = require('../../GlobalFunctions.js');
 const {Series, SPack} = require("./Series");
 const {Character, CPack} = require("./Character");
+const {AvatarFormation} = require('./Avatar');
+const Card = require('./Card');
 const Properties = require('../Properties');
 
 const UPDATE_KEY = [
@@ -17,7 +19,8 @@ class Party {
     static tablename = DBM_Party_Data.TABLENAME;
     static columns = DBM_Party_Data.columns;
     static limit = {
-        member: 5
+        member: 5,
+        maxUser: 6
     };
     
     id = null;
@@ -27,6 +30,8 @@ class Party {
     id_member = [];
     party_point = null;
     last_charge = null;
+    Color;
+    Series;
 
     constructor(partyData=null){
         if(partyData!=null){
@@ -35,7 +40,15 @@ class Party {
                 switch(key){
                     case Party.columns.id_member:
                         this.id_member = JSON.parse(value);
-                    break;
+                        break;
+                    case Card.columns.color:
+                        this.Color = value!=null ? 
+                            Properties.color[value]:Properties.color.yellow;
+                        break;
+                    case Card.columns.series:
+                        this.Series = value!=null ? 
+                        new Series(value): null;
+                        break;
                     default:
                         this[key] = value;
                         break;
@@ -96,7 +109,6 @@ class Party {
             Party.columns.id_member,
             Party.columns.name,
             Party.columns.party_point,
-            Party.columns.spawn_token,
         ];
 
         let paramSet = new Map();
@@ -128,47 +140,84 @@ class Party {
     }
 
     static async getDataByLeader(guildId, userId){
-        var paramWhere = new Map();
-        paramWhere.set(Party.columns.id_guild, guildId);
-        paramWhere.set(Party.columns.id_leader, userId);
-
-        var result = await DB.select(Party.tablename, paramWhere);
-        if(result[0]!=null){
-            return result[0];
-        } else {
-            return null;
-        }
+        var query = `SELECT pd.*, cd.${Card.columns.series}, cd.${Card.columns.color} 
+        FROM ${Party.tablename} pd 
+        LEFT JOIN ${AvatarFormation.tablename} af on 
+        pd.${this.columns.id_leader} = af.${AvatarFormation.columns.id_user} 
+        LEFT JOIN ${Card.tablename} cd on 
+        af.${AvatarFormation.columns.id_main} = cd.${Card.columns.id_card} 
+        WHERE pd.${Party.columns.id_guild}=? AND   
+        pd.${Party.columns.id_leader}=?`;
+        var arrParameterized = [guildId, `${userId}`];
+        var result = await DBConn.conn.query(query, arrParameterized);
+        return result[0]!=null ? result[0]:null;
     }
 
     static async getData(guildId, userId, name=''){
-        var query = `SELECT * 
-        FROM ${Party.tablename} 
-        WHERE ${Party.columns.id_guild}=? AND   
-        (${Party.columns.id_leader}=? OR 
-        ${Party.columns.id_member} LIKE ?) `;
+        var query = `SELECT pd.*, cd.${Card.columns.series}, cd.${Card.columns.color} 
+        FROM ${Party.tablename} pd 
+        LEFT JOIN ${AvatarFormation.tablename} af on 
+        pd.${this.columns.id_leader} = af.${AvatarFormation.columns.id_user} 
+        LEFT JOIN ${Card.tablename} cd on 
+        af.${AvatarFormation.columns.id_main} = cd.${Card.columns.id_card} 
+        WHERE pd.${Party.columns.id_guild}=? AND   
+        (pd.${Party.columns.id_leader}=? OR 
+        pd.${Party.columns.id_member} LIKE ?) `;
         var arrParameterized = [guildId, `${userId}`, `%${userId}%`];
         if(name!=""){
-            query+=` AND ${Party.columns.name}=? `;
+            query+=` AND pd.${Party.columns.name}=? `;
             arrParameterized.push(name);
         }
         query+=` LIMIT 1`;
 
         var result = await DBConn.conn.query(query, arrParameterized);
-        if(result[0]!=null){
-            return result[0];
-        } else {
-            return null;
-        }
-    }
-
-    static async getDataByName(id_guild, name=''){
-        var paramWhere = new Map();
-        paramWhere.set(Party.columns.id_guild, id_guild);
-        paramWhere.set(Party.columns.name, name);
-
-        var result = await DB.select(Party.tablename, paramWhere);
         return result[0]!=null ? result[0]:null;
     }
+
+    static async getAllData(guildId){
+        var query = `SELECT pd.*, cd.${Card.columns.series}, cd.${Card.columns.color} 
+        FROM ${this.tablename} pd
+        LEFT JOIN ${AvatarFormation.tablename} af on 
+        pd.${this.columns.id_leader} = af.${AvatarFormation.columns.id_user} 
+        LEFT JOIN ${Card.tablename} cd on 
+        af.${AvatarFormation.columns.id_main} = cd.${Card.columns.id_card} 
+        WHERE pd.${this.columns.id_guild}=?`;
+        var result = await DBConn.conn.query(query, [guildId]);
+        return result[0]!=null ? result[0]:null;
+
+        // var paramWhere = new Map();
+        // paramWhere.set(this.columns.id_guild, guildId);
+        // var result = DB.selectAll(this.tablename, paramWhere);
+        // return result;
+    }
+
+    static async getDataByName(guildId, name=''){
+        var query = `SELECT pd.*, cd.${Card.columns.series}, cd.${Card.columns.color} 
+        FROM ${this.tablename} pd
+        LEFT JOIN ${AvatarFormation.tablename} af on 
+        pd.${this.columns.id_leader} = af.${AvatarFormation.columns.id_user} 
+        LEFT JOIN ${Card.tablename} cd on 
+        af.${AvatarFormation.columns.id_main} = cd.${Card.columns.id_card} 
+        WHERE pd.${this.columns.id_guild}=? AND 
+        pd.${this.columns.name}=?`;
+
+        var result = await DBConn.conn.query(query, [guildId, name]);
+        return result[0]!=null ? result[0]:null;
+
+        // var paramWhere = new Map();
+        // paramWhere.set(Party.columns.id_guild, id_guild);
+        // paramWhere.set(Party.columns.name, name);
+
+        // var result = await DB.select(Party.tablename, paramWhere);
+        // return result[0]!=null ? result[0]:null;
+    }
 }
+
+// class PartyAvatar extends Party {
+//     constructor(partyData = null){
+//         super(partyData);
+        
+//     }
+// }
 
 module.exports = {Party};

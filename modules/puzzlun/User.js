@@ -95,9 +95,11 @@ class EventListener {
             if(card.isHaveCard()){
                 txtInventory+=`**${Card.emoji.rarity(rarity)}${rarity}: ${id}** ${Color[color].emoji_card}x${stock}\n`;
                 // txtInventory+=`${displayName} \n\n`;
-                txtInventory+=`${displayName} **Lv.${level}**\n${CardInventory.emoji.hp} Hp: ${hp} | ${CardInventory.emoji.atk} Atk: ${atk} | ${CardInventory.emoji.sp} Max Sp: ${maxSp}\n\n`;
+                txtInventory+=`${displayName} **Lv.${level}**\n${CardInventory.emoji.hp} Hp: ${hp} | ${CardInventory.emoji.atk} Atk: ${atk} | ${CardInventory.emoji.sp} Max Sp: ${maxSp}\n`;
+                txtInventory+=`─────────────────\n`;
             } else {
-                txtInventory+=`**${Card.emoji.rarity(rarity)}${rarity}: ???**\n???\n\n`;
+                txtInventory+=`**${Card.emoji.rarity(rarity)}${rarity}: ???**\n???\n`;
+                txtInventory+=`─────────────────\n`;
             }
             
             //check for max page content
@@ -179,8 +181,8 @@ class EventListener {
     
         //prepare the embed
         //avatar
-        var setColor = userData.getSetColor();
-        var setSeries = userData.getSetSeries();
+        var setColor = userData.set_color;
+        var setSeries = userData.set_series;
 
         var seriesData = new Series(setSeries);
     

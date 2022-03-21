@@ -67,6 +67,11 @@ module.exports = {
             description: "Open party status menu",
             type: 1
         },
+        {
+            name: "list",
+            description: "Open party list menu",
+            type: 1
+        },
     ],
     async executeMessage(message, args) {
 	},
@@ -91,33 +96,27 @@ module.exports = {
 
                 var newPartyName = interaction.options._hoistedOptions[0].value;
                 var partyDataWithName = await Party.getDataByName(guildId, newPartyName);
-                //validation: if party name has been taken
-                if(partyDataWithName!=null){
+                
+                if(partyDataWithName!=null){ //validation: if party name has been taken
                     return interaction.reply(Embed.errorMini(`That party name has been taken. Please re-enter with different name.`, discordUser, true, {
                         title:":x: Duplicate party name"
                     }));
-                }
-
-                //check for avatar
-                var avatarFormation = new AvatarFormation(await AvatarFormation.getData(userId));
-                var seriesName = "";
-                if(avatarFormation.id_main!=null){
-                    var mainAvatar = new PrecureAvatar(AvatarFormation.formation.main.value, 
-                        await CardInventory.getDataByIdUser(userId, avatarFormation.id_main), 
-                        await CardInventory.getCardData(avatarFormation.id_main));
-                    seriesName = `${mainAvatar.series.name}`;
-                    var seriesIcon = mainAvatar.series.icon;
+                } else if(newPartyName.length>=20){ //validation name length
+                    return interaction.reply(Embed.errorMini(`Please re-enter with shortner party name.`, discordUser, true, {
+                        title:":x: Party name too long"
+                    }));
                 }
 
                 await Party.create(newPartyName, guildId, userId);
+                var party = new Party(await Party.getData(guildId, userId));
 
                 return interaction.reply({embeds:[
-                    Embed.builder(dedent(`${Properties.emoji.mofuheart} <@${userId}> has formed up ${seriesName} party with the name: **${newPartyName}**!
+                    Embed.builder(dedent(`${Properties.emoji.mofuheart} <@${userId}> has formed up ${party.Series!=null? party.Series.name:""} party with the name: **${newPartyName}**!
 
                     Join this party anytime with: **/party join ${newPartyName}**`),discordUser, {
-                        color: user.set_color,
+                        color: party.Color.value,
                         title: `✅ Party Created!`,
-                        thumbnail: avatarFormation.id_main!=null? seriesIcon:""
+                        thumbnail: party.Series!=null? party.Series.icon:"",
                     })
                 ]});
 
@@ -142,7 +141,6 @@ module.exports = {
                     }));
                 }
 
-                
                 var party = new Party(partyDataWithName);
                 //validation: if members already reached the limits
                 if(party.join(userId)==false){
@@ -153,13 +151,7 @@ module.exports = {
                 party.update();
 
                 //check for avatar
-                var avatarFormation = new AvatarFormation(await AvatarFormation.getData(party.id_leader));
-                if(avatarFormation.id_main!=null){
-                    var mainAvatar = new PrecureAvatar(AvatarFormation.formation.main.value, 
-                        await CardInventory.getDataByIdUser(party.id_leader, avatarFormation.id_main), 
-                        await CardInventory.getCardData(avatarFormation.id_main));
-                    var seriesIcon = mainAvatar.series.icon;
-                }
+                
                 
                 var memberList = ``;
                 for(var i=0; i<party.id_member.length; i++){
@@ -169,9 +161,9 @@ module.exports = {
                 
                 return interaction.reply({embeds:[
                     Embed.builder(`${Properties.emoji.mofuheart} <@${userId}> has joined up: **${party.name}**!`,discordUser, {
-                        color: user.set_color,
-                        title: `✅ Party Joined! (${party.getTotal()}/${Party.limit.member+1})`,
-                        thumbnail: avatarFormation.id_main!=null? seriesIcon:"",
+                        color: party.Color.value,
+                        title: `✅ Party Joined! (${party.getTotal()}/${Party.limit.maxUser})`,
+                        thumbnail: party.Series!=null? party.Series.icon:"",
                         fields:[
                             {
                                 name:`Party leader:`,
@@ -199,10 +191,14 @@ module.exports = {
 
                 var newPartyName = interaction.options._hoistedOptions[0].value;
                 var partyDataWithName = await Party.getDataByName(guildId, newPartyName);
-                //validation: if party name has been taken
-                if(partyDataWithName!=null){
+                
+                if(partyDataWithName!=null){ //validation: if party name has been taken
                     return interaction.reply(Embed.errorMini(`That party name has been taken. Please re-enter with different name.`, discordUser, true, {
                         title:":x: Duplicate Party Name"
+                    }));
+                } else if(newPartyName.length>=20){ //validation name length
+                    return interaction.reply(Embed.errorMini(`Please re-enter with shortner party name.`, discordUser, true, {
+                        title:":x: Party name too long"
                     }));
                 }
 
@@ -210,23 +206,12 @@ module.exports = {
                 party.name = newPartyName;
                 await party.update();
 
-                //check for avatar
-                var avatarFormation = new AvatarFormation(await AvatarFormation.getData(userId));
-                var seriesName = "";
-                if(avatarFormation.id_main!=null){
-                    var mainAvatar = new PrecureAvatar(AvatarFormation.formation.main.value, 
-                        await CardInventory.getDataByIdUser(userId, avatarFormation.id_main), 
-                        await CardInventory.getCardData(avatarFormation.id_main));
-                    seriesName = `${mainAvatar.series.name}`;
-                    var seriesIcon = mainAvatar.series.icon;
-                }
-
                 return interaction.reply({embeds:[
                     Embed.builder(`${Properties.emoji.mofuheart} <@${userId}>'s party has been renamed into: **${party.name}**`,
                     discordUser, {
-                        color: user.set_color,
+                        color: party.Color.value,
                         title: `✅ Party renamed!`,
-                        thumbnail: avatarFormation.id_main!=null? seriesIcon:"",
+                        thumbnail: party.Series!=null? party.Series.icon:"",
                     })
                 ]});
                 
@@ -258,7 +243,7 @@ module.exports = {
                     await party.update();
 
                     return interaction.reply({embeds:[
-                        Embed.builder(`You have leave ${party.name}`,
+                        Embed.builder(`You have leave the party from: ${party.name}`,
                         discordUser, {
                             color: Embed.color.danger
                         })
@@ -279,31 +264,20 @@ module.exports = {
 
                 var party = new Party(partyData);
                 
-
                 //check for avatar
                 var txtDescription = ``;
-                var avatarFormation = new AvatarFormation(await AvatarFormation.getData(party.id_leader));
-                if(avatarFormation.id_main!=null){
-                    var mainAvatar = new PrecureAvatar(AvatarFormation.formation.main.value, 
-                        await CardInventory.getDataByIdUser(party.id_leader, avatarFormation.id_main), 
-                        await CardInventory.getCardData(avatarFormation.id_main));
-                    txtDescription=`**Party series:**\n${mainAvatar.series.emoji.mascot} ${mainAvatar.series.name}`;
-                    var seriesIcon = mainAvatar.series.icon;
-                }
 
                 var memberList = party.getTotalMember()<=0 ? `No one has joined this party yet.`:'';
                 for(var i=0; i<party.id_member.length; i++){
                     var val = party.id_member[i];
                     memberList+=`${i+1}. <@${val}>\n`;
                 }
-
-                var userLeader = new User(await User.getData(party.id_leader));
                 
                 return interaction.reply({embeds:[
                     Embed.builder(txtDescription, 
                         Embed.builderUser.authorCustom(`${party.name} (${party.getTotal()}/${Party.limit.member+1})`), {
-                        color: userLeader.set_color,
-                        thumbnail: avatarFormation.id_main!=null? seriesIcon:"",
+                        color: party.Color.value,
+                        thumbnail: party.Series!=null? party.Series.icon:"",
                         fields:[
                             {
                                 name:`Party leader:`,
@@ -316,6 +290,48 @@ module.exports = {
                         ]
                     })
                 ]});
+
+                break;
+            
+            case "list":
+                var user = new User(await User.getData(userId));
+                var partyData = await Party.getAllData(guildId);
+                //validation if no party available
+                if(partyData.length<=0)
+                    return interaction.reply(Embed.errorMini(":x: There are no open party available", discordUser, true));
+                
+                var arrPages = [];
+                var idx = 0; var maxIdx = 4; var txtList = ``;
+                for(var i=0;i<partyData.length;i++){
+                    var party = new Party(partyData[i]);
+                    if(party.Series!=null) txtList+=`${party.Series.emoji.mascot} `;
+                    
+                    txtList+=dedent(`${party.name} (${party.getTotal()}/${Party.limit.maxUser})
+                    **Leader:** <@${party.id_leader}>
+                    ─────────────────`);
+                    txtList+=`\n`;
+
+                    //check for max page content
+                    if(idx>maxIdx||(idx<maxIdx && i==partyData.length-1)){
+                        let embed = Embed.builder(`Join into party with: **/party join**\n\n`+txtList, null,{
+                            title:`Party List:`
+                        })
+
+                        arrPages.push(embed);
+                        txtList="";
+                        idx = 0;
+                    } else {
+                        idx++;
+                    }
+
+                }
+
+                return paginationEmbed(interaction,arrPages,DiscordStyles.Button.pagingButtonList, false);
+                // await interaction.reply({embeds:[
+                //     Embed.builder(txtList, null, {
+                //         title:`Party List`
+                //     })
+                // ]});
 
                 break;
         }

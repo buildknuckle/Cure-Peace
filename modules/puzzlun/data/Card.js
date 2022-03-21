@@ -96,6 +96,7 @@ class Card {
     patch_ver=null;
     created_at=null;
 
+    Character;
     Series;
 
     //modifier:
@@ -111,6 +112,7 @@ class Card {
             this.packTotal = CPack[this.pack].properties.total;
         }
 
+        if(this.pack!=null) this.Character = new Character(this.pack);
         if(this.series!=null) this.Series = new Series(this.series);
 
         // this.emoji.rarity = emoji.rarity(this.rarity);//get rarity emoji

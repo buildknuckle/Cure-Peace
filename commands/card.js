@@ -131,8 +131,6 @@ module.exports = {
 
         switch(command){
             //STATUS MENU: open card status
-            
-            
             case "set":
                 switch(commandSubcommand){
                     case "avatar":
