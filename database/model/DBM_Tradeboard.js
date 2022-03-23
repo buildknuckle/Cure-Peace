@@ -6,7 +6,8 @@ class DBM_Tradeboard {
         id_guild: "id_guild",
         id_user: "id_user",
         category: "category",
-        data_trade: "data_trade",
+        id_looking_for: "id_looking_for",
+        id_offer: "id_offer",
         last_update:"last_update"
     };
 }

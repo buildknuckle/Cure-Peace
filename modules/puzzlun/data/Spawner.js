@@ -52,9 +52,10 @@ class Spawner {
     idRoleping = {
         cardcatcher:null
     }
-    guildChannel = null;//contains discord guild channel to send the spawn notif
+    spawnChannel = null;//contains discord guild channel to send the spawn notif
     userAttempt = [];//contains list of all user who already used the spawn attempt
     message = null;
+    test;
 
     constructor(Spawner=null){
         if(Spawner!=null){
@@ -119,7 +120,7 @@ class Spawner {
         this.token = rndSpawnToken;
 
         var rnd = GlobalFunctions.randomNumber(0,100);
-        rnd = 20;//only for testing
+        rnd = 60;//only for testing
         var spawn;
         var embedSpawn;
         if(rnd<10){//normal card spawn
@@ -160,13 +161,23 @@ class Spawner {
             this.type = Spawner.type.numberGuess;
             spawn = new NumberGuess(await NumberGuess.getRandomCard());
             embedSpawn = spawn.getEmbedSpawn(this.token);
-        }
+        } else if(rnd==60){//party act instance
+            this.type = Spawner.type.instancePartyAct;
 
-            // else if(rnd==60){//party act instance
-            //     guild.spawn_type = Spawner.type.instancePartyAct;
-            //     spawn = InstancePartyAct.randomize(this.token);
-            //     guild.spawn_data = spawn.getSpawnData();
-            // }
+            var rnd = GlobalFunctions.randomPropertyKey(InstancePartyAct.instanceType);
+            var instance = new InstancePartyAct();
+            switch(rnd){
+                case InstancePartyAct.instanceType.treasureHunt:
+                    instance.type = TreasureHunt.type;
+                    embedSpawn = TreasureHunt.getEmbedSpawn(this.token);
+                    break;
+            }
+
+            spawn = instance;
+
+            // spawn = InstancePartyAct.randomize(this.token);
+            // guild.spawn_data = spawn.getSpawnData();
+        }
 
         this.spawn = spawn;//set spawn
 
@@ -175,17 +186,14 @@ class Spawner {
             embedSpawn = GlobalFunctions.mergeObjects(embedSpawn, {content:`<@&${this.idRoleping.cardcatcher}>`});
         }
 
-        this.message = await this.guildChannel.send(embedSpawn);
-        this.stopTimer();//only for testing
+        this.message = await this.spawnChannel.send(embedSpawn);
+        // this.stopTimer();//only for testing
 
         // return;
 
         this.userAttempt = [];//reset listed user attempt
-        //save spawner data to guild
-        this.token = rndSpawnToken;
-        // guild.id_last_message_spawn = this.message.id;
+        this.token = rndSpawnToken; //save spawner data to guild
         guild.setSpawner(this);
-        // await guild.updateDb();//update latest spawn to db
     }
 
     //timer method
@@ -1991,30 +1999,6 @@ class NumberGuess {
         }
         
         await user.update();//update all data
-    }
-    
-}
-
-class Battle {
-    static value = Spawner.type.battle;
-    instance={};
-    embedSpawn = null;
-    constructor(token = null){
-
-
-        this.embedSpawn = ({embeds:[objEmbed], components: [DiscordStyles.Button.row([
-            DiscordStyles.Button.base(`card.${Spawner.type.battle}_${NumberGuess.buttonId.lower}_${token}`,"▼ Lower","PRIMARY"),
-            DiscordStyles.Button.base(`card.${Spawner.type.numberGuess}_${NumberGuess.buttonId.higher}_${token}`,"▲ Higher","PRIMARY"),
-            DiscordStyles.Button.base(`card.${Spawner.type.numberGuess}_${NumberGuess.buttonId.boost}_${token}`,"🆙 Boost","SUCCESS"),
-        ])]});
-    }
-
-    join(userId){
-        this.instance[userId] = new BattleSolo(userId, )
-    }
-
-    async randomize(){
-
     }
     
 }

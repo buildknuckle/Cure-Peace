@@ -17,47 +17,26 @@ async function initGuild(guildId, discordGuild){
     // Guild.setData(guildId, guild);
 
     //init for card spawn
-    if(guild.id_channel_spawn!=null){
+    if(guild.id_channel_spawn!=null&&guild.spawn_interval!=null){
         var assignedChannel = guild.id_channel_spawn;
     
         //check if channel exists/not
-        var guildChannel = discordGuild.channels.cache.find(ch => ch.id === assignedChannel);
-        if(guildChannel){
+        var spawnChannel = discordGuild.channels.cache.find(ch => ch.id === assignedChannel);
+        if(spawnChannel){
             var spawner = new Spawner({
                 guildId: guildId,
-                guildChannel: guildChannel,
+                spawnChannel: spawnChannel,
                 interval: guild.spawn_interval,
                 idRoleping: {
                     cardcatcher: guild.id_roleping_cardcatcher
                 }
             });
 
-            // if(guild.spawn_type!==null || guild.spawn_data!==null){
-            //     spawner.type = guild.spawn_type;
-            //     spawner.spawnData = guild.spawn_data;
-            //     await spawner.initSpawner();
-            // }
-
             // await spawner.startTimer(guildData);
 
             guild.spawner = spawner;//set guild spawner
             guild.updateData();
             // console.log(guild);
-            return;
-
-            // spawner.guildId = guildId;
-            // spawner.guildChannel = guildChannel;
-            // spawner.interval = guild.spawn_interval;
-            // spawner.token = guild.spawn_token;
-            // spawner.idRoleping.cardcatcher = guild.id_roleping_cardcatcher;
-            
-
-            
-
-            
-            
-            
-            console.log(guild);
             return;
         }
     }

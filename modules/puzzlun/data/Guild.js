@@ -17,9 +17,6 @@ class Guild {
     id_roleping_cardcatcher = null;
     id_last_message_spawn = null;
     spawn_interval = null;
-    // spawn_token = null;
-    // spawn_type = null;
-    // spawn_data = null;
 
     //modifier
     spawner;
@@ -114,9 +111,9 @@ class Guild {
         await DB.update(tablename, paramSet, paramWhere);
     }
 
-    setGuildChannel(guildChannel){
-        this.guildChannel = guildChannel;
-    }
+    // setGuildChannel(guildChannel){
+    //     this.guildChannel = guildChannel;
+    // }
 
     // getData(){
     //     let dataRet = {};
@@ -136,37 +133,6 @@ class Guild {
             return false;
         }
     }
-
-    // static async updateData(id_guild, options){
-    //     var arrParam = [];
-    //     var querySet = ``;
-
-    //     for (var keyOptions in options) {
-    //         var valueOptions = options[keyOptions];
-    //         switch(keyOptions){
-    //             case DBM_Guild_Data.columns.spawn_type:
-    //             case DBM_Guild_Data.columns.spawn_data:
-    //             case DBM_Guild_Data.columns.id_channel_spawn:
-    //             case DBM_Guild_Data.columns.id_roleping_cardcatcher:
-    //             case DBM_Guild_Data.columns.id_last_message_spawn:
-    //             case DBM_Guild_Data.columns.spawn_interval:
-    //             case DBM_Guild_Data.columns.spawn_token:
-    //             case DBM_Guild_Data.columns.spawn_data:
-    //                 querySet+=` ${keyOptions} = ?, `;
-    //                 arrParam.push(valueOptions);
-    //                 break;
-    //         }
-    //     }
-
-    //     querySet = querySet.replace(/,\s*$/, "");//remove last comma and space
-    //     arrParam.push(id_guild);//push user id to arrParam
-
-    //     var query = `UPDATE ${DBM_Guild_Data.TABLENAME} 
-    //     SET ${querySet} 
-    //     WHERE ${DBM_Guild_Data.columns.id_guild} = ?`;
-
-    //     await DBConn.conn.query(query, arrParam);
-    // }
 }
 
 module.exports = Guild;

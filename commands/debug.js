@@ -1,11 +1,6 @@
-// const CardModule = require("../modules/card/Card");
-// const BattleModule = require("../modules/card/Battle");
-
-// const SpackModule = require("../modules/card/Spack");
-// const AvatarModule = require("../modules/card/Avatar");
 const DataCard = require('./Card');
-const DataGuild = require("../modules/puzzlun/data/Guild");
-const SpawnerModules = require("../modules/puzzlun/data/Spawner");
+const Guild = require("../modules/puzzlun/data/Guild");
+const Spawner = require("../modules/puzzlun/data/Spawner");
 
 module.exports = {
     name: 'debug',
@@ -14,8 +9,8 @@ module.exports = {
     args: true,
     options:[
         {
-            name: "test",
-			description: "Debug test",
+            name: "spawn",
+			description: "Debug spawn",
 			type: 3
 		}
 	],
@@ -31,8 +26,9 @@ module.exports = {
         // var objSpawn = await (guildId);
         // await interaction.reply(objSpawn);
 
-        var dataGuild = new DataGuild(DataGuild.getData(guildId));
-        console.log(dataGuild);
+        var guildData = Guild.getData(guildId);
+        var guild = new Guild(guildData);
+        await guild.spawner.randomizeSpawn(guildData);
 
 
     }

@@ -288,9 +288,6 @@ class CardInventory extends DataCard {
 
     constructor(cardInventoryData, cardData=null){
         super(cardData);
-        // this.Data = new Data();
-        // this.Parameter = new Parameter(cardInventoryData, cardData);
-        // console.log(super.dc);
         
         if(cardInventoryData==null) return null;
 
@@ -313,8 +310,6 @@ class CardInventory extends DataCard {
             }
         }
 
-        // this.emoji.rarity = emoji.rarity(this.is_gold, this.rarity);//get rarity emoji
-        // this.maxHp = parameter.maxHp(this.level, this.hp_base);//assign max hp
         this.maxHp = this.parameter.maxHp(this.level, this.hp_base);//assign max hp
         this.atk = this.parameter.atk(this.level, this.atk_base);
         this.maxLevel = this.parameter.maxLevel(this.rarity);
@@ -351,6 +346,48 @@ class CardInventory extends DataCard {
             return result;
         } else {
             return null;
+        }
+    }
+
+    /**
+     * @description Used to search card data & inventory. Will return null if card data not found
+     */
+    static async getJoinUserData(userId, cardId){
+        var query = `SELECT cd.*,
+        ci.${this.columns.id_user},
+        ci.${this.columns.level},
+        ci.${this.columns.level_special},
+        ci.${this.columns.stock},
+        ci.${this.columns.is_gold},
+        ci.${this.columns.received_at} 
+        from ${super.tablename} cd 
+        left join ${this.tablename} ci 
+        ON cd.${super.columns.id_card}=ci.${this.columns.id_card} and 
+        ci.${this.columns.id_user}=?  
+        where cd.${super.columns.id_card}=? 
+        LIMIT 1`;
+        var result = await DBConn.conn.query(query, [userId, cardId]);
+        var ret = {
+            cardData:{},
+            cardInventoryData:{},
+        }
+
+        //check for card data
+        if(result[0]!=null){
+            for(var key in result[0]){
+                var colVal = result[0][key];
+                if(key in super.columns){
+                    ret.cardData[key] = colVal;
+                } else {
+                    ret.cardInventoryData[key] = colVal;
+                }
+            }
+
+            //check if user own the card/not
+            if(ret.cardInventoryData[this.columns.id_user]==null) ret.cardInventoryData = null;
+            return ret;
+        } else {
+            return null;//return null if not found
         }
     }
 

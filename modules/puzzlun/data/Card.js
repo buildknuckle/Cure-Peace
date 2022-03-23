@@ -5,6 +5,8 @@ const DBM_Card_Data = require('../../../database/model/DBM_Card_Data');
 
 const {Character, CPack} = require("./Character");
 const {Series} = require("./Series");
+const GlobalFunctions = require('../../GlobalFunctions');
+const Properties = require('../Properties');
 
 const emoji = {
     rarity(rarity){
@@ -93,7 +95,8 @@ class Card {
     hp_base=null;
     atk_base=null;
     is_spawnable=null;
-    patch_ver=null;
+    is_tradable=null;
+    // patch_ver=null;
     created_at=null;
 
     Character;
@@ -102,11 +105,21 @@ class Card {
     //modifier:
     packTotal = null;
 
-    constructor(cardData){
+    constructor(cardData=null){
+        if(cardData!=null){
+            this.initCardData(cardData);
+        }
+    }
+
+    initCardData(cardData){
         for(var key in cardData){
             this[key] = cardData[key];
         }
+        this.init();
+    }
 
+    //load all necessary class variable
+    init(){
         //modify pack total
         if(this.pack in CPack){
             this.packTotal = CPack[this.pack].properties.total;
@@ -115,7 +128,6 @@ class Card {
         if(this.pack!=null) this.Character = new Character(this.pack);
         if(this.series!=null) this.Series = new Series(this.series);
 
-        // this.emoji.rarity = emoji.rarity(this.rarity);//get rarity emoji
         this.maxSp = parameter.maxSp(this.color);
     }
 
@@ -155,16 +167,11 @@ class Card {
         return this.series;
     }
 
-    getPack(){
-        return this.pack;
-    }
+    getName(maxLength=0, withImageLink=false){
+        let name = this.name;
+        if(maxLength>0) name = GlobalFunctions.cutText(name, maxLength);
 
-    getRarity(){
-        return this.rarity;
-    }
-
-    getName(){
-        return this.name;
+        return withImageLink ? `[${name}](${this.img_url})` : name;
     }
 
     getImg(){
@@ -191,8 +198,20 @@ class Card {
         return false;
     }
 
+    isTradable(){
+        return Boolean(this.is_tradable);
+    }
+
     getPackTotal(){
         return this.packTotal;
+    }
+
+    getCardEmoji(){
+        return Properties.color[this.color].emoji_card;
+    }
+
+    getRarityEmoji(){
+        return Card.emoji.rarity(this.rarity);
     }
 
     static async getPackTotal(pack){

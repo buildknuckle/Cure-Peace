@@ -26,6 +26,12 @@ class Embed extends require("../Embed") {
         });
     }
 
+    static validationNotEnoughMembers(discordUser, minTotal){
+        return Embed.errorMini(`${minTotal} party members are required for this spawn instance.`, discordUser, true, {
+            title:":x: Not enough party members"
+        });
+    }
+
     static validationAlreadyJoined(discordUser){
         return Embed.errorMini(`Your party can only commence this spawn instance once.`, discordUser, true, {
             title:":x: Cannot commence another instance"
@@ -71,13 +77,12 @@ class InstancePartyAct {
     static buttonId = Object.freeze({
         commence:"commence",
     });
-    static spawnType = {
+    static instanceType = {
         treasureHunt: "treasureHunt"
     }
-    spawnType = null;
-    spawnClass = null;//will be used on join. Called with: new instanceType();
+    type = null;
+    // spawnClass = null;//will be used on join. Called with: new instanceType();
     instance = {};//contains party instance data
-    embedSpawn = null;
 
     constructor(instanceData=null){
         if(instanceData!=null){
@@ -99,52 +104,42 @@ class InstancePartyAct {
     }
 
     getSpawnData(){
-        return JSON.stringify({spawnType: this.spawnType});
+        return JSON.stringify({spawnType: this.type});
     }
 
-    updateInstance(partyId, newInstanceData){
+    async updateInstance(partyId, newInstanceData){
         this.instance[partyId] = newInstanceData;
     }
 
     static async join(discordUser, guildData, interaction){
         var userId = discordUser.id;
         var guild = new Guild(guildData);
-        var spawner = guild.spawner.spawn;
+        var spawner = guild.spawner;
         var partyData = await Party.getData(guild.id_guild, userId);
         //validation: if user in party/not
         if(partyData==null) return interaction.reply(Embed.validationNotInParty(discordUser));
         var party = new Party(partyData);
+        if(party.getTotalMember()<=0) return interaction.reply(Embed.validationNotEnoughMembers(discordUser, 1));
 
         //validation: if party already joined
-        var instance = new InstancePartyAct(spawner);
+        var spawn = new InstancePartyAct(spawner.spawn);
         
         //validation if user already in party/not
-        if(party.id in instance.instance){ 
+        if(party.id in spawn.instance){ 
             return interaction.reply(Embed.validationAlreadyJoined(discordUser));
         } else {
-            switch(instance.spawnType){
-                case this.spawnType.treasureHunt:
-                    var spawnClass = new TreasureHunt();
-                    await spawnClass.commence(partyData, guild.spawner.token, interaction);
-                    instance.instance[party.id] = spawnClass;
-                    // guild.updateData();//save latest spawner data to guild
+            switch(spawn.type){
+                case this.instanceType.treasureHunt:
+                    var treasureHunt = new TreasureHunt();
+                    await treasureHunt.commence(partyData);
+                    treasureHunt.embed = await spawner.spawnChannel.send(
+                        treasureHunt.getEmbedCommence(spawner.token)
+                    );
+                    spawn.instance[party.id] = treasureHunt;
                     break;
             }
             
         }
-    }
-
-    static randomize(token){
-        var rnd = GlobalFunctions.randomPropertyKey(this.spawnType);
-        var instance = new InstancePartyAct();
-        switch(rnd){
-            case this.spawnType.treasureHunt:
-                instance.spawnType = TreasureHunt.type;
-                instance.spawnClass = TreasureHunt;
-                instance.embedSpawn = TreasureHunt.getEmbedSpawn(token);
-                break;
-        }
-        return instance;
     }
 
     static async eventListener(discordUser, guildData, _command, interaction){
@@ -157,15 +152,10 @@ class InstancePartyAct {
         var partyData = await Party.getData(guild.id_guild, userId);
         //validation: if user in party/not
         if(partyData==null) return interaction.reply(Embed.validationNotInParty(discordUser));
+
         var party = new Party(partyData);
-
-        //validation: if party already joined
-        var instancePartyAct = new InstancePartyAct(guild.spawner.spawn);
-        if(!(party.id in instancePartyAct.instance)){
-            return interaction.reply(Embed.validationWrongInstance(discordUser));
-        }
-
-        // var instancePartyData = instancePartyAct.getInstance(party.id);
+        //validation: check for correct party id instance
+        if(party.id!=commandPartyId) return interaction.reply(Embed.validationWrongInstance(discordUser));
 
         switch(spawnType){
             case TreasureHunt.type:
@@ -181,7 +171,7 @@ class TreasureHunt {
     static buttonId = Object.freeze({
         lower:"lower",
         higher:"higher",
-        take:"take",
+        collect:"collect",
     });
     static stage = {//contains max randomizer
         1:100,
@@ -202,6 +192,7 @@ class TreasureHunt {
         16:4,
         17:4,
     }
+    static maxStage = Object.keys(this.stage).length;
 
     party;//contains party data
     reward = { //base reward
@@ -231,44 +222,46 @@ class TreasureHunt {
             
         });
 
-        return ({embeds:[objEmbed], components: [DiscordStyles.Button.row([
+        return {embeds:[objEmbed], components: [DiscordStyles.Button.row([
             DiscordStyles.Button.base(`card.${InstancePartyAct.type}_${InstancePartyAct.buttonId.commence}_${token}`,"Commence","PRIMARY"),
-        ])]});
+        ])]};
     }
 
-    async commence(partyData, token, interaction){
+    commence(partyData){
         var party = new Party(partyData);
         this.party = party;
+    }
 
+    getEmbedCommence(token){
         var memberList = `• <@${this.party.id_leader}>`;
         for(var key in this.party.id_member){
             memberList+=`\n• <@${this.party.id_member[key]}>`;
         }
 
         var objEmbed = Embed.builder(`Guess whether the hidden number (1-${this.getStageMaxNumber()}) will be lower equal or higher equal than the current number: **${Math.round(this.getStageMaxNumber()/2)}**`,
-        Embed.builderUser.authorCustom(`${party.name}`, this.party.Series.icon),
+        Embed.builderUser.authorCustom(`${this.party.name}`, this.party.Series.icon),
         {
             title:`Treasure hunt commenced!`,
             thumbnail:Properties.imgSet.mofu.peek,
             fields:[
                 {
-                    name: `Number Guess Command:`,
+                    name: `Number guess command:`,
                     value: dedent(`• Press Lower/Higher to guess the hidden number`)
                 },
                 {
-                    name: `Party Members:`,
+                    name: `Party member:`,
                     value: memberList
                 }
             ]
         });
 
-        this.embed = await interaction.channel.send(({embeds:[objEmbed], components: [DiscordStyles.Button.row([
+        return {embeds:[objEmbed], components: [DiscordStyles.Button.row([
             DiscordStyles.Button.base(
-                `card.${InstancePartyAct.type}_${TreasureHunt.type}_${TreasureHunt.buttonId.lower}_${party.id}_${token}`,
+                `card.${InstancePartyAct.type}_${TreasureHunt.type}_${TreasureHunt.buttonId.lower}_${this.party.id}_${token}`,
             "Lower","PRIMARY"),
             DiscordStyles.Button.base(
-                `card.${InstancePartyAct.type}_${TreasureHunt.type}_${TreasureHunt.buttonId.higher}_${party.id}_${token}`,"Higher","PRIMARY"),
-        ])]}));
+                `card.${InstancePartyAct.type}_${TreasureHunt.type}_${TreasureHunt.buttonId.higher}_${this.party.id}_${token}`,"Higher","PRIMARY"),
+        ])]};
     }
 
     getStageMaxNumber(){
@@ -276,10 +269,10 @@ class TreasureHunt {
     }
 
     getEmbedWin(discordUser, rnd, choice){
-        var embed = Embed.builder(`✅ **Your guess was correct!** 
+        var embed = Embed.builder(dedent(`✅ **Your guess was correct!** 
         The next hidden number was: **${rnd}** and you guessed it ${choice} equal!
         
-        ${Properties.emoji.mofuheart} Congratulations your party has cleared this treasure hunt & receive all rewards!`,
+        ${Properties.emoji.mofuheart} Congratulations your party has cleared this treasure hunt & receive all rewards!`),
         Embed.builderUser.authorCustom(`${this.party.name}`, this.party.Series.icon),{
             title: `Treasure hunt cleared!`,
             thumbnail:Properties.imgSet.mofu.ok,
@@ -299,16 +292,16 @@ class TreasureHunt {
     }
 
     getEmbedCorrect(discordUser, rnd, choice, token){
-        var embed = Embed.builder(`✅ **Your guess was correct!** 
+        var embed = Embed.builder(dedent(`✅ **Your guess was correct!** 
         The next hidden number was: **${rnd}** and you guessed it ${choice} equal!
         
-        Guess whether the hidden number (1-${this.getStageMaxNumber()}) will be lower equal or higher equal than the current number: **${Math.round(this.getStageMaxNumber()/2)}**`,
+        Guess whether the hidden number (1-${this.getStageMaxNumber()}) will be lower equal or higher equal than the current number: **${Math.round(this.getStageMaxNumber()/2)}**`),
         Embed.builderUser.authorCustom(`${this.party.name}`, this.party.Series.icon),{
-            title: `Treasure hunt stage ${this.stage}`,
+            title: `Treasure hunt stage ${this.stage}/${TreasureHunt.maxStage}`,
             thumbnail:Properties.imgSet.mofu.thumbsup,
             fields:[
                 {
-                    name:`Commands:`,
+                    name:`Party commands:`,
                     value:dedent(`• Press Lower/Higher to guess the hidden number
                     • Press take to take current rewards`)
                 },
@@ -328,20 +321,20 @@ class TreasureHunt {
             DiscordStyles.Button.base(
                 `card.${InstancePartyAct.type}_${TreasureHunt.type}_${TreasureHunt.buttonId.higher}_${this.party.id}_${token}`,"▲ Higher","PRIMARY"),
             DiscordStyles.Button.base(
-                `card.${InstancePartyAct.type}_${TreasureHunt.type}_${TreasureHunt.buttonId.take}_${this.party.id}_${token}`,"Take","SUCCESS"),
+                `card.${InstancePartyAct.type}_${TreasureHunt.type}_${TreasureHunt.buttonId.collect}_${this.party.id}_${token}`,"Collect","SUCCESS"),
         ])]
 
         return {embeds:[embed], components: components};
     }
 
     getEmbedLose(discordUser, rnd, choice){
-        var embed = Embed.builder(`:x: **Your guess was wrong**
+        var embed = Embed.builder(dedent(`:x: **Your guess was wrong**
 
         The next hidden number was: **${rnd}** and you guessed it ${choice} equal.
-        Your party has lost all rewards.`,
+        Your party has lost all rewards.`),
         Embed.builderUser.authorCustom(`${this.party.name}`, this.party.Series.icon),{
             color:Embed.color.danger,
-            title: `Treasure hunt stage ${this.stage}`,
+            title: `Treasure hunt stage ${this.stage}/${TreasureHunt.maxStage}`,
             thumbnail:Properties.imgSet.mofu.error,
             footer:Embed.builderUser.footer(`Guessed by: ${discordUser.username}`, 
             Embed.builderUser.getAvatarUrl(discordUser))
@@ -350,10 +343,10 @@ class TreasureHunt {
         return {embeds:[embed],components:[]};
     }
 
-    getEmbedTake(discordUser){
-        var embed = Embed.builder(`${Properties.emoji.mofuheart} Your party has decide to take all rewards!`,
+    getEmbedCollect(discordUser){
+        var embed = Embed.builder(`${Properties.emoji.mofuheart} Your party has decide to collect all rewards!`,
         Embed.builderUser.authorCustom(`${this.party.name}`, this.party.Series.icon),{
-            title: `Treasure hunt stage ${this.stage}`,
+            title: `Treasure hunt stage ${this.stage}/${TreasureHunt.maxStage}`,
             thumbnail:Properties.imgSet.mofu.ok,
             color:Embed.color.success,
             fields:[
@@ -363,7 +356,7 @@ class TreasureHunt {
                     ${Properties.currency.jewel.emoji} ${this.reward.jewel} ${Properties.currency.jewel.name}`)
                 }
             ],
-            footer:Embed.builderUser.footer(`Taken by: ${discordUser.username}`, 
+            footer:Embed.builderUser.footer(`Collected by: ${discordUser.username}`, 
             Embed.builderUser.getAvatarUrl(discordUser))
         });
 
@@ -371,7 +364,7 @@ class TreasureHunt {
     }
 
     async distributePartyRewards(){
-        var idMembers = this.party.getAllIdMembers();
+        var idMembers = this.party.getAllUserId();
         for(var key in idMembers){
             var idMember = idMembers[key];
             let user = new User(await User.getData(idMember));
@@ -383,26 +376,27 @@ class TreasureHunt {
 
     static async onGuess(discordUser, guildData, partyId, command, interaction){
         var guild = new Guild(guildData);
-        var instancePartyAct = new InstancePartyAct(guild.spawner.spawn);
-        var instance = new TreasureHunt(instancePartyAct.getInstance(partyId));
+        var spawn = new InstancePartyAct(guild.spawner.spawn);
+        var instance = new TreasureHunt(spawn.getInstance(partyId));
         
         var currentNumber = Math.round(TreasureHunt.stage[instance.stage]/2);
         var rnd = GlobalFunctions.randomNumber(1, Math.round(TreasureHunt.stage[instance.stage]));
         rnd = 99;//debugging purpose
-        if(command==TreasureHunt.buttonId.take){
-            await instance.embed.edit(instance.getEmbedTake(discordUser));
+        if(command==TreasureHunt.buttonId.collect){
+            await instance.embed.edit(instance.getEmbedCollect(discordUser));
             await instance.distributePartyRewards(); //distribute rewards to party
         } else if((command==TreasureHunt.buttonId.lower && rnd<=currentNumber)||
         (command==TreasureHunt.buttonId.higher && rnd>=currentNumber)){
             instance.stage+=1;
 
+            //distribute rewards:
             instance.reward.mofucoin = instance.reward.mofucoin+(5*2);
-            instance.reward.jewel = instance.reward.jewel+(1*2);
+            instance.reward.jewel +=1;
             
             //check for maximum stage
-            if(instance.stage>17){//win
+            if(instance.stage>TreasureHunt.maxStage){//win
                 instance.reward.mofucoin*=2;
-                instance.reward.jewel*=2;
+                instance.reward.jewel+=10;
                 await instance.embed.edit(instance.getEmbedWin(discordUser, rnd, command));
                 await instance.distributePartyRewards(); //distribute rewards to party
             } else {//on progress
@@ -412,10 +406,46 @@ class TreasureHunt {
             await instance.embed.edit(instance.getEmbedLose(discordUser, rnd, command));
         }
 
-        instancePartyAct.updateInstance(partyId, instance);//save latest instance data
+        await spawn.updateInstance(partyId, instance);//save latest instance data
+        await interaction.reply("ok");
+        await interaction.deleteReply();
     }
 
 }
+
+// class InstanceSoloBattle {
+//     static type = "instanceSoloBattle";
+//     static buttonId = Object.freeze({
+//         commence:"commence",
+//     });
+//     static instanceType = {
+//         treasureHunt: "treasureHunt"
+//     }
+// }
+
+// class Tsunagarus {
+//     static value = "battle";
+//     instance={};
+//     embedSpawn = null;
+//     constructor(token = null){
+
+
+//         this.embedSpawn = ({embeds:[objEmbed], components: [DiscordStyles.Button.row([
+//             DiscordStyles.Button.base(`card.${Spawner.type.battle}_${NumberGuess.buttonId.lower}_${token}`,"▼ Lower","PRIMARY"),
+//             DiscordStyles.Button.base(`card.${Spawner.type.numberGuess}_${NumberGuess.buttonId.higher}_${token}`,"▲ Higher","PRIMARY"),
+//             DiscordStyles.Button.base(`card.${Spawner.type.numberGuess}_${NumberGuess.buttonId.boost}_${token}`,"🆙 Boost","SUCCESS"),
+//         ])]});
+//     }
+
+//     join(userId){
+//         this.instance[userId] = new BattleSolo(userId, )
+//     }
+
+//     async randomize(){
+
+//     }
+    
+// }
 
 module.exports = {
     InstancePartyAct, BattleSolo, TreasureHunt

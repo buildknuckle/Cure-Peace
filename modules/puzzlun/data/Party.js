@@ -87,10 +87,13 @@ class Party {
         this.id_member = GlobalFunctions.removeArrayItem(this.id_member, userId);
     }
 
-    getAllIdMembers(){
-        let allMembers = this.id_member;
-        allMembers.unshift(this.id_leader);
-        return allMembers;
+    /**
+     * @description get all user id including the leader
+     */
+    getAllUserId(){
+        let allUserId = this.id_member;
+        allUserId.unshift(this.id_leader);
+        return allUserId;
     }
 
     async remove(){

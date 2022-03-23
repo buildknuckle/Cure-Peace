@@ -13,6 +13,7 @@ class DBM_Card_Data {
         hp_base: "hp_base",
         atk_base: "atk_base",
         is_spawnable:"is_spawnable",
+        is_tradable:"is_tradable",
         patch_ver:"patch_ver",
         created_at: "created_at",
     };
