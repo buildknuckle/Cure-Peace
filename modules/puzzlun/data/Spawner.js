@@ -43,7 +43,7 @@ class Spawner {
         battle:"battle",
     };
 
-    guildId = null;
+    // guildId = null;
     interval = null;//in minutes
     timer = null;
     token = null;//contains spawn token
@@ -55,7 +55,6 @@ class Spawner {
     spawnChannel = null;//contains discord guild channel to send the spawn notif
     userAttempt = [];//contains list of all user who already used the spawn attempt
     message = null;
-    test;
 
     constructor(Spawner=null){
         if(Spawner!=null){
@@ -65,62 +64,13 @@ class Spawner {
         }
     }
 
-    //to be called from init
-    async initSpawner(){
-        var guild = new Guild(Guild.getData(this.guildId));
-        switch(guild.spawn_type){
-            case Spawner.type.cardNormal:
-                this.spawn = new CardNormal(await Card.getCardData(guild.spawn_data));
-                break;
-            case Spawner.type.act:
-                var parsedSpawnData = JSON.parse(guild.spawn_data);
-                switch(parsedSpawnData.subtype){
-                    case Act.subtype.jankenpon:
-                        this.spawn = new ActJankenpon(await Card.getCardData(parsedSpawnData.cardId), this.token);
-                        break;
-                    case Act.subtype.miniTsunagarus:
-                        var spawn = new ActMiniTsunagarus();
-                        await spawn.initSpawnData(parsedSpawnData);
-                        this.spawn = spawn;
-                        break;
-                    case Act.subtype.series:
-                        var spawn = new ActSeries();
-                        await spawn.initSpawnData(parsedSpawnData);
-                        this.spawn = spawn;
-                        break;
-                }
-                break;
-            case Spawner.type.cardColor:
-                var spawnColor = new CardColor();
-                await spawnColor.initSpawnData(guild.spawn_data);
-                this.spawn = spawnColor;
-                break;
-            case Spawner.type.quiz:
-                var spawnQuiz = new Quiz();
-                await spawnQuiz.initSpawnData(guild.spawn_data);
-                this.spawn = spawnQuiz;
-                break;
-            case Spawner.type.numberGuess:
-                var spawnNumber = new NumberGuess();
-                await spawnNumber.initSpawnData(guild.spawn_data);
-                this.spawn = spawnNumber;
-                break;
-            case Spawner.type.instancePartyAct:
-                var spawnInstancePartyAct = new InstancePartyAct();
-                spawnInstancePartyAct.initSpawnData(guild.spawn_data);
-                break;
-        }
-    }
-
-    async randomizeSpawn(guildData){
-        var guild = new Guild(guildData);
-
+    async randomizeSpawn(){
         //randomize new spawn token:
         var rndSpawnToken = GlobalFunctions.randomNumber(0,200).toString();
         this.token = rndSpawnToken;
 
         var rnd = GlobalFunctions.randomNumber(0,100);
-        rnd = 60;//only for testing
+        rnd = 1;//only for testing
         var spawn;
         var embedSpawn;
         if(rnd<10){//normal card spawn
@@ -174,9 +124,6 @@ class Spawner {
             }
 
             spawn = instance;
-
-            // spawn = InstancePartyAct.randomize(this.token);
-            // guild.spawn_data = spawn.getSpawnData();
         }
 
         this.spawn = spawn;//set spawn
@@ -187,36 +134,32 @@ class Spawner {
         }
 
         this.message = await this.spawnChannel.send(embedSpawn);
-        // this.stopTimer();//only for testing
+        // await this.stopTimer();//only for testing
+        // console.log(this.timer);
 
         // return;
 
         this.userAttempt = [];//reset listed user attempt
         this.token = rndSpawnToken; //save spawner data to guild
-        guild.setSpawner(this);
+        // guild.setSpawner(this);
     }
 
     //timer method
     //newInterval in minutes
-    updateTimer(newInterval){
-        if(this.timer!==null){ //clear interval if timer exists
-            clearInterval(this.timer);
-        }
-
+    async updateTimer(newInterval){
+        await this.stopTimer();
         this.interval = newInterval;
-        this.timer = setInterval(()=>this.randomizeSpawn()
-        ,Timer.minToSec(this.interval));
     }
 
-    stopTimer(){
-        if(this.timer!==null){ //clear interval if timer exists
-            clearInterval(this.timer);
-        }
+    async stopTimer(){
+        //clear timer if exists
+        if(this.timer!==null) await clearInterval(this.timer);
+        this.timer = null;
     }
 
-    async startTimer(guildData){
+    async startTimer(){
         if(this.interval==null) return;
-        this.timer = setInterval(async ()=>this.randomizeSpawn(guildData)
+        this.timer = setInterval(async ()=>this.randomizeSpawn()
         ,Timer.minToSec(this.interval));
     }
 
@@ -425,11 +368,11 @@ class RewardsCard extends Rewards {
         var notifFront = `${"notifFront" in options ? options.notifFront:""}`;
         var notifCard = `${Color[color].emoji_card} ${this.value.qty}x card: ${id} ${this.value.qty>1?" ⏫":""}`;//received card
         //color points:
-        var notifColorPoints = `${Color[color].emoji} ${this.value.color} ${color} points (${this.user.Color[color].point}/${User.limit.colorPoint}) `;
+        var notifColorPoints = `${User.Color.getEmoji(color)} ${this.value.color} ${color} points (${this.user.Color[color].point}/${User.Color.limit.point}) `;
         if(this.value.boostColor!="") notifColorPoints+=`${this.value.boostColor}`;
 
         //series points:
-        var notifSeriesPoints = `${series.emoji.mascot} ${this.value.series} ${series.currency.name} (${this.user.Series[series.value]}/${User.limit.seriesPoint}) `;
+        var notifSeriesPoints = `${series.emoji.mascot} ${this.value.series} ${series.currency.name} (${this.user.Series[series.value]}/${User.Series.limit.point}) `;
         if(this.value.boostSeries!="") notifSeriesPoints+=`${this.value.boostSeries}`;
 
         var notifBack = `${"notifBack" in options ? options.notifBack:""}`;
@@ -494,11 +437,11 @@ class RewardsCard extends Rewards {
         var notifFront = `${"notifFront" in options ? options.notifFront:""}`;
         var notifCard = `${Color[color].emoji_card} ${this.value.qty}x card: ${this.card.id_card} (${GlobalFunctions.cutText(name, 20)}) ${this.value.qty>1?" ⏫":""}`;
         //color points:
-        var notifColorPoints = `${Color[color].emoji} ${this.value.color} ${color} points (${this.user.Color[color].point}/${User.limit.colorPoint}) `;
+        var notifColorPoints = `${User.Color.getEmoji(color)} ${this.value.color} ${color} points (${this.user.Color[color].point}/${User.Color.limit.point}) `;
         if(this.value.boostColor!="") notifColorPoints+=`${this.value.boostColor}`;
 
         //series points:
-        var notifSeriesPoints = `${series.emoji.mascot} ${this.value.series} ${series.currency.name} (${this.user.Series[series.value]}/${User.limit.seriesPoint}) `;
+        var notifSeriesPoints = `${series.emoji.mascot} ${this.value.series} ${series.currency.name} (${this.user.Series[series.value]}/${User.Series.limit.point}) `;
         if(this.value.boostSeries!="") notifSeriesPoints+=` ${this.value.boostSeries}`;
 
         var notifBack = `${"notifBack" in options ? options.notifBack:""}`;
@@ -530,8 +473,8 @@ class RewardsCard extends Rewards {
         var seriesPoint = this.value.series;
 
         var notifFront = `${"notifFront" in options ? options.notifFront:""}`;
-        var notifColorPoints = `${Color[color].emoji} ${colorPoint} ${color} points (${this.user.Color[color].point}/${User.limit.colorPoint})`;
-        var notifSeriesPoints = `${series.emoji.mascot} ${seriesPoint} ${series.currency.name} (${this.user.Series[series.value]}/${User.limit.seriesPoint})`;
+        var notifColorPoints = `${User.Color.getEmoji(color)} ${colorPoint} ${color} points (${this.user.Color[color].point}/${User.Color.limit.point})`;
+        var notifSeriesPoints = `${series.emoji.mascot} ${seriesPoint} ${series.currency.name} (${this.user.Series[series.value]}/${User.Series.limit.point})`;
         var notifBack = `${"notifBack" in options ? options.notifBack:""}`;
 
         return Embed.failMini(`${notifFront}:x: <@${userId}> has failed to catch the card this time.${notifBack}`, 
@@ -624,9 +567,9 @@ class CardNormal {
         return resultData[0];
     }
 
-    capture(refColorLevel){
+    capture(captureRateBonus){
         var rarity = this.card.rarity;
-        var catchRate = CardNormal.catchRate[rarity]+User.getColorLevelBonus(refColorLevel);
+        var catchRate = CardNormal.catchRate[rarity]+captureRateBonus;
         var chance = GlobalFunctions.randomNumber(0, 100);
         if(chance<catchRate){
             return true;
@@ -663,11 +606,12 @@ class CardNormal {
             user.peace_point-=cost;//update peace point
             txtBoostCapture = `${User.peacePoint.emoji} Boost capture has been used!\n`;
         } else {
-            captured = spawn.capture(colorLevel);//check if captured/not
+            var captureRateBonus = user.Color.getCaptureBonus(color);
+            captured = spawn.capture(captureRateBonus);//check if captured/not
         }
         
         var rewardsCard = new RewardsCard(user, spawn.card);
-        captured = false;//only for testing
+        // captured = false;//only for testing
         rewardsCard.setValue(captured);//set value
         var rewards = rewardsCard.value;
         
@@ -682,7 +626,7 @@ class CardNormal {
             if(stock<=-1){
                 var newTotal = await CardInventory.getPackTotal(userId, pack);
                 await spawner.messageCaptured();//remove spawned message
-                await guild.removeSpawn();//remove spawn if new
+                guild.removeSpawn();//remove spawn if new
                 return paginationEmbed(interaction, rewardsCard.notifEmbedNewCard(discordUser, newTotal, {notifFront:txtBoostCapture}),
                 DiscordStyles.Button.pagingButtonList);
             } else {
@@ -909,7 +853,7 @@ class ActJankenpon {
             if(stock<=-1){
                 var newTotal = await CardInventory.getPackTotal(userId, card.pack);
                 await guild.spawner.messageCaptured();//remove spawned message
-                await guild.removeSpawn();//remove spawn if new
+                guild.removeSpawn();//remove spawn if new
                 await interaction.channel.send({embeds:[embedWin]});
                 // await paginationEmbed(interaction, Embed.notifNewCard(discordUser, cardData, baseRewards, newTotal, {rewards:notifRewards}),
                 // DiscordStyles.Button.pagingButtonList);
@@ -932,8 +876,8 @@ class ActJankenpon {
             user.Series[series.value]+= rewards.series;//update series points on user
             user.validation();
 
-            var notifColorPoints = `${Color[color].emoji} ${rewards.color} ${color} points (${user.Color[color].point}/${User.limit.colorPoint}) ${rewards.boostColor}`;
-            var notifSeriesPoints = `${series.emoji.mascot} ${rewards.series} ${series.currency.name} (${user.Series[series.value]}/${User.limit.seriesPoint}) ${rewards.boostSeries}`;
+            var notifColorPoints = `${Color[color].emoji} ${rewards.color} ${color} points (${user.Color[color].point}/${User.Color.limit.point}) ${rewards.boostColor}`;
+            var notifSeriesPoints = `${series.emoji.mascot} ${rewards.series} ${series.currency.name} (${user.Series[series.value]}/${User.Series.limit.point}) ${rewards.boostSeries}`;
 
             arrEmbeds.push(Embed.builder(
                 `Hey we both went with ${ActJankenpon.jankenponData[rndJankenpon].icon} **${ActJankenpon.jankenponData[rndJankenpon].value}**! It's a draw!\nYou have another chance to use the jankenpon command.`,discordUser,
@@ -1114,7 +1058,7 @@ class ActMiniTsunagarus {
             if(stock<=-1){
                 var newTotal = await CardInventory.getPackTotal(userId, pack);//get new pack total
                 await spawner.messageCaptured();
-                await guild.removeSpawn();//remove spawn if new
+                guild.removeSpawn();//remove spawn if new
                 await paginationEmbed(interaction, rewardsCard.notifEmbedNewCard(discordUser, newTotal, {notifFront: txtNotifFront}),
                 DiscordStyles.Button.pagingButtonList);
             } else {
@@ -1456,7 +1400,7 @@ class ActSeries {
             if(stock<=-1){
                 var newTotal = await CardInventory.getPackTotal(userId, pack);//get new pack total
                 await spawner.messageCaptured();
-                await guild.removeSpawn();//remove spawn if new
+                guild.removeSpawn();//remove spawn if new
 
                 await paginationEmbed(interaction, rewardsCard.notifEmbedNewCard(discordUser, newTotal, {notifFront: txtNotifFront}),
                 DiscordStyles.Button.pagingButtonList);
@@ -1592,13 +1536,13 @@ class CardColor {
         return cardData;
     }
 
-    capture(userColor, refColorLevel){
+    capture(userColor, captureRateBonus){
         var catchRate = CardColor.catchRate[this.rarity];
         if(userColor==this.colorBonus){
             catchRate = CardColor.bonusCatchRate[this.rarity];
         }
 
-        catchRate+=User.getColorLevelBonus(refColorLevel);
+        catchRate+=captureRateBonus;
         var chance = GlobalFunctions.randomNumber(0, 100);
         return chance<catchRate ? true: false;
     }
@@ -1630,7 +1574,8 @@ class CardColor {
             user.peace_point-=cost;//update peace point
             txtBoostCapture = `${User.peacePoint.emoji} Boost capture has been used!\n`;
         } else {
-            captured = spawn.capture(user.set_color, user.Color[user.set_color].level);
+            var captureRateBonus = user.Color.getCaptureBonus(user.set_color);
+            captured = spawn.capture(user.set_color, captureRateBonus);
         }
 
         var rewardsCard = new RewardsCard(user, card);
@@ -1649,7 +1594,7 @@ class CardColor {
             if(stock<=-1){
                 var newTotal = await CardInventory.getPackTotal(userId, pack);
                 await spawner.messageCaptured();//remove spawned message
-                await guild.removeSpawn();//remove spawn if new
+                guild.removeSpawn();//remove spawn if new
                 return paginationEmbed(interaction, rewardsCard.notifEmbedNewCard(discordUser, newTotal, {notifFront:txtBoostCapture}),
                 DiscordStyles.Button.pagingButtonList);
             } else {
@@ -1792,7 +1737,7 @@ class Quiz {
             if(stock<=-1){
                 var newTotal = await CardInventory.getPackTotal(userId, pack);//get new pack total
                 await spawner.messageCaptured();
-                await guild.removeSpawn();//remove spawn if new
+                guild.removeSpawn();//remove spawn if new
                 await paginationEmbed(interaction, rewardsCard.notifEmbedNewCard(discordUser, newTotal, {notifFront: txtNotifFront}), 
                 DiscordStyles.Button.pagingButtonList);
             } else {
@@ -1949,7 +1894,7 @@ class NumberGuess {
             if(stock<=-1){
                 var newTotal = await CardInventory.getPackTotal(userId, pack);
                 await spawner.messageCaptured();
-                await guild.removeSpawn();//remove spawn if new
+                guild.removeSpawn();//remove spawn if new
                 await paginationEmbed(interaction, rewardsCard.notifEmbedNewCard(discordUser, newTotal, {notifFront:txtNotifFront}),DiscordStyles.Button.pagingButtonList);
             } else {
                 await interaction.reply({embeds:[
@@ -1966,8 +1911,8 @@ class NumberGuess {
             user.Series[series.value]+= rewards.series;//update series points on user
             user.validation();
 
-            var notifColorPoints = `${Color[color].emoji} ${rewards.color} ${color} points (${user.Color[color].point}/${User.limit.colorPoint}) ${rewards.boostColor}`;
-            var notifSeriesPoints = `${series.emoji.mascot} ${rewards.series} ${series.currency.name} (${user.Series[series.value]}/${User.limit.seriesPoint}) ${rewards.boostSeries}`;
+            var notifColorPoints = `${Color[color].emoji} ${rewards.color} ${color} points (${user.Color[color].point}/${User.Color.limit.point}) ${rewards.boostColor}`;
+            var notifSeriesPoints = `${series.emoji.mascot} ${rewards.series} ${series.currency.name} (${user.Series[series.value]}/${User.Series.limit.point}) ${rewards.boostSeries}`;
 
             await interaction.reply({embeds:[
                 Embed.builder(`The next hidden number was **${hiddenNumber}** and you guessed it: **${command}**\nIt's a draw!\nYou have another chance to use the number guess command.`,discordUser,

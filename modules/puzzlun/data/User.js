@@ -16,10 +16,250 @@ const UPDATE_KEY = [
     DBM_User_Data.columns.id_user,
 ];
 
+class Currency {
+    static arrCurrency = [GCurrency.mofucoin.value, GCurrency.jewel.value];
+    static limit = {
+        mofucoin:3000,
+        jewel:1000
+    }
+
+    mofucoin=0;
+    jewel=0;
+
+    constructor(currencyData){
+        for(var key in currencyData){
+            this[key] = currencyData[key];
+        }
+    }
+
+    validation(){
+        for(var key in Currency.arrCurrency){
+            var currency = Currency.arrCurrency[key];
+
+            //point
+            if(this[currency]<0) this[series]= 0;
+            if(this[currency]>Currency.limit[currency]) this[currency]= Currency.limit[currency];
+        }
+    }
+
+    getData(){
+        var currencyData = {};
+        for(var key in Currency.arrCurrency){
+            var currency = Currency.arrCurrency[key];
+            currencyData[currency] = this[currency];
+        }
+
+        return JSON.stringify(currencyData);
+    }
+}
+
+class Color {
+    // static arrColor = [ 
+    //     GColor.pink.value, GColor.blue.value, GColor.yellow.value, GColor.green.value,
+    //     GColor.red.value, GColor.purple.value, GColor.white.value
+    // ];
+    static arrColor = Object.keys(GColor);
+
+    static limit = Object.freeze({
+        level:50,
+        point:5000
+    });
+
+    pink = {level:1,point:0};
+    blue = {level:1,point:0};
+    yellow = {level:1,point:0};
+    green = {level:1,point:0};
+    red = {level:1,point:0};
+    purple = {level:1,point:0};
+    white = {level:1,point:0};
+    
+    constructor(colorData){
+        for(var key in colorData){
+            this[key] = colorData[key];
+        }
+    }
+
+    getAverageLevel(){
+        var total = 0;
+        var arrColor = [ 
+            this.pink.level, this.blue.level, this.yellow.level, this.green.level,
+            this.red.level, this.purple.level, this.white.level
+        ];
+        for(var i = 0; i < arrColor.length; i++) 
+            total += arrColor[i];
+        
+        return Math.ceil(total / arrColor.length);
+    }
+    
+    /**
+     * @param {string} color selected color in string
+     */
+    getLevel(color){
+        return this[color].level;
+    }
+
+    /**
+     * @param {string} color selected color in string
+     */
+    getPoint(color){
+        return this[color].point;
+    }
+
+    getNextLevelPoint(color, totalLevelUp=1){
+        return (this[color].level+totalLevelUp)*100;
+    }
+
+    getCaptureBonus(color){
+        return this[color].level>=2 ? this[color].level*2:0;
+    }
+
+    /**
+     * @param {string} color selected color in string
+     */
+    canLevelUp(color, totalLevelUp=1){
+        if(this[color].level>=Color.limit.level) return false;
+        return this[color].point>=this.getNextLevelPoint(color, totalLevelUp) ? 
+            true:false;
+    }
+
+    validation(){
+        for(var key in Color.arrColor){
+            var color = Color.arrColor[key];
+            //level
+            if(this[color].level>Color.limit.level) this[color].level= Color.limit.level;
+
+            //point
+            if(this[color].point<0) this[color].point= 0;
+            if(this[color].point>Color.limit.point) this[color].point= Color.limit.point;
+        }
+    }
+
+    /**
+     * @description get latest color data in stringified json
+     */
+    getData(){
+        var colorData = {};
+        for(var key in Color.arrColor){
+            var color = Color.arrColor[key];
+            colorData[color] = this[color];
+        }
+        return JSON.stringify(colorData);
+    }
+
+    static getEmoji(color){
+        return GColor[color].emoji;
+    }
+
+}
+
+class Series {
+    static arrSeries = [
+        SPack.max_heart.properties.value,
+        SPack.splash_star.properties.value,
+        SPack.yes5gogo.properties.value,
+        SPack.fresh.properties.value,
+        SPack.heartcatch.properties.value,
+        SPack.suite.properties.value,
+        SPack.smile.properties.value,
+        SPack.dokidoki.properties.value,
+        SPack.happiness_charge.properties.value,
+        SPack.go_princess.properties.value,
+        SPack.mahou_tsukai.properties.value,
+        SPack.kirakira.properties.value,
+        SPack.hugtto.properties.value,
+        SPack.star_twinkle.properties.value,
+        SPack.healin_good.properties.value,
+        SPack.tropical_rouge.properties.value,
+    ];
+
+    static limit = Object.freeze({
+        point:2000
+    })
+
+    max_heart=0; 
+    splash_star=0;
+    yes5gogo=0;
+    fresh=0;
+    heartcatch=0;
+    suite=0;
+    smile=0;
+    dokidoki=0;
+    happiness_charge=0;
+    go_princess=0;
+    mahou_tsukai=0;
+    kirakira=0;
+    hugtto=0;
+    star_twinkle=0;
+    healin_good=0;
+    tropical_rouge=0;
+
+    constructor(seriesData){
+        for(var key in seriesData){
+            this[key] = seriesData[key];
+        }
+    }
+
+    /**
+     * @param {string} series Series in string
+     */
+    getPoint(series){
+        return this[series];
+    }
+
+    validation(){
+        for(var key in Series.arrSeries){
+            var series = Series.arrSeries[key];
+
+            //point
+            if(this[series]<0) this[series]= 0;
+            if(this[series]>Series.limit.point) this[series]= Series.limit.point;
+        }
+    }
+
+    //get latest color data in stringified json
+    getData(){
+        var seriesData = {};
+        for(var key in Series.arrSeries){
+            var series = Series.arrSeries[key];
+            seriesData[series] = this[series];
+        }
+        return JSON.stringify(seriesData);
+    }
+}
+
 class User {
     //contains protected columns, used for constructor
     static tablename = DBM_User_Data.TABLENAME;
     static columns = DBM_User_Data.columns;
+
+    static Series = Series;
+    static Color = Color;
+    static Currency = Currency;
+
+    static peacePoint = {
+        emoji:"<:peacepoint:936238606660554773>",
+        name:"Peace Point"
+    }
+
+    static currency = {
+        mofucoin:"mofucoin",
+        jewel:"jewel"
+    }
+
+    static limit = Object.freeze({
+        // color:{
+        //     level:Color.limit.level,
+        //     point:Color.limit.point
+        // },
+        // series:{
+        //     point:Series.limit.point,
+        // },
+        peacePoint:6,
+        // currency:{
+        //     mofucoin:Currency.limit.mofucoin,
+        //     jewel:Currency.limit.jewel
+        // }
+    });
 
     id_user= null;
     server_id_login= null;
@@ -35,28 +275,6 @@ class User {
     Currency;
     Color;
     Series;
-
-    static peacePoint = {
-        emoji:"<:peacepoint:936238606660554773>",
-        name:"Peace Point"
-    }
-
-    static currency = {
-        mofucoin:"mofucoin",
-        jewel:"jewel"
-    }
-
-    static limit = Object.freeze({
-        colorLevel:30,
-        colorPoint:3000,
-        seriesPoint:2000,
-        peacePoint:6,
-        currency:{
-            mofucoin:3000,
-            jewel:1000
-        }
-    });
-    // limit = limit;
 
     constructor(userData){
         for(var key in userData){
@@ -130,9 +348,9 @@ class User {
         return this.last_checkIn_date==GlobalFunctions.getCurrentDate() ? true:false;
     }
 
-    static getColorLevelBonus(level){
-        return level>=2 ? level*3:0;
-    }
+    // static getColorLevelBonus(level){
+    //     return level>=2 ? level*3:0;
+    // }
 
     static getUserLevelBonus(level){
         return level>=2? level*5:0;
@@ -203,190 +421,6 @@ class User {
         await DB.update(User.tablename, paramSet, paramWhere);
     }
 
-}
-
-class Currency {
-    static arrCurrency = [GCurrency.mofucoin.value, GCurrency.jewel.value];
-
-    mofucoin=0;
-    jewel=0;
-
-    constructor(currencyData){
-        for(var key in currencyData){
-            this[key] = currencyData[key];
-        }
-    }
-
-    validation(){
-        for(var key in Currency.arrCurrency){
-            var currency = Currency.arrCurrency[key];
-
-            //point
-            if(this[currency]<0) this[series]= 0;
-            if(this[currency]>User.limit.currency[currency]) this[currency]= User.limit.currency[currency];
-        }
-    }
-
-    getData(){
-        var currencyData = {};
-        for(var key in Currency.arrCurrency){
-            var currency = Currency.arrCurrency[key];
-            currencyData[currency] = this[currency];
-        }
-
-        return JSON.stringify(currencyData);
-    }
-}
-
-class Color {
-    static arrColor = [ 
-        GColor.pink.value, GColor.blue.value, GColor.yellow.value, GColor.green.value,
-        GColor.red.value, GColor.purple.value, GColor.white.value
-    ];
-
-    pink = {level:1,point:0};
-    blue = {level:1,point:0};
-    yellow = {level:1,point:0};
-    green = {level:1,point:0};
-    red = {level:1,point:0};
-    purple = {level:1,point:0};
-    white = {level:1,point:0};
-    
-    constructor(colorData){
-        for(var key in colorData){
-            this[key] = colorData[key];
-        }
-    }
-
-    getAverageLevel(){
-        var total = 0;
-        var arrColor = [ 
-            this.pink.level, this.blue.level, this.yellow.level, this.green.level,
-            this.red.level, this.purple.level, this.white.level
-        ];
-        for(var i = 0; i < arrColor.length; i++) 
-            total += arrColor[i];
-        
-        return Math.ceil(total / arrColor.length);
-    }
-    
-    /**
-     * @param {string} color selected color in string
-     */
-    getLevel(color){
-        return this[color].level;
-    }
-
-    /**
-     * @param {string} color selected color in string
-     */
-    getPoint(color){
-        return this[color].point;
-    }
-
-    /**
-     * @param {string} color selected color in string
-     */
-    canLevelUp(color, totalLevelUp=1){
-        return this[color].point>(this[color].level+totalLevelUp)*100 ? 
-            true:false;
-    }
-
-    validation(){
-        for(var key in Color.arrColor){
-            var color = Color.arrColor[key];
-            //level
-            if(this[color].level>User.limit.colorLevel) this[color].level= User.limit.colorLevel;
-
-            //point
-            if(this[color].point<0) this[color].point= 0;
-            if(this[color].point>User.limit.colorPoint) this[color].point= User.limit.colorPoint;
-        }
-    }
-
-    /**
-     * @description get latest color data in stringified json
-     */
-    getData(){
-        var colorData = {};
-        for(var key in Color.arrColor){
-            var color = Color.arrColor[key];
-            colorData[color] = this[color];
-        }
-        return JSON.stringify(colorData);
-    }
-
-}
-
-class Series {
-    static arrSeries = [
-        SPack.max_heart.properties.value,
-        SPack.splash_star.properties.value,
-        SPack.yes5gogo.properties.value,
-        SPack.fresh.properties.value,
-        SPack.heartcatch.properties.value,
-        SPack.suite.properties.value,
-        SPack.smile.properties.value,
-        SPack.dokidoki.properties.value,
-        SPack.happiness_charge.properties.value,
-        SPack.go_princess.properties.value,
-        SPack.mahou_tsukai.properties.value,
-        SPack.kirakira.properties.value,
-        SPack.hugtto.properties.value,
-        SPack.star_twinkle.properties.value,
-        SPack.healin_good.properties.value,
-        SPack.tropical_rouge.properties.value,
-    ]; 
-
-    max_heart=0; 
-    splash_star=0;
-    yes5gogo=0;
-    fresh=0;
-    heartcatch=0;
-    suite=0;
-    smile=0;
-    dokidoki=0;
-    happiness_charge=0;
-    go_princess=0;
-    mahou_tsukai=0;
-    kirakira=0;
-    hugtto=0;
-    star_twinkle=0;
-    healin_good=0;
-    tropical_rouge=0;
-
-    constructor(seriesData){
-        for(var key in seriesData){
-            this[key] = seriesData[key];
-        }
-    }
-
-    /**
-     * @param {string} series Series in string
-     */
-    getPoint(series){
-        return this[series];
-    }
-
-    validation(){
-        for(var key in Series.arrSeries){
-            var series = Series.arrSeries[key];
-
-            //point
-            if(this[series]<0) this[series]= 0;
-            if(this[series]>User.limit.seriesPoint) this[series]= User.limit.seriesPoint;
-        }
-    }
-
-    //get latest color data in stringified json
-    getData(){
-        var seriesData = {};
-        for(var key in Series.arrSeries){
-            var series = Series.arrSeries[key];
-            seriesData[series] = this[series];
-        }
-        return JSON.stringify(seriesData);
-    }
 }
 
 module.exports = User;

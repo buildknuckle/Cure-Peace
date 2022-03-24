@@ -14,12 +14,6 @@ const Color = Properties.color;
 const Currency = Properties.currency;
 const Emoji = Properties.emoji;
 
-const DBM_Card_Data = require('../../database/model/DBM_Card_Data');
-const DBM_Card_Inventory = require('../../database/model/DBM_Card_Inventory');
-// const DBM_User_Data = require('../../database/model/DBM_User_Data');
-// const DBM_Guild_Data = require('../../database/model/DBM_Guild_Data');
-
-// const Data = require("./Data");
 const User = require("./data/User");
 const Card = require("./data/Card");
 const CardInventory = require("./data/CardInventory");
@@ -28,10 +22,6 @@ const {AvatarFormation, PrecureAvatar} = require("./data/Avatar");
 
 // const CpackModule = require("./Cpack");
 const {Series, SPack} = require("./data/Series");
-const {Character } = require('./data/Character');
-
-const CardModule = require('./card');
-// const QuestModule = require('./Quest');
 
 const Embed = require("./Embed");
 
@@ -40,98 +30,13 @@ class Validation extends require("./Validation") {
 }
 
 class EventListener {
-    static async printInventory(discordUser, pack, interaction, isPrivate){
-        var userId = discordUser.id;
-        var arrPages = []; //prepare paging embed
-        
-        //validation if pack exists/not
-        var cardDataInventory = await CardInventory.getDataByPack(userId, pack);
-        if(cardDataInventory==null){
-            return interaction.reply(Validation.Pack.embedNotFound(discordUser));
-        }
-
-        var total = {
-            normal: cardDataInventory.filter(
-                function (item) {
-                    return item[DBM_Card_Inventory.columns.id_user] != null;
-                }
-            ).length,
-            gold: cardDataInventory.filter(
-                function (item) {
-                    return item[DBM_Card_Inventory.columns.is_gold] == 1;
-                }
-            ).length,
-            duplicate: GlobalFunctions.sumObjectByKey(cardDataInventory.filter(
-                function (item) {
-                    return item[DBM_Card_Inventory.columns.stock]>0;
-                }
-            ), DBM_Card_Inventory.columns.stock)
-        };
-
-        //process first card info
-        var cardInfo = new CardInventory(cardDataInventory[0], cardDataInventory[0]);
-        var character = new Character(cardInfo.pack);
-        var alterEgo = character.alter_ego;
-        var color = cardInfo.color;
-        var icon = character.icon;
-        var iconColor = Color[color].emoji;
-        var series = new Series(cardInfo.series);
-        var iconSeries = series.emoji.mascot;
-        var maxPack = cardInfo.packTotal;
-            
-        var arrFields = [];
-        var idx = 0; var maxIdx = 4; var txtInventory = ``;
-        for(var i=0;i<cardDataInventory.length;i++){
-            var card = new CardInventory(cardDataInventory[i], cardDataInventory[i]);
-            let id = card.id_card; let level = card.level;
-            let img = card.img_url;
-            let displayName = `[${GlobalFunctions.cutText(card.name,30)}](${img})`;
-            let stock = card.stock;
-            let rarity = card.rarity;
-            let hp = card.maxHp;
-            let atk = card.atk;
-            let maxSp = CardInventory.parameter.maxSp(color);
-
-            if(card.isHaveCard()){
-                txtInventory+=`**${Card.emoji.rarity(rarity)}${rarity}: ${id}** ${Color[color].emoji_card}x${stock}\n`;
-                // txtInventory+=`${displayName} \n\n`;
-                txtInventory+=`${displayName} **Lv.${level}**\n${CardInventory.emoji.hp} Hp: ${hp} | ${CardInventory.emoji.atk} Atk: ${atk} | ${CardInventory.emoji.sp} Max Sp: ${maxSp}\n`;
-                txtInventory+=`─────────────────\n`;
-            } else {
-                txtInventory+=`**${Card.emoji.rarity(rarity)}${rarity}: ???**\n???\n`;
-                txtInventory+=`─────────────────\n`;
-            }
-            
-            //check for max page content
-            if(idx>maxIdx||(idx<maxIdx && i==cardDataInventory.length-1)){
-                let embed = 
-                Embed.builder(
-                    `**Normal:** ${total.normal}/${maxPack} | **Gold:** ${total.gold}/${maxPack}\n${Color[color].emoji_card}x${total.duplicate}/${maxPack*CardInventory.limit.card}\n`+
-                    `\n${txtInventory}`,discordUser,{
-                    color:Embed.color[color],
-                    title:`${iconSeries} ${GlobalFunctions.capitalize(character.name)}/${alterEgo} Inventory:`,
-                    thumbnail:icon,
-                    // fields:arrFields
-                })
-
-                arrPages.push(embed);
-                arrFields = []; txtInventory="";
-                idx = 0;
-            } else {
-                idx++;
-            }
-        }
-
-        return paginationEmbed(interaction,arrPages,DiscordStyles.Button.pagingButtonList, isPrivate);
-    }
-
-    static async printStatus(discordUser, guildId){
+    static async printStatus(discordUser){
         var userId = discordUser.id;
         //init embed
         var arrPages = []; //prepare paging embed
     
-        var userData = new User(await User.getData(userId));
-        var userLevel = userData.getAverageColorLevel();//average color level
+        var user = new User(await User.getData(userId));
+        var userLevel = user.getAverageColorLevel();//average color level
         var userQuest = new UserQuest(await UserQuest.getData(userId));
     
         //init the object
@@ -145,20 +50,20 @@ class EventListener {
             white:{}
         };
 
-        var query = `select cd.${DBM_Card_Data.columns.pack}, count(inv.${DBM_Card_Inventory.columns.id_user}) as total, 
-        cd.${DBM_Card_Data.columns.color}, cd.${DBM_Card_Data.columns.series} 
-        from ${DBM_Card_Data.TABLENAME} cd 
-        left join ${DBM_Card_Inventory.TABLENAME} inv 
-        on cd.${DBM_Card_Data.columns.id_card}=inv.${DBM_Card_Inventory.columns.id_card} and 
-        inv.${DBM_Card_Inventory.columns.id_user}=? 
-        group by cd.${DBM_Card_Data.columns.pack}`;
+        var query = `select cd.${Card.columns.pack}, count(inv.${CardInventory.columns.id_user}) as total, 
+        cd.${Card.columns.color}, cd.${Card.columns.series} 
+        from ${Card.tablename} cd 
+        left join ${CardInventory.tablename} inv 
+        on cd.${Card.columns.id_card}=inv.${CardInventory.columns.id_card} and 
+        inv.${CardInventory.columns.id_user}=? 
+        group by cd.${Card.columns.pack}`;
         
-        var queryGold = `select cd.${DBM_Card_Data.columns.pack}, count(inv.${DBM_Card_Inventory.columns.id_user}) as total_gold, cd.${DBM_Card_Data.columns.color}, cd.${DBM_Card_Data.columns.series} 
-        from ${DBM_Card_Data.TABLENAME} cd
-        left join ${DBM_Card_Inventory.TABLENAME} inv 
-        on cd.${DBM_Card_Data.columns.id_card}=inv.${DBM_Card_Inventory.columns.id_card} and 
-        inv.${DBM_Card_Inventory.columns.id_user}=? and inv.${DBM_Card_Inventory.columns.is_gold}=1 
-        group by cd.${DBM_Card_Data.columns.pack}`;
+        var queryGold = `select cd.${Card.columns.pack}, count(inv.${CardInventory.columns.id_user}) as total_gold, cd.${Card.columns.color}, cd.${Card.columns.series} 
+        from ${Card.tablename} cd
+        left join ${CardInventory.tablename} inv 
+        on cd.${Card.columns.id_card}=inv.${CardInventory.columns.id_card} and 
+        inv.${CardInventory.columns.id_user}=? and inv.${CardInventory.columns.is_gold}=1 
+        group by cd.${Card.columns.pack}`;
 
         var cardDataInventory = await DBConn.conn.query(query, [userId]);
         var cardDataInventoryGold = await DBConn.conn.query(queryGold, [userId]);
@@ -181,19 +86,26 @@ class EventListener {
     
         //prepare the embed
         //avatar
-        var setColor = userData.set_color;
-        var setSeries = userData.set_series;
+        var setColor = user.set_color;
+        var setSeries = user.set_series;
 
         var seriesData = new Series(setSeries);
+        if(!user.hasLogin()){
+            var txtDailyCardQuest = `not checked in yet`;
+        } else if(userQuest.DailyCardQuest.getTotal()>1) {
+            var txtDailyCardQuest = `${userQuest.DailyCardQuest.getTotal()}/${DailyCardQuest.max}`;
+        } else {
+            var txtDailyCardQuest = ` completed ✅`;
+        }
     
         //prepare the embed
         var txtMainStatus = dedent(`${seriesData.emoji.mascot} **Location:** ${seriesData.location.name} @${seriesData.name}
-        ${User.peacePoint.emoji} **${User.peacePoint.name}:** ${userData.peace_point}/${User.limit.peacePoint}
-        ${Emoji.mofuheart} **Daily Card Quest:** ${userQuest.DailyCardQuest.getTotal()}/${DailyCardQuest.max}
+        ${User.peacePoint.emoji} **${User.peacePoint.name}:** ${user.peace_point}/${User.limit.peacePoint}
+        ${Emoji.mofuheart} **Daily Card Quest:** ${txtDailyCardQuest}
 
         **Currency:**
-        ${Currency.mofucoin.emoji} **Mofucoin:** ${userData.Currency.mofucoin}/${User.limit.currency.mofucoin} 
-        ${Currency.jewel.emoji} **Jewel:** ${userData.Currency.jewel}/${User.limit.currency.jewel}`);
+        ${Currency.mofucoin.emoji} **Mofucoin:** ${user.Currency.mofucoin}/${User.Currency.limit.mofucoin} 
+        ${Currency.jewel.emoji} **Jewel:** ${user.Currency.jewel}/${User.Currency.limit.jewel}`);
 
         var author = Embed.builderUser.author(discordUser, `${discordUser.username} (Lvl. ${userLevel})`);
         var objEmbed = Embed.builder(txtMainStatus, author, {
@@ -201,36 +113,36 @@ class EventListener {
             color:Embed.color[setColor],
             thumbnail:seriesData.icon,
             fields: [
-                {name: dedent(`${Color.pink.emoji} ${capitalize(Color.pink.value)} Lvl. ${userData.Color.getLevel(Color.pink.value)}
-                ${userData.Color.canLevelUp(Color.pink.value) ? "🆙":""} ${userData.Color.getPoint(Color.pink.value)} Pts`),
+                {name: dedent(`${Color.pink.emoji} ${capitalize(Color.pink.value)} Lvl. ${user.Color.getLevel(Color.pink.value)}
+                ${user.Color.canLevelUp(Color.pink.value) ? "🆙":""} ${user.Color.getPoint(Color.pink.value)} Pts`),
                 value: ``,inline:true},
 
-                {name: dedent(`${Color.blue.emoji} ${capitalize(Color.blue.value)} Lvl. ${userData.Color.getLevel(Color.blue.value)}
-                ${userData.Color.canLevelUp(Color.blue.value) ? "🆙":""} ${userData.Color.getPoint(Color.blue.value)} Pts`),
+                {name: dedent(`${Color.blue.emoji} ${capitalize(Color.blue.value)} Lvl. ${user.Color.getLevel(Color.blue.value)}
+                ${user.Color.canLevelUp(Color.blue.value) ? "🆙":""} ${user.Color.getPoint(Color.blue.value)} Pts`),
                 value: ``,inline:true},
                 
-                {name: dedent(`${Color.yellow.emoji} ${capitalize(Color.yellow.value)} Lvl. ${userData.Color.getLevel(Color.yellow.value)}
-                ${userData.Color.canLevelUp(Color.yellow.value) ? "🆙":""} ${userData.Color.getPoint(Color.yellow.value)} Pts`),
+                {name: dedent(`${Color.yellow.emoji} ${capitalize(Color.yellow.value)} Lvl. ${user.Color.getLevel(Color.yellow.value)}
+                ${user.Color.canLevelUp(Color.yellow.value) ? "🆙":""} ${user.Color.getPoint(Color.yellow.value)} Pts`),
                 value: ``,inline:true},
 
-                {name: dedent(`${Color.purple.emoji} ${capitalize(Color.purple.value)} Lvl. ${userData.Color.getLevel(Color.purple.value)}
-                ${userData.Color.canLevelUp(Color.purple.value) ? "🆙":""} ${userData.Color.getPoint(Color.purple.value)} Pts`),
+                {name: dedent(`${Color.purple.emoji} ${capitalize(Color.purple.value)} Lvl. ${user.Color.getLevel(Color.purple.value)}
+                ${user.Color.canLevelUp(Color.purple.value) ? "🆙":""} ${user.Color.getPoint(Color.purple.value)} Pts`),
                 value: ``,inline:true},
 
-                {name: dedent(`${Color.red.emoji} ${capitalize(Color.red.value)} Lvl. ${userData.Color.getLevel(Color.red.value)}
-                ${userData.Color.canLevelUp(Color.red.value) ? "🆙":""} ${userData.Color.getPoint(Color.red.value)} Pts`),
+                {name: dedent(`${Color.red.emoji} ${capitalize(Color.red.value)} Lvl. ${user.Color.getLevel(Color.red.value)}
+                ${user.Color.canLevelUp(Color.red.value) ? "🆙":""} ${user.Color.getPoint(Color.red.value)} Pts`),
                 value: ``,inline:true},
 
-                {name: dedent(`${Color.green.emoji} ${capitalize(Color.green.value)} Lvl. ${userData.Color.getLevel(Color.green.value)}
-                ${userData.Color.canLevelUp(Color.green.value) ? "🆙":""} ${userData.Color.getPoint(Color.green.value)} Pts`),
+                {name: dedent(`${Color.green.emoji} ${capitalize(Color.green.value)} Lvl. ${user.Color.getLevel(Color.green.value)}
+                ${user.Color.canLevelUp(Color.green.value) ? "🆙":""} ${user.Color.getPoint(Color.green.value)} Pts`),
                 value: ``,inline:true},
 
-                {name: dedent(`${Color.white.emoji} ${capitalize(Color.white.value)} Lvl. ${userData.Color.getLevel(Color.white.value)}
-                ${userData.Color.canLevelUp(Color.white.value) ? "🆙":""} ${userData.Color.getPoint(Color.white.value)} Pts`),
+                {name: dedent(`${Color.white.emoji} ${capitalize(Color.white.value)} Lvl. ${user.Color.getLevel(Color.white.value)}
+                ${user.Color.canLevelUp(Color.white.value) ? "🆙":""} ${user.Color.getPoint(Color.white.value)} Pts`),
                 value: ``,inline:true},
             ],
             footer:{
-                text:`Page 1 / 5 | Daily checked in: ${userData.hasLogin() ? `✅`:`❌`} `
+                text:`Page 1 / 5 | Daily checked in: ${user.hasLogin() ? `✅`:`❌`} `
             }
         });
     
@@ -256,10 +168,10 @@ class EventListener {
 
         for(var key in SPack){
             let series = new Series(key);
-            if(series.value==userData.set_series){
-                objEmbed.description+=`**${series.emoji.mascot} ${userData.Series.getPoint(series.value)}/${User.limit.seriesPoint} ${series.getCurrencyName()} (${series.name})**\n`;
+            if(series.value==user.set_series){
+                objEmbed.description+=`**${series.emoji.mascot} ${user.Series.getPoint(series.value)}/${User.Series.limit.point} ${series.getCurrencyName()} (${series.name})**\n`;
              }else {
-                objEmbed.description+=`${series.emoji.mascot} ${userData.Series.getPoint(series.value)}/${User.limit.seriesPoint} ${series.getCurrencyName()} (${series.name})\n`;
+                objEmbed.description+=`${series.emoji.mascot} ${user.Series.getPoint(series.value)}/${User.Series.limit.point} ${series.getCurrencyName()} (${series.name})\n`;
             }
         }
         
@@ -278,21 +190,21 @@ class EventListener {
             { name: `${Color.white.emoji_card} White:`, value: ``, inline: true }
         ];
 
-        var queryDuplicate = `select cd.${DBM_Card_Data.columns.pack}, sum(inv.${DBM_Card_Inventory.columns.stock}) as total, 
-        cd. ${DBM_Card_Data.columns.color}
-        from ${DBM_Card_Data.TABLENAME} cd
-        left join ${DBM_Card_Inventory.TABLENAME} inv
-        on cd.${DBM_Card_Data.columns.id_card}=inv.${DBM_Card_Inventory.columns.id_card} and
-        inv.${DBM_Card_Inventory.columns.id_user}=? and
-        inv.${DBM_Card_Inventory.columns.stock}>=1
-        where inv.${DBM_Card_Inventory.columns.stock}>=1 
-        group by cd.${DBM_Card_Data.columns.pack}`;
+        var queryDuplicate = `select cd.${Card.columns.pack}, sum(inv.${CardInventory.columns.stock}) as total, 
+        cd. ${Card.columns.color}
+        from ${Card.tablename} cd
+        left join ${CardInventory.tablename} inv
+        on cd.${Card.columns.id_card}=inv.${CardInventory.columns.id_card} and
+        inv.${CardInventory.columns.id_user}=? and
+        inv.${CardInventory.columns.stock}>=1
+        where inv.${CardInventory.columns.stock}>=1 
+        group by cd.${Card.columns.pack}`;
     
         var cardDataInventory = await DBConn.conn.query(queryDuplicate, [discordUser.id]);
         //reassign total into duplicate total
         for(var i=0;i<cardDataInventory.length;i++){
-            var pack = cardDataInventory[i][DBM_Card_Data.columns.pack];
-            var color = cardDataInventory[i][DBM_Card_Data.columns.color];
+            var pack = cardDataInventory[i][Card.columns.pack];
+            var color = cardDataInventory[i][Card.columns.color];
             var objData = objCardInventory[color][pack];
 
             var cardInventory = new CardInventory(objData,objData);
@@ -386,58 +298,10 @@ class EventListener {
         return arrPages;
     }
 
-    static async printDetail(objUserData, idCard, interaction, isPrivate=true){
-        var userId = objUserData.id;
-        //print card detail
-        var arrPages = []; //prepare paging embed
-        var cardData = await CardModule.getCardData(idCard);
-        var cardInventoryData = await CardModule.Inventory.getData(userId, idCard);
-        if(!cardData){
-            return interaction.reply(Embed.notifCardDataNotFound(objUserData));
-        } else if(!cardInventoryData){
-            return interaction.reply(Embed.notifNotOwnCard(objUserData));
-        }
+    static async levelUpColor(){
 
-        var idCard = cardData[DBM_Card_Data.columns.id_card];
-        var name = cardData[DBM_Card_Data.columns.name];
-        var rarity = cardData[DBM_Card_Data.columns.rarity];
-        var pack = cardData[DBM_Card_Data.columns.pack];
-        var color = CpackModule[pack].Properties.color;
-        var img = CardModule.Modifier.img(cardInventoryData, cardData);
-        var series = CpackModule[pack].Properties.series;
-        var createdDate = GlobalFunctions.convertDateTime(cardInventoryData[DBM_Card_Inventory.columns.created_at]);
-
-        var level = cardInventoryData[DBM_Card_Inventory.columns.level];
-        var hp = Avatar.Parameter.getHp(level, cardData[DBM_Card_Data.columns.hp_base]);
-        var atk = Avatar.Parameter.getAtk(level, cardData[DBM_Card_Data.columns.atk_base]);
-        var spMax = Avatar.Parameter.getSp(color);
-
-        var cureData = CpackModule[pack].Avatar.normal;
-
-        arrPages.push(Embed.builder(
-        dedent(`**${rarity}${CardModule.Emoji.rarity(rarity, cardInventoryData)} Level:** ${level}/${Avatar.Parameter.getMaxLevel(rarity)} | **Next EXP:** ${Avatar.Parameter.getNextExp(level)}P
-        **Passive Skill:**
-        ${Avatar.Skill.getPassiveSkillLabel(level, pack)}
-
-        **Battle Stats:**
-        ❤️: ${hp} | ⚔️: ${atk} 
-        🌟 SP Max: ${spMax} 
-        💖 **Special:** ${CpackModule[pack].Avatar.normal.special_attack}`),
-        {
-            username:`${cureData.name}`,
-            avatarUrl:cureData.icon
-        },{
-            color:color,
-            image:img,
-            title:`${name}`,
-            footer:{
-                text:`Received at: ${createdDate}`,
-                iconURL:objUserData.avatarUrl
-            }
-        }));
-
-        paginationEmbed(interaction, arrPages, DiscordStyles.Button.pagingButtonList, isPrivate);
     }
+
 }
 
 module.exports = {EventListener}

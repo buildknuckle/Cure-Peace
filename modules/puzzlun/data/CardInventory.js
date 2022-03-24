@@ -292,9 +292,9 @@ class CardInventory extends DataCard {
         if(cardInventoryData==null) return null;
 
         for(var key in cardInventoryData){
-            if(key==DBM_Card_Inventory.columns.created_at){
+            if(key==DBM_Card_Inventory.columns.received_at){
                 this.received_at = GlobalFunctions.convertDateTime(
-                    cardInventoryData[DBM_Card_Inventory.columns.created_at]
+                    cardInventoryData[DBM_Card_Inventory.columns.received_at]
                 );
             } else {
                 this[key] = cardInventoryData[key];
@@ -524,8 +524,12 @@ class CardInventory extends DataCard {
         return false;
     }
 
-    getRarityEmoji(){
-        return CardInventory.emoji.rarity(this.is_gold, this.rarity);
+    /**
+     * @param {boolean} isOriginal if true: will return original rarity format with non gold checking
+     */
+    getRarityEmoji(isOriginal=false){
+        return isOriginal ? 
+        CardInventory.emoji.rarity(false, this.rarity) : CardInventory.emoji.rarity(this.is_gold, this.rarity);
     }
 
     getImgDisplay(){

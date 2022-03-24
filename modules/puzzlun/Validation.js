@@ -35,17 +35,6 @@ class User {
     
         return discordUser;
     }
-
-    static embedIsLogin(objUserData, guildId){
-        var userId = objUserData.id;
-        if(!GuildModule.Data.userLogin[guildId].includes(userId)){
-            return Embed.errorMini(`Please login into server with: "**/daily check-in**" command.`,objUserData,true, {
-                title:`❌ Not logged in yet!`
-            });
-        } else {
-            return true;
-        }
-    }
 }
 
 class Pack {

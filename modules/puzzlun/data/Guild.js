@@ -79,12 +79,11 @@ class Guild {
         Guild.setData(this.id_guild, this);
     }
 
-    async removeSpawn(){
+    removeSpawn(){
         this.spawner.token = null;
         this.spawner.type = null;
         this.spawner.spawn = null;
         this.updateData();
-        await this.updateDb();
     }
 
     //store to db:

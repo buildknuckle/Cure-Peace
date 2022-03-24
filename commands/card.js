@@ -1,8 +1,9 @@
-const {MessageActionRow, MessageSelectMenu, MessageButton, MessageEmbed, Discord, User} = require('discord.js');
+const {MessageActionRow, MessageSelectMenu, MessageButton, MessageEmbed, Discord} = require('discord.js');
 const DB = require('../database/DatabaseCore');
 const DBConn = require('../storage/dbconn');
 const DiscordStyles = require('../modules/DiscordStyles');
 const GlobalFunctions = require('../modules/GlobalFunctions');
+const capitalize = GlobalFunctions.capitalize;
 
 const paginationEmbed = require('../modules/DiscordPagination');
 
@@ -17,6 +18,10 @@ const UserModule = require("../modules/puzzlun/User");
 const Validation = require("../modules/puzzlun/Validation");
 const SpawnerModule = require("../modules/puzzlun/data/Spawner");
 const Spawner = SpawnerModule.Spawner;
+const Properties = require("../modules/puzzlun/Properties");
+const Color = Properties.color;
+const User = require("../modules/puzzlun/data/User");
+const Embed = require("../modules/puzzlun/Embed");
 // const SpawnerEventListener = SpawnerModule.EventListener;
 // const EventListener = require("../modules/puzzlun/EventListener");
 
@@ -113,9 +118,59 @@ module.exports = {
                     required: true
                 },
                 {
-                    name: "visible-public",
-                    description: "Set the henshin notification to be shown on public (Default: false)",
+                    name: "visible-private",
+                    description: "Set the henshin notification to be shown privately (Default: false)",
                     type: 5
+                },
+            ]
+        },
+        {
+            name:"upgrade",
+            description: "Card upgrade command",
+            type: 2,
+            options:[
+                {
+                    name: "color-level",
+                    description: "Upgrade your color level",
+                    type: 1,
+                    options: [
+                        {
+                            name: "selection",
+                            description: "Choose the color selection that you want to level up",
+                            type: 3,
+                            required: true,
+                            choices:[
+                                {
+                                    name:"pink",
+                                    value:"pink"
+                                },
+                                {
+                                    name:"blue",
+                                    value:"blue"
+                                },
+                                {
+                                    name:"red",
+                                    value:"red"
+                                },
+                                {
+                                    name:"yellow",
+                                    value:"yellow"
+                                },
+                                {
+                                    name:"green",
+                                    value:"green"
+                                },
+                                {
+                                    name:"purple",
+                                    value:"purple"
+                                },
+                                {
+                                    name:"white",
+                                    value:"white"
+                                },
+                            ]
+                        }
+                    ]
                 },
             ]
         }
@@ -146,49 +201,82 @@ module.exports = {
                         break;
                 }
                 break;
+            case "upgrade":
+                switch(commandSubcommand){
+                    case "color-level":
+                        var colorSelection = interaction.options.getString("selection");
+                        var user = new User(await User.getData(userId));
+                        var costPoint = user.Color.getNextLevelPoint(colorSelection);
+                        var nextLevel = user.Color[colorSelection].level+1;
+
+                        if(!user.Color.canLevelUp(colorSelection)){//validation: not enough color points
+                            return interaction.reply(
+                                Embed.errorMini(`${User.Color.getEmoji(colorSelection)} ${costPoint} ${colorSelection} points are required to level up into ${nextLevel}`, discordUser, true, {
+                                    title:`❌ Not enough ${colorSelection} points`
+                                })
+                            );
+                        }
+                        
+                        user.Color[colorSelection].point-=costPoint;
+                        user.Color[colorSelection].level+=1;
+                        await user.update();
+
+                        var costPoint = user.Color.getNextLevelPoint(colorSelection);//reassign level point
+
+                        var colorEmoji = User.Color.getEmoji(colorSelection);
+                        return interaction.reply({
+                            embeds:[
+                                Embed.builder(`Your ${colorEmoji} **${colorSelection}** color is now level **${user.Color[colorSelection].level}**!`, discordUser, {
+                                    color: colorSelection,
+                                    title: `🆙 ${capitalize(colorSelection)} color level up!`,
+                                    thumbnail: Embed.builderUser.getAvatarUrl(discordUser),
+                                    fields:[
+                                        {
+                                            name:`Base ${colorSelection} capture bonus:`,
+                                            value:`${Color[colorSelection].emoji_card} +${user.Color.getCaptureBonus(colorSelection)}% chance`,
+                                        },
+                                        {
+                                            name:`Next level with:`,
+                                            value:`${colorEmoji} ${costPoint} ${colorSelection} points`,
+                                        }
+                                    ]
+                                })
+                            ]}
+                        );
+
+                        break;
+                }
+                break;
         }
 
         if(command!==null) return;
 
         switch(commandSubcommand){
             case "status":
-                var parameterUsername = interaction.options._hoistedOptions.hasOwnProperty(0) ? 
-                interaction.options._hoistedOptions[0].value : null;
+                var username = interaction.options.getString("username");
                 
-                var userSearchResult = await Validation.User.isAvailable(discordUser, parameterUsername, interaction);
+                var userSearchResult = await Validation.User.isAvailable(discordUser, username, interaction);
                 if(!userSearchResult) return; else discordUser = userSearchResult;
                 
-                var arrPages = await UserModule.EventListener.printStatus(discordUser, guildId);
-                paginationEmbed(interaction,arrPages,DiscordStyles.Button.pagingButtonList, parameterUsername==null?true:false);
+                var arrPages = await UserModule.EventListener.printStatus(discordUser);
+                paginationEmbed(interaction,arrPages,DiscordStyles.Button.pagingButtonList, username==null?true:false);
                 break;
             case "detail":
-                var cardId = interaction.options._hoistedOptions[0].value.toLowerCase();
-                var isPrivate = interaction.options._hoistedOptions.hasOwnProperty(1) ? 
-                interaction.options._hoistedOptions[1].value:true;
+                var cardId = interaction.options.getString("card-id");
+                var isPrivate = interaction.options.getBoolean("visible-private") !== null? 
+                interaction.options.getBoolean("visible-private"):false;
                 return await CardModule.EventListener.printDetail(discordUser, cardId, interaction, isPrivate);
                 break;
             case "inventory":
-                var pack = interaction.options._hoistedOptions[0].value;
-                var parameterUsername = interaction.options._hoistedOptions.hasOwnProperty(1) ? 
-                interaction.options._hoistedOptions[1].value : null;
+                var pack = interaction.options.getString("card-pack");
+                var parameterUsername = interaction.options.getString("username");
 
                 var userSearchResult = await Validation.User.isAvailable(discordUser, parameterUsername, interaction);
                 if(!userSearchResult) return; else discordUser = userSearchResult;
 
-                await UserModule.EventListener.printInventory(discordUser, pack, interaction, parameterUsername==null?true:false);
-                // paginationEmbed(interaction,arrPages,DiscordStyles.Button.pagingButtonList, parameterUsername==null?true:false);
+                await CardModule.EventListener.printInventory(discordUser, pack, interaction, parameterUsername==null?true:false);
                 break;
         }
-
-        // var objSpawn = await CardModule.Spawner.spawnNormal(guildId);
-        // await interaction.reply({embeds:[objSpawn.embed],components:objSpawn.components});
-
-        // switch(command){
-        //     //STATUS MENU: open card status
-        //     case "test":
-        //         await interaction.reply("ok");
-        //         break;
-        // }
     },
 
     async executeComponentButton(interaction){

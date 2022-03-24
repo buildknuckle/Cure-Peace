@@ -137,22 +137,18 @@ module.exports = {
                             var rarity = card.rarity;
                             var rewards = DailyCardQuest.reward[rarity];
 
-                            var txtReward = `${Properties.currency.mofucoin.emoji} ${rewards.mofucoin}, `;
-                            txtReward += `${Color[card.color].emoji} ${rewards.color}, `;
-                            txtReward += `${new Series(card.series).emoji.mascot} ${rewards.series}, `;
-                            if("jewel" in rewards){
-                                txtReward += `${Properties.currency.jewel.emoji} ${rewards.jewel}`;
-                            }
+                            var txtReward = `${Properties.currency.mofucoin.emoji} ${rewards.mofucoin}, `;//mofucoin
+                            txtReward += `${card.getColorEmoji()} ${rewards.color}, `;//color point
+                            txtReward += `${card.Series.emoji.mascot} ${rewards.series}, `;//series point
+                            if("jewel" in rewards) txtReward += `${Properties.currency.jewel.emoji} ${rewards.jewel}`;//jewel
                             txtReward = txtReward.replace(/,\s*$/, "");
 
-                            txtCardQuest+=dedent(`${CardInventory.emoji.rarity(false, card.rarity)}${card.rarity}: ${card.id_card} - ${GlobalFunctions.cutText(card.name,18)}`);
+                            txtCardQuest+=dedent(`${card.getRarityEmoji()}${card.rarity}: ${card.id_card} - ${card.getName(18)}`);
                             
                             var cardInventoryData = await CardInventory.getDataByIdUser(userId, card.id_card);
                             if(cardInventoryData!=null){
                                 var cardInventory = new CardInventory(cardInventoryData, dailyCardQuest.arrCardData[key]);
-                                if(cardInventory.stock>=1){
-                                    txtCardQuest+=` (✅ Available)`;
-                                }
+                                if(cardInventory.stock>=1) txtCardQuest+=` ❗`
                             }
                             txtCardQuest+=`\n**Reward:**  ${txtReward}\n\n`;
                         }
@@ -163,7 +159,7 @@ module.exports = {
                             embeds:[Embed.builder(dedent(`Submit any of these card to receive various rewards: 
 
                             ${txtCardQuest}`), discordUser, {
-                                title:`Daily Card Quest (${dailyCardQuest.getTotal()}/${DailyCardQuest.max})`,
+                                title:`Daily card quest (${dailyCardQuest.getTotal()}/${DailyCardQuest.max})`,
                                 thumbnail:Properties.imgSet.mofu.ok,
                                 footer:Embed.builderUser.footer(`Submit the card quest with: /daily quest submit`)
                             })]
@@ -210,7 +206,7 @@ module.exports = {
                         await userQuest.update();//update quest data
                         
                         var rarity = cardInventory.rarity;
-                        var series = new Series(cardInventory.series);
+                        var series = cardInventory.Series;
                         
                         //distribute rewards
                         var reward = DailyCardQuest.reward[rarity];
@@ -224,27 +220,27 @@ module.exports = {
                         await user.update();//validate & update user data
 
                         
-                        var txtReward = `${Properties.currency.mofucoin.emoji} ${reward.mofucoin} mofucoin (${user.Currency.mofucoin}/${User.limit.currency.mofucoin})\n`;//mofucoin
+                        var txtReward = `${Properties.currency.mofucoin.emoji} ${reward.mofucoin} mofucoin (${user.Currency.mofucoin}/${User.Currency.limit.mofucoin})\n`;//mofucoin
 
-                        txtReward += `${Color[cardInventory.color].emoji} ${reward.color} ${cardInventory.color} points (${user.Color[cardInventory.color].point}/${User.limit.colorPoint})\n`;//color pionts
+                        txtReward += `${cardInventory.getColorEmoji()} ${reward.color} ${cardInventory.color} points (${user.Color[cardInventory.color].point}/${User.Color.limit.point})\n`;//color points
 
-                        txtReward += `${series.emoji.mascot} ${reward.series} ${series.currency.name.toLowerCase()} (${user.Series[series.value]}/${User.limit.seriesPoint})\n`;//series points
+                        txtReward += `${series.emoji.mascot} ${reward.series} ${series.currency.name.toLowerCase()} (${user.Series[series.value]}/${User.Series.limit.point})\n`;//series points
                         
                         if("jewel" in reward){
-                            txtReward += `${Properties.currency.jewel.emoji} ${reward.jewel} ${Properties.currency.jewel.name.toLowerCase()} (${user.Currency.jewel}/${User.limit.currency.jewel})`;
+                            txtReward += `${Properties.currency.jewel.emoji} ${reward.jewel} ${Properties.currency.jewel.name.toLowerCase()} (${user.Currency.jewel}/${User.Currency.limit.jewel})`;
                         }
                         txtReward = txtReward.replace(/,\s*$/, "");
 
                         //print embed
                         var txtCardQuest = `You have submitted: ${cardInventory.id_card} - ${GlobalFunctions.cutText(cardInventory.name,15)}.`;
-                        var txtTitle = `✅ Daily Card Quest Submitted!`;
+                        var txtTitle = `✅ Daily card quest submitted!`;
                         var imgThumbnail = Properties.imgSet.mofu.ok;
                         var txtFooter = `Remaining card quest: ${userQuest.DailyCardQuest.getTotal()}/${DailyCardQuest.max}`;
 
                         if(dailyCardQuest.getTotal()<=0){
                             txtCardQuest+=`\nYou have completed all card quest for today!`;
                             txtReward+=`\n**Completion Bonus:** ${Properties.currency.jewel.emoji} ${DailyCardQuest.rewardCompletion.jewel} ${Properties.currency.jewel.name.toLowerCase()}`;
-                            txtTitle = `✅ Daily Card Quest Completed!`;
+                            txtTitle = `✅ Daily card quest completed!`;
                             imgThumbnail = Properties.imgSet.mofu.thumbsup;
                             txtFooter = "";
                         }
@@ -256,7 +252,7 @@ module.exports = {
                                 thumbnail: imgThumbnail,
                                 fields:[
                                     {
-                                        name:`${CardInventory.emoji.rarity(false, rarity)}${rarity} Rewards Received:`,
+                                        name:`${cardInventory.getRarityEmoji(true)}${rarity} Rewards received:`,
                                         value:txtReward
                                     }
                                 ],
@@ -303,7 +299,7 @@ module.exports = {
                     dailyRewards.series*=2;
                     dailyRewards.iconBoost="⏫";
                     dailyRewards.embedColor = Embed.color[selectedColor];
-                    dailyRewards.txtColor=`${Color[selectedColor].emoji} ${dailyRewards.color} ${selectedColor} points (${user.Color[user.set_color].point}/${User.limit.colorPoint})`;
+                    dailyRewards.txtColor=`${Color[selectedColor].emoji} ${dailyRewards.color} ${selectedColor} points (${user.Color[user.set_color].point}/${User.Color.limit.point})`;
 
                     //process rewards to user
                     user.Currency.jewel+=dailyRewards.jewel;
@@ -372,14 +368,14 @@ module.exports = {
 
                     **Rewards received:** ${dailyRewards.iconBoost}
                     ${dailyRewards.txtColor}
-                    ${Properties.currency.mofucoin.emoji} ${dailyRewards.mofucoin} mofucoin (${user.Currency.mofucoin}/${User.limit.currency.mofucoin})
-                    ${series.emoji.mascot} ${dailyRewards.series} ${series.currency.name.toLowerCase()} (${user.Series[user.set_series]}/${User.limit.seriesPoint})
-                    ${Properties.currency.jewel.emoji} ${dailyRewards.jewel} jewel (${user.Currency.jewel}/${User.limit.currency.jewel})${txtNewbieBonus}`),
+                    ${Properties.currency.mofucoin.emoji} ${dailyRewards.mofucoin} mofucoin (${user.Currency.mofucoin}/${User.Currency.limit.mofucoin})
+                    ${series.emoji.mascot} ${dailyRewards.series} ${series.currency.name.toLowerCase()} (${user.Series[user.set_series]}/${User.Series.limit.point})
+                    ${Properties.currency.jewel.emoji} ${dailyRewards.jewel} jewel (${user.Currency.jewel}/${User.Currency.limit.jewel})${txtNewbieBonus}`),
                     discordUser,{
                         color:dailyRewards.embedColor,
                         title:isNewcomer ? `Welcome to Puzzlun Peacecure!`: `Welcome back!`,
                         thumbnail:Properties.imgSet.mofu.wave,
-                        footer:Embed.builderUser.footer(`Next daily available in: ${timeRemaining}`)
+                        footer:Embed.builderUser.footer(`Next daily reset available in: ${timeRemaining}`)
                     })
                 );
 
@@ -396,7 +392,7 @@ module.exports = {
                     var rewards = DailyCardQuest.reward[rarity];
 
                     var txtReward = `${Properties.currency.mofucoin.emoji} ${rewards.mofucoin}, `;
-                    txtReward += `${Color[card.color].emoji} ${rewards.color}, `;
+                    txtReward += `${card.getColorEmoji()} ${rewards.color}, `;
                     txtReward += `${new Series(card.series).emoji.mascot} ${rewards.series}, `;
                     if("jewel" in rewards){
                         txtReward += `${Properties.currency.jewel.emoji} ${rewards.jewel}`;
@@ -415,7 +411,7 @@ module.exports = {
                     Embed.builder(dedent(`Here are the requested cards for today:
 
                     ${txtCardQuest}`), discordUser, {
-                        title:`New Card Quest Received! (${dailyCardQuest.getTotal()}/${DailyCardQuest.max})`,
+                        title:`New card quest received! (${dailyCardQuest.getTotal()}/${DailyCardQuest.max})`,
                         thumbnail:Properties.imgSet.mofu.ok,
                         footer:Embed.builderUser.footer(`Access the card quest anytime with: /daily quest list`)
                     })

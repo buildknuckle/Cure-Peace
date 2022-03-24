@@ -107,7 +107,19 @@ class Card {
 
     constructor(cardData=null){
         if(cardData!=null){
-            this.initCardData(cardData);
+            for(var key in cardData){
+                this[key] = cardData[key];
+            }
+
+            //modify pack total
+            if(this.pack in CPack){
+                this.packTotal = CPack[this.pack].properties.total;
+            }
+
+            if(this.pack!=null) this.Character = new Character(this.pack);
+            if(this.series!=null) this.Series = new Series(this.series);
+
+            this.maxSp = parameter.maxSp(this.color);
         }
     }
 
@@ -204,6 +216,10 @@ class Card {
 
     getPackTotal(){
         return this.packTotal;
+    }
+
+    getColorEmoji(){
+        return Properties.color[this.color].emoji;
     }
 
     getCardEmoji(){
