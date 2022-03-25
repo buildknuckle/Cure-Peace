@@ -232,7 +232,8 @@ module.exports = {
                         txtReward = txtReward.replace(/,\s*$/, "");
 
                         //print embed
-                        var txtCardQuest = `You have submitted: ${cardInventory.id_card} - ${GlobalFunctions.cutText(cardInventory.name,15)}.`;
+                        var txtCardQuest = dedent(`You have submitted: 
+                        ${cardInventory.getRarityEmoji(true)}${rarity} [${cardInventory.id_card} - ${cardInventory.getName(18)}](${cardInventory.getImg()})`);
                         var txtTitle = `✅ Daily card quest submitted!`;
                         var imgThumbnail = Properties.imgSet.mofu.ok;
                         var txtFooter = `Remaining card quest: ${userQuest.DailyCardQuest.getTotal()}/${DailyCardQuest.max}`;
@@ -299,7 +300,7 @@ module.exports = {
                     dailyRewards.series*=2;
                     dailyRewards.iconBoost="⏫";
                     dailyRewards.embedColor = Embed.color[selectedColor];
-                    dailyRewards.txtColor=`${Color[selectedColor].emoji} ${dailyRewards.color} ${selectedColor} points (${user.Color[user.set_color].point}/${User.Color.limit.point})`;
+                    dailyRewards.txtColor=`${User.Color.getEmoji(selectedColor)} ${dailyRewards.color} ${selectedColor} points (${user.Color[selectedColor].point}/${User.Color.limit.point})`;
 
                     //process rewards to user
                     user.Currency.jewel+=dailyRewards.jewel;
@@ -354,7 +355,7 @@ module.exports = {
                     var rndCard = await DBConn.conn.query(query, []);
                     for(var i=0;i<rndCard.length;i++){
                         var card = new Card(rndCard[i]);
-                        txtNewbieBonus+=`${Color[card.color].emoji} ${card.id_card}: [${GlobalFunctions.cutText(card.name, 25)}](${card.img_url})\n`;
+                        txtNewbieBonus+=`${card.getColorEmoji()} ${card.id_card}: [${GlobalFunctions.cutText(card.name, 25)}](${card.img_url})\n`;
                         await CardInventory.updateStock(userId, card.id_card);
                     }
                 }

@@ -10,7 +10,9 @@ const Card = require("../modules/puzzlun/data/Card");
 const CardInventory = require("../modules/puzzlun/data/CardInventory");
 const Embed = require('../modules/puzzlun/Embed');
 const Validation = require('../modules/puzzlun/Validation');
-const {AvatarFormation, PrecureAvatar} = require('../modules/puzzlun/Data/Avatar');
+const {AvatarFormation} = require('../modules/puzzlun/Data/Avatar');
+const UserListener = require("../modules/puzzlun/listener/User");
+const CardListener = require("../modules/puzzlun/listener/Card");
 
 module.exports = {
     name: 'set',
@@ -18,7 +20,7 @@ module.exports = {
     description: 'Contains all set command',
     args: true,
     options:[
-        {
+        {//avatar
             name: "avatar",
             description: "Transform & set your precure avatar.",
             type: 1,
@@ -35,15 +37,15 @@ module.exports = {
                     type: 3,
                     choices:[
                         {
-                            name:`Main`,
+                            name:`${AvatarFormation.formation.main.name}`,
                             value:`${AvatarFormation.formation.main.value}`
                         },
                         {
-                            name:`Support 1`,
+                            name:`${AvatarFormation.formation.support1.name}`,
                             value:`${AvatarFormation.formation.support1.value}`
                         },
                         {
-                            name:`Support 2`,
+                            name:`${AvatarFormation.formation.support2.name}`,
                             value:`${AvatarFormation.formation.support2.value}`
                         },
                     ]
@@ -55,7 +57,50 @@ module.exports = {
                 },
             ]
         },
-        {
+        {//color
+            name: "color",
+            description: "Precure color change to change your assigned color. (Cost: 100 Color Points)",
+            type: 1,
+            options: [
+                {
+                    name: "change",
+                    description: "Select the color",
+                    type: 3,
+                    required: true,
+                    choices: [
+                        {
+                            name: `pink`,
+                            value: "pink"
+                        },
+                        {
+                            name: `blue`,
+                            value: "blue"
+                        },
+                        {
+                            name: `red`,
+                            value: "red"
+                        },
+                        {
+                            name: `yellow`,
+                            value: "yellow"
+                        },
+                        {
+                            name: `green`,
+                            value: "green"
+                        },
+                        {
+                            name: `purple`,
+                            value: "purple"
+                        },
+                        {
+                            name: `white`,
+                            value: "white"
+                        },
+                    ],
+                }
+            ]
+        },
+        {//series
             name: "series",
             description: `Teleport into available series location. (Cost: 100 Series Points)`,
             type: 1,
@@ -134,49 +179,6 @@ module.exports = {
                 }
             ]
         },
-        {
-            name: "color",
-            description: "Precure color change to change your assigned color. (Cost: 100 Color Points)",
-            type: 1,
-            options: [
-                {
-                    name: "change",
-                    description: "Select the color",
-                    type: 3,
-                    required: true,
-                    choices: [
-                        {
-                            name: `pink`,
-                            value: "pink"
-                        },
-                        {
-                            name: `blue`,
-                            value: "blue"
-                        },
-                        {
-                            name: `red`,
-                            value: "red"
-                        },
-                        {
-                            name: `yellow`,
-                            value: "yellow"
-                        },
-                        {
-                            name: `green`,
-                            value: "green"
-                        },
-                        {
-                            name: `purple`,
-                            value: "purple"
-                        },
-                        {
-                            name: `white`,
-                            value: "white"
-                        },
-                    ],
-                }
-            ]
-        }
     ],
     async executeMessage(message, args) {
 	},
@@ -189,151 +191,29 @@ module.exports = {
         var userId = discordUser.id;
 
         switch(subcommand){
-            case "series"://set series
-                var user = new User(await User.getData(userId));
-                var selection = interaction.options._hoistedOptions[0].value.toLowerCase();
-                var setCost = 100;
-                var userSeries = new Series(user.set_series);
-                var series = new Series(selection);
-                if(user.set_series==selection){
-                    return interaction.reply(
-                        Embed.errorMini(`❌ You've already assigned in **${userSeries.emoji.mascot} ${userSeries.location.name} @${userSeries.name}**`, discordUser, true)
-                    );
-                } else if(user.Series[user.set_series]<setCost){
-                    //validation: series point
-                    return interaction.reply(
-                        Embed.errorMini(`You need ${userSeries.emoji.mascot} ${setCost} ${userSeries.currency.name} to teleport into: **${series.location.name} @${series.name}**`,discordUser, true,{
-                            title:`❌ Not Enough Series Points`
-                        })
-                    );
-                }
+            case "avatar":{//set precure avatar
+                var cardId = interaction.options.getString("card-id");//get card id
+                var formation = interaction.options.getString("formation")!==null? 
+                interaction.options.getString("formation"): AvatarFormation.formation.main.value;
+                var isPrivate =  interaction.options.getBoolean("visible-public")!==null? 
+                interaction.options.getBoolean("visible-public"): false;
 
-                user.Series[userSeries.value]-=setCost;
-                user.set_series = series.value;
-                await user.update();
-
-                return interaction.reply({embeds:[
-                    Embed.builder(`${Properties.emoji.mofuheart} You have successfully teleported into: **${series.location.name} @${series.name}**`, discordUser, {
-                        color:user.set_color,
-                        title:`${series.emoji.mascot} Welcome to: ${series.location.name}!`,
-                        thumbnail:series.location.icon,
-                        footer:Embed.builderUser.footer(`${await User.getUserTotalByLocation(selection)} other user are available in this location`)
-                    })
-                ]});
-
+                let userListener = new UserListener(userId, discordUser, interaction);
+                await userListener.setAvatar(cardId, formation, isPrivate);
                 break;
-            case "color"://set color assignment
-                var user = new User(await User.getData(userId));
-                var selection = interaction.options._hoistedOptions[0].value.toLowerCase();
-                var setCost = 100;
-                var userColor = Color[user.set_color];
-                var color = Color[selection];
-                
-                if(user.set_color==selection){
-                    //validation: same color
-                    return interaction.reply(
-                        Embed.errorMini(`❌ You've already assigned in ${userColor.emoji} **${userColor.value}** color`, discordUser, true)
-                    );
-                } else if(user.Color[user.set_color].point<=setCost){
-                    //validation: color point
-                    return interaction.reply(
-                        Embed.errorMini(`You need ${userColor.emoji} ${setCost} ${userColor.value} points to change your color assignment into: **${color.value}**`,discordUser, true,{
-                            title:`❌ Not Enough ${userColor.value} Points`
-                        })
-                    );
-                }
-
-                user.Color[user.set_color].point-=setCost;
-                user.set_color = selection;
-                await user.update();
-
-                return interaction.reply({embeds:[
-                    Embed.builder(`${Properties.emoji.mofuheart} Your color assignment has been changed into: **${selection}**`, discordUser, {
-                        color:user.set_color,
-                        title:`${color.emoji} Color Changed!`,
-                        thumbnail:Properties.imgSet.mofu.ok
-                    })
-                ]});
+            }
+            case "color":{//set color assignment
+                var selection = interaction.options.getString("change");
+                var userListener = new UserListener(userId, discordUser, interaction);
+                await userListener.setColor(selection);
                 break;
-            case "avatar"://set precure avatar
-                var user = new User(await User.getData(userId));
-                var hoistedOptions = interaction.options._hoistedOptions;
-                var cardId = hoistedOptions[0].value.toLowerCase();//get card id
-
-                var formation = GlobalFunctions.filterDiscordInteractionKey(
-                    hoistedOptions, "formation", AvatarFormation.formation.main.value);//get formation
-                var isPrivate = GlobalFunctions.filterDiscordInteractionKey(
-                    hoistedOptions, "visible-public", false);//embed visibility
-                
-                //validation: if card exists
-                var cardData = await Card.getCardData(cardId);
-                if(cardData==null) return interaction.reply(Validation.Card.embedNotFound(discordUser));
-                
-                //validation: if user have card
-                var cardInventoryData = await CardInventory.getDataByIdUser(userId, cardId);
-                if(cardInventoryData==null) return interaction.reply(Validation.Card.embedNotHave(discordUser));
-
-                var cardInventory = new CardInventory(cardInventoryData, cardData);
-                var color = Color[cardInventory.color];
-                var series = new Series(cardInventory.series);
-                var rarity = cardInventory.rarity;
-                //validation color & series points
-                var cost = {
-                    color:10*cardInventory.rarity,
-                    series:10*cardInventory.rarity
-                }
-                if(user.Color[cardInventory.color].point<cost.color||
-                user.Series[cardInventory.series]<cost.series){//validation color & series points
-                    return interaction.reply(
-                        Embed.errorMini(`You need **${color.emoji} ${cost.color}** & **${series.currency.emoji} ${cost.series}** to set ${CardInventory.emoji.rarity(cardInventory.is_gold, rarity)}**${rarity}** ${cardInventory.id_card} - ${GlobalFunctions.cutText(cardInventory.name,15)} as precure avatar`,discordUser, true,{
-                            title:`❌ Not Enough Points`
-                        })
-                    );
-                }
-
-                var avatarFormation = new AvatarFormation(await AvatarFormation.getData(userId));
-                //validation: check for same avatar on any formation
-                if(avatarFormation.id_main==cardInventory.id_card){
-                    return interaction.reply(
-                        Embed.errorMini(`This precure has been assigned in **${AvatarFormation.formation.main.name}** formation`,discordUser, true,{
-                            title:`❌ Same Avatar/Formation`
-                        })
-                    );
-                } else if(avatarFormation.id_support1==cardInventory.id_card){
-                    return interaction.reply(
-                        Embed.errorMini(`This precure has been assigned in **${AvatarFormation.formation.support1.name}** formation`,discordUser, true,{
-                            title:`❌ Same Avatar/Formation`
-                        })
-                    );
-                } else if(avatarFormation.id_support2==cardInventory.id_card){
-                    return interaction.reply(
-                        Embed.errorMini(`This precure has been assigned in **${AvatarFormation.formation.support2.name}** formation`,discordUser, true,{
-                            title:`❌ Same Avatar/Formation`
-                        })
-                    );
-                }
-
-                var precureAvatar = new PrecureAvatar(formation, cardInventoryData, cardData);
-                avatarFormation[precureAvatar.formation.columns] = cardInventory.id_card;
-                await avatarFormation.update();//update the avatar
-
-                user.Color[cardInventory.color].point-=cost.color; //update user color & series points
-                user.Series[cardInventory.series]-=cost.series;
-                await user.update();
-                
-                return interaction.reply({embeds:[
-                    Embed.builder(dedent(`*"${precureAvatar.properties.transform_quotes2}"*
-                
-                    <@${userId}> has assign **${precureAvatar.properties.name}** as **${precureAvatar.formation.name}** precure avatar!`),
-                        Embed.builderUser.authorCustom(`⭐${rarity} ${precureAvatar.character.alter_ego}`, precureAvatar.character.icon),{
-                            color: precureAvatar.character.color,
-                            thumbnail: precureAvatar.cardInventory.getImgDisplay(),
-                            title: precureAvatar.properties.transform_quotes1,
-                            image: precureAvatar.properties.img_transformation
-                        }
-                    )
-                ],ephemeral: isPrivate});
+            }
+            case "series":{//set series
+                var selection = interaction.options.getString("location");
+                let userListener = new UserListener(userId, discordUser, interaction);
+                await userListener.setSeries(selection);
                 break;
+            }
         }
     }
 }

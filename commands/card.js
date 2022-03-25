@@ -8,9 +8,8 @@ const capitalize = GlobalFunctions.capitalize;
 const paginationEmbed = require('../modules/DiscordPagination');
 
 // const DataModule = require("../modules/puzzlun/Data");
-const CardModule = require("../modules/puzzlun/Card");
 // const Avatar = require("../modules/puzzlun/Avatar");
-const UserModule = require("../modules/puzzlun/User");
+// const UserModule = require("../modules/puzzlun/User");
 // const GuildModule = require("../modules/puzzlun/Guild");
 // const BattleModule = require("../modules/puzzlun/Battle");
 // const InstanceBattle = require("../modules/puzzlun/InstanceBattle");
@@ -23,7 +22,9 @@ const Color = Properties.color;
 const User = require("../modules/puzzlun/data/User");
 const Embed = require("../modules/puzzlun/Embed");
 // const SpawnerEventListener = SpawnerModule.EventListener;
-// const EventListener = require("../modules/puzzlun/EventListener");
+const {AvatarFormation} = require('../modules/puzzlun/Data/Avatar');
+const UserListener = require("../modules/puzzlun/listener/User");
+const CardListener = require("../modules/puzzlun/listener/Card");
 
 module.exports = {
     name: 'card',
@@ -31,7 +32,7 @@ module.exports = {
     description: 'Contains all card command',
     args: true,
     options:[
-        {
+        {//status
             name: "status",
             description: "Open card status menu.",
             type: 1,
@@ -44,7 +45,7 @@ module.exports = {
                 }
             ]
         },
-        {
+        {//inventory
             name: "inventory",
             description: "Open card inventory menu.",
             type: 1,
@@ -59,54 +60,15 @@ module.exports = {
                     name: "username",
                     description: "Enter username to view card inventory from other user.",
                     type: 3
+                },
+                {
+                    name: "filter-duplicate",
+                    description: "Filter card inventory with duplicate card only",
+                    type: 5
                 }
             ]
         },
-        {
-            name:"set",
-            description: "Set your precure card as avatar",
-            type: 2,
-            options:[
-                {
-                    name: "avatar",
-                    description: "Set your precure card avatar",
-                    type: 1,
-                    options: [
-                        {
-                            name: "card-id",
-                            description: "Enter precure card id",
-                            type: 3,
-                            required: true
-                        },
-                        {
-                            name: "formation",
-                            description: "Select the formation (Default:Main)",
-                            type: 3,
-                            choices:[
-                                {
-                                    name:`Main`,
-                                    value:`id_main`
-                                },
-                                {
-                                    name:`Support 1`,
-                                    value:`id_support1`
-                                },
-                                {
-                                    name:`Support 2`,
-                                    value:`id_support2`
-                                },
-                            ]
-                        },
-                        {
-                            name: "visible-public",
-                            description: "Set the henshin notification to be shown on public (Default: false)",
-                            type: 5
-                        },
-                    ]
-                },
-            ]
-        },
-        {
+        {//detail
             name:"detail",
             description: "Check your precure card detail",
             type:1,
@@ -124,7 +86,7 @@ module.exports = {
                 },
             ]
         },
-        {
+        {//upgrade
             name:"upgrade",
             description: "Card upgrade command",
             type: 2,
@@ -172,79 +134,111 @@ module.exports = {
                         }
                     ]
                 },
+                {
+                    name: "card-level",
+                    description: "Upgrade level of precure card",
+                    type: 1,
+                    options:[
+                        {
+                            name: "card-id",
+                            description: "Enter the precure card id that you want to level up",
+                            type: 3,
+                            required: true,
+                        },
+                        {
+                            name: "amount",
+                            description: "Enter the amount of level up (default: 1, max: 50)",
+                            type: 4,
+                            required: false,
+                        },
+                    ]
+                },
+                {
+                    name: "card-special-level",
+                    description: "Upgrade special level of precure card",
+                    type: 1,
+                    options:[
+                        {
+                            name: "card-id",
+                            description: "Enter the precure card id that you want to level up",
+                            type: 3,
+                            required: true,
+                        },
+                        {
+                            name: "amount",
+                            description: "Enter the amount of level up (default: 1, max: 9)",
+                            type: 4,
+                            required: false,
+                        },
+                    ]
+                }
+            ]
+        },
+        {//unset precure avatar
+            name:"unset-avatar",
+            description: "Unset precure avatar",
+            type: 1,
+            options: [
+                {
+                    name: "formation",
+                    description: "Choose the color selection that you want to level up",
+                    type: 3,
+                    required: true,
+                    choices:[
+                        {
+                            name:`all`,
+                            value:`all`
+                        },
+                        {
+                            name:`${AvatarFormation.formation.main.name}`,
+                            value:`${AvatarFormation.formation.main.value}`
+                        },
+                        {
+                            name:`${AvatarFormation.formation.support1.name}`,
+                            value:`${AvatarFormation.formation.support1.value}`
+                        },
+                        {
+                            name:`${AvatarFormation.formation.support2.name}`,
+                            value:`${AvatarFormation.formation.support2.value}`
+                        },
+                    ]
+                }
             ]
         }
 	],
 
     async execute(interaction){
         var command = interaction.options._group;
-        var commandSubcommand = interaction.options._subcommand;
+        var commandSubcommand = interaction.options.getSubcommand();
         const guildId = interaction.guild.id;
 
         var discordUser = interaction.user;
         var userId = discordUser.id;
 
         switch(command){
-            //STATUS MENU: open card status
-            case "set":
+            case "upgrade"://upgrade command
                 switch(commandSubcommand){
-                    case "avatar":
-                        var idCard = interaction.options._hoistedOptions[0].value.toLowerCase();
-                        
-                        var formation = interaction.options._hoistedOptions.hasOwnProperty(1)?
-                        interaction.options._hoistedOptions[1].value.toLowerCase():"id_main";
-                        var isPrivate = interaction.options._hoistedOptions.hasOwnProperty(2) ? 
-                        interaction.options._hoistedOptions[2].value:true;
-
-                        await Avatar.EventListener.set(discordUser, idCard, formation, interaction, isPrivate);
-
+                    case "color-level":{//upgrade color level
+                        let userListener = new UserListener(userId, discordUser, interaction);
+                        await userListener.levelUpColor();
                         break;
-                }
-                break;
-            case "upgrade":
-                switch(commandSubcommand){
-                    case "color-level":
-                        var colorSelection = interaction.options.getString("selection");
-                        var user = new User(await User.getData(userId));
-                        var costPoint = user.Color.getNextLevelPoint(colorSelection);
-                        var nextLevel = user.Color[colorSelection].level+1;
-
-                        if(!user.Color.canLevelUp(colorSelection)){//validation: not enough color points
-                            return interaction.reply(
-                                Embed.errorMini(`${User.Color.getEmoji(colorSelection)} ${costPoint} ${colorSelection} points are required to level up into ${nextLevel}`, discordUser, true, {
-                                    title:`❌ Not enough ${colorSelection} points`
-                                })
-                            );
-                        }
-                        
-                        user.Color[colorSelection].point-=costPoint;
-                        user.Color[colorSelection].level+=1;
-                        await user.update();
-
-                        var costPoint = user.Color.getNextLevelPoint(colorSelection);//reassign level point
-
-                        var colorEmoji = User.Color.getEmoji(colorSelection);
-                        return interaction.reply({
-                            embeds:[
-                                Embed.builder(`Your ${colorEmoji} **${colorSelection}** color is now level **${user.Color[colorSelection].level}**!`, discordUser, {
-                                    color: colorSelection,
-                                    title: `🆙 ${capitalize(colorSelection)} color level up!`,
-                                    thumbnail: Embed.builderUser.getAvatarUrl(discordUser),
-                                    fields:[
-                                        {
-                                            name:`Base ${colorSelection} capture bonus:`,
-                                            value:`${Color[colorSelection].emoji_card} +${user.Color.getCaptureBonus(colorSelection)}% chance`,
-                                        },
-                                        {
-                                            name:`Next level with:`,
-                                            value:`${colorEmoji} ${costPoint} ${colorSelection} points`,
-                                        }
-                                    ]
-                                })
-                            ]}
-                        );
-
+                    }
+                    case "card-level":{//upgrade card level
+                        let cardId = interaction.options.getString("card-id");
+                        let amount = interaction.options.getInteger("amount")!==null?
+                        interaction.options.getInteger("amount"):1;
+                        let cardListener = new CardListener(userId, discordUser, interaction);
+                        await cardListener.levelUp(cardId, amount);
                         break;
+                    }
+                    case "card-special-level":{
+                        let cardId = interaction.options.getString("card-id");
+                        let amount = interaction.options.getInteger("amount")!==null?
+                        interaction.options.getInteger("amount"):1;
+                        let cardListener = new CardListener(userId, discordUser, interaction);
+                        await cardListener.levelUpSpecial(cardId, amount);
+                        break;
+                    }
                 }
                 break;
         }
@@ -252,30 +246,44 @@ module.exports = {
         if(command!==null) return;
 
         switch(commandSubcommand){
-            case "status":
+            case "status": {//print user status
                 var username = interaction.options.getString("username");
                 
                 var userSearchResult = await Validation.User.isAvailable(discordUser, username, interaction);
                 if(!userSearchResult) return; else discordUser = userSearchResult;
-                
-                var arrPages = await UserModule.EventListener.printStatus(discordUser);
-                paginationEmbed(interaction,arrPages,DiscordStyles.Button.pagingButtonList, username==null?true:false);
+
+                let userListener = new UserListener(userId, discordUser, interaction);
+                return await userListener.status(username==null?true:false);
                 break;
-            case "detail":
+            }
+            case "detail":{//print card detail
                 var cardId = interaction.options.getString("card-id");
                 var isPrivate = interaction.options.getBoolean("visible-private") !== null? 
                 interaction.options.getBoolean("visible-private"):false;
-                return await CardModule.EventListener.printDetail(discordUser, cardId, interaction, isPrivate);
+                var cardListener = new CardListener(userId, discordUser, interaction);
+                return await cardListener.detail(cardId, isPrivate);
                 break;
-            case "inventory":
+            }
+            case "inventory":{//print card inventory
                 var pack = interaction.options.getString("card-pack");
                 var parameterUsername = interaction.options.getString("username");
+                var duplicateOnly = interaction.options.getBoolean("filter-duplicate")!==null ? 
+                interaction.options.getBoolean("filter-duplicate"):false;
+
 
                 var userSearchResult = await Validation.User.isAvailable(discordUser, parameterUsername, interaction);
                 if(!userSearchResult) return; else discordUser = userSearchResult;
 
-                await CardModule.EventListener.printInventory(discordUser, pack, interaction, parameterUsername==null?true:false);
+                var cardListener = new CardListener(userId, discordUser, interaction);
+                return await cardListener.inventory(pack, parameterUsername==null?true:false, duplicateOnly);
                 break;
+            }
+            case "unset-avatar":{//unset precure avatar
+                let formation = interaction.options.getString("formation");
+                var userListener = new UserListener(userId, discordUser, interaction);
+                await userListener.unsetAvatar(formation);
+                break;
+            }
         }
     },
 

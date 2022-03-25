@@ -62,6 +62,27 @@ class AvatarFormation {
 
         return avatarData[0];
     }
+    
+
+    setCardFormation(cardId, formation){
+        if(!(formation in AvatarFormation.formation)) return;//validation: if formation is valid
+        this[AvatarFormation.formation[formation].columns] = cardId;
+    }
+
+    unsetCardFormation(cardId, formation){
+        if(!(formation in AvatarFormation.formation)) return;//validation: if formation is valid
+        this[AvatarFormation.formation[formation].columns] = null;
+    }
+
+    isAvailable(formation){
+        return this[AvatarFormation.formation[formation].columns]!==null ?
+            true:false;
+    }
+
+    getCardFormation(formation){
+        if(!(formation in AvatarFormation.formation)) return;//validation: if formation is valid
+        return this[AvatarFormation.formation[formation].columns];
+    }
 
     async update(){
         let column = [//columns to be updated:
@@ -127,7 +148,7 @@ class PrecureAvatar {
     }
 
     /**
-     * @param {string} formation formation in string name
+     * @param {string} formation in string name
      */
     constructor(formation=null, cardInventoryData=null, cardData=null){
         if(formation!=null) this.formation = AvatarFormation.formation[formation];
@@ -136,8 +157,8 @@ class PrecureAvatar {
             this.parameter = new Parameter(this.cardInventory.level, this.cardInventory.maxHp, this.cardInventory.maxSp,
                 this.cardInventory.atk, this.cardInventory.maxSp);
             this.properties = CPack[this.cardInventory.pack].Avatar.normal;
-            this.character = new Character(this.cardInventory.pack);
-            this.series = new Series(this.cardInventory.series);
+            this.character = this.cardInventory.Character;
+            this.series = this.cardInventory.Series;
         }
     }
 

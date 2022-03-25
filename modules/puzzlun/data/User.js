@@ -109,7 +109,7 @@ class Color {
         return (this[color].level+totalLevelUp)*100;
     }
 
-    getCaptureBonus(color){
+    getCardCaptureBonus(color){
         return this[color].level>=2 ? this[color].level*2:0;
     }
 
@@ -117,7 +117,7 @@ class Color {
      * @param {string} color selected color in string
      */
     canLevelUp(color, totalLevelUp=1){
-        if(this[color].level>=Color.limit.level) return false;
+        if(this[color].level>=Color.limit.level) return false;//check for max color level
         return this[color].point>=this.getNextLevelPoint(color, totalLevelUp) ? 
             true:false;
     }

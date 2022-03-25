@@ -606,7 +606,7 @@ class CardNormal {
             user.peace_point-=cost;//update peace point
             txtBoostCapture = `${User.peacePoint.emoji} Boost capture has been used!\n`;
         } else {
-            var captureRateBonus = user.Color.getCaptureBonus(color);
+            var captureRateBonus = user.Color.getCardCaptureBonus(color);
             captured = spawn.capture(captureRateBonus);//check if captured/not
         }
         
@@ -1574,7 +1574,7 @@ class CardColor {
             user.peace_point-=cost;//update peace point
             txtBoostCapture = `${User.peacePoint.emoji} Boost capture has been used!\n`;
         } else {
-            var captureRateBonus = user.Color.getCaptureBonus(user.set_color);
+            var captureRateBonus = user.Color.getCardCaptureBonus(user.set_color);
             captured = spawn.capture(user.set_color, captureRateBonus);
         }
 

@@ -1,12 +1,23 @@
-const CardModules = require("./Card");
-// const DataUser = require("./data/User");
+const DB = require('../../database/DatabaseCore');
+const DBConn = require('../../storage/dbconn');
+const CardModules = require("./listener/Card");
+const Card = require("./data/Card");
 const Guild = require("./data/Guild");
+const {Character} = require("./data/Character");
 const SpawnerModules  = require("./data/Spawner");
 const Spawner = SpawnerModules.Spawner;
 
 async function init(){
-    //load card modules
-    await CardModules.init();
+    //load total card for all pack
+    var query = `select cd.${Card.columns.pack}, count(cd.${Card.columns.pack}) as total, 
+        cd.${Card.columns.color}, cd.${Card.columns.series}
+        from ${Card.tablename} cd
+        group by cd.${Card.columns.pack}`;
+    var cardData = await DBConn.conn.query(query, []);
+    for(var i=0;i<cardData.length;i++){
+        var dataCard = new Card(cardData[i]);
+        Character.setTotal(dataCard.pack, cardData[i]["total"]);
+    }
 }
 
 async function initGuild(guildId, discordGuild){

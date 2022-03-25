@@ -4,7 +4,7 @@ const DBConn = require('../../../storage/dbconn');
 const DBM_Card_Inventory = require('../../../database/model/DBM_Card_Inventory');
 // const DBM_Card_Data = require('../../../database/model/DBM_Card_Data');
 
-const DataCard = require("./Card");
+const Card = require("./Card");
 // const SpackModule = require("./Series");
 const GProperties = require('../Properties');
 const GlobalFunctions = require('../../GlobalFunctions');
@@ -195,7 +195,7 @@ const emoji = {
     
 // }
 
-class CardInventory extends DataCard {
+class CardInventory extends Card {
     //contains protected columns, used for constructor
     static tablename = DBM_Card_Inventory.TABLENAME;
     static columns = DBM_Card_Inventory.columns;
@@ -280,21 +280,18 @@ class CardInventory extends DataCard {
     //         }
     //     }
     // }
-    maxLevel=null;
     maxHp=null;
-    // maxSp=null;
     atk=null;
-    nextColorPoint=null;
 
-    constructor(cardInventoryData, cardData=null){
+    constructor(cardInventoryData=null, cardData=null){
         super(cardData);
         
-        if(cardInventoryData==null) return null;
+        // if(cardInventoryData==null) return null;
 
         for(var key in cardInventoryData){
-            if(key==DBM_Card_Inventory.columns.received_at){
+            if(key==CardInventory.columns.received_at){
                 this.received_at = GlobalFunctions.convertDateTime(
-                    cardInventoryData[DBM_Card_Inventory.columns.received_at]
+                    cardInventoryData[CardInventory.columns.received_at]
                 );
             } else {
                 this[key] = cardInventoryData[key];
@@ -312,8 +309,6 @@ class CardInventory extends DataCard {
 
         this.maxHp = this.parameter.maxHp(this.level, this.hp_base);//assign max hp
         this.atk = this.parameter.atk(this.level, this.atk_base);
-        this.maxLevel = this.parameter.maxLevel(this.rarity);
-        this.nextColorPoint = this.parameter.nextColorPoint(this.level);
     }
 
     static async getDataByIdUser(userId, cardId){
@@ -331,19 +326,43 @@ class CardInventory extends DataCard {
     /**
      * @description will return search results by pack in multiple object
      */
-    static async getDataByPack(userId, pack){
-        var query = `select cd.${super.columns.id_card}, cd.${super.columns.pack}, cd.${super.columns.name}, 
-        cd.${super.columns.rarity}, cd.${super.columns.img_url}, cd.${super.columns.hp_base}, cd.${super.columns.atk_base}, cd.${super.columns.color}, cd.${super.columns.series}, cd.${super.columns.img_url_upgrade1}, 
+    static async getDataByPack(userId, pack, duplicateOnly){
+        var query = `select cd.*, 
         inv.${this.columns.id_user}, inv.${this.columns.is_gold}, inv.${this.columns.stock}, inv.${this.columns.level}, inv.${this.columns.level_special} 
         from ${super.tablename} cd 
         left join ${this.tablename} inv 
         on cd.${super.columns.id_card} = inv.${this.columns.id_card} and 
         inv.${this.columns.id_user} = ?
-        where cd.${super.columns.pack}=?`;
+        where cd.${super.columns.pack}=? `;
+        if(duplicateOnly) query+=` AND inv.${this.columns.stock}>0`;
 
         var result = await DBConn.conn.query(query, [userId, pack]);
+        var ret = {
+            cardData:[],
+            cardInventoryData:[],
+        }
+
         if(result[0]!=null){
-            return result;
+            for(var i=0;i<result.length; i++){
+                var cardData = {};
+                var cardInventoryData = {};
+
+                for(var key in result[i]){
+                    var colVal = result[i][key];
+                    if(key in super.columns){
+                        cardData[key] = colVal;
+                    } else {
+                        cardInventoryData[key] = colVal;
+                    }
+                }
+
+                ret.cardData.push(cardData);
+                //check if user own the card/not
+                if(cardInventoryData[this.columns.id_user]==null) cardInventoryData = null;
+                ret.cardInventoryData.push(cardInventoryData);
+            }
+
+            return ret;
         } else {
             return null;
         }
@@ -459,10 +478,12 @@ class CardInventory extends DataCard {
 
     levelSync(newLevel){
         this.level = newLevel;
+        this.paramSync();
+    }
+
+    paramSync(){
         this.maxHp = this.parameter.maxHp(this.level, this.hp_base);//assign max hp
         this.atk = this.parameter.atk(this.level, this.atk_base);
-        this.maxLevel = this.parameter.maxLevel(this.rarity);
-        this.nextColorPoint = this.parameter.nextColorPoint(this.level);
     }
 
     getIdCard(){
@@ -497,6 +518,43 @@ class CardInventory extends DataCard {
 
     isHaveCard(){
         if(this.stock!==null){
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    /**
+     * @description check if able to level up with color point
+     */
+    canLevelUpColor(colorPoint, amount=1){
+        //rarity 1-5: level up with color point
+        if(this.level+amount>this.getMaxLevel()){//check for max level
+            return false;
+        } else if(this.rarity<=4){
+            var pointCost = Card.parameter.nextColorPoint(this.level, amount);
+            return colorPoint>=pointCost ? true : false;
+        } else {//5-7: level up with duplicate card
+            return false;
+        }
+    }
+
+    //rarity 6-7: level up with duplicate
+    canLevelUpDuplicate(amount=1){
+        if(this.level+amount>this.getMaxLevel()){//check for max level
+            return false;
+        } else if(this.rarity>=5){
+            return this.stock>=amount ? true : false;
+        } else {
+            return false;
+        }
+    }
+
+    //level up card special level
+    canLevelUpSpecial(amount=1){
+        if(this.level+amount>this.getMaxSpecialLevel()){//check for max special level
+            return false;
+        } else if(this.stock>=amount){
             return true;
         } else {
             return false;

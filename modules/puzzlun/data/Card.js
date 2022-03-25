@@ -36,6 +36,7 @@ const parameter =  {
             default: return 20;
         }
     },
+    maxLevelSpecial: 10,
     maxHp(level,base_hp){
         return level>1 ? level+base_hp:base_hp;
     },
@@ -55,14 +56,11 @@ const parameter =  {
     },
     nextColorPoint(level,qty=1){
         var tempExp = 0;
-        if(qty<=1){
-            tempExp+=(level+1)*10;
-        } else {
-            //parameter:3: level 1->4
-            for(var i=0;i<qty;i++){
-                tempExp+=(level+1)*10;
-                level+=1;
-            }
+        var baseCost = 20;
+        //parameter:3: level 1->4
+        for(var i=0;i<qty;i++){
+            tempExp+=(level+1)*baseCost;
+            level+=1;
         }
         
         return tempExp;
@@ -184,6 +182,14 @@ class Card {
         if(maxLength>0) name = GlobalFunctions.cutText(name, maxLength);
 
         return withImageLink ? `[${name}](${this.img_url})` : name;
+    }
+
+    getMaxLevel(){
+        return parameter.maxLevel(this.rarity);
+    }
+
+    getMaxSpecialLevel(){
+        return parameter.maxLevelSpecial;
     }
 
     getImg(){
