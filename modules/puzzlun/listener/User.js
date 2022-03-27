@@ -368,60 +368,74 @@ class Listener extends require("../data/Listener") {
         //validation: if user have card
         if(cardInventoryData.cardInventoryData==null) return this.interaction.reply(Validation.Card.embedNotHave(this.discordUser));
 
-        var cardInventory = new CardInventory(cardInventoryData.cardInventoryData, cardInventoryData.cardData);
-        var color = Color[cardInventory.color];
-        var series = cardInventory.Series;
-        var rarity = cardInventory.rarity;
+        var card = new CardInventory(cardInventoryData.cardInventoryData, cardInventoryData.cardData);
+        var series = card.Series;
+        var rarity = card.rarity;
         //validation color & series points
         var cost = {
-            color:10*cardInventory.rarity,
-            series:10*cardInventory.rarity
-        }
-        if(user.Color[cardInventory.color].point<cost.color||
-        user.Series[cardInventory.series]<cost.series){//validation color & series points
-            return this.interaction.reply(
-                Embed.errorMini(`You need **${color.emoji} ${cost.color}** & **${series.currency.emoji} ${cost.series}** to set ${cardInventory.getRarityEmoji()}**${rarity}** ${cardInventory.id_card} - ${cardInventory.getName(15)} as precure avatar`,this.discordUser, true,{
-                    title:`❌ Not enough points`
-                })
-            );
+            color:AvatarFormation.setCost.color(rarity),
+            series:AvatarFormation.setCost.series(rarity)
         }
 
         var avatarFormation = new AvatarFormation(await AvatarFormation.getData(this.userId));
-        //validation: check for same avatar on any formation
-        if(avatarFormation.id_main==cardInventory.id_card){
+        if(!avatarFormation.isMainAvailable()&&formation!=AvatarFormation.formation.main.value){
             return this.interaction.reply(
-                Embed.errorMini(`This precure has been assigned in **${AvatarFormation.formation.main.name}** formation`,this.discordUser, true,{
-                    title:`❌ Same avatar/formation`
-                })
-            );
-        } else if(avatarFormation.id_support1==cardInventory.id_card){
-            return this.interaction.reply(
-                Embed.errorMini(`This precure has been assigned in **${AvatarFormation.formation.support1.name}** formation`,this.discordUser, true,{
-                    title:`❌ Same avatar/formation`
-                })
-            );
-        } else if(avatarFormation.id_support2==cardInventory.id_card){
-            return this.interaction.reply(
-                Embed.errorMini(`This precure has been assigned in **${AvatarFormation.formation.support2.name}** formation`,this.discordUser, true,{
-                    title:`❌ Same avatar/formation`
+                Embed.errorMini(`Cannot assign into this formation when **${AvatarFormation.formation.main.name}** formation is not assigned yet.`,
+                this.discordUser, true,{
+                    title:`❌ Main formation need to be assigned`
                 })
             );
         }
 
+        //validation: check for same avatar on any formation
+        for(var key in AvatarFormation.formation){
+            var formationList = AvatarFormation.formation[key];
+            var formName = formationList.name;
+
+            if(avatarFormation.getCardByFormation(key)==card.id_card){
+                return this.interaction.reply(
+                    Embed.errorMini(`This precure already assigned in **${formName}** formation`,this.discordUser, true,{
+                        title:`❌ This card already assigned`
+                    })
+                );
+            }
+
+        }
+
+        //check if formation is empty/not
+        if(!avatarFormation.isAvailable(formation)){
+            //validation color & series points
+            if(user.getColorPoint(card.color)<cost.color||
+            user.getSeriesPoint(card.series)<cost.series){
+                return this.interaction.reply(
+                    Embed.errorMini(`You need more color & series points to assign: **${card.getRarityEmoji()}${rarity} ${card.id_card} - ${card.getName(15)}** as precure avatar.`,this.discordUser, true,{
+                        title:`❌ Not enough color/series points`,
+                        fields:[
+                            {
+                                name:`${card.getRarityEmoji()}${rarity} points requirement:`,
+                                value:dedent(`${card.getColorEmoji()} ${cost.color} ${card.color} points
+                                ${series.currency.emoji} ${cost.series} ${card.Series.getCurrencyName()}`)
+                            }
+                        ]
+                    })
+                );
+            }
+
+            //update user color & series points:
+            user.Color[card.color].point-=cost.color;
+            user.Series[card.series]-=cost.series;
+            await user.update();
+        }
+
         //update the precure avatar:
-        var precureAvatar = new PrecureAvatar(formation, cardInventoryData.cardInventoryData, cardInventoryData.cardData);
-        avatarFormation[precureAvatar.formation.columns] = cardInventory.id_card;
+        avatarFormation.setCardFormation(cardId, formation);
         await avatarFormation.update();
 
-        //update user color & series points:
-        user.Color[cardInventory.color].point-=cost.color;
-        user.Series[cardInventory.series]-=cost.series;
-        await user.update();
-        
+        var precureAvatar = new PrecureAvatar(formation, cardInventoryData.cardInventoryData, cardInventoryData.cardData);
         return this.interaction.reply({embeds:[
             Embed.builder(dedent(`*"${precureAvatar.properties.transform_quotes2}"*
         
-            <@${userId}> has assign **${precureAvatar.properties.name}** as **${precureAvatar.formation.name}** precure avatar!`),
+            ${Emoji.mofuheart} <@${this.userId}> has assign **${precureAvatar.properties.name}** as **${precureAvatar.formation.name}** precure avatar!`),
                 Embed.builderUser.authorCustom(`⭐${rarity} ${precureAvatar.character.alter_ego}`, precureAvatar.character.icon),{
                     color: precureAvatar.character.color,
                     thumbnail: precureAvatar.cardInventory.getImgDisplay(),
@@ -429,7 +443,7 @@ class Listener extends require("../data/Listener") {
                     image: precureAvatar.properties.img_transformation
                 }
             )
-        ],ephemeral: isPrivate});
+        ], ephemeral: isPrivate});
     }
 
     async setColor(selection){
@@ -501,20 +515,28 @@ class Listener extends require("../data/Listener") {
         ]});
     }
 
-    // async unsetAvatar(formation){
-    //     var user = new User(await User.getData(this.userId));
-    //     var avatarFormation = new AvatarFormation(await AvatarFormation.getData(this.userId));
-    //     //validation if all:
-    //     if(formation=="all"){
-    //         var arrFormation = Object.keys(AvatarFormation.formation);
-    //         // for(var key in arrFormation){
-    //         //     var val = arrFormation[key];
-    //         //     if(avatarFormation.getCardFormation(formation))
-    //         // }
+    async unsetAvatar(formation){
+        var user = new User(await User.getData(this.userId));
+        var avatarFormation = new AvatarFormation(await AvatarFormation.getData(this.userId));
+        //validation if all:
+        if(formation=="all"){
+            var arrFormation = Object.keys(AvatarFormation.formation);
+            var found = false;
+            for(var key in arrFormation){
+                var formation = arrFormation[key];
+                if(avatarFormation.isAvailable(formation)){
+                    found = true;
+                    
+                }
+            }
+            // for(var key in arrFormation){
+            //     var val = arrFormation[key];
+            //     if(avatarFormation.getCardFormation(formation))
+            // }
             
-    //     }
+        }
         
-    // }
+    }
 
 }
 

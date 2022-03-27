@@ -13,93 +13,89 @@
 
 // const Enemy = require("../../Enemy");
 
-// class Properties {
-//     static value = "chokkins";
-//     static name = "Chokkins";
-//     static icon = "https://waa.ai/f4Lv.png";
-//     static color = "#D9A4FE";
+class Properties {
+    static value = "chokkins";
+    static name = "Chokkins";
+    static icon = "https://waa.ai/f4Lv.png";
+    static color = "#D9A4FE";
 
-//     static mode = {
-//         normal:{
-//             score:1,
-//             value:"normal",
-//             name:"normal",
-//             level:{
-//                 min:5,max:20
-//             },
-//             rewards:{
-//                 color_point:10,
-//                 series_point:20,
-//             },
-//             maxCp:0
-//         },
-//         hard:{
-//             score:2,
-//             value:"hard",
-//             name:"hard",
-//             level:{
-//                 min:20,max:50
-//             },
-//             rewards:{
-//                 color_point:20,
-//                 series_point:40,
-//             },
-//             maxCp:3
-//         },
-//         expert:{
-//             score:3,
-//             value:"expert",
-//             name:"expert",
-//             level:{
-//                 min:30,max:60
-//             },
-//             rewards:{
-//                 jewel:1,
-//                 color_point:40,
-//                 series_point:50,
-//             },
-//             maxCp:6
-//         },
-//         auto:{
-//             score:1,
-//             value:"auto",
-//             name:"auto",
-//             level:{
-//                 min:1,max:60
-//             },
-//             rewards:{
-//                 color_point:5,
-//                 series_point:5
-//             }
-//         }
-//     }
+    static mode = {
+        normal:{
+            score:1,
+            value:"normal",
+            name:"normal",
+            level:{
+                min:5,max:20
+            },
+            rewards:{
+                color_point:10,
+                series_point:20,
+            },
+            maxCp:0
+        },
+        hard:{
+            score:2,
+            value:"hard",
+            name:"hard",
+            level:{
+                min:20,max:50
+            },
+            rewards:{
+                color_point:20,
+                series_point:40,
+            },
+            maxCp:3
+        },
+        expert:{
+            score:3,
+            value:"expert",
+            name:"expert",
+            level:{
+                min:30,max:60
+            },
+            rewards:{
+                jewel:1,
+                color_point:40,
+                series_point:50,
+            },
+            maxCp:6
+        },
+        auto:{
+            score:1,
+            value:"auto",
+            name:"auto",
+            level:{
+                min:1,max:60
+            },
+            rewards:{
+                color_point:5,
+                series_point:5
+            }
+        }
+    }
 
-//     static emoji = {
-//         special_point:"<:peacepoint:936238606660554773>",
+    static emoji = {
+        special_point:"<:peacepoint:936238606660554773>",
         
-//         color_pink:"<:color_pink:935901707026714714>",
-//         color_blue:"<:color_blue:935901706837975080>",
-//         color_green:"<:color_green:935901706804412477>",
-//         color_purple:"<:color_purple:935903379044065290>",
-//         color_red:"<:color_red:935901706473050173>",
-//         color_yellow:"<:color_yellow:935901706770845736>",
-//         color_white:"<:color_white:935903763741429800>",
-//         resist:"🛡️",
-//         block:"❌",
-//         confuse:"💫",
-//         sleep:"💤",
-//         ice:"🧊",
-//         cg1:"1️⃣",
-//         cg2:"2️⃣",
-//         cg3:"3️⃣",
+        color_pink:"<:color_pink:935901707026714714>",
+        color_blue:"<:color_blue:935901706837975080>",
+        color_green:"<:color_green:935901706804412477>",
+        color_purple:"<:color_purple:935903379044065290>",
+        color_red:"<:color_red:935901706473050173>",
+        color_yellow:"<:color_yellow:935901706770845736>",
+        color_white:"<:color_white:935903763741429800>",
+        resist:"🛡️",
+        block:"❌",
+        confuse:"💫",
+        sleep:"💤",
+        ice:"🧊",
+        cg1:"1️⃣",
+        cg2:"2️⃣",
+        cg3:"3️⃣",
 
-//         statsHp:"💔"
-//     }
-// }
-
-// class PropertiesStats extends Enemy.PropertiesStats {
-    
-// }
+        statsHp:"💔"
+    }
+}
 
 // class Parameter {
 //     static getLevelMin(mode){
@@ -371,6 +367,96 @@
 
 // }
 
+const properties = Object.freeze({
+    value: "chokkins",
+    name: "Chokkins",
+    icon: "https://waa.ai/f4Lv.png",
+    color: "#D9A4FE",
+
+    mode: {
+        normal:{
+            score:1,
+            value:"normal",
+            name:"normal",
+            level:{
+                min:5,max:20
+            },
+            rewards:{
+                color_point:10,
+                series_point:20,
+            },
+            maxCp:0
+        },
+        hard:{
+            score:2,
+            value:"hard",
+            name:"hard",
+            level:{
+                min:20,max:50
+            },
+            rewards:{
+                color_point:20,
+                series_point:40,
+            },
+            maxCp:3
+        },
+        expert:{
+            score:3,
+            value:"expert",
+            name:"expert",
+            level:{
+                min:30,max:60
+            },
+            rewards:{
+                jewel:1,
+                color_point:40,
+                series_point:50,
+            },
+            maxCp:6
+        },
+        auto:{
+            score:1,
+            value:"auto",
+            name:"auto",
+            level:{
+                min:1,max:60
+            },
+            rewards:{
+                color_point:5,
+                series_point:5
+            }
+        }
+    },
+    emoji: {
+        special_point:"<:peacepoint:936238606660554773>",
+        
+        color_pink:"<:color_pink:935901707026714714>",
+        color_blue:"<:color_blue:935901706837975080>",
+        color_green:"<:color_green:935901706804412477>",
+        color_purple:"<:color_purple:935903379044065290>",
+        color_red:"<:color_red:935901706473050173>",
+        color_yellow:"<:color_yellow:935901706770845736>",
+        color_white:"<:color_white:935903763741429800>",
+        resist:"🛡️",
+        block:"❌",
+        confuse:"💫",
+        sleep:"💤",
+        ice:"🧊",
+        cg1:"1️⃣",
+        cg2:"2️⃣",
+        cg3:"3️⃣",
+
+        statsHp:"💔"
+    }
+})
+
+class Chokkins {
+    
+    constructor(){
+
+    }
+}
+
 module.exports = {
-    // Properties, EventListener, Parameter, init, spawned
+    properties
 }

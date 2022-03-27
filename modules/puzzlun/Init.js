@@ -1,11 +1,12 @@
 const DB = require('../../database/DatabaseCore');
 const DBConn = require('../../storage/dbconn');
-const CardModules = require("./listener/Card");
+const CardModules = require("./Card");
 const Card = require("./data/Card");
 const Guild = require("./data/Guild");
 const {Character} = require("./data/Character");
 const SpawnerModules  = require("./data/Spawner");
 const Spawner = SpawnerModules.Spawner;
+const {Gachapon} = require("./Gachapon");
 
 async function init(){
     //load total card for all pack
@@ -18,6 +19,10 @@ async function init(){
         var dataCard = new Card(cardData[i]);
         Character.setTotal(dataCard.pack, cardData[i]["total"]);
     }
+
+    //init gachapon data
+    await Gachapon.init();
+    // console.log(Gachapon.dailyRollsCardData[1]);
 }
 
 async function initGuild(guildId, discordGuild){
@@ -43,7 +48,7 @@ async function initGuild(guildId, discordGuild){
             });
 
             // await spawner.startTimer(guildData);
-            // await spawner.startTimer();
+            await spawner.startTimer();
 
             guild.spawner = spawner;//set guild spawner
             // console.log(guild);

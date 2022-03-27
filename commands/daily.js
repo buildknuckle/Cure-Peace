@@ -277,7 +277,7 @@ module.exports = {
 
                 if(user.hasLogin()){
                     return interaction.reply(
-                        Embed.errorMini(`:x: You have already received your daily rewards for today.\nNext daily available in: **${timeRemaining}**`, discordUser, true)
+                        Embed.errorMini(`:x: You already received your daily rewards for today.\nNext daily available in: **${timeRemaining}**`, discordUser, true)
                     );
                 }
 

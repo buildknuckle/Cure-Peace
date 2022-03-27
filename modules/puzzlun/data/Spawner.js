@@ -11,12 +11,13 @@ const Guild = require('./Guild');
 const Card = require('./Card');
 const CardInventory = require('./CardInventory');
 const User = require('./User');
-const {InstancePartyAct, TreasureHunt} = require('./Instance');
+const Instance = require('./Instance');
 const {Series, SPack} = require('./Series');
 const {Character, CPack} = require('./Character');
 const {Enemy, EnPack} = require('./Enemy');
 const {Party} = require('./Party');
 const Properties = require("../Properties");
+const { PartyAct } = require("./Instance");
 const Color = Properties.color;
 const Emoji = Properties.emoji;
 
@@ -39,8 +40,8 @@ class Spawner {
         cardSeries:"cardSeries",
         quiz:"quiz",
         numberGuess:"numberGuess",
-        instancePartyAct:InstancePartyAct.type,
-        battle:"battle",
+        partyAct:Instance.PartyAct.type,
+        soloBattle:Instance.SoloBattle.type,
     };
 
     // guildId = null;
@@ -70,7 +71,7 @@ class Spawner {
         this.token = rndSpawnToken;
 
         var rnd = GlobalFunctions.randomNumber(0,100);
-        rnd = 1;//only for testing
+        rnd = 60;//only for testing
         var spawn;
         var embedSpawn;
         if(rnd<10){//normal card spawn
@@ -112,18 +113,22 @@ class Spawner {
             spawn = new NumberGuess(await NumberGuess.getRandomCard());
             embedSpawn = spawn.getEmbedSpawn(this.token);
         } else if(rnd==60){//party act instance
-            this.type = Spawner.type.instancePartyAct;
+            this.type = Spawner.type.partyAct;
 
-            var rnd = GlobalFunctions.randomPropertyKey(InstancePartyAct.instanceType);
-            var instance = new InstancePartyAct();
+            var rnd = GlobalFunctions.randomPropertyKey(Instance.PartyAct.instanceType);
+            var instance = new Instance.PartyAct();
+            let instanceType = Instance.PartyAct.instanceType;
             switch(rnd){
-                case InstancePartyAct.instanceType.treasureHunt:
-                    instance.type = TreasureHunt.type;
-                    embedSpawn = TreasureHunt.getEmbedSpawn(this.token);
+                case instanceType.treasureHunt:
+                    instance.type = instanceType.treasureHunt;
+                    embedSpawn = instance.getEmbedSpawn(this.token);
                     break;
             }
 
             spawn = instance;
+        } else if(rnd==70){//solo battle instance
+            // this.type = Spawner.type.
+            this.type = Spawner.type.soloBattle;
         }
 
         this.spawn = spawn;//set spawn
@@ -134,7 +139,7 @@ class Spawner {
         }
 
         this.message = await this.spawnChannel.send(embedSpawn);
-        // await this.stopTimer();//only for testing
+        await this.stopTimer();//only for testing
         // console.log(this.timer);
 
         // return;
@@ -202,7 +207,7 @@ class Spawner {
 
         //spawn validation
         if(spawner.validationSpawn(discordUser, userData, commandToken, interaction)!=true) return;
-        
+
         switch(type){
             case Spawner.type.cardNormal: //normal card spawn
                 switch(command){
@@ -237,13 +242,13 @@ class Spawner {
             case Spawner.type.numberGuess:
                 await NumberGuess.onCapture(discordUser, userData, guildData, interaction, command);
                 break;
-            case Spawner.type.instancePartyAct:
+            case Spawner.type.partyAct:
                 switch(command){
-                    case InstancePartyAct.buttonId.commence:
-                        await InstancePartyAct.join(discordUser, guildData, interaction);
+                    case PartyAct.buttonId.commence:
+                        await Instance.PartyAct.join(discordUser, guildData, interaction);
                         break;
                     default:
-                        await InstancePartyAct.eventListener(discordUser, guildData, command, interaction);
+                        await Instance.PartyAct.eventListener(discordUser, guildData, command, interaction);
                         break;
                 }
                 break;

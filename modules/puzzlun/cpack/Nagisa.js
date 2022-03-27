@@ -17,7 +17,7 @@ class Avatar {
         transform_quotes2 : "Emissary of light, Cure Black!",
         special_attack : "Marble Screw",
         img_special_attack : "https://cdn.discordapp.com/attachments/793374640839458837/817775242729881660/unknown.png",
-        img_transformation : "",
+        img_transformation : "https://waa.ai/JEVB.png",
         skill:{
             passive:{
                 stats: function(level){

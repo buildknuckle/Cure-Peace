@@ -19,7 +19,7 @@ class Avatar {
         transform_quotes2:"The rainbow spectrum lighting up the galaxy! Cure Cosmo!",
         special_attack:"Cosmo Shining",
         img_special_attack:"https://cdn.discordapp.com/attachments/793396381406199809/817795242929422406/unknown.png",
-        img_transformation:"",
+        img_transformation:"https://waa.ai/JEwT.png",
         skill:{
             passive:{
                 turn_recover_sp: function(level){

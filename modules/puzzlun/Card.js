@@ -1,25 +1,94 @@
 const dedent = require("dedent-js");
-const DB = require('../../../database/DatabaseCore');
-const DBConn = require('../../../storage/dbconn');
-const DiscordStyles = require('../../DiscordStyles');
-const GlobalFunctions = require('../../GlobalFunctions');
-const paginationEmbed = require('../../DiscordPagination');
+const DB = require('../../database/DatabaseCore');
+const DBConn = require('../../storage/dbconn');
+const DiscordStyles = require('../DiscordStyles');
+const GlobalFunctions = require('../GlobalFunctions');
+const capitalize = GlobalFunctions.capitalize;
+const paginationEmbed = require('../DiscordPagination');
 
-const User = require("../data/User");
-const Card = require("../data/Card");
-const CardInventory = require("../data/CardInventory");
-const {Series, SPack} = require("../data/Series");
-const {Character, CPack} = require("../data/Character");
-const Properties = require('../Properties');
-const Embed = require('../Embed');
+const User = require("./data/User");
+const Card = require("./data/Card");
+const CardInventory = require("./data/CardInventory");
+const {Series, SPack} = require("./data/Series");
+const {Character, CPack} = require("./data/Character");
+const Properties = require('./Properties');
+const Color = Properties.color;
+const Emoji = Properties.emoji;
 
 // const GuildModule = require("./Guild");
 
-class Validation extends require("../Validation") {
+class Validation extends require("./Validation") {
     
 }
 
-class Listener extends require("../data/Listener") {
+class Embed extends require('./Embed') {
+    user;
+    card;
+    discordUser;
+    
+    constructor(cardData, userData, discordUser){
+        super();
+        this.card = new Card(cardData);
+        this.user = new User(userData);
+        this.discordUser = discordUser;
+    }
+
+    newCard(updatedTotalPack, options = {notifFront:"",notifBack:""}){
+        //discord user author:
+        var userId = this.discordUser.id;
+        var username = this.discordUser.username;
+        var userAvatar = Embed.builderUser.getAvatarUrl(this.discordUser);
+
+        //card data
+        var id = this.card.id_card; var rarity = this.card.rarity;
+        var character = this.card.Character; var name = this.card.name.toString();
+        var img = this.card.img_url; var color = this.card.color;
+        var series = this.card.Series;
+
+        var notifFront = `${"notifFront" in options ? options.notifFront:""}`;
+        var notifBack = `${"notifBack" in options ? options.notifBack:""}`;
+
+        var author = Embed.builderUser.author(this.discordUser, `New ${capitalize(character.name)} Card!`, character.icon);
+
+
+        return Embed.builder(dedent(`${notifFront}${Properties.emoji.mofuheart} <@${userId}> has received new ${rarity}${Card.emoji.rarity(rarity)} ${capitalize(this.card.pack)} card!${notifBack}`), author, {
+            color: color,
+            title: name,
+            fields:[{
+                name:`ID:`,
+                value:`${id.toString()}`,
+                inline:true
+            },{
+                name:`Series:`,
+                value:`${series.emoji.mascot} ${capitalize(series.name)}`,
+                inline:true
+            }],
+            image: img,
+            footer: Embed.builderUser.footer(`${username} (${updatedTotalPack}/${this.card.packTotal})`, userAvatar)
+        });
+    }
+
+    duplicateCard(updatedStock, options = {notifFront:"",notifBack:""}){
+        //card data
+        var userId = this.discordUser.id;
+
+        var character = this.card.Character; var series = this.card.Series; 
+        var name = this.card.name; var img = this.card.img_url; 
+        var color = this.card.color;
+
+        var notifFront = `${"notifFront" in options ? options.notifFront:""}`;
+        var notifBack = `${"notifBack" in options ? options.notifBack:""}`;
+
+        return Embed.builder(dedent(`${notifFront}${Emoji.mofuheart} <@${userId}> has received another ${character.name} card${notifBack}:
+        **${this.card.getRarityEmoji(true)}${this.card.rarity} - ${name}**`), this.discordUser, {
+            color: color,
+            title: `Duplicate Card`,
+            thumbnail: img,
+            footer: Embed.builderUser.footer(`Stock: ${updatedStock}/${CardInventory.limit.card}`)});
+    }
+}
+
+class Listener extends require("./data/Listener") {
     constructor(userId=null, discordUser=null, interaction=null){
         super(userId,discordUser, interaction);
     }
@@ -338,4 +407,7 @@ class Listener extends require("../data/Listener") {
 
 }
 
-module.exports = Listener;
+module.exports = {
+    CardEmbed: Embed,
+    CardListener: Listener
+}

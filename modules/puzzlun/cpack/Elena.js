@@ -17,7 +17,7 @@ class Avatar {
         transform_quotes2:"Light up the sky! With sparkling heat! Cure Soleil!",
         special_attack:"Soleil Shoot",
         img_special_attack:"https://cdn.discordapp.com/attachments/793396010227204117/817794841130827786/unknown.png",
-        img_transformation:"",
+        img_transformation:"https://waa.ai/JEws.png",
         skill:{
             passive:{}
         }

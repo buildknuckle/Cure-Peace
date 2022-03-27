@@ -17,7 +17,7 @@ class Avatar {
         transform_quotes2 : "Strumming the wild tune, Cure Melody!",
         special_attack : "Miracle Heart Arpeggio",
         img_special_attack : "https://cdn.discordapp.com/attachments/793383641119850556/817782344819408966/unknown.png",
-        img_transformation : "",
+        img_transformation : "https://waa.ai/JEVd.png",
         skill:{
             passive:{
                 stats: function(level){

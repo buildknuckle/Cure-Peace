@@ -17,7 +17,7 @@ class Avatar {
         transform_quotes2:"Light up the night sky! With the secretive moonlight! Cure Selene!",
         special_attack:"Selene Arrow",
         img_special_attack:"https://cdn.discordapp.com/attachments/793396194697019412/817794901722005554/unknown.png",
-        img_transformation:"",
+        img_transformation:"https://waa.ai/JEwU.png",
         skill:{
             passive:{}
         }

@@ -19,7 +19,7 @@ class Avatar {
         transform_quotes2:"With Beauty and Excitement! Let's La Mix It All Up! Cure Macaron! Is Ready To Serve!",
         special_attack:"Macaron Julienne",
         img_special_attack:"https://cdn.discordapp.com/attachments/793392786367316038/817793379797696512/unknown.png",
-        img_transformation:"",
+        img_transformation:"https://waa.ai/JEwy.png",
         skill:{
             passive:{
                 turn_recover_hp: function(level){

@@ -19,7 +19,7 @@ class Avatar {
         transform_quotes2:"With Intelligence and Courage! Let's La Mix It All Up! Cure Custard! Ready To Serve!",
         special_attack:"Custard Illusion",
         img_special_attack:"https://cdn.discordapp.com/attachments/793392228168237086/817793084657631262/unknown.png",
-        img_transformation:"",
+        img_transformation:"https://waa.ai/JEw9.png",
         skill:{
             passive:{
                 

@@ -17,7 +17,7 @@ class Avatar {
         transform_quotes2:"The star of hope that glitters in the night sky! Cure Fortune!",
         special_attack:"Stardust Shoot",
         img_special_attack:"https://cdn.discordapp.com/attachments/793389261570965504/817786376220835840/unknown.png",
-        img_transformation:"",
+        img_transformation:"https://waa.ai/JEwV.png",
         skill:{
             passive:{}
         }

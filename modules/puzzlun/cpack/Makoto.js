@@ -17,7 +17,7 @@ class Avatar {
         transform_quotes2:"The courageous blade! Cure Sword!",
         special_attack:"Sword Hurricane",
         img_special_attack:"https://cdn.discordapp.com/attachments/793388248139300864/817785553084219402/unknown.png",
-        img_transformation:"",
+        img_transformation:"https://waa.ai/JEwc.png",
         skill:{
             passive:{}
         }

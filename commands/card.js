@@ -24,7 +24,7 @@ const Embed = require("../modules/puzzlun/Embed");
 // const SpawnerEventListener = SpawnerModule.EventListener;
 const {AvatarFormation} = require('../modules/puzzlun/Data/Avatar');
 const UserListener = require("../modules/puzzlun/listener/User");
-const CardListener = require("../modules/puzzlun/listener/Card");
+const {CardListener} = require("../modules/puzzlun/Card");
 
 module.exports = {
     name: 'card',

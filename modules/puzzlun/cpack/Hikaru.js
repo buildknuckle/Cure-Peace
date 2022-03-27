@@ -17,7 +17,7 @@ class Avatar {
         transform_quotes2 : "The twinkling star that shines throughout the universe! Cure Star!",
         special_attack : "Star Punch",
         img_special_attack : "https://cdn.discordapp.com/attachments/793395639512989727/817794726728171561/unknown.png",
-        img_transformation : "",
+        img_transformation : "https://waa.ai/JEV7.png",
         skill:{
             passive:{
                 stats: function(level){

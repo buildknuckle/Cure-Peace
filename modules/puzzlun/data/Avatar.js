@@ -6,6 +6,7 @@ const DBM_Avatar_Formation = require('../../../database/model/DBM_Avatar_Formati
 const {Series, SPack} = require("./Series");
 const {Character, CPack} = require("./Character");
 const GProperties = require('../Properties');
+const Card = require("./Card");
 const CardInventory = require("./CardInventory");
 
 const UPDATE_KEY = [
@@ -32,13 +33,21 @@ class AvatarFormation {
             columns: AvatarFormation.columns.id_support2
         },
     }
+    static setCost = {
+        color(rarity){
+            return 10*rarity
+        },
+        series(rarity){
+            return 10*rarity
+        }
+    }
 
     id_user = null;
     id_main = null;
     item_equip = null;
     id_support1 = null;
     id_support2 = null;
-    
+
     constructor(avatarData = null){
         for(var key in avatarData){
             this[key] = avatarData[key];
@@ -62,14 +71,20 @@ class AvatarFormation {
 
         return avatarData[0];
     }
-    
 
+    /**
+     * @param {string} cardId the card id
+     * @param {string} formation in string name
+     */
     setCardFormation(cardId, formation){
         if(!(formation in AvatarFormation.formation)) return;//validation: if formation is valid
         this[AvatarFormation.formation[formation].columns] = cardId;
     }
 
-    unsetCardFormation(cardId, formation){
+    /**
+     * @param {string} formation in string name
+     */
+    unsetCardFormation(formation){
         if(!(formation in AvatarFormation.formation)) return;//validation: if formation is valid
         this[AvatarFormation.formation[formation].columns] = null;
     }
@@ -79,9 +94,14 @@ class AvatarFormation {
             true:false;
     }
 
-    getCardFormation(formation){
+    //get formation of card: main/support 1/support 2
+    getCardByFormation(formation){
         if(!(formation in AvatarFormation.formation)) return;//validation: if formation is valid
         return this[AvatarFormation.formation[formation].columns];
+    }
+
+    isMainAvailable(){
+        return this.id_main!==null? true:false;
     }
 
     async update(){
@@ -160,6 +180,10 @@ class PrecureAvatar {
             this.character = this.cardInventory.Character;
             this.series = this.cardInventory.Series;
         }
+    }
+
+    getImgTransformation(){
+
     }
 
     levelSync(newLevel){

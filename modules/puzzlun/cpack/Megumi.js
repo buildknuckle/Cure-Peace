@@ -17,7 +17,7 @@ class Avatar {
         transform_quotes2 : "The big love spreading throughout the world! Cure Lovely!!",
         special_attack : "Pinky Love Shoot",
         img_special_attack : "https://cdn.discordapp.com/attachments/793388697474564157/817786157650673674/unknown.png",
-        img_transformation : "",
+        img_transformation : "https://waa.ai/JEVg.png",
         skill:{
             passive:{}
         }

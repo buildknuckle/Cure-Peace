@@ -19,7 +19,7 @@ class Avatar {
         transform_quotes2:"Making everyone shine! The Pretty Cure of Strength! Cure Etoile!",
         special_attack:"Heart Star",
         img_special_attack:"https://cdn.discordapp.com/attachments/793394718305419265/817794207732727858/unknown.png",
-        img_transformation:"",
+        img_transformation:"https://waa.ai/JEwS.png",
         skill:{
             passive:{
                 turn_recover_sp: function(level){

@@ -19,7 +19,7 @@ class Avatar {
         transform_quotes2 : "Overflowing Love! Cure Heart!",
         special_attack : "Heart Dynamite",
         img_special_attack : "https://cdn.discordapp.com/attachments/793387637527805973/817784809380118528/unknown.png",
-        img_transformation : "",
+        img_transformation : "https://waa.ai/JEV6.png",
         skill:{
             passive:{
                 stats: function(level){

@@ -17,7 +17,7 @@ class Avatar {
         transform_quotes2:"The Trump Card of Love! Cure Ace!",
         special_attack:"Ace Shot",
         img_special_attack:"https://cdn.discordapp.com/attachments/793388428150046740/817786014482825226/unknown.png",
-        img_transformation:"",
+        img_transformation:"https://waa.ai/JEwB.png",
         skill:{
             passive:{}
         }

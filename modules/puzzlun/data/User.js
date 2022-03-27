@@ -247,23 +247,12 @@ class User {
     }
 
     static limit = Object.freeze({
-        // color:{
-        //     level:Color.limit.level,
-        //     point:Color.limit.point
-        // },
-        // series:{
-        //     point:Series.limit.point,
-        // },
         peacePoint:6,
-        // currency:{
-        //     mofucoin:Currency.limit.mofucoin,
-        //     jewel:Currency.limit.jewel
-        // }
     });
 
     id_user= null;
-    server_id_login= null;
     last_checkIn_date= null;
+    last_gacha_date= null;
     token_sale= null;
     peace_point= null;
     set_color= null;
@@ -394,7 +383,6 @@ class User {
         this.currency_data = this.Currency.getData();
 
         let column = [//columns to be updated:
-            User.columns.server_id_login,
             User.columns.last_checkIn_date,
             User.columns.token_sale,
             User.columns.peace_point,

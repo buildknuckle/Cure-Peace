@@ -17,7 +17,7 @@ class Avatar {
         transform_quotes2:"The milky way stretching across the heavens! Cure Milky!",
         special_attack:"Milky Shock",
         img_special_attack:"https://cdn.discordapp.com/attachments/793395855654518814/817794616949997588/unknown.png",
-        img_transformation:"",
+        img_transformation:"https://waa.ai/JEw6.png",
         skill:{
             passive:{}
         }

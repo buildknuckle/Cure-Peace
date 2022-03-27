@@ -17,7 +17,7 @@ class Avatar {
         transform_quotes2:"Loving everyone! The Pretty Cure of Love! Cure Machérie!",
         special_attack:"Heart Song",
         img_special_attack:"https://cdn.discordapp.com/attachments/793394965690318898/817794295641407548/unknown.png",
-        img_transformation:"",
+        img_transformation:"https://waa.ai/JEwW.png",
         skill:{
             passive:{}
         }

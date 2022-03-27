@@ -1,5 +1,4 @@
 const { MessageEmbed } = require('discord.js');
-// const CardModules = require('../modules/Card');
 
 module.exports = {
     name: 'help',

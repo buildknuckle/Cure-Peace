@@ -17,7 +17,7 @@ class Avatar {
         transform_quotes2 : "The shining golden flower, Cure Bloom!",
         special_attack : "Spiral Star Splash",
         img_special_attack : "https://cdn.discordapp.com/attachments/793378822976045096/817775703444684820/unknown.png",
-        img_transformation : "",
+        img_transformation : "https://waa.ai/JEVI.png",
         skill:{
             passive:{
                 stats: function(level){

@@ -17,7 +17,7 @@ class Avatar {
         transform_quotes2 : "Our Miracle! Cure Miracle!",
         special_attack : "Diamond Eternal",
         img_special_attack : "https://cdn.discordapp.com/attachments/793390659046080512/817787063726243880/unknown.png",
-        img_transformation : "",
+        img_transformation : "https://waa.ai/JEVh.png",
         skill:{
             passive:{
                 stats: function(level){

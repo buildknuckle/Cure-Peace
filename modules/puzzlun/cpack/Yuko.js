@@ -17,7 +17,7 @@ class Avatar {
         transform_quotes2:"The light of life flourishing on the Earth, Cure Honey!",
         special_attack:"Sparkling Baton Attack",
         img_special_attack:"https://cdn.discordapp.com/attachments/793389083162050581/817786309334663188/unknown.png",
-        img_transformation:"",
+        img_transformation:"https://waa.ai/JEwF.png",
         skill:{
             passive:{
                 stats: function(level){

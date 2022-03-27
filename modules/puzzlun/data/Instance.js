@@ -45,34 +45,7 @@ class Embed extends require("../Embed") {
     }
 }
 
-class BattleSolo {
-    userId = null;
-    cardAvatar;
-
-    mainAvatar = null;
-    support1Avatar = null;
-    support2Avatar = null;
-    enemy = null;
-
-    constructor(userId=null, cardAvatarData=null, cardInventoryData = {main:null, support1:null, support2:null}, 
-        cardData = {main:null, support1:null, support2:null}, 
-        enemy = null){
-        if(userId!=null){
-            this.userId = userId;
-            this.cardAvatar = new AvatarFormation(cardAvatarData);
-            this.mainAvatar = new PrecureAvatar(AvatarFormation.formation.main.value, cardInventoryData.main, cardData.main);
-
-            if("support1" in cardInventoryData){
-                this.support1Avatar = new PrecureAvatar(AvatarFormation.formation.support1.value, cardInventoryData.support1, cardData.support1);
-            }
-            
-
-            this.support2Avatar = new PrecureAvatar(AvatarFormation.formation.support2.value, cardInventoryData.support2, cardData.support2);
-        }
-    }
-}
-
-class InstancePartyAct {
+class PartyAct {
     static type = "instancePartyAct";
     static buttonId = Object.freeze({
         commence:"commence",
@@ -92,19 +65,20 @@ class InstancePartyAct {
         }
     }
 
+    //used to get instance by party id
     getInstance(partyid){
         return this.instance[partyid];
     }
 
-    initSpawnData(spawn_data){
-        var parsedSpawnData = JSON.parse(spawn_data);
-        for(var key in parsedSpawnData){
-            this[key] = parsedSpawnData[key];
+    //used to get spawn embed
+    getEmbedSpawn(token){
+        switch(this.type){
+            case PartyAct.instanceType.treasureHunt:{
+                return TreasureHunt.getEmbedSpawn(token);
+                break;
+            }
         }
-    }
-
-    getSpawnData(){
-        return JSON.stringify({spawnType: this.type});
+        
     }
 
     async updateInstance(partyId, newInstanceData){
@@ -122,7 +96,7 @@ class InstancePartyAct {
         if(party.getTotalMember()<=0) return interaction.reply(Embed.validationNotEnoughMembers(discordUser, 1));
 
         //validation: if party already joined
-        var spawn = new InstancePartyAct(spawner.spawn);
+        var spawn = new PartyAct(spawner.spawn);
         
         //validation if user already in party/not
         if(party.id in spawn.instance){ 
@@ -167,7 +141,7 @@ class InstancePartyAct {
 }
 
 class TreasureHunt {
-    static type = "treasureHunt";
+    static type = PartyAct.instanceType.treasureHunt;
     static buttonId = Object.freeze({
         lower:"lower",
         higher:"higher",
@@ -223,7 +197,7 @@ class TreasureHunt {
         });
 
         return {embeds:[objEmbed], components: [DiscordStyles.Button.row([
-            DiscordStyles.Button.base(`card.${InstancePartyAct.type}_${InstancePartyAct.buttonId.commence}_${token}`,"Commence","PRIMARY"),
+            DiscordStyles.Button.base(`card.${PartyAct.type}_${PartyAct.buttonId.commence}_${token}`,"Commence","PRIMARY"),
         ])]};
     }
 
@@ -257,10 +231,10 @@ class TreasureHunt {
 
         return {embeds:[objEmbed], components: [DiscordStyles.Button.row([
             DiscordStyles.Button.base(
-                `card.${InstancePartyAct.type}_${TreasureHunt.type}_${TreasureHunt.buttonId.lower}_${this.party.id}_${token}`,
+                `card.${PartyAct.type}_${TreasureHunt.type}_${TreasureHunt.buttonId.lower}_${this.party.id}_${token}`,
             "Lower","PRIMARY"),
             DiscordStyles.Button.base(
-                `card.${InstancePartyAct.type}_${TreasureHunt.type}_${TreasureHunt.buttonId.higher}_${this.party.id}_${token}`,"Higher","PRIMARY"),
+                `card.${PartyAct.type}_${TreasureHunt.type}_${TreasureHunt.buttonId.higher}_${this.party.id}_${token}`,"Higher","PRIMARY"),
         ])]};
     }
 
@@ -316,12 +290,12 @@ class TreasureHunt {
         });
         var components = [DiscordStyles.Button.row([
             DiscordStyles.Button.base(
-                `card.${InstancePartyAct.type}_${TreasureHunt.type}_${TreasureHunt.buttonId.lower}_${this.party.id}_${token}`,
+                `card.${PartyAct.type}_${TreasureHunt.type}_${TreasureHunt.buttonId.lower}_${this.party.id}_${token}`,
             "▼ Lower","PRIMARY"),
             DiscordStyles.Button.base(
-                `card.${InstancePartyAct.type}_${TreasureHunt.type}_${TreasureHunt.buttonId.higher}_${this.party.id}_${token}`,"▲ Higher","PRIMARY"),
+                `card.${PartyAct.type}_${TreasureHunt.type}_${TreasureHunt.buttonId.higher}_${this.party.id}_${token}`,"▲ Higher","PRIMARY"),
             DiscordStyles.Button.base(
-                `card.${InstancePartyAct.type}_${TreasureHunt.type}_${TreasureHunt.buttonId.collect}_${this.party.id}_${token}`,"Collect","SUCCESS"),
+                `card.${PartyAct.type}_${TreasureHunt.type}_${TreasureHunt.buttonId.collect}_${this.party.id}_${token}`,"Collect","SUCCESS"),
         ])]
 
         return {embeds:[embed], components: components};
@@ -376,7 +350,7 @@ class TreasureHunt {
 
     static async onGuess(discordUser, guildData, partyId, command, interaction){
         var guild = new Guild(guildData);
-        var spawn = new InstancePartyAct(guild.spawner.spawn);
+        var spawn = new PartyAct(guild.spawner.spawn);
         var instance = new TreasureHunt(spawn.getInstance(partyId));
         
         var currentNumber = Math.round(TreasureHunt.stage[instance.stage]/2);
@@ -413,15 +387,46 @@ class TreasureHunt {
 
 }
 
-// class InstanceSoloBattle {
-//     static type = "instanceSoloBattle";
-//     static buttonId = Object.freeze({
-//         commence:"commence",
-//     });
-//     static instanceType = {
-//         treasureHunt: "treasureHunt"
-//     }
-// }
+class SoloBattle {
+    static type = "instanceSoloBattle";
+    static buttonId = Object.freeze({
+        commence:"commence",
+    });
+
+    static instanceType = {
+        chokkins: "chokkins"
+    }
+
+    instance = {};//contains party instance data
+
+
+}
+
+class TsunagarusBattle {
+    userId = null;
+
+    mainAvatar = null;
+    support1Avatar = null;
+    support2Avatar = null;
+    enemy = null;
+
+    constructor(userId=null, cardAvatarData=null, cardInventoryData = {main:null, support1:null, support2:null}, 
+        cardData = {main:null, support1:null, support2:null}, 
+        enemy = null){
+        if(userId!=null){
+            this.userId = userId;
+            this.cardAvatar = new AvatarFormation(cardAvatarData);
+            this.mainAvatar = new PrecureAvatar(AvatarFormation.formation.main.value, cardInventoryData.main, cardData.main);
+
+            if("support1" in cardInventoryData){
+                this.support1Avatar = new PrecureAvatar(AvatarFormation.formation.support1.value, cardInventoryData.support1, cardData.support1);
+            }
+            
+
+            this.support2Avatar = new PrecureAvatar(AvatarFormation.formation.support2.value, cardInventoryData.support2, cardData.support2);
+        }
+    }
+}
 
 // class Tsunagarus {
 //     static value = "battle";
@@ -447,6 +452,10 @@ class TreasureHunt {
     
 // }
 
-module.exports = {
-    InstancePartyAct, BattleSolo, TreasureHunt
+class Instance {
+    static PartyAct = PartyAct;
+    static SoloBattle = SoloBattle;
+
 }
+
+module.exports = Instance;
