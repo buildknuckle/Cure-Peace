@@ -4,9 +4,7 @@ class Properties {
         r1:"<:r1:935903782770966528>",
         r6:"<:r6:935903799317499954>",
         r7:"<:r7:935903814358270023>",
-        //checkmark
-        aoi_check_green:"<:aoi_check_green:935956208727232522>",
-        aoi_x:"<:aoi_x:935956209264107591>",
+        
         mofuheart:"<:mofuheart:952981261515886602>",
         mofuthumbsup:"<:mofuthumbsup:952441310755823686>",
         

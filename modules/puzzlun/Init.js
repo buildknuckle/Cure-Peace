@@ -6,7 +6,8 @@ const Guild = require("./data/Guild");
 const {Character} = require("./data/Character");
 const SpawnerModules  = require("./data/Spawner");
 const Spawner = SpawnerModules.Spawner;
-const {Gachapon} = require("./Gachapon");
+const Gachapon = require("./Gachapon");
+const Shop = require("./Shop");
 
 async function init(){
     //load total card for all pack
@@ -22,6 +23,10 @@ async function init(){
 
     //init gachapon data
     await Gachapon.init();
+
+    //init shop data
+    await Shop.init();
+
     // console.log(Gachapon.dailyRollsCardData[1]);
 }
 

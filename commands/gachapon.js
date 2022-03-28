@@ -5,7 +5,7 @@ const DiscordStyles = require('../modules/DiscordStyles');
 const GlobalFunctions = require('../modules/GlobalFunctions');
 const capitalize = GlobalFunctions.capitalize;
 
-const {Gachapon, GachaponListener} = require("../modules/puzzlun/Gachapon");
+const Gachapon = require("../modules/puzzlun/Gachapon");
 
 module.exports = {
     name: 'gachapon',
@@ -30,18 +30,18 @@ module.exports = {
                     required:true, 
                     choices:[
                         {
-                            name:`1x (Cost: ${Gachapon.cost.daily[1]} jewel)`,
+                            name:`1x (Cost: ${Gachapon.Daily.cost[1]} jewel)`,
                             value:`1`
                         },
                         {
-                            name:`5x (Cost: ${Gachapon.cost.daily[5]} jewel)`,
+                            name:`5x (Cost: ${Gachapon.Daily.cost[5]} jewel)`,
                             value:`5`
                         }
                     ]
                 },
             ]
         },
-        {//daily rolls
+        {//tropical-catch roll
             name: "tropical-catch",
             description: "Roll on limited tropical rouge precure gachapon.",
             type: 1,
@@ -53,18 +53,44 @@ module.exports = {
                     required:true, 
                     choices:[
                         {
-                            name:`1x (Cost: ${Gachapon.cost.daily[1]} jewel)`,
+                            name:`1x (Cost: ${Gachapon.TropicalCatch.cost[1]} jewel)`,
                             value:`1`
                         },
                         {
-                            name:`5x (Cost: ${Gachapon.cost.daily[5]} jewel)`,
-                            value:`5`
+                            name:`3x (Cost: ${Gachapon.TropicalCatch.cost[3]} jewel)`,
+                            value:`3`
                         }
                     ]
                 },
             ]
         },
-        
+        {//ticket roll
+            name: "ticket",
+            description: "Roll on limited tropical rouge precure gachapon.",
+            type: 1,
+            options: [
+                {
+                    name: "selection",
+                    description: "Select the gachapon ticket that you want to use",
+                    type: 3,
+                    required:true,
+                    choices:[
+                        {
+                            name:`Standard Gachapon Ticket`,
+                            value:`standard`
+                        },
+                        {
+                            name:`Tropical-Catch! Gachapon Ticket`,
+                            value:`tropical-catch`
+                        },
+                        {
+                            name:`Premium Gachapon Ticket`,
+                            value:`premium`
+                        },
+                    ]
+                }
+            ]
+        }
     ],
     async execute(interaction){
         var command = interaction.options._group;
@@ -76,15 +102,32 @@ module.exports = {
 
         switch(commandSubcommand){
             case "info":{
-                let gacha = new GachaponListener(userId, discordUser, interaction);
+                let gacha = new Gachapon.Listener(userId, discordUser, interaction);
                 await gacha.info();
                 break;
             }
-            case "daily":
+            case "daily":{
                 var roll = parseInt(interaction.options.getString("roll"));
-                let gacha = new GachaponListener(userId, discordUser, interaction);
-                await gacha.dailyRoll(roll);
+                let gacha = new Gachapon.Daily(userId, discordUser, interaction);
+                await gacha.roll(roll);
                 break;
+            }
+            case "tropical-catch":{
+                var roll = parseInt(interaction.options.getString("roll"));
+                let gacha = new Gachapon.TropicalCatch(userId, discordUser, interaction);
+                await gacha.roll(roll);
+                break;
+            }
+            case "ticket":{
+                let choice = interaction.options.getString("selection");
+                switch(choice){
+                    case "standard":{
+                        
+                        break;
+                    }
+                }
+                break;
+            }
         }
     }
 }

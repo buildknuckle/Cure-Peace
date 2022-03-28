@@ -18,6 +18,7 @@ class UserGacha {
 
     id_user= null;
     last_daily_gacha_date= null;
+    last_tropicalcatch_gacha_date= null;
 
     constructor(userGacha){
         for(var key in userGacha){
@@ -43,8 +44,13 @@ class UserGacha {
         return userData[0];
     }
 
-    setTodayDailyGachaDate(){
+    setLastDailyGachaDate(){
         this.last_daily_gacha_date = GlobalFunctions.getCurrentDate();
+    }
+
+    //update tropicalcatch gacha date
+    setLastTropicalCatchGachaDate(){
+        this.last_tropicalcatch_gacha_date = GlobalFunctions.getCurrentDate();
     }
 
     async update(){
@@ -71,6 +77,10 @@ class UserGacha {
 
     hasDailyGacha(){//check if already login/not
         return this.last_daily_gacha_date==GlobalFunctions.getCurrentDate() ? true:false;
+    }
+
+    hasTropicalCatchGacha(){
+        return this.last_tropicalcatch_gacha_date==GlobalFunctions.getCurrentDate() ? true:false;
     }
 
 }

@@ -80,7 +80,7 @@ class Embed extends require('./Embed') {
         var notifBack = `${"notifBack" in options ? options.notifBack:""}`;
 
         return Embed.builder(dedent(`${notifFront}${Emoji.mofuheart} <@${userId}> has received another ${character.name} card${notifBack}:
-        **${this.card.getRarityEmoji(true)}${this.card.rarity} - ${name}**`), this.discordUser, {
+        **${this.card.getRarityEmoji(true)}${this.card.rarity}: ${this.card.id_card} - ${name}**`), this.discordUser, {
             color: color,
             title: `Duplicate Card`,
             thumbnail: img,
@@ -156,19 +156,19 @@ class Listener extends require("./data/Listener") {
         }
 
         var total = {
-            normal: cardDataInventory.cardData.filter(
+            normal: cardDataInventory.cardInventoryData.filter(
                 function (item) {
-                    return item[CardInventory.columns.id_user] != null;
+                    return item!=null&&item[CardInventory.columns.id_user] != null;
                 }
             ).length,
-            gold: cardDataInventory.cardData.filter(
+            gold: cardDataInventory.cardInventoryData.filter(
                 function (item) {
-                    return item[CardInventory.columns.is_gold] == 1;
+                    return item!=null&&item[CardInventory.columns.is_gold] == 1;
                 }
             ).length,
-            duplicate: GlobalFunctions.sumObjectByKey(cardDataInventory.cardData.filter(
+            duplicate: GlobalFunctions.sumObjectByKey(cardDataInventory.cardInventoryData.filter(
                 function (item) {
-                    return item[CardInventory.columns.stock]>0;
+                    return item!=null&&item[CardInventory.columns.stock]>0;
                 }
             ), CardInventory.columns.stock)
         };
