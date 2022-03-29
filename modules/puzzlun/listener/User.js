@@ -31,10 +31,6 @@ class Validation extends require("../Validation") {
 
 class Listener extends require("../data/Listener") {
 
-    constructor(userId=null, discordUser=null, interaction=null){
-        super(userId,discordUser, interaction);
-    }
-
     async status(isPrivate){//print user status menu
         var userId = this.discordUser.id;
         //init embed

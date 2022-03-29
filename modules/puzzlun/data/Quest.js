@@ -92,7 +92,11 @@ class DailyCardQuest {
     }
 
     static rewardCompletion = {
-        jewel:5
+        jewel:5,
+        ticket:"gt001",
+        item:["ing001","ing002","ing003",
+        "ing004","ing005","ing006","ing007",
+        "ing008"]
     }
 
     static max = 4;

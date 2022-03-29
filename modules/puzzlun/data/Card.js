@@ -165,8 +165,8 @@ class Card {
         return typeof this[key] === 'undefined';
     }
 
-    getIdCard(){
-        return this.id_card;
+    getIdCard(withTag=true){
+        return withTag? `**[${this.id_card}]**`:this.id_card;
     }
 
     getColor(){
@@ -234,6 +234,11 @@ class Card {
 
     getRarityEmoji(){
         return Card.emoji.rarity(this.rarity);
+    }
+
+    getRarity(withEmoji=true){
+        return withEmoji? 
+        `${this.getRarityEmoji()}${this.rarity}`:`${this.rarity}`;
     }
 
     static async getPackTotal(pack){

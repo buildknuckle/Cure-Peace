@@ -57,6 +57,7 @@ class UserGacha {
         let column = [//columns to be updated:
             UserGacha.columns.id_user,
             UserGacha.columns.last_daily_gacha_date,
+            UserGacha.columns.last_tropicalcatch_gacha_date
         ];
 
         let paramSet = new Map();

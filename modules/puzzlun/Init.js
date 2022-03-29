@@ -8,6 +8,8 @@ const SpawnerModules  = require("./data/Spawner");
 const Spawner = SpawnerModules.Spawner;
 const Gachapon = require("./Gachapon");
 const Shop = require("./Shop");
+const Daily = require("./Daily");
+
 
 async function init(){
     //load total card for all pack
@@ -26,6 +28,9 @@ async function init(){
 
     //init shop data
     await Shop.init();
+
+    //init daily
+    await Daily.init();
 
     // console.log(Gachapon.dailyRollsCardData[1]);
 }

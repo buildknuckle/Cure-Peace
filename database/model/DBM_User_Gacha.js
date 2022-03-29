@@ -3,7 +3,8 @@ class DBM_User_Gacha {
 
     static columns = {
         id_user:"id_user",
-        last_daily_gacha_date:"last_daily_gacha_date"
+        last_daily_gacha_date:"last_daily_gacha_date",
+        last_tropicalcatch_gacha_date:"last_tropicalcatch_gacha_date"
     };
 }
 

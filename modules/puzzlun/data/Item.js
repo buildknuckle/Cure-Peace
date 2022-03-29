@@ -49,7 +49,7 @@ class Item {
 
     static async getItemData(idItem){
         var mapWhere = new Map();
-        mapWhere.set(DBM_Item_Data.columns.id_card, idItem);
+        mapWhere.set(DBM_Item_Data.columns.id_item, idItem);
         var cardData = await DB.select(DBM_Item_Data.TABLENAME,mapWhere);
         return cardData[0]!==null? cardData[0]:null;
     }
@@ -65,6 +65,10 @@ class Item {
         if(maxLength>0) name = GlobalFunctions.cutText(name, maxLength);
 
         return withImageLink ? `[${name}](${this.img_url})` : name;
+    }
+
+    getIdItem(withTag=true){
+        return withTag? `**[${this.id_item}]**`:this.id_item;
     }
 
     getCategoryName(){
@@ -132,7 +136,7 @@ class ItemInventory extends Item {
 
     constructor(itemInventoryData=null, itemData=null){
         super(itemData);
-        if(userData!=null){
+        if(itemInventoryData!=null){
             for(var key in itemInventoryData){
                 this[key] = itemInventoryData[key];
             }
@@ -183,29 +187,36 @@ class ItemInventory extends Item {
         }
     }
 
-    static async updateStock(userId, itemId, qty=1, notifReturn=false){
+    static async updateStock(userId, itemId, qty=1){
         //check if card existed/not
-        var itemInventoryData = await this.getDataByIdUser(userId, itemId);
-        if(itemInventoryData==null){//insert if not found
-            qty-=1;
-            if(qty<0) qty = 0;//ensures qty is not negative
-            if(qty>ItemInventory.limit.stock) qty = ItemInventory.limit.stock;//ensures stock is not over limit
-            var paramInsert = new Map();
-            paramInsert.set(this.columns.id_item, itemId);
-            paramInsert.set(this.columns.id_user, userId);
-            paramInsert.set(this.columns.stock, qty);
-            try {
-                await DB.insert(this.tablename, paramInsert);
-            } catch{}
+        var query = `INSERT INTO ${ItemInventory.tablename} 
+        (${ItemInventory.columns.id_user}, ${ItemInventory.columns.id_item})
+        SELECT ?, ? FROM dual 
+        WHERE NOT EXISTS (SELECT 1 FROM ${ItemInventory.tablename} WHERE 
+        ${ItemInventory.columns.id_user} = ? and ${ItemInventory.columns.id_item}=?);
+        UPDATE ${ItemInventory.tablename} SET ${this.columns.stock}=${this.columns.stock}+? 
+        WHERE ${ItemInventory.columns.id_user} = ? and ${ItemInventory.columns.id_item}=?;`;
+        await DBConn.conn.query(query, [userId, itemId, userId, itemId, qty, userId, itemId]);
 
-            if(notifReturn) return -1;//will return -1 if notifReturn is set to true
-        } else {
-            var itemInventory = new ItemInventory(itemInventoryData);
-            itemInventory.stock+=qty;
-            await itemInventory.updateStock();
+        // var itemInventoryData = await this.getDataByIdUser(userId, itemId);
+        // if(itemInventoryData==null){//insert if not found
+        //     if(qty>ItemInventory.limit.stock) qty = ItemInventory.limit.stock;//ensures stock is not over limit
+        //     var paramInsert = new Map();
+        //     paramInsert.set(this.columns.id_item, itemId);
+        //     paramInsert.set(this.columns.id_user, userId);
+        //     paramInsert.set(this.columns.stock, qty);
+        //     try {
+        //         await DB.insert(this.tablename, paramInsert);
+        //     } catch{}
 
-            if(notifReturn) return itemInventory.stock;//will return new stock if notifReturn is set to true
-        }
+        //     if(notifReturn) return -1;//will return -1 if notifReturn is set to true
+        // } else {
+        //     var itemInventory = new ItemInventory(itemInventoryData);
+        //     itemInventory.stock+=qty;
+        //     await itemInventory.update();
+
+        //     if(notifReturn) return itemInventory.stock;//will return new stock if notifReturn is set to true
+        // }
     }
 
     validation(){
@@ -237,7 +248,7 @@ class ItemInventory extends Item {
             paramWhere.set(ItemInventory.UPDATE_KEY[key],this[updateKey]);
         }
 
-        await DB.update(DBM_Card_Inventory.TABLENAME, paramSet, paramWhere);
+        await DB.update(ItemInventory.tablename, paramSet, paramWhere);
     }
 
 }

@@ -20,7 +20,7 @@ class Currency {
     static arrCurrency = [GCurrency.mofucoin.value, GCurrency.jewel.value];
     static limit = {
         mofucoin:3000,
-        jewel:1000
+        jewel:2000
     }
 
     mofucoin=0;
@@ -252,7 +252,6 @@ class User {
 
     id_user= null;
     last_checkIn_date= null;
-    last_gacha_date= null;
     token_sale= null;
     peace_point= null;
     set_color= null;
@@ -345,9 +344,8 @@ class User {
         return level>=2? level*5:0;
     }
 
-    static isNewcomer(totalAllCard){
-        return totalAllCard<=0?
-            true:false;
+    isNewcomer(){
+        return this.last_checkIn_date==null? true:false;
     }
 
     static async getUserTotalByLocation(series){

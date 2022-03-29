@@ -107,15 +107,13 @@ module.exports = {
                 break;
             }
             case "daily":{
-                var roll = parseInt(interaction.options.getString("roll"));
                 let gacha = new Gachapon.Daily(userId, discordUser, interaction);
-                await gacha.roll(roll);
+                await gacha.roll();
                 break;
             }
             case "tropical-catch":{
-                var roll = parseInt(interaction.options.getString("roll"));
                 let gacha = new Gachapon.TropicalCatch(userId, discordUser, interaction);
-                await gacha.roll(roll);
+                await gacha.roll();
                 break;
             }
             case "ticket":{

@@ -590,6 +590,11 @@ class CardInventory extends Card {
         CardInventory.emoji.rarity(false, this.rarity) : CardInventory.emoji.rarity(this.is_gold, this.rarity);
     }
 
+    getRarity(withEmoji=true, isOriginal=false){
+        return withEmoji? 
+        `${this.getRarityEmoji(isOriginal)} ${this.rarity}`:`${this.rarity}`;
+    }
+
     getImgDisplay(){
         if(this.isGold()){
             return this.img_url_upgrade1;

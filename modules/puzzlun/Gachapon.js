@@ -122,7 +122,9 @@ class Daily extends require("./data/Listener") {
         }
     }
 
-    async roll(roll){
+    async roll(){
+        var roll = parseInt(this.interaction.options.getString("roll"));
+        
         //lineup: 1* normal: 85%, 5* normal: 10%, 6* premium: 5%
         var userId = this.discordUser.id;
     
@@ -262,6 +264,8 @@ class TropicalCatch extends require("./data/Listener") {
     }
 
     async roll(roll){
+        var roll = parseInt(this.interaction.options.getString("roll"));
+
         //lineup: 1* normal: 85%, 5* normal: 10%, 6* premium: 5%
         var userData = await User.getData(this.userId);
         var user = new User(userData);
@@ -404,10 +408,6 @@ class Listener extends require("./data/Listener") {
 
         await paginationEmbed(this.interaction,arrPages,DiscordStyles.Button.pagingButtonList, false);
     }
-
-    // async ticketRoll(roll){
-    //     var userId = this.discordUser.id;
-    // }
 
 }
 
