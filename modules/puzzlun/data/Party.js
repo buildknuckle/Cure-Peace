@@ -186,7 +186,7 @@ class Party {
         af.${AvatarFormation.columns.id_main} = cd.${Card.columns.id_card} 
         WHERE pd.${this.columns.id_guild}=?`;
         var result = await DBConn.conn.query(query, [guildId]);
-        return result[0]!=null ? result[0]:null;
+        return result[0]!==null ? result:null;
 
         // var paramWhere = new Map();
         // paramWhere.set(this.columns.id_guild, guildId);

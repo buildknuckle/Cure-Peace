@@ -120,7 +120,13 @@ module.exports = {
                 let choice = interaction.options.getString("selection");
                 switch(choice){
                     case "standard":{
-                        
+                        let gacha = new Gachapon.StandardTicket(userId, discordUser, interaction);
+                        await gacha.roll();
+                        break;
+                    }
+                    case "premium":{
+                        let gacha = new Gachapon.PremiumTicket(userId, discordUser, interaction);
+                        await gacha.roll();
                         break;
                     }
                 }

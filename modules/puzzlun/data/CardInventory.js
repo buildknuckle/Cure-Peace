@@ -9,6 +9,7 @@ const Card = require("./Card");
 const GProperties = require('../Properties');
 const GlobalFunctions = require('../../GlobalFunctions');
 const {Character, CPack} = require("./Character");
+const {Series, SPack} = require("./Series");
 
 //database modifier
 const PROTECTED_KEY = Object.keys(DBM_Card_Inventory.columns);
@@ -38,7 +39,7 @@ const emoji = {
     },
     hp:"❤️",
     atk:"⚔️",
-    sp:"🌟"
+    sp:"💠"
 }
 
 // const parameter =  {
@@ -202,6 +203,27 @@ class CardInventory extends Card {
     static limit = limit;
     static emoji = emoji;
 
+    static itemUpgradeMaterial = {
+        gold:{
+            max_heart: "cfrg001",
+            splash_star: "cfrg002",
+            yes5gogo: "cfrg003",
+            fresh: "cfrg004",
+            heartcatch: "cfrg005",
+            suite: "cfrg006",
+            smile: "cfrg007",
+            dokidoki: "cfrg008",
+            happiness_charge: "cfrg009",
+            go_princess: "cfrg010",
+            mahou_tsukai: "cfrg011",
+            kirakira: "cfrg012",
+            hugtto: "cfrg013",
+            star_twinkle: "cfrg014",
+            healin_good: "cfrg015",
+            tropical_rouge: "cfrg016"
+        }
+    }
+
     id_user=null;
     id_card=null;
     level=null;
@@ -289,17 +311,13 @@ class CardInventory extends Card {
         // if(cardInventoryData==null) return null;
 
         for(var key in cardInventoryData){
-            if(key==CardInventory.columns.received_at){
-                this.received_at = GlobalFunctions.convertDateTime(
-                    cardInventoryData[CardInventory.columns.received_at]
-                );
-            } else {
-                this[key] = cardInventoryData[key];
-            }
-            // ALLOWED.includes(key)?
-            //     this[key] = cardInventoryData[key]:
-            //     ;
+            this[key] = cardInventoryData[key];
+        //     // ALLOWED.includes(key)?
+        //     //     this[key] = cardInventoryData[key]:
+        //     //     ;
         }
+
+        
 
         if(cardData!=null){
             for(var key in cardData){
@@ -475,6 +493,10 @@ class CardInventory extends Card {
             if(notifReturn) return cardInventory.stock;//will return new stock if notifReturn is set to true
         }
     }
+    
+    getReceivedDate(){
+        return GlobalFunctions.convertDateTime(this.received_at);
+    }
 
     levelSync(newLevel){
         this.level = newLevel;
@@ -486,11 +508,15 @@ class CardInventory extends Card {
         this.atk = this.parameter.atk(this.level, this.atk_base);
     }
 
-    getIdCard(){
-        if(this.isAvailable(this.id_card)){
-            return this.id_card;
-        }
+    getGoldUpgradeMaterial(){
+        return CardInventory.itemUpgradeMaterial.gold[this.series];
     }
+
+    // getIdCard(){
+    //     if(this.isAvailable(this.id_card)){
+    //         return this.id_card;
+    //     }
+    // }
 
     getIdUser(){
         return this.id_user;
@@ -552,7 +578,7 @@ class CardInventory extends Card {
 
     //level up card special level
     canLevelUpSpecial(amount=1){
-        if(this.level+amount>this.getMaxSpecialLevel()){//check for max special level
+        if(this.level_special+amount>this.getMaxSpecialLevel()){//check for max special level
             return false;
         } else if(this.stock>=amount){
             return true;
@@ -592,7 +618,7 @@ class CardInventory extends Card {
 
     getRarity(withEmoji=true, isOriginal=false){
         return withEmoji? 
-        `${this.getRarityEmoji(isOriginal)} ${this.rarity}`:`${this.rarity}`;
+        `${this.getRarityEmoji(isOriginal)}${this.rarity}`:`${this.rarity}`;
     }
 
     getImgDisplay(){

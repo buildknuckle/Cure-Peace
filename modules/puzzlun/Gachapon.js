@@ -20,6 +20,7 @@ const Card = require("./data/Card");
 const Embed = require("./Embed");
 const CardInventory = require("./data/CardInventory");
 const {CardEmbed} = require("./Card");
+const {Item, ItemInventory} = require("./data/Item");
 
 // const CpackModule = require("./Cpack");
 const {Series, SPack} = require("./data/Series");
@@ -74,9 +75,11 @@ class Daily extends require("./data/Listener") {
         }
         seriesTextDailyLimited = seriesTextDailyLimited.replace(/,\s*$/, "");//remove last comma and any whitespace
 
-        var txtInfo = dedent(`─────────────────
+        var txtInfo = dedent(`**Command:** /gachapon daily
+        ─────────────────
         **Overview**
         ─────────────────
+        
         This is a standard daily gachapon that available with 2 types of roll:
         • 1x (Costs: ${this.cost[1]} ${Currency.jewel.emoji}): will roll 1x card drop
         • 5x (Costs: ${this.cost[5]} ${Currency.jewel.emoji}): will roll 5x card drop 
@@ -212,10 +215,11 @@ class TropicalCatch extends require("./data/Listener") {
         }
         seriesText = seriesText.replace(/,\s*$/, "");//remove last comma and any whitespace
 
-        var txtInfo = dedent(`─────────────────
+        var txtInfo = dedent(`**Command:** /gachapon tropical-catch
+        ─────────────────
         **Overview**
         ─────────────────
-        This gachapon includes the limited heartcatch & tropical-rouge series gachapon that available with 2 types of roll:
+        This gachapon includes the limited heartcatch & tropical-rouge series that available with 2 types of roll:
         • 1x (Costs: ${this.cost[1]} ${Currency.jewel.emoji}): will roll 1x card drop
         • 3x (Costs: ${this.cost[3]} ${Currency.jewel.emoji}): will roll 3x card drop 
 
@@ -263,7 +267,7 @@ class TropicalCatch extends require("./data/Listener") {
         }
     }
 
-    async roll(roll){
+    async roll(){
         var roll = parseInt(this.interaction.options.getString("roll"));
 
         //lineup: 1* normal: 85%, 5* normal: 10%, 6* premium: 5%
@@ -323,8 +327,8 @@ class TropicalCatch extends require("./data/Listener") {
     }
 }
 
-class StandardTicket {
-    static name ="standard gachapon ticket";
+class StandardTicket extends require("./data/Listener") {
+    static name ="standard gachapon roll";
     static cardData = {
         1:[], 2:[], 3:[],
     }
@@ -335,7 +339,10 @@ class StandardTicket {
         3: 33,
     }
 
+    static itemTicketData;//ticket data that will be used
+
     static info(){
+        var ticket = new Item(this.itemTicketData);
         var arrSeries = ["max_heart","splash_star","yes5gogo","fresh","heartcatch"];
 
         //rarity 1-3
@@ -348,10 +355,11 @@ class StandardTicket {
         }
         seriesText = seriesText.replace(/,\s*$/, "");//remove last comma and any whitespace
 
-        var txtInfo = dedent(`─────────────────
+        var txtInfo = dedent(`**Command:** /gachapon ticket Standard Gachapon Ticket
+        ─────────────────
         **Overview**
         ─────────────────
-        This is a standard gachapon that will use: 1x **Standard Gachapon Ticket**.
+        This is a standard gachapon that will use: ${ticket.getCategoryEmoji()} ${ticket.getIdItem()} **${ticket.getName()}**
 
         ─────────────────
         **Series lineup**
@@ -378,7 +386,7 @@ class StandardTicket {
 
     }
 
-    static async initCardData(){
+    static async initData(){
         //init card data:
         var query = `SELECT * 
         FROM ${Card.tablename} 
@@ -390,20 +398,231 @@ class StandardTicket {
             var card = results[i];
             this.cardData[card[Card.columns.rarity]].push(card);
         }
+
+        //init ticket data:
+        this.itemTicketData = await Item.getItemData("gt001");
+    }
+
+    async roll(){
+        var roll = 1;
+
+        //validation: check if user have ticket
+        var item = new Item(StandardTicket.itemTicketData);
+        var itemInventoryData = await ItemInventory.getItemInventoryDataById(this.userId, item.id_item);
+        var itemInventory = new ItemInventory(itemInventoryData.itemInventoryData, itemInventoryData.itemData);
+        if(itemInventoryData.itemInventoryData==null|| itemInventory.stock<=0){
+            return this.interaction.reply(
+                Embed.errorMini(`${item.getCategoryEmoji()} ${item.getIdItem()} **${item.getName()}** are required to use **${capitalize(StandardTicket.name)}**`, this.discordUser, true, {
+                    title:`❌ Not enough ticket`
+                })
+            );
+        }
+        
+        //lineup: 1* normal: 33%, 2* normal: 34%, 3* normal: 33%
+        var userData = await User.getData(this.userId);
+
+        itemInventory.stock-=1;
+        await itemInventory.update();//update ticket data
+
+        //init embed
+        var arrPages = [
+            Embed.builder(`${StandardTicket.name} has been selected!`, this.discordUser, {
+                title:`${capitalize(StandardTicket.name)}`,
+                image:Properties.imgSet.mofu.ok
+            })
+        ]; //prepare paging embed
+
+        for(var i=0;i<roll;i++){
+            //randomize roll:
+            var rnd = GlobalFunctions.randomNumber(1,100);
+            var rndRarity;
+            var minChance = {
+                1:StandardTicket.chance[1],
+                2:StandardTicket.chance[1]+StandardTicket.chance[2]
+            }
+            if(rnd<=minChance[1]){ rndRarity = 1; }//roll 1*
+            else if(rnd<=minChance[2]){ rndRarity = 2;}//roll 2*
+            else { rndRarity = 3; }//roll 3* normal
+
+            var rndCardData = GlobalFunctions.randomProperty(StandardTicket.cardData[rndRarity]);
+            var cardEmbed = new CardEmbed(rndCardData, userData, this.discordUser);
+            var card = new Card(rndCardData);
+
+            var stock = await CardInventory.updateStock(this.userId, card.id_card, 1, true);
+            var txtRoll = `**Roll:** ${i+1}/${roll}\n`;
+            if(stock<=-1){//new card
+                var newTotal = await CardInventory.getPackTotal(this.userId, card.pack);
+                arrPages.push(cardEmbed.newCard(newTotal, 
+                    {notifFront:txtRoll}
+                ));
+            } else {//duplicate
+                arrPages.push(cardEmbed.duplicateCard(stock, 
+                    {notifFront:txtRoll}));
+            }
+        }
+
+        paginationEmbed(this.interaction,arrPages,DiscordStyles.Button.pagingButtonList);
     }
 }
 
-class Listener extends require("./data/Listener") {
-    constructor(userId=null, discordUser=null, interaction=null){
-        super(userId, discordUser, interaction);
+class PremiumTicket extends require("./data/Listener") {
+    static name ="premium gachapon roll";
+
+    static cardData = {
+        5:[], 6:[],
     }
+
+    static chance = {
+        5: 98,
+        6: 2,
+    }
+
+    static itemTicketData;//ticket data that will be used
+
+    static info(){
+        var ticket = new Item(this.itemTicketData);
+        var arrSeriesNormal = ["max_heart","splash_star","yes5gogo",
+        "fresh","heartcatch","suite","smile","dokidoki",
+        "happiness_charge","go_princess","mahou_tsukai",
+        "kirakira","hugtto","star_twinkle","healin_good"];
+
+        //rarity 5
+        var seriesTextNormal = ``;
+        for(var key in SPack){
+            if(arrSeriesNormal.includes(key)){
+                var series = new Series(key);
+                seriesTextNormal+=`${series.emoji.mascot} ${series.name}, `;
+            }
+        }
+        seriesTextNormal = seriesTextNormal.replace(/,\s*$/, "");//remove last comma and any whitespace
+
+        //rarity 6
+        var arrSeriesLimited = ["max_heart","splash_star","yes5gogo","fresh","heartcatch"];
+        var seriesTextLimited = ``;
+        for(var key in SPack){
+            if(arrSeriesLimited.includes(key)){
+                var series = new Series(key);
+                seriesTextLimited+=`${series.emoji.mascot} ${series.name}, `;
+            }
+        }
+        seriesTextLimited = seriesTextLimited.replace(/,\s*$/, "");//remove last comma and any whitespace
+
+        var txtInfo = dedent(`**Command:** /gachapon ticket Premium Gachapon Ticket
+        ─────────────────
+        **Overview**
+        ─────────────────
+        This is a premium gachapon that will use: ${ticket.getCategoryEmoji()} ${ticket.getIdItem()} **${ticket.getName()}**
+
+        ─────────────────
+        **Series lineup**
+        ─────────────────
+        The following series lineup will appear on this gachapon:
+
+        ${Card.emoji.rarity(5)}__**5 (drop rates: ${this.chance[5]}%)**__
+        ${seriesTextNormal}
+
+        ${Card.emoji.rarity(6)}__**6 (limited) (drop rates: ${this.chance[6]}%)**__
+        ${seriesTextLimited}
+        
+        ─────────────────
+        **Notes**
+        ─────────────────
+        • Precure card that appear in this gachapon may be duplicated.`);
+
+        return Embed.builder(txtInfo, 
+            Embed.builderUser.authorCustom(`Gachapon Info`, Properties.imgSet.mofu.ok), {
+            title:capitalize(this.name)
+        });
+    }
+
+    static async initData(){
+        //init card data:
+        var query = `SELECT * 
+        FROM ${Card.tablename} 
+        WHERE ${Card.columns.series} <>? AND 
+        (${Card.columns.rarity}=? OR ${Card.columns.rarity}=?)`;
+
+        var results = await DBConn.conn.query(query, [SPack.tropical_rouge.properties.value, 5,6]);
+        for(var i=0;i<results.length;i++){
+            var card = results[i];
+            this.cardData[card[Card.columns.rarity]].push(card);
+        }
+
+        //init ticket data:
+        this.itemTicketData = await Item.getItemData("gt003");
+    }
+
+    async roll(){
+        var roll = 1;
+
+        //validation: check if user have ticket
+        var item = new Item(PremiumTicket.itemTicketData);
+        var itemInventoryData = await ItemInventory.getItemInventoryDataById(this.userId, item.id_item);
+        var itemInventory = new ItemInventory(itemInventoryData.itemInventoryData, itemInventoryData.itemData);
+        if(itemInventoryData.itemInventoryData==null|| itemInventory.stock<=0){
+            return this.interaction.reply(
+                Embed.errorMini(`${item.getCategoryEmoji()} ${item.getIdItem()} **${item.getName()}** are required to use **${capitalize(PremiumTicket.name)}**`, this.discordUser, true, {
+                    title:`❌ Not enough ticket`
+                })
+            );
+        }
+        
+        
+        //lineup: 5* normal: 98%, 6* normal: 2%
+        var userData = await User.getData(this.userId);
+
+        itemInventory.stock-=1;
+        await itemInventory.update();//update ticket data
+
+        //init embed
+        var arrPages = [
+            Embed.builder(`${PremiumTicket.name} has been selected!`, this.discordUser, {
+                title:`${capitalize(PremiumTicket.name)}`,
+                image:Properties.imgSet.mofu.ok
+            })
+        ]; //prepare paging embed
+
+        for(var i=0;i<roll;i++){
+            //randomize roll:
+            var rnd = GlobalFunctions.randomNumber(1,100);
+            var rndRarity;
+            if(rnd<=PremiumTicket.chance[5]){ rndRarity = 5; }//roll 5*
+            else { rndRarity = 6; }//roll 6* limited
+
+            var rndCardData = GlobalFunctions.randomProperty(PremiumTicket.cardData[rndRarity]);
+            var cardEmbed = new CardEmbed(rndCardData, userData, this.discordUser);
+            var card = new Card(rndCardData);
+
+            var stock = await CardInventory.updateStock(this.userId, card.id_card, 1, true);
+            var txtRoll = `**Roll:** ${i+1}/${roll}\n`;
+            if(stock<=-1){//new card
+                var newTotal = await CardInventory.getPackTotal(this.userId, card.pack);
+                arrPages.push(cardEmbed.newCard(newTotal, 
+                    {notifFront:txtRoll}
+                ));
+            } else {//duplicate
+                arrPages.push(cardEmbed.duplicateCard(stock, 
+                    {notifFront:txtRoll}));
+            }
+        }
+
+        paginationEmbed(this.interaction,arrPages,DiscordStyles.Button.pagingButtonList);
+    }
+
+}
+
+class Listener extends require("./data/Listener") {
+    // constructor(userId=null, discordUser=null, interaction=null){
+    //     super(userId, discordUser, interaction);
+    // }
 
     async info(){
         var arrPages = []; //prepare paging embed
         arrPages.push(
             Daily.info(),
             TropicalCatch.info(),
-            StandardTicket.info()
+            StandardTicket.info(),
+            PremiumTicket.info()
         );
 
         await paginationEmbed(this.interaction,arrPages,DiscordStyles.Button.pagingButtonList, false);
@@ -414,13 +633,16 @@ class Listener extends require("./data/Listener") {
 class Gachapon {
     static Daily = Daily;
     static TropicalCatch = TropicalCatch;
+    static StandardTicket = StandardTicket;
+    static PremiumTicket = PremiumTicket;
     static Listener = Listener;
 
     //1 time init for card data
     static async init(){
         await Daily.initCardData();
         await TropicalCatch.initCardData();
-        // await StandardTicket.initCardData();
+        await StandardTicket.initData();
+        await PremiumTicket.initData();
     }
 
 }

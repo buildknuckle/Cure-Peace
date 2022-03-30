@@ -18,7 +18,7 @@ module.exports = {
     description: 'Contains all party command',
     args: true,
     options:[
-        {
+        {//create party
             name: "create",
             description: "Create party",
             type: 1,
@@ -31,7 +31,7 @@ module.exports = {
                 }
             ]
         },
-        {
+        {//join into party
             name: "join",
             description: "Join existing party",
             type: 1,
@@ -44,7 +44,7 @@ module.exports = {
                 }
             ]
         },
-        {
+        {//rename party
             name: "rename",
             description: "Rename your party name",
             type: 1,
@@ -57,17 +57,17 @@ module.exports = {
                 }
             ]
         },
-        {
+        {//leave from party
             name: "leave",
             description: "Leave your party/disband if you are leader",
             type: 1
         },
-        {
+        {//open party status
             name: "status",
             description: "Open party status menu",
             type: 1
         },
-        {
+        {//party list
             name: "list",
             description: "Open party list menu",
             type: 1
@@ -84,7 +84,7 @@ module.exports = {
         var userId = discordUser.id;
 
         switch(subcommand){
-            case "create":
+            case "create":{
                 var user = new User(await User.getData(userId));
                 var partyData = await Party.getData(guildId, userId);
                 //validation: if user existed as party leader/members
@@ -121,8 +121,8 @@ module.exports = {
                 ]});
 
                 break;
-            
-            case "join":
+            }
+            case "join":{
                 var user = new User(await User.getData(userId));
                 var partyData = await Party.getData(guildId, userId);
                 //validation: if user existed as party leader/members
@@ -178,8 +178,8 @@ module.exports = {
                 ]});
 
                 break;
-            
-            case "rename":
+            }
+            case "rename":{
                 var user = new User(await User.getData(userId));
                 var partyData = await Party.getDataByLeader(guildId, userId);
                 //validation: if user was party leader/not
@@ -216,8 +216,8 @@ module.exports = {
                 ]});
                 
                 break;
-            
-            case "leave":
+            }
+            case "leave":{
                 var user = new User(await User.getData(userId));
                 var partyData = await Party.getData(guildId, userId);
                 //validation: if user existed as party leader/members
@@ -251,8 +251,8 @@ module.exports = {
                 }
 
                 break;
-        
-            case "status":
+            }
+            case "status":{
                 var user = new User(await User.getData(userId));
                 var partyData = await Party.getData(guildId, userId);
                 //validation: if user existed as party leader/members
@@ -292,14 +292,17 @@ module.exports = {
                 ]});
 
                 break;
-            
-            case "list":
+            }
+            case "list":{
                 var user = new User(await User.getData(userId));
                 var partyData = await Party.getAllData(guildId);
                 //validation if no party available
                 if(partyData.length<=0)
-                    return interaction.reply(Embed.errorMini(":x: There are no open party available", discordUser, true));
-                
+                    return interaction.reply(Embed.errorMini(":x: No open party are available yet", discordUser, true));
+                console.log(partyData);
+                return;
+
+
                 var arrPages = [];
                 var idx = 0; var maxIdx = 4; var txtList = ``;
                 for(var i=0;i<partyData.length;i++){
@@ -312,7 +315,7 @@ module.exports = {
                     txtList+=`\n`;
 
                     //check for max page content
-                    if(idx>maxIdx||(idx<maxIdx && i==partyData.length-1)){
+                    if(idx>=maxIdx||(idx<maxIdx && i==partyData.length-1)){
                         let embed = Embed.builder(`Join into party with: **/party join**\n\n`+txtList, null,{
                             title:`Party List:`
                         })
@@ -334,6 +337,7 @@ module.exports = {
                 // ]});
 
                 break;
+            }
         }
     }
 }

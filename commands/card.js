@@ -91,7 +91,7 @@ module.exports = {
             description: "Card upgrade command",
             type: 2,
             options:[
-                {
+                {//color level
                     name: "color-level",
                     description: "Upgrade your color level",
                     type: 1,
@@ -134,7 +134,7 @@ module.exports = {
                         }
                     ]
                 },
-                {
+                {//card level
                     name: "card-level",
                     description: "Upgrade level of precure card",
                     type: 1,
@@ -153,7 +153,7 @@ module.exports = {
                         },
                     ]
                 },
-                {
+                {//card special level
                     name: "card-special-level",
                     description: "Upgrade special level of precure card",
                     type: 1,
@@ -171,7 +171,20 @@ module.exports = {
                             required: false,
                         },
                     ]
-                }
+                },
+                {//upgrade to gold card
+                    name: "gold",
+                    description: "Upgrade into gold card using duplicates & fragment",
+                    type: 1,
+                    options:[
+                        {
+                            name: "card-id",
+                            description: "Enter the precure card id that you want to upgrade",
+                            type: 3,
+                            required: true,
+                        }
+                    ]
+                },
             ]
         },
         {//unset precure avatar
@@ -237,6 +250,11 @@ module.exports = {
                         interaction.options.getInteger("amount"):1;
                         let cardListener = new CardListener(userId, discordUser, interaction);
                         await cardListener.levelUpSpecial(cardId, amount);
+                        break;
+                    }
+                    case "gold":{
+                        let cardListener = new CardListener(userId, discordUser, interaction);
+                        await cardListener.upgradeGold();
                         break;
                     }
                 }

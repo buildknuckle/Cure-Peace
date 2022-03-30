@@ -3,8 +3,8 @@ class DBM_Item_Shop_Data {
 
     static columns = {
         id_item: "id_item",
-        price_mofucoin: "price_mofucoin",
-        price_jewel: "price_jewel",
+        price: "price",
+        currency: "currency",
     };
 }
 

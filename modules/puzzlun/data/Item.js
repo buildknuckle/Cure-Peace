@@ -4,6 +4,9 @@ const DBConn = require('../../../storage/dbconn');
 const DBM_Item_Data = require('../../../database/model/DBM_Item_Data');
 const DBM_Item_Shop_Data = require('../../../database/model/DBM_Item_Shop_Data');
 const DBM_Item_Inventory_Data = require('../../../database/model/DBM_Item_Inventory');
+const GlobalFunctions = require('../../GlobalFunctions');
+const Properties = require('../Properties');
+const Currency = Properties.currency;
 
 class Item {
     static tablename = DBM_Item_Data.TABLENAME;
@@ -84,8 +87,8 @@ class ItemShop extends Item {
     static tablename = DBM_Item_Shop_Data.TABLENAME;
     static columns = DBM_Item_Shop_Data.columns;
 
-    price_jewel;
-    price_mofucoin;
+    price;
+    currency;
 
     constructor(itemData=null){
         if(itemData!==null){
@@ -98,7 +101,7 @@ class ItemShop extends Item {
 
     static async getItemShopData(arrCategory=null){
         var arrFilter = [];
-        var query = `SELECT idat.*, isd.${this.columns.price_mofucoin}, isd.${this.columns.price_jewel}
+        var query = `SELECT idat.*, isd.${this.columns.price}, isd.${this.columns.currency} 
         FROM ${super.tablename} idat, ${this.tablename} isd 
         WHERE idat.${super.columns.id_item}=isd.${this.columns.id_item} `;
         if(arrCategory!==null){
@@ -112,7 +115,23 @@ class ItemShop extends Item {
         }
 
         var result = await DBConn.conn.query(query, arrFilter);
-        return result[0]!==null? result:null;
+        return result[0]!==undefined? result:null;
+    }
+
+    isPurchasable(userCurrency,qty=1){
+        return userCurrency>=this.price*qty? true:false;
+    }
+
+    getCurrencyName(){
+        return Currency[this.currency].name;
+    }
+
+    getCurrencyValue(){
+        return Currency[this.currency].value;
+    }
+
+    getCurrencyEmoji(){
+        return Currency[this.currency].emoji;
     }
     
 }
@@ -131,12 +150,12 @@ class ItemInventory extends Item {
 
     id= null; 
     id_user= null;
-    id_item= null;
+    // id_item= null;
     stock= null;
 
     constructor(itemInventoryData=null, itemData=null){
         super(itemData);
-        if(itemInventoryData!=null){
+        if(itemInventoryData!==null){
             for(var key in itemInventoryData){
                 this[key] = itemInventoryData[key];
             }
@@ -151,11 +170,10 @@ class ItemInventory extends Item {
         return result[0]!==null ? result[0]:null;
     }
 
-    static async getItemInventoryData(userId, itemId){
+    static async getItemInventoryDataById(userId, itemId){
         var query = `SELECT idat.*,
         inv.${this.columns.id_user},
-        inv.${this.columns.id_item},
-        inv.${this.columns.stock},
+        inv.${this.columns.stock} 
         from ${super.tablename} idat 
         left join ${this.tablename} inv 
         ON idat.${super.columns.id_item}=inv.${this.columns.id_item} and 
@@ -185,6 +203,26 @@ class ItemInventory extends Item {
         } else {
             return null;//return null if not found
         }
+    }
+
+    static async getItemInventoryData(userId, arrCategory=null){
+        var arrParam = [userId];
+        var query = `SELECT idat.*, inv.${this.columns.id}, inv.${this.columns.id_user}, inv.${this.columns.stock}
+        FROM ${super.tablename} idat, ${this.tablename} inv 
+        WHERE idat.${super.columns.id_item}=inv.${this.columns.id_item} AND 
+        inv.${this.columns.id_user}=? AND inv.${this.columns.stock}>0 `;
+        if(arrCategory!==null){
+            query+=` AND idat.${super.columns.category} IN (`;
+            for(var key in arrCategory){
+                query+=`?,`;
+                arrParam.push(arrCategory[key]);
+            }
+            query = query.replace(/,\s*$/, "");//remove last AND and any whitespace
+            query+=`)`;
+        }
+
+        var result = await DBConn.conn.query(query, arrParam);
+        return result[0]!==undefined? result:null;
     }
 
     static async updateStock(userId, itemId, qty=1){

@@ -108,7 +108,7 @@ class Card {
 
     static embedNotHave(discordUser){
         return Embed.errorMini(`You don't have this precure card yet.`,discordUser, true, {
-            title:`❌ Card not available`
+            title:`❌ Card not owned`
         });
     }
 }

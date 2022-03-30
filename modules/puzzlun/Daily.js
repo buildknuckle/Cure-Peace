@@ -25,7 +25,17 @@ const {Item, ItemInventory} = require("./data/Item");
 const {Series, SPack} = require("./data/Series");
 
 class Validation extends require("./Validation") {
-
+    static notifCardQuestCompleted(discordUser){
+        return {
+            embeds:[Embed.builder(`You have completed all daily card quest for today.`,discordUser, {
+                color:Embed.color.success,
+                thumbnail:Properties.imgSet.mofu.thumbsup,
+                title:`✅ Daily card quest completed!`
+            })],
+            ephemeral:true
+        }
+        
+    }
 }
 
 class Quest extends require("./data/Listener") {
@@ -43,13 +53,7 @@ class Quest extends require("./data/Listener") {
         var userQuest = new UserQuest(await UserQuest.getData(this.userId));
         var dailyCardQuest = userQuest.DailyCardQuest;
         if(!dailyCardQuest.isAvailable()){
-            return this.interaction.reply({embeds:[
-                Embed.builder(`You have completed all daily card quest for today.`,this.discordUser, {
-                    color:Embed.color.success,
-                    thumbnail:Properties.imgSet.mofu.thumbsup,
-                    title:`✅ Daily card quest completed!`
-                })
-            ]});
+            return this.interaction.reply(Validation.notifCardQuestCompleted(this.discordUser));
         }
 
         await dailyCardQuest.initCardData();
@@ -78,11 +82,11 @@ class Quest extends require("./data/Listener") {
 
         var rewardTicket = new Item(DailyCardQuest.rewardCompletion.ticket);
 
-        txtCardQuest+=dedent(`**Completion Bonus:** 
+        txtCardQuest+=dedent(`**Quest Completion Bonus:**
+        (Received upon completing all card quest)
         • ${Currency.jewel.emoji} ${DailyCardQuest.rewardCompletion.jewel} ${Currency.jewel.name}
         • 1x ${rewardTicket.getCategoryEmoji()} ${rewardTicket.getIdItem()} ${rewardTicket.name}
-        • 1x ${Item.category.ingredient_food.emoji} random ${Item.category.ingredient_food.name}
-        (Received upon completing all card quest)`);
+        • 1x ${Item.category.ingredient_food.emoji} random ${Item.category.ingredient_food.name}`);
 
         return this.interaction.reply({
             embeds:[Embed.builder(dedent(`Submit any of these card to receive various rewards: 
@@ -106,6 +110,11 @@ class Quest extends require("./data/Listener") {
         var selectedCardId = this.interaction.options.getString("card-id");
         var userQuest = new UserQuest(await UserQuest.getData(this.userId));
         var dailyCardQuest = userQuest.DailyCardQuest;
+        if(!dailyCardQuest.isAvailable()){
+            return this.interaction.reply(Validation.notifCardQuestCompleted(this.discordUser));
+        }
+        
+        var dailyCardQuest = userQuest.DailyCardQuest;
         await dailyCardQuest.initCardData();
         //card validation
         if(dailyCardQuest.checkCardAvailable(selectedCardId)==false){
@@ -121,10 +130,10 @@ class Quest extends require("./data/Listener") {
         }
 
         //validation: check card stock
-        var cardInventory = new CardInventory(cardInventoryData, cardInventoryData.cardData);
+        var cardInventory = new CardInventory(cardInventoryData.cardInventoryData, cardInventoryData.cardData);
         if(cardInventory.stock<=0){
-            return this.interaction.reply(Embed.errorMini(`You need 1x **${cardInventory.id_card} - ${cardInventory.name}** to submit this card quest.`,this.discordUser, true, {
-                title:`Not Enough Card`
+            return this.interaction.reply(Embed.errorMini(`You need: 1x ${cardInventory.getCardEmoji()}${cardInventory.getIdCard()} **${cardInventory.name}** to submit this card quest.`,this.discordUser, true, {
+                title:`❌ Not enough card`
             }));
         }
 
@@ -145,7 +154,11 @@ class Quest extends require("./data/Listener") {
         if("jewel" in reward) user.Currency.jewel+=reward.jewel;//jewel
         if(dailyCardQuest.getTotal()<=0){//bonus completion rewards
             user.Currency.jewel+=DailyCardQuest.rewardCompletion.jewel;
-            await ItemInventory.updateStock(this.userId,)//add new ticket
+
+            var ticketReward = new Item(DailyCardQuest.rewardCompletion.ticket);//ticket
+            var itemReward = new Item(GlobalFunctions.randomProperty(DailyCardQuest.rewardCompletion.item));//food ingredient
+            await ItemInventory.updateStock(this.userId, ticketReward.id_item);//update user ticket reward
+            await ItemInventory.updateStock(this.userId, itemReward.id_item);//update user item reward
         }
         await user.update();//validate & update user data
 
@@ -163,19 +176,16 @@ class Quest extends require("./data/Listener") {
 
         //print embed
         var txtCardQuest = dedent(`You have submitted: 
-        ${cardInventory.getRarityEmoji(true)}${rarity} [${cardInventory.id_card} - ${cardInventory.getName(18)}](${cardInventory.getImg()})`);
+        ${cardInventory.getRarity(true, true)} ${cardInventory.getIdCard()} ${cardInventory.getName(18,true)}`);
         var txtTitle = `✅ Daily card quest submitted!`;
         var imgThumbnail = Properties.imgSet.mofu.ok;
         var txtFooter = `Remaining card quest: ${userQuest.DailyCardQuest.getTotal()}/${DailyCardQuest.max}`;
 
         if(dailyCardQuest.getTotal()<=0){
-            var itemReward = new Item(GlobalFunctions.randomProperty(DailyCardQuest.rewardCompletion.item));//food ingredient
-            var ticketReward = new Item(DailyCardQuest.rewardCompletion.ticket);//ticket
-            txtCardQuest+=`\nYou have completed all card quest for today!`;
             txtReward+=`\n`;
             txtReward+=dedent(`**Completion Bonus:** 
             ${Currency.jewel.emoji} ${DailyCardQuest.rewardCompletion.jewel} ${Currency.jewel.name}
-            1x ${ticketReward.getCategoryEmoji()} ${ticketReward} ${ticketReward.getName()}
+            1x ${ticketReward.getCategoryEmoji()} ${ticketReward.getIdItem()} ${ticketReward.getName()}
             1x ${itemReward.getCategoryEmoji()} ${itemReward.getIdItem()} ${itemReward.getName()}`);
             txtTitle = `✅ Daily card quest completed!`;
             imgThumbnail = Properties.imgSet.mofu.thumbsup;
@@ -330,11 +340,11 @@ class Daily extends require("./data/Listener") {
 
         var rewardTicket = new Item(DailyCardQuest.rewardCompletion.ticket);
 
-        txtCardQuest+=dedent(`**Completion Bonus:** 
+        txtCardQuest+=dedent(`**Quest Completion Bonus:**
+        (Received upon completing all card quest)
         • ${Currency.jewel.emoji} ${DailyCardQuest.rewardCompletion.jewel} ${Currency.jewel.name}
         • 1x ${rewardTicket.getCategoryEmoji()} ${rewardTicket.getIdItem()} ${rewardTicket.name}
-        • 1x ${Item.category.ingredient_food.emoji} random ${Item.category.ingredient_food.name}
-        (Received upon completing all card quest)`);
+        • 1x ${Item.category.ingredient_food.emoji} random ${Item.category.ingredient_food.name}`);
 
         arrPages.push(
             Embed.builder(dedent(`Here are the requested cards for today:
