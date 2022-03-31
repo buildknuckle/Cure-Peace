@@ -1,37 +1,44 @@
 // const stripIndents = require('common-tags/lib/stripIndent');
 const dedent = require("dedent-js");
 const {MessageEmbed} = require('discord.js');
-const DB = require('../../../database/DatabaseCore');
-const DBConn = require('../../../storage/dbconn');
-const DiscordStyles = require('../../DiscordStyles');
-const GlobalFunctions = require('../../GlobalFunctions.js');
+const DB = require('../../database/DatabaseCore');
+const DBConn = require('../../storage/dbconn');
+const DiscordStyles = require('../DiscordStyles');
+const GlobalFunctions = require('../GlobalFunctions.js');
 const capitalize = GlobalFunctions.capitalize;
 
-const paginationEmbed = require('../../DiscordPagination');
+const paginationEmbed = require('../DiscordPagination');
 
-const Properties = require('./../Properties');
+const Properties = require('./Properties');
 const Color = Properties.color;
 const Currency = Properties.currency;
 const Emoji = Properties.emoji;
 
-const User = require("../data/User");
-const Card = require("../data/Card");
-const CardInventory = require("../data/CardInventory");
-const {UserQuest, DailyCardQuest} = require("../data/Quest");
-const {AvatarFormation, PrecureAvatar} = require("../data/Avatar");
+const User = require("./data/User");
+const UserGacha = require("./data/Gacha");
+const Gachapon = require("./Gachapon");
+const Card = require("./data/Card");
+const CardInventory = require("./data/CardInventory");
+const {UserQuest, DailyCardQuest} = require("./data/Quest");
+const {AvatarFormation, PrecureAvatar} = require("./data/Avatar");
 
 // const CpackModule = require("./Cpack");
-const {Series, SPack} = require("../data/Series");
+const {Series, SPack} = require("./data/Series");
 
-const Embed = require("../Embed");
+const Embed = require("./Embed");
 
-class Validation extends require("../Validation") {
+class Validation extends require("./Validation") {
     
 }
 
-class Listener extends require("../data/Listener") {
+class Listener extends require("./data/Listener") {
 
-    async status(isPrivate){//print user status menu
+    async status(){//print user status menu
+        var username = this.interaction.options.getString("username");
+                
+        var userSearchResult = await Validation.User.isAvailable(this.discordUser, username, this.interaction);
+        if(!userSearchResult) return; else this.discordUser = userSearchResult;
+
         var userId = this.discordUser.id;
         //init embed
         var arrPages = []; //prepare paging embed
@@ -39,6 +46,7 @@ class Listener extends require("../data/Listener") {
         var user = new User(await User.getData(userId));
         var userLevel = user.getAverageColorLevel();//average color level
         var userQuest = new UserQuest(await UserQuest.getData(userId));
+        var userGacha = new UserGacha(await UserGacha.getData(userId));
     
         //init the object
         var objCardInventory = {
@@ -105,9 +113,13 @@ class Listener extends require("../data/Listener") {
         ${User.peacePoint.emoji} **${User.peacePoint.name}:** ${user.peace_point}/${User.limit.peacePoint}
         ${Emoji.mofuheart} **Daily card quest:** ${txtDailyCardQuest}
 
-        **Currency:**
+        __**Currency:**__
         ${Currency.mofucoin.emoji} **Mofucoin:** ${user.Currency.mofucoin}/${User.Currency.limit.mofucoin} 
-        ${Currency.jewel.emoji} **Jewel:** ${user.Currency.jewel}/${User.Currency.limit.jewel}`);
+        ${Currency.jewel.emoji} **Jewel:** ${user.Currency.jewel}/${User.Currency.limit.jewel}
+
+        __**Gachapon:**__
+        **${capitalize(Gachapon.Daily.name)}:** ${userGacha.hasDailyGacha()? `✅`:`❌`}
+        **${capitalize(Gachapon.TropicalCatch.name)}**: ${userGacha.hasTropicalCatchGacha()? `✅`:`❌`}`);
 
         var author = Embed.builderUser.author(this.discordUser, `${this.discordUser.username} (Lvl. ${userLevel})`);
         var objEmbed = Embed.builder(txtMainStatus, author, {
@@ -115,31 +127,31 @@ class Listener extends require("../data/Listener") {
             color:Embed.color[setColor],
             thumbnail:seriesData.icon,
             fields: [
-                {name: dedent(`${Color.pink.emoji} ${capitalize(Color.pink.value)} Lvl. ${user.Color.getLevel(Color.pink.value)}
+                {name: dedent(`${Color.pink.emoji} __${capitalize(Color.pink.value)} Lvl. ${user.Color.getLevel(Color.pink.value)}__
                 ${user.Color.canLevelUp("pink") ? "🆙":""} ${user.Color.getPoint("pink")} Pts`),
                 value: ``, inline:true},
 
-                {name: dedent(`${Color.blue.emoji} ${capitalize(Color.blue.value)} Lvl. ${user.Color.getLevel(Color.blue.value)}
+                {name: dedent(`${Color.blue.emoji} __${capitalize(Color.blue.value)} Lvl. ${user.Color.getLevel(Color.blue.value)}__
                 ${user.Color.canLevelUp("blue") ? "🆙":""} ${user.Color.getPoint("blue")} Pts`),
                 value: ``, inline:true},
                 
-                {name: dedent(`${Color.yellow.emoji} ${capitalize(Color.yellow.value)} Lvl. ${user.Color.getLevel(Color.yellow.value)}
+                {name: dedent(`${Color.yellow.emoji} __${capitalize(Color.yellow.value)} Lvl. ${user.Color.getLevel(Color.yellow.value)}__
                 ${user.Color.canLevelUp("yellow") ? "🆙":""} ${user.Color.getPoint("yellow")} Pts`),
                 value: ``, inline:true},
 
-                {name: dedent(`${Color.purple.emoji} ${capitalize(Color.purple.value)} Lvl. ${user.Color.getLevel(Color.purple.value)}
+                {name: dedent(`${Color.purple.emoji} __${capitalize(Color.purple.value)} Lvl. ${user.Color.getLevel(Color.purple.value)}__
                 ${user.Color.canLevelUp("purple") ? "🆙":""} ${user.Color.getPoint("purple")} Pts`),
                 value: ``, inline:true},
 
-                {name: dedent(`${Color.red.emoji} ${capitalize(Color.red.value)} Lvl. ${user.Color.getLevel(Color.red.value)}
+                {name: dedent(`${Color.red.emoji} __${capitalize(Color.red.value)} Lvl. ${user.Color.getLevel(Color.red.value)}__
                 ${user.Color.canLevelUp("red") ? "🆙":""} ${user.Color.getPoint("red")} Pts`),
                 value: ``, inline:true},
 
-                {name: dedent(`${Color.green.emoji} ${capitalize(Color.green.value)} Lvl. ${user.Color.getLevel(Color.green.value)}
+                {name: dedent(`${Color.green.emoji} __${capitalize(Color.green.value)} Lvl. ${user.Color.getLevel(Color.green.value)}__
                 ${user.Color.canLevelUp("green") ? "🆙":""} ${user.Color.getPoint("green")} Pts`),
                 value: ``, inline:true},
 
-                {name: dedent(`${Color.white.emoji} ${capitalize(Color.white.value)} Lvl. ${user.Color.getLevel(Color.white.value)}
+                {name: dedent(`${Color.white.emoji} __${capitalize(Color.white.value)} Lvl. ${user.Color.getLevel(Color.white.value)}__
                 ${user.Color.canLevelUp("white") ? "🆙":""} ${user.Color.getPoint("white")} Pts`),
                 value: ``, inline:true},
             ],
@@ -173,10 +185,12 @@ class Listener extends require("../data/Listener") {
         }
 
         //reset fields embed:
-        objEmbed.fields = [{
-            name:`Card capture bonus effect:`,
-            value:txtColorEffect
-        }];
+        objEmbed.fields = [
+            {
+                name:`Card capture bonus effect:`,
+                value:txtColorEffect
+            }
+        ];
 
         objEmbed.footer = null;
 
@@ -195,13 +209,13 @@ class Listener extends require("../data/Listener") {
         objEmbed.title = `Status - Duplicate Card:`;
         objEmbed.description = ``;
         objEmbed.fields = [
-            { name: `${Color.pink.emoji_card} Pink:`, value: ``, inline: true}, 
-            { name: `${Color.blue.emoji_card} Blue:`, value: ``, inline: true},
-            { name: `${Color.yellow.emoji_card} Yellow:`, value: ``, inline: true}, 
-            { name: `${Color.purple.emoji_card} Purple:`, value: ``, inline: true },
-            { name: `${Color.red.emoji_card} Red:`, value: ``, inline: true }, 
-            { name: `${Color.green.emoji_card} Green:`, value: ``, inline: true },
-            { name: `${Color.white.emoji_card} White:`, value: ``, inline: true }
+            { name: `${Color.pink.emoji_card} __Pink:__`, value: ``, inline: true}, 
+            { name: `${Color.blue.emoji_card} __Blue:__`, value: ``, inline: true},
+            { name: `${Color.yellow.emoji_card} __Yellow:__`, value: ``, inline: true}, 
+            { name: `${Color.purple.emoji_card} __Purple:__`, value: ``, inline: true },
+            { name: `${Color.red.emoji_card} __Red:__`, value: ``, inline: true }, 
+            { name: `${Color.green.emoji_card} __Green:__`, value: ``, inline: true },
+            { name: `${Color.white.emoji_card} __White:__`, value: ``, inline: true }
         ];
 
         var queryDuplicate = `select cd.${Card.columns.pack}, sum(inv.${CardInventory.columns.stock}) as total, 
@@ -244,13 +258,13 @@ class Listener extends require("../data/Listener") {
         //======page 4: gold card======
         objEmbed.title = `Status - Gold Card:`;
         objEmbed.fields = [
-            { name: `${Color.pink.emoji_card} Pink:`, value: ``, inline: true}, 
-            { name: `${Color.blue.emoji_card} Blue:`, value: ``, inline: true},
-            { name: `${Color.yellow.emoji_card} Yellow:`, value: ``, inline: true}, 
-            { name: `${Color.purple.emoji_card} Purple:`, value: ``, inline: true },
-            { name: `${Color.red.emoji_card} Red:`, value: ``, inline: true }, 
-            { name: `${Color.green.emoji_card} Green:`, value: ``, inline: true },
-            { name: `${Color.white.emoji_card} White:`, value: ``, inline: true }
+            { name: `${Color.pink.emoji_card} __Pink:__`, value: ``, inline: true}, 
+            { name: `${Color.blue.emoji_card} __Blue:__`, value: ``, inline: true},
+            { name: `${Color.yellow.emoji_card} __Yellow:__`, value: ``, inline: true}, 
+            { name: `${Color.purple.emoji_card} __Purple:__`, value: ``, inline: true },
+            { name: `${Color.red.emoji_card} __Red:__`, value: ``, inline: true }, 
+            { name: `${Color.green.emoji_card} __Green:__`, value: ``, inline: true },
+            { name: `${Color.white.emoji_card} __White:__`, value: ``, inline: true }
         ];
     
         //print embed of normal card duplicate
@@ -309,7 +323,7 @@ class Listener extends require("../data/Listener") {
             })
         ); //add embed to pages
 
-        paginationEmbed(this.interaction,arrPages,DiscordStyles.Button.pagingButtonList, isPrivate);
+        paginationEmbed(this.interaction,arrPages,DiscordStyles.Button.pagingButtonList, username==null?true:false);
     }
 
     async levelUpColor(){//level up color
@@ -337,7 +351,7 @@ class Listener extends require("../data/Listener") {
             embeds:[
                 Embed.builder(`Your ${colorEmoji} **${colorSelection}** color is now level **${user.Color[colorSelection].level}**!`, this.discordUser, {
                     color: colorSelection,
-                    title: `🆙 ${capitalize(colorSelection)} color level up!`,
+                    title: `🆙 ${capitalize(colorSelection)} color leveled up!`,
                     thumbnail: Properties.imgSet.mofu.ok,
                     fields:[
                         {
@@ -354,7 +368,13 @@ class Listener extends require("../data/Listener") {
         );
     }
 
-    async setAvatar(cardId, formation, isPrivate){
+    async setAvatar(){
+        var cardId = this.interaction.options.getString("card-id");//get card id
+        var formation = this.interaction.options.getString("formation")!==null? 
+            this.interaction.options.getString("formation"): AvatarFormation.formation.main.value;
+        var isPrivate =  this.interaction.options.getBoolean("visible-public")!==null? 
+            this.interaction.options.getBoolean("visible-public"): false;
+
         var user = new User(await User.getData(this.userId));
         
         //validation: if card exists
@@ -367,6 +387,7 @@ class Listener extends require("../data/Listener") {
         var card = new CardInventory(cardInventoryData.cardInventoryData, cardInventoryData.cardData);
         var series = card.Series;
         var rarity = card.rarity;
+        var character = card.Character;
         //validation color & series points
         var cost = {
             color:AvatarFormation.setCost.color(rarity),
@@ -412,7 +433,8 @@ class Listener extends require("../data/Listener") {
                                 value:dedent(`${card.getColorEmoji()} ${cost.color} ${card.color} points
                                 ${series.currency.emoji} ${cost.series} ${card.Series.getCurrencyName()}`)
                             }
-                        ]
+                        ],
+                        footer:Embed.builderUser.footer(this.discordUser.username, Embed.builderUser.getAvatarUrl(this.discordUser))
                     })
                 );
             }
@@ -431,7 +453,14 @@ class Listener extends require("../data/Listener") {
         return this.interaction.reply({embeds:[
             Embed.builder(dedent(`*"${precureAvatar.properties.transform_quotes2}"*
         
-            ${Emoji.mofuheart} <@${this.userId}> has assign **${precureAvatar.properties.name}** as **${precureAvatar.formation.name}** precure avatar!`),
+            ${Emoji.mofuheart} <@${this.userId}> has assign **${precureAvatar.properties.name}** as **${precureAvatar.formation.name}** precure avatar!
+            
+            **${card.getRarityEmoji()}${card.rarity} - Level:** ${card.level}/${card.getMaxLevel()}
+            ─────────────────
+            ${CardInventory.emoji.hp} **Hp:** ${card.maxHp} | ${CardInventory.emoji.atk} **Atk:** ${card.atk} | ${CardInventory.emoji.sp} **Sp:** ${card.maxSp}        
+            💖 **Special:** ${character.specialAttack} Lv.${card.level_special}
+            
+            __**Passive Skill:**__`),
                 Embed.builderUser.authorCustom(`⭐${rarity} ${precureAvatar.character.alter_ego}`, precureAvatar.character.icon),{
                     color: precureAvatar.character.color,
                     thumbnail: precureAvatar.cardInventory.getImgDisplay(),
@@ -442,7 +471,8 @@ class Listener extends require("../data/Listener") {
         ], ephemeral: isPrivate});
     }
 
-    async setColor(selection){
+    async setColor(){
+        var selection = this.interaction.options.getString("change");
         var user = new User(await User.getData(this.userId));
         var setCost = 100;
         var userColor = Color[user.set_color];
@@ -464,12 +494,12 @@ class Listener extends require("../data/Listener") {
             );
         }
 
-        user.Color[user.set_color].point-=setCost;
+        user.Color.modifPoint(user.set_color, -setCost);
         user.set_color = selection;
         await user.update();
 
         return this.interaction.reply({embeds:[
-            Embed.builder(`${Properties.emoji.mofuheart} Your color assignment has been changed into: **${color.emoji} ${color.value}**`, this.discordUser, {
+            Embed.builder(`${Properties.emoji.mofuheart} Your color has been changed into: **${color.emoji} ${color.value}**`, this.discordUser, {
                 color:user.set_color,
                 title:`Color changed!`,
                 thumbnail:Properties.imgSet.mofu.ok
@@ -477,7 +507,8 @@ class Listener extends require("../data/Listener") {
         ]});
     }
 
-    async setSeries(selection){
+    async setSeries(){
+        var selection = this.interaction.options.getString("location");
         var user = new User(await User.getData(this.userId));
         var setCost = 100;
         var userSeries = new Series(user.set_series);
@@ -497,7 +528,7 @@ class Listener extends require("../data/Listener") {
             );
         }
 
-        user.Series[userSeries.value]-=setCost;
+        user.Series.modifPoint(userSeries.value, -setCost);
         user.set_series = series.value;
         await user.update();
 
@@ -511,7 +542,8 @@ class Listener extends require("../data/Listener") {
         ]});
     }
 
-    async unsetAvatar(formation){
+    async unsetAvatar(){
+        var formation = this.interaction.options.getString("formation");
         var user = new User(await User.getData(this.userId));
         var avatarFormation = new AvatarFormation(await AvatarFormation.getData(this.userId));
         //validation if all:

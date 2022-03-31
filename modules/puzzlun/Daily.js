@@ -212,8 +212,8 @@ class Quest extends require("./data/Listener") {
 class Daily extends require("./data/Listener") {
     static Quest = Quest;
     static newcomerTicketData = {
-        standard:"gt004",
-        premium:"gt005"
+        standard:"gt001",
+        premium:"gt002"
     };
 
     async checkIn(){

@@ -1,6 +1,6 @@
 const properties = {
     value:"nottrigger",
-    name:"Nottrigger",
+    type:"nottrigger",
     catchphrase:"Nottrigger!",
     chaos_meter:"darken",
 	series:"star_twinkle"

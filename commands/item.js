@@ -101,6 +101,11 @@ module.exports = {
                     type: 4
                 },
             ]
+        },
+        {//item recipe
+            name: "food-recipe",
+            description: "Open food recipe menu",
+            type: 1
         }
     ],
     async execute(interaction){
@@ -113,18 +118,21 @@ module.exports = {
 
         switch(commandSubcommand){
             case "inventory":{
-                let item = new ItemListener(userId,discordUser, interaction);
+                let item = new ItemListener(interaction);
                 await item.inventory();
                 break;
             }
             case "shop-buy":{
-                let mofuShop = new Shop.MofuShop(userId, discordUser, interaction);
+                let mofuShop = new Shop.MofuShop(interaction);
                 await mofuShop.buy();
                 break;
             }
             case "shop-menu":{
-                let mofuShop = new Shop.MofuShop(userId, discordUser, interaction);
+                let mofuShop = new Shop.MofuShop(interaction);
                 await mofuShop.menu();
+                break;
+            }
+            case "food-recipe":{
                 break;
             }
         }

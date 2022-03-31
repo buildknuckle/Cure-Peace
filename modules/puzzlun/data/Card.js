@@ -72,6 +72,37 @@ const parameter =  {
             case 2: return 2;
             default: return 4;
         }
+    },
+    convertColor(rarity){
+        var colorPoint = {
+            1:5,
+            2:5,
+            3:10,
+            4:10,
+            5:20,
+            6:30,
+            7:30,
+        };
+        return colorPoint[rarity];
+    },
+    convertSeries(rarity){
+        var seriesPoint = {
+            1:5,
+            2:5,
+            3:5,
+            4:5,
+            5:5,
+            6:10,
+            7:10,
+        };
+        return seriesPoint[rarity];
+    },
+    convertJewel(rarity){
+        switch(rarity){
+            case 6: return 6;
+            case 7: return 7;
+            default: return 0;
+        }
     }
 }
 

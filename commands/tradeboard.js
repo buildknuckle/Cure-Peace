@@ -88,7 +88,7 @@ module.exports = {
 
         var discordUser = interaction.user;
         var userId = discordUser.id;
-        var tradeboard = new TradeboardListener(userId, discordUser, interaction, guildId, await User.getData(userId));
+        var tradeboard = new TradeboardListener(interaction, await User.getData(userId));
 
         switch(subcommand){
             case "post":{

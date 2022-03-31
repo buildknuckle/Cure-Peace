@@ -18,12 +18,10 @@ const Validation = require("./Validation");
 const {Tradeboard, CardTradeboard} = require("./data/Tradeboard");
 
 class TradeboardListener extends require("./data/Listener") {
-    guildId = null;
     user;
 
-    constructor(userId, discordUser, interaction, guildId, userData){
-        super(userId, discordUser, interaction);
-        this.guildId= guildId;
+    constructor(interaction, userData){
+        super(interaction);
         this.user = new User(userData);
     }
 

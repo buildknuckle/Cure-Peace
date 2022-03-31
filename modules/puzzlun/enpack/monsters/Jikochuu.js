@@ -1,6 +1,6 @@
 const properties = {
     value:"jikochuu",
-    name:"Jikochuu",
+    type:"jikochuu",
     catchphrase:"Jikochuu!",
     chaos_meter:"selfish",
     series:"dokidoki"

@@ -37,9 +37,7 @@ async function init(){
 
 async function initGuild(guildId, discordGuild){
     var guildData = await Guild.getDBData(guildId);
-    var guild = new Guild(
-        guildData
-    );
+    var guild = new Guild(guildData);
 
     //init for card spawn
     if(guild.id_channel_spawn!=null&&guild.spawn_interval!=null){

@@ -1,6 +1,6 @@
 const properties = {
     value:"negatone",
-    name:"Negatone",
+    type:"negatone",
     catchphrase:"Negatone!",
     chaos_meter:"dissonant",
 	series:"suite"

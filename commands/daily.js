@@ -107,12 +107,12 @@ module.exports = {
             case "quest":
                 switch(subcommand){
                     case "list":{
-                        var daily = new Daily.Quest(userId, discordUser, interaction);
+                        var daily = new Daily.Quest(interaction);
                         await daily.questList();
                         break;
                     }
                     case "submit":{
-                        var daily = new Daily.Quest(userId, discordUser, interaction);
+                        var daily = new Daily.Quest(interaction);
                         await daily.submitCardQuest();
                         break;
                     }
@@ -123,7 +123,7 @@ module.exports = {
 
         switch(subcommand){
             case "check-in":{
-                var daily = new Daily(userId, discordUser, interaction);
+                var daily = new Daily(interaction);
                 await daily.checkIn();
                 break;
             }

@@ -317,8 +317,6 @@ class CardInventory extends Card {
         //     //     ;
         }
 
-        
-
         if(cardData!=null){
             for(var key in cardData){
                 this[key] = cardData[key];

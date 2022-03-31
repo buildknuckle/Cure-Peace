@@ -1,6 +1,6 @@
 const properties = {
     value:"desertrian",
-    name:"Desertrian",
+    type:"desertrian",
     catchphrase:"",
     chaos_meter:"wither",
 	series:"heartcatch"

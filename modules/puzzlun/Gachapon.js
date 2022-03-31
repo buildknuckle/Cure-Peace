@@ -22,6 +22,8 @@ const CardInventory = require("./data/CardInventory");
 const {CardEmbed} = require("./Card");
 const {Item, ItemInventory} = require("./data/Item");
 
+const Listener = require("./data/Listener");
+
 // const CpackModule = require("./Cpack");
 const {Series, SPack} = require("./data/Series");
 
@@ -33,16 +35,167 @@ class Validation extends require("./Validation") {
     }
 }
 
-class Daily extends require("./data/Listener") {
-    static name = "daily gachapon";
+//roll with ticket:
+class TicketRoller extends Listener {
+    name=null;
+    cardData={};
+    chance={};
+    itemTicketData;
+
+    constructor(interaction, name, cardData, chance, itemTicketData){
+        super(interaction);
+        this.name = name;
+        this.cardData = cardData;
+        this.chance = chance;
+        this.itemTicketData = itemTicketData;
+    }
+
+    async roll(roll){
+        //validation: check if user have ticket
+        var item = new Item(this.itemTicketData);
+        var itemInventoryData = await ItemInventory.getItemInventoryDataById(this.userId, item.id_item);
+        var itemInventory = new ItemInventory(itemInventoryData.itemInventoryData, itemInventoryData.itemData);
+        if(itemInventoryData.itemInventoryData==null|| itemInventory.stock<=0){
+            return this.interaction.reply(
+                Embed.errorMini(`${item.getCategoryEmoji()} ${item.getIdItem()} **${item.getName()}** are required to use **${capitalize(this.name)}**`, this.discordUser, true, {
+                    title:`❌ Not enough ticket`
+                })
+            );
+        }
+        
+        var userData = await User.getData(this.userId);
+
+        itemInventory.stock-=1;
+        await itemInventory.update();//update ticket data
+
+        //init embed
+        var arrPages = [
+            Embed.builder(`**${capitalize(this.name)}** has been selected!
+            (Click on next page to reveal your roll results!)
+
+            *Good luck! mofu~*`, this.discordUser, {
+                title:`${capitalize(this.name)}`,
+                image:Properties.imgSet.mofu.peek,
+                footer:Embed.builderUser.footer(`Roll total: ${roll}`)
+            })
+        ]; //prepare paging embed
+
+        for(var i=0;i<roll;i++){
+            //randomize roll:
+            var rnd = GlobalFunctions.randomNumber(1,100);
+            var rndRarity=null; var minChance = 0;
+            for(var key in this.chance){
+                minChance+=this.chance[key];
+                if(rnd<=minChance&&rndRarity==null){ rndRarity = key; }
+            }
+
+            var rndCardData = GlobalFunctions.randomProperty(this.cardData[rndRarity]);
+            var cardEmbed = new CardEmbed(rndCardData, userData, this.discordUser);
+            var card = new Card(rndCardData);
+
+            var stock = await CardInventory.updateStock(this.userId, card.id_card, 1, true);
+            var txtRoll = `🔄 **Roll:** ${i+1}/${roll}\n\n`;
+            if(stock<=-1){//new card
+                var newTotal = await CardInventory.getPackTotal(this.userId, card.pack);
+                arrPages.push(cardEmbed.newCard(newTotal, 
+                    {notifFront:txtRoll}
+                ));
+            } else {//duplicate
+                arrPages.push(cardEmbed.duplicateCard(stock, 
+                    {notifFront:txtRoll}));
+            }
+        }
+
+        paginationEmbed(this.interaction,arrPages,DiscordStyles.Button.pagingButtonList);
+    }
+}
+
+//roll with jewel:
+class JewelRoller extends Listener {
+    name=null;
+    cardData={};
+    chance={};
+    cost={};
+    user;
+
+    constructor(interaction, userData, name, cardData, chance, cost){
+        super(interaction);
+        this.name = name;
+        this.cardData = cardData;
+        this.chance = chance;
+        this.cost = cost;
+        this.user = new User(userData);
+    }
+
+    async roll(){
+        var roll = parseInt(this.interaction.options.getString("roll"));
+    
+        var userData = await User.getData(this.userId);
+        var userGacha = new UserGacha(await UserGacha.getData(this.userId));
+
+        var jewelCost = this.cost[roll];
+        if(this.user.Currency.jewel<jewelCost){ //validation: check for jewel
+            return this.interaction.reply(Validation.notEnoughJewel(this.discordUser, jewelCost));
+        }
+
+        this.user.Currency.jewel-=jewelCost;
+        await this.user.update()//update user data
+
+        userGacha.setLastDailyGachaDate();
+        await userGacha.update();//update user gacha data
+        
+        //init embed
+        var arrPages = [
+            Embed.builder(dedent(`**${capitalize(this.name)}** has been selected!
+            (Click on next page to reveal your roll results!)
+
+            *Good luck! mofu~*`), 
+            this.discordUser, {
+                title:`${capitalize(this.name)}`,
+                image:Properties.imgSet.mofu.peek,
+                footer:Embed.builderUser.footer(`Roll total: ${roll}`)
+            })
+        ]; //prepare paging embed
+        for(var i=0;i<roll;i++){
+            //randomize roll:
+            var rnd = GlobalFunctions.randomNumber(1,100);
+            var rndRarity=null; var minChance = 0;
+            for(var key in this.chance){
+                minChance+=this.chance[key];
+                if(rnd<=minChance&&rndRarity==null){ rndRarity = key; }
+            }
+
+            var rndCardData = GlobalFunctions.randomProperty(this.cardData[rndRarity]);
+            var cardEmbed = new CardEmbed(rndCardData, userData, this.discordUser);
+            var card = new Card(rndCardData);
+            
+            var stock = await CardInventory.updateStock(this.userId, card.id_card, 1, true);
+            var txtRoll = `🔄 **Roll:** ${i+1}/${roll}\n\n`;
+            if(stock<=-1){//new card
+                var newTotal = await CardInventory.getPackTotal(this.userId, card.pack);
+                arrPages.push(cardEmbed.newCard(newTotal, 
+                    {notifFront:txtRoll}
+                ));
+            } else {//duplicate
+                arrPages.push(cardEmbed.duplicateCard(stock, 
+                    {notifFront:txtRoll}));
+            }
+        }
+
+        paginationEmbed(this.interaction,arrPages,DiscordStyles.Button.pagingButtonList);
+    }
+}
+
+class Daily extends Listener {
+    static name = "daily gachapon roll";
     
     static cardData = {
         1:[], 5:[], 6:[],
     }
 
     static cost = {
-        1: 10,
-        5: 35
+        1: 50,
+        5: 200
     }
 
     static chance = {
@@ -126,75 +279,31 @@ class Daily extends require("./data/Listener") {
     }
 
     async roll(){
-        var roll = parseInt(this.interaction.options.getString("roll"));
-        
-        //lineup: 1* normal: 85%, 5* normal: 10%, 6* premium: 5%
-        var userId = this.discordUser.id;
-    
+        //gacha date validation
         var userData = await User.getData(this.userId);
-        var user = new User(userData);
         var userGacha = new UserGacha(await UserGacha.getData(this.userId));
 
-        var jewelCost = Daily.cost[roll];
         if(userGacha.hasDailyGacha()){//validation: check if already use daily gacha
             return this.interaction.reply(Embed.errorMini(
-                `❌ You already used your daily gachapon for today.`,this.discordUser, true
+                `❌ You already used your ${Daily.name} for today.`,this.discordUser, true
             ));
-        } else if(user.Currency.jewel<jewelCost){ //validation: check for jewel
-            return this.interaction.reply(Validation.notEnoughJewel(this.discordUser, jewelCost));
-        } 
-
-        user.Currency.jewel-=jewelCost;
-        await user.update()//update user data
-
-        userGacha.setLastDailyGachaDate();
-        await userGacha.update();//update user gacha data
-        
-        //init embed
-        var arrPages = [
-            Embed.builder(`${roll}x daily gachapon roll has been selected!`, this.discordUser, {
-                title:`Daily Gachapon Roll`,
-                image:Properties.imgSet.mofu.ok
-            })
-        ]; //prepare paging embed
-        for(var i=0;i<roll;i++){
-            //randomize roll:
-            var rnd = GlobalFunctions.randomNumber(1,100);
-            var rndRarity;
-            if(rnd<=Daily.chance[1]){ rndRarity = 1; }//roll 1*
-            else if(rnd<=Daily.chance[5]){ rndRarity = 5;}//roll 5*
-            else { rndRarity = 6; }//roll 6* premium
-
-            var rndCardData = GlobalFunctions.randomProperty(Daily.cardData[rndRarity]);
-            var cardEmbed = new CardEmbed(rndCardData, userData, this.discordUser);
-            var card = new Card(rndCardData);
-            
-            var stock = await CardInventory.updateStock(userId, card.id_card, 1, true);
-            var txtRoll = `**Roll:** ${i+1}/${roll}\n`;
-            if(stock<=-1){//new card
-                var newTotal = await CardInventory.getPackTotal(userId, card.pack);
-                arrPages.push(cardEmbed.newCard(newTotal, 
-                    {notifFront:txtRoll}
-                ));
-            } else {//duplicate
-                arrPages.push(cardEmbed.duplicateCard(stock, 
-                    {notifFront:txtRoll}));
-            }
         }
 
-        paginationEmbed(this.interaction,arrPages,DiscordStyles.Button.pagingButtonList);
+        var jewelRoller = new JewelRoller(this.interaction, userData, 
+            Daily.name, Daily.cardData, Daily.chance, Daily.cost);
+        await jewelRoller.roll();
     }
 }
 
-class TropicalCatch extends require("./data/Listener") {
-    static name = "tropical-catch gachapon";
+class TropicalCatch extends Listener {
+    static name = "tropical-catch! gachapon";
     static cardData = {
         1:[], 5:[], 6:[],
     }
 
     static cost = {
         1: 100,
-        3: 350
+        3: 250
     }
 
     static chance = {
@@ -268,67 +377,24 @@ class TropicalCatch extends require("./data/Listener") {
     }
 
     async roll(){
-        var roll = parseInt(this.interaction.options.getString("roll"));
-
-        //lineup: 1* normal: 85%, 5* normal: 10%, 6* premium: 5%
+        //gacha date validation
         var userData = await User.getData(this.userId);
-        var user = new User(userData);
         var userGacha = new UserGacha(await UserGacha.getData(this.userId));
 
-        var jewelCost = TropicalCatch.cost[roll];
-        if(userGacha.hasTropicalCatchGacha()){//validation: check if already use daily gacha
+        if(userGacha.hasTropicalCatchGacha()){//validation: check if already use tropical-catch gacha
             return this.interaction.reply(Embed.errorMini(
-                `❌ You already used your tropical-catch! gachapon for today.`,this.discordUser, true
+                `❌ You already used your ${TropicalCatch.name} for today.`,this.discordUser, true
             ));
-        } else if(user.Currency.jewel<jewelCost){ //validation: check for jewel
-            return this.interaction.reply(Validation.notEnoughJewel(this.discordUser, jewelCost));
-        } 
-
-        user.Currency.jewel-=jewelCost;
-        await user.update()//update user data
-
-        userGacha.setLastTropicalCatchGachaDate();
-        await userGacha.update();//update user gacha data
-
-        //init embed
-        var arrPages = [
-            Embed.builder(`${roll}x tropical-catch! gachapon roll has been selected!`, this.discordUser, {
-                title:`Tropical-Catch! Gachapon Roll`,
-                image:Properties.imgSet.mofu.ok
-            })
-        ]; //prepare paging embed
-
-        for(var i=0;i<roll;i++){
-            //randomize roll:
-            var rnd = GlobalFunctions.randomNumber(1,100);
-            var rndRarity;
-            if(rnd<=TropicalCatch.chance[1]){ rndRarity = 1; }//roll 1*
-            else if(rnd<=TropicalCatch.chance[5]){ rndRarity = 5;}//roll 5*
-            else { rndRarity = 6; }//roll 6* premium
-
-            var rndCardData = GlobalFunctions.randomProperty(TropicalCatch.cardData[rndRarity]);
-            var cardEmbed = new CardEmbed(rndCardData, userData, this.discordUser);
-            var card = new Card(rndCardData);
-
-            var stock = await CardInventory.updateStock(this.userId, card.id_card, 1, true);
-            var txtRoll = `**Roll:** ${i+1}/${roll}\n`;
-            if(stock<=-1){//new card
-                var newTotal = await CardInventory.getPackTotal(this.userId, card.pack);
-                arrPages.push(cardEmbed.newCard(newTotal, 
-                    {notifFront:txtRoll}
-                ));
-            } else {//duplicate
-                arrPages.push(cardEmbed.duplicateCard(stock, 
-                    {notifFront:txtRoll}));
-            }
         }
 
-        paginationEmbed(this.interaction,arrPages,DiscordStyles.Button.pagingButtonList);
+        var jewelRoller = new JewelRoller(this.interaction, userData, 
+            TropicalCatch.name, TropicalCatch.cardData, TropicalCatch.chance, TropicalCatch.cost);
+        await jewelRoller.roll();
     }
 }
 
-class StandardTicket extends require("./data/Listener") {
-    static name ="standard gachapon roll";
+class StandardTicket extends Listener {
+    static name ="standard ticket roll";
     static cardData = {
         1:[], 2:[], 3:[],
     }
@@ -404,77 +470,60 @@ class StandardTicket extends require("./data/Listener") {
     }
 
     async roll(){
-        var roll = 1;
-
-        //validation: check if user have ticket
-        var item = new Item(StandardTicket.itemTicketData);
-        var itemInventoryData = await ItemInventory.getItemInventoryDataById(this.userId, item.id_item);
-        var itemInventory = new ItemInventory(itemInventoryData.itemInventoryData, itemInventoryData.itemData);
-        if(itemInventoryData.itemInventoryData==null|| itemInventory.stock<=0){
-            return this.interaction.reply(
-                Embed.errorMini(`${item.getCategoryEmoji()} ${item.getIdItem()} **${item.getName()}** are required to use **${capitalize(StandardTicket.name)}**`, this.discordUser, true, {
-                    title:`❌ Not enough ticket`
-                })
-            );
-        }
-        
-        //lineup: 1* normal: 33%, 2* normal: 34%, 3* normal: 33%
-        var userData = await User.getData(this.userId);
-
-        itemInventory.stock-=1;
-        await itemInventory.update();//update ticket data
-
-        //init embed
-        var arrPages = [
-            Embed.builder(`${StandardTicket.name} has been selected!`, this.discordUser, {
-                title:`${capitalize(StandardTicket.name)}`,
-                image:Properties.imgSet.mofu.ok
-            })
-        ]; //prepare paging embed
-
-        for(var i=0;i<roll;i++){
-            //randomize roll:
-            var rnd = GlobalFunctions.randomNumber(1,100);
-            var rndRarity;
-            var minChance = {
-                1:StandardTicket.chance[1],
-                2:StandardTicket.chance[1]+StandardTicket.chance[2]
-            }
-            if(rnd<=minChance[1]){ rndRarity = 1; }//roll 1*
-            else if(rnd<=minChance[2]){ rndRarity = 2;}//roll 2*
-            else { rndRarity = 3; }//roll 3* normal
-
-            var rndCardData = GlobalFunctions.randomProperty(StandardTicket.cardData[rndRarity]);
-            var cardEmbed = new CardEmbed(rndCardData, userData, this.discordUser);
-            var card = new Card(rndCardData);
-
-            var stock = await CardInventory.updateStock(this.userId, card.id_card, 1, true);
-            var txtRoll = `**Roll:** ${i+1}/${roll}\n`;
-            if(stock<=-1){//new card
-                var newTotal = await CardInventory.getPackTotal(this.userId, card.pack);
-                arrPages.push(cardEmbed.newCard(newTotal, 
-                    {notifFront:txtRoll}
-                ));
-            } else {//duplicate
-                arrPages.push(cardEmbed.duplicateCard(stock, 
-                    {notifFront:txtRoll}));
-            }
-        }
-
-        paginationEmbed(this.interaction,arrPages,DiscordStyles.Button.pagingButtonList);
+        var ticketRoller = new TicketRoller(this.interaction, 
+            StandardTicket.name, StandardTicket.cardData, StandardTicket.chance, StandardTicket.itemTicketData);
+        await ticketRoller.roll(1);
     }
 }
 
-class PremiumTicket extends require("./data/Listener") {
-    static name ="premium gachapon roll";
-
+class TropicalCatchTicket extends Listener {
+    static name ="tropical-catch! ticket roll";
     static cardData = {
-        5:[], 6:[],
+        1:[], 6:[],
     }
 
     static chance = {
-        5: 98,
-        6: 2,
+        1: 90,
+        6: 10,
+    }
+
+    static itemTicketData;//ticket data that will be used
+
+    static async initData(){
+        //init card data:
+        var query = `SELECT * 
+        FROM ${Card.tablename} 
+        WHERE ${Card.columns.series} IN (?) AND 
+        (${Card.columns.rarity}=? OR ${Card.columns.rarity}=?)`;
+
+        var results = await DBConn.conn.query(query, [SPack.tropical_rouge.properties.value, 1, 6]);
+        for(var i=0;i<results.length;i++){
+            var card = results[i];
+            this.cardData[card[Card.columns.rarity]].push(card);
+        }
+
+        //init ticket data:
+        this.itemTicketData = await Item.getItemData("gt002");
+    }
+
+    async roll(){
+        var ticketRoller = new TicketRoller(this.interaction, 
+            TropicalCatchTicket.name, TropicalCatchTicket.cardData, TropicalCatchTicket.chance, TropicalCatchTicket.itemTicketData);
+        await ticketRoller.roll(1);
+    }
+}
+
+class PremiumTicket extends Listener {
+    static name ="premium ticket roll";
+
+    static cardData = {
+        4:[], 5:[], 6:[],
+    }
+
+    static chance = {
+        4: 5,
+        5: 90,
+        6: 5,
     }
 
     static itemTicketData;//ticket data that will be used
@@ -486,7 +535,7 @@ class PremiumTicket extends require("./data/Listener") {
         "happiness_charge","go_princess","mahou_tsukai",
         "kirakira","hugtto","star_twinkle","healin_good"];
 
-        //rarity 5
+        //rarity 4, 5
         var seriesTextNormal = ``;
         for(var key in SPack){
             if(arrSeriesNormal.includes(key)){
@@ -518,6 +567,9 @@ class PremiumTicket extends require("./data/Listener") {
         ─────────────────
         The following series lineup will appear on this gachapon:
 
+        ${Card.emoji.rarity(4)}__**4 (drop rates: ${this.chance[4]}%)**__
+        ${seriesTextNormal}
+
         ${Card.emoji.rarity(5)}__**5 (drop rates: ${this.chance[5]}%)**__
         ${seriesTextNormal}
 
@@ -540,9 +592,9 @@ class PremiumTicket extends require("./data/Listener") {
         var query = `SELECT * 
         FROM ${Card.tablename} 
         WHERE ${Card.columns.series} <>? AND 
-        (${Card.columns.rarity}=? OR ${Card.columns.rarity}=?)`;
+        (${Card.columns.rarity}=? OR ${Card.columns.rarity}=? OR ${Card.columns.rarity}=?)`;
 
-        var results = await DBConn.conn.query(query, [SPack.tropical_rouge.properties.value, 5,6]);
+        var results = await DBConn.conn.query(query, [SPack.tropical_rouge.properties.value, 4, 5, 6]);
         for(var i=0;i<results.length;i++){
             var card = results[i];
             this.cardData[card[Card.columns.rarity]].push(card);
@@ -553,68 +605,28 @@ class PremiumTicket extends require("./data/Listener") {
     }
 
     async roll(){
-        var roll = 1;
-
-        //validation: check if user have ticket
-        var item = new Item(PremiumTicket.itemTicketData);
-        var itemInventoryData = await ItemInventory.getItemInventoryDataById(this.userId, item.id_item);
-        var itemInventory = new ItemInventory(itemInventoryData.itemInventoryData, itemInventoryData.itemData);
-        if(itemInventoryData.itemInventoryData==null|| itemInventory.stock<=0){
-            return this.interaction.reply(
-                Embed.errorMini(`${item.getCategoryEmoji()} ${item.getIdItem()} **${item.getName()}** are required to use **${capitalize(PremiumTicket.name)}**`, this.discordUser, true, {
-                    title:`❌ Not enough ticket`
-                })
-            );
-        }
-        
-        
-        //lineup: 5* normal: 98%, 6* normal: 2%
-        var userData = await User.getData(this.userId);
-
-        itemInventory.stock-=1;
-        await itemInventory.update();//update ticket data
-
-        //init embed
-        var arrPages = [
-            Embed.builder(`${PremiumTicket.name} has been selected!`, this.discordUser, {
-                title:`${capitalize(PremiumTicket.name)}`,
-                image:Properties.imgSet.mofu.ok
-            })
-        ]; //prepare paging embed
-
-        for(var i=0;i<roll;i++){
-            //randomize roll:
-            var rnd = GlobalFunctions.randomNumber(1,100);
-            var rndRarity;
-            if(rnd<=PremiumTicket.chance[5]){ rndRarity = 5; }//roll 5*
-            else { rndRarity = 6; }//roll 6* limited
-
-            var rndCardData = GlobalFunctions.randomProperty(PremiumTicket.cardData[rndRarity]);
-            var cardEmbed = new CardEmbed(rndCardData, userData, this.discordUser);
-            var card = new Card(rndCardData);
-
-            var stock = await CardInventory.updateStock(this.userId, card.id_card, 1, true);
-            var txtRoll = `**Roll:** ${i+1}/${roll}\n`;
-            if(stock<=-1){//new card
-                var newTotal = await CardInventory.getPackTotal(this.userId, card.pack);
-                arrPages.push(cardEmbed.newCard(newTotal, 
-                    {notifFront:txtRoll}
-                ));
-            } else {//duplicate
-                arrPages.push(cardEmbed.duplicateCard(stock, 
-                    {notifFront:txtRoll}));
-            }
-        }
-
-        paginationEmbed(this.interaction,arrPages,DiscordStyles.Button.pagingButtonList);
+        var ticketRoller = new TicketRoller(this.interaction, 
+            PremiumTicket.name, PremiumTicket.cardData, PremiumTicket.chance, PremiumTicket.itemTicketData);
+        await ticketRoller.roll(1);
     }
 
 }
 
-class Listener extends require("./data/Listener") {
-    // constructor(userId=null, discordUser=null, interaction=null){
-    //     super(userId, discordUser, interaction);
-    // }
+class Gachapon extends Listener {
+    static Daily = Daily;
+    static TropicalCatch = TropicalCatch;
+    static StandardTicket = StandardTicket;
+    static PremiumTicket = PremiumTicket;
+    static TropicalCatchTicket = TropicalCatchTicket;
+
+    //1 time init for card data
+    static async init(){
+        await Daily.initCardData();
+        await TropicalCatch.initCardData();
+        await StandardTicket.initData();
+        await PremiumTicket.initData();
+        await TropicalCatchTicket.initData();
+    }
 
     async info(){
         var arrPages = []; //prepare paging embed
@@ -626,23 +638,6 @@ class Listener extends require("./data/Listener") {
         );
 
         await paginationEmbed(this.interaction,arrPages,DiscordStyles.Button.pagingButtonList, false);
-    }
-
-}
-
-class Gachapon {
-    static Daily = Daily;
-    static TropicalCatch = TropicalCatch;
-    static StandardTicket = StandardTicket;
-    static PremiumTicket = PremiumTicket;
-    static Listener = Listener;
-
-    //1 time init for card data
-    static async init(){
-        await Daily.initCardData();
-        await TropicalCatch.initCardData();
-        await StandardTicket.initData();
-        await PremiumTicket.initData();
     }
 
 }

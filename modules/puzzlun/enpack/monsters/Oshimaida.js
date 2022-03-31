@@ -1,6 +1,6 @@
 const properties = {
     value:"oshimaida",
-    name:"Oshimaida",
+    type:"oshimaida",
     catchphrase:"Oshimaida!",
     chaos_meter:"eternity",
 	series:"hugtto"

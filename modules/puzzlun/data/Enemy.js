@@ -25,16 +25,26 @@ const EnPack = {
 }
 
 class Monster {
-    value = null;
-    name = null;
-    catchphrase = null;
-    chaos_meter = null;
-    series = null;
+    properties = {
+        value: null,
+        type: null,
+        catchphrase: null,
+        chaos_meter: null,
+        series: null,
+    }
 
-    constructor(monsterType=null){
-        if(monsterType!=null){
+    id=null;
+    name=null;
+    series=null;
+
+    
+
+    constructor(monsterData=null){
+        if(monsterData!=null){
+
+
             for(var key in EnPack.monster[monsterType].properties){
-                this[key] = EnPack.monster[monsterType].properties[key];
+                this.properties[key] = EnPack.monster[monsterType].properties[key];
             }
         }
     }

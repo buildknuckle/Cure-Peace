@@ -1,12 +1,14 @@
 class Listener {
+    interaction=null;
     userId=null;
     discordUser=null;
-    interaction=null;
+    guildId=null;
 
-    constructor(userId=null, discordUser=null, interaction=null){
-        this.userId = userId;
-        this.discordUser = discordUser;
+    constructor(interaction=null){
         this.interaction = interaction;
+        this.guildId = interaction.guild.id;
+        this.userId = interaction.user.id;
+        this.discordUser = interaction.user;
     }
 }
 

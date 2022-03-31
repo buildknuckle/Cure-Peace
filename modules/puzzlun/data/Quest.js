@@ -84,7 +84,7 @@ class DailyCardQuest {
             series:30,
         },
         4:{
-            jewel:1,
+            jewel:10,
             mofucoin:80,
             color:60,
             series:40
@@ -92,7 +92,7 @@ class DailyCardQuest {
     }
 
     static rewardCompletion = {
-        jewel:5,
+        jewel:50,
         ticket:"gt001",
         item:["ing001","ing002","ing003",
         "ing004","ing005","ing006","ing007",

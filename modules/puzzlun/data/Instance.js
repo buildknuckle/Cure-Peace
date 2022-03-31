@@ -93,7 +93,13 @@ class PartyAct {
         //validation: if user in party/not
         if(partyData==null) return interaction.reply(Embed.validationNotInParty(discordUser));
         var party = new Party(partyData);
+        if(party.isLeaderHaveAvatar()==false) return interaction.reply(
+            Embed.errorMini(`Your party leader need to set main precure avatar`, discordUser, true, {
+                title:`:x: Missing leader avatar`
+            })
+        );
         if(party.getTotalMember()<=0) return interaction.reply(Embed.validationNotEnoughMembers(discordUser, 1));
+
 
         //validation: if party already joined
         var spawn = new PartyAct(spawner.spawn);
@@ -397,8 +403,29 @@ class SoloBattle {
         chokkins: "chokkins"
     }
 
-    instance = {};//contains party instance data
+    static difficulty = {
+        normal:{
+            value:"normal",
+            maxLevel:20,
+            score:1,
+        }
+    }
 
+    type = null;
+    instance = {};//contains instance data
+
+    constructor(instanceData=null){
+        if(instanceData!=null){
+            for(var key in instanceData){
+                this[key] = instanceData[key];
+            }
+        }
+    }
+
+    //used to get instance by user id
+    getInstance(userId){
+        return this.instance[userId];
+    }
 
 }
 

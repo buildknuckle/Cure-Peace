@@ -1,6 +1,6 @@
 const properties = {
     value:"uzaina",
-    name:"Uzaina",
+    type:"uzaina",
     catchphrase:"",
     chaos_meter:"havoc",
 	series:"splash_star"

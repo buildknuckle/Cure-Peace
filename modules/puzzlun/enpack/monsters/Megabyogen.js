@@ -1,6 +1,6 @@
 const properties = {
     value:"megabyogen",
-    name:"Megabyogen",
+    type:"megabyogen",
     catchphrase:"Mega!",
     chaos_meter:"virus",
 	series:"healin_good"

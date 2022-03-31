@@ -1,6 +1,6 @@
 const properties = {
     value:"akanbe",
-    name:"Akanbe",
+    type:"akanbe",
     catchphrase:"Akanbe!",
     chaos_meter:"fiasco",
 	series:"smile"

@@ -11,7 +11,7 @@ const CardInventory = require("../modules/puzzlun/data/CardInventory");
 const Embed = require('../modules/puzzlun/Embed');
 const Validation = require('../modules/puzzlun/Validation');
 const {AvatarFormation} = require('../modules/puzzlun/Data/Avatar');
-const UserListener = require("../modules/puzzlun/listener/User");
+const UserListener = require("../modules/puzzlun/User");
 const {CardListener} = require("../modules/puzzlun/Card");
 
 module.exports = {
@@ -190,28 +190,19 @@ module.exports = {
         var discordUser = interaction.user;
         var userId = discordUser.id;
 
+        let userListener = new UserListener(interaction);
+
         switch(subcommand){
             case "avatar":{//set precure avatar
-                var cardId = interaction.options.getString("card-id");//get card id
-                var formation = interaction.options.getString("formation")!==null? 
-                interaction.options.getString("formation"): AvatarFormation.formation.main.value;
-                var isPrivate =  interaction.options.getBoolean("visible-public")!==null? 
-                interaction.options.getBoolean("visible-public"): false;
-
-                let userListener = new UserListener(userId, discordUser, interaction);
-                await userListener.setAvatar(cardId, formation, isPrivate);
+                await userListener.setAvatar();
                 break;
             }
             case "color":{//set color assignment
-                var selection = interaction.options.getString("change");
-                var userListener = new UserListener(userId, discordUser, interaction);
-                await userListener.setColor(selection);
+                await userListener.setColor();
                 break;
             }
             case "series":{//set series
-                var selection = interaction.options.getString("location");
-                let userListener = new UserListener(userId, discordUser, interaction);
-                await userListener.setSeries(selection);
+                await userListener.setSeries();
                 break;
             }
         }

@@ -83,6 +83,12 @@ class Item {
     }
 }
 
+class ItemFood {
+    static foodData = {
+        
+    };
+}
+
 class ItemShop extends Item {
     static tablename = DBM_Item_Shop_Data.TABLENAME;
     static columns = DBM_Item_Shop_Data.columns;

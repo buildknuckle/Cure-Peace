@@ -1,3 +1,4 @@
+const stripIndents = require('common-tags');
 const dedent = require("dedent-js");
 const DB = require('../../database/DatabaseCore');
 const DBConn = require('../../storage/dbconn');
@@ -15,6 +16,7 @@ const {Character, CPack} = require("./data/Character");
 const Properties = require('./Properties');
 const Color = Properties.color;
 const Emoji = Properties.emoji;
+const Currency = Properties.currency;
 
 // const GuildModule = require("./Guild");
 
@@ -51,7 +53,7 @@ class Embed extends require('./Embed') {
 
         var author = Embed.builderUser.author(this.discordUser, `New ${capitalize(character.name)} Card!`, character.icon);
 
-        return Embed.builder(dedent(`${notifFront}${Properties.emoji.mofuheart} <@${userId}> has received new ${this.card.getRarity()} ${capitalize(character.name)} card!${notifBack}`), author, {
+        return Embed.builder(dedent(`${notifFront}${Properties.emoji.mofuthumbsup} <@${userId}> has received new ${this.card.getRarity()} ${capitalize(character.name)} card!${notifBack}`), author, {
             color: color,
             title: name,
             fields:[{
@@ -126,7 +128,7 @@ class Embed extends require('./Embed') {
         ${CardInventory.emoji.hp} **Hp:** ${cardInventory.maxHp} | ${CardInventory.emoji.atk} **Atk:** ${cardInventory.atk} | ${CardInventory.emoji.sp} **Sp:** ${cardInventory.maxSp}        
         💖 **Special:** ${character.specialAttack} Lv.${cardInventory.level_special}
         
-        **Passive Skill:**`),
+        __**Passive Skill:**__`),
         Embed.builderUser.author(this.discordUser,character.fullname, character.icon),{
             color:color,
             image:cardInventory.getImgDisplay(),
@@ -140,7 +142,6 @@ class Embed extends require('./Embed') {
         return arrPages;
     }
 
-
 }
 
 class Listener extends require("./data/Listener") {
@@ -148,8 +149,16 @@ class Listener extends require("./data/Listener") {
     //     super(userId,discordUser, interaction);
     // }
 
-    async detail(cardId, isPrivate=true){//print card detail
-        
+    static viewStyle = {
+        compact:"compact",
+        full:"full",
+    }
+
+    async detail(){//print card detail
+        var cardId = this.interaction.options.getString("card-id");
+        var isPrivate = this.interaction.options.getBoolean("visible-private") !== null? 
+        this.interaction.options.getBoolean("visible-private"):false;
+
         var userId = this.discordUser.id;
         // var arrPages = []; //prepare paging embed
         // var cardData = await CardModule.getCardData(idCard);
@@ -167,7 +176,18 @@ class Listener extends require("./data/Listener") {
         paginationEmbed(this.interaction, arrPages, DiscordStyles.Button.pagingButtonList, isPrivate);
     }
 
-    async inventory(pack, isPrivate, duplicateOnly){ //prepare paging embed
+    async inventory(){ //prepare paging embed
+        var pack = this.interaction.options.getString("card-pack");
+        var parameterUsername = this.interaction.options.getString("username");
+        var duplicateOnly = this.interaction.options.getBoolean("filter-duplicate")!==null ? 
+            this.interaction.options.getBoolean("filter-duplicate"):false;
+        var isPrivate = parameterUsername==null? true:false;
+        //display style:
+        var displayStyle = this.interaction.options.getString("display-style")!==null?
+            this.interaction.options.getString("display-style"):Listener.viewStyle.full;
+        var userSearchResult = await Validation.User.isAvailable(this.discordUser, parameterUsername, this.interaction);
+        if(!userSearchResult) return; else this.discordUser = userSearchResult;
+
         var userId = this.discordUser.id;
         var arrPages = []; 
         
@@ -225,20 +245,22 @@ class Listener extends require("./data/Listener") {
             let atk = card.atk;
 
             if(card.isHaveCard()){
-                txtInventory+=`**${card.getRarity()}** ${card.getIdCard()} ${card.getCardEmoji()}x${stock} ${card.isTradable()? "🔀":""}\n`;
-                // txtInventory+=`${displayName} \n\n`;
-                txtInventory+=`${displayName} **Lv.${level}**\n${CardInventory.emoji.hp} Hp: ${hp} | ${CardInventory.emoji.atk} Atk: ${atk} | ${CardInventory.emoji.sp} Sp: ${card.maxSp}\n`;
+                txtInventory+=dedent(`**${card.getRarity()}** ${card.getIdCard()} ${card.getCardEmoji()}x${stock} ${card.isTradable()? "🔀":""}
+                ${displayName} **Lv.${level}**`)+`\n`;
+                if(displayStyle==Listener.viewStyle.full){
+                    txtInventory+=`${CardInventory.emoji.hp} **Hp:** ${hp} | ${CardInventory.emoji.atk} **Atk:** ${atk} | ${CardInventory.emoji.sp} **Sp:** ${card.maxSp}\n`;
+                }
                 txtInventory+=`─────────────────\n`;
             } else {
-                txtInventory+=`**${Card.emoji.rarity(rarity)}${rarity}: ???**\n???\n`;
-                txtInventory+=`─────────────────\n`;
+                txtInventory+=dedent(`**${card.getRarity()} ???**
+                ─────────────────`)+`\n`;
             }
             
             //check for max page content
             if(idx>=maxIdx||(idx<maxIdx && i==cardDataInventory.cardData.length-1)){
                 let embed = 
                 Embed.builder(dedent(`**Normal:** ${total.normal}/${maxPack} | **Gold:** ${total.gold}/${maxPack}
-                ${card.getCardEmoji()} **Total:** ${total.duplicate}/${maxPack*CardInventory.limit.card}
+                ${card.getCardEmoji()} **Duplicates:** ${total.duplicate}/${maxPack*CardInventory.limit.card}
                 
                 ${txtInventory}`)
                     ,this.discordUser,{
@@ -259,7 +281,11 @@ class Listener extends require("./data/Listener") {
         return paginationEmbed(this.interaction,arrPages,DiscordStyles.Button.pagingButtonList, isPrivate);
     }
 
-    async levelUp(cardId, amount=1){
+    async levelUp(){
+        let cardId = this.interaction.options.getString("card-id");
+        let amount = this.interaction.options.getInteger("amount")!==null?
+        this.interaction.options.getInteger("amount"):1;
+
         var cardInventoryData = await CardInventory.getJoinUserData(this.userId, cardId);
         if(cardInventoryData==null){//validation: cannot find card
             return this.interaction.reply(Validation.Card.embedNotFound(this.discordUser));
@@ -332,7 +358,10 @@ class Listener extends require("./data/Listener") {
 
         card.levelSync(newLevel);//sync into new level
         await card.update();//update card inventory data
-        return await this.interaction.reply({content:`${Properties.emoji.mofuheart} **${card.id_card} - ${card.getName(18)}** is now level **${newLevel}**!`, 
+
+
+
+        return await this.interaction.reply({content:`${Properties.emoji.mofuheart} ${card.getIdCard()} **${card.getName(18)}** has been leveled up into level **${newLevel}**!`, 
             embeds:[
             //level up notification
             // Embed.builder(
@@ -360,7 +389,11 @@ class Listener extends require("./data/Listener") {
         ]});
     }
 
-    async levelUpSpecial(cardId, amount=1){
+    async levelUpSpecial(){
+        let cardId = this.interaction.options.getString("card-id");
+        let amount = this.interaction.options.getInteger("amount")!==null?
+        this.interaction.options.getInteger("amount"):1;
+
         var cardInventoryData = await CardInventory.getJoinUserData(this.userId, cardId);
         if(cardInventoryData==null){//validation: cannot find card
             return this.interaction.reply(Validation.Card.embedNotFound(this.discordUser));
@@ -488,6 +521,69 @@ class Listener extends require("./data/Listener") {
         return this.interaction.reply({content:`${Emoji.mofuheart} ${card.getIdCard()} **${card.getName(18)}** has successfully upgraded upgraded into gold card!`, embeds:[
             embed.detail(card)
         ]});
+    }
+
+    async convert(){
+        var cardId = this.interaction.options.getString("card-id");
+        var amount = this.interaction.options.getInteger("amount")!==null?
+            this.interaction.options.getInteger("amount"):1;
+        var user = new User(await User.getData(this.userId));
+
+        var cardInventoryData = await CardInventory.getJoinUserData(this.userId, cardId);
+        if(cardInventoryData==null){//validation: cannot find card
+            return this.interaction.reply(Validation.Card.embedNotFound(this.discordUser));
+        } else if(cardInventoryData.cardInventoryData==null){//validation: user don't have card
+            return this.interaction.reply(Validation.Card.embedNotHave(this.discordUser));
+        }
+
+        if(amount<=0||amount>10){//validation: invalid amount
+            return this.interaction.reply(
+                Embed.errorMini(`Please enter the convert amount between 1-10`, this.discordUser, true, {
+                    title:`❌ Invalid amount`
+                })
+            );
+        }
+
+        var card = new CardInventory(cardInventoryData.cardInventoryData, cardInventoryData.cardData);
+        if(card.stock<amount){//validation: check if user have enough amount
+            return this.interaction.reply(
+                Embed.errorMini(dedent(`${amount}x ${card.getCardEmoji()}${card.getIdCard()} **${card.name}** are required to convert this card.`), 
+                    this.discordUser, true, {
+                        title:`❌ Not enough duplicates`
+                    })
+            );
+        }
+        
+        card.stock-=amount;
+        await card.update();//update card stock
+
+        var colorPoints = card.parameter.convertColor(card.rarity)*amount;
+        var seriesPoints = card.parameter.convertSeries(card.rarity)*amount;
+        var jewel = card.parameter.convertJewel(card.rarity)*amount;
+
+        //update user points
+        user.Color.modifPoint(card.color, colorPoints);
+        user.Series.modifPoint(card.series, seriesPoints);
+        user.Currency.modifPoint(Currency.jewel.value, jewel);
+        await user.update();
+
+        return this.interaction.reply({embeds:[
+            Embed.builder(`${card.getRarity()} ${card.getIdCard()} **${card.getName(20)}** has been converted.`, 
+                this.discordUser, {
+                    title:`↖️ Card converted`,
+                    color:card.color,
+                    thumbnail:card.img_url,
+                    fields:[
+                        {
+                            name:`Converted results:`,
+                            value:dedent(`${card.getColorEmoji()} ${colorPoints} ${card.color} points (${user.getColorPoint(card.color)}/${User.Color.limit.point})
+                            ${card.Series.getMascotEmoji()} ${seriesPoints} ${card.Series.currency.name} (${user.getSeriesPoint(card.series)}/${User.Series.limit.point})
+                            ${jewel>0 ? `${Currency.jewel.emoji} ${jewel} ${Currency.jewel.name} (${user.Currency.jewel}/${User.Currency.limit.jewel})`:``}`)
+                        }
+                    ]
+            })
+        ], ephemeral:true});
+
     }
 
 }

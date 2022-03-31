@@ -6,7 +6,7 @@ const GlobalFunctions = require('../../modules/GlobalFunctions');
 const capitalize = GlobalFunctions.capitalize;
 
 const User = require("./data/User");
-const {ItemInventory} = require("./data/Item");
+const {Item, ItemInventory} = require("./data/Item");
 const Properties = require("./Properties");
 const Color = Properties.color;
 const Currency = Properties.currency;

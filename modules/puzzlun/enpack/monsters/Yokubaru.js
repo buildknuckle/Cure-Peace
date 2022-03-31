@@ -1,6 +1,6 @@
 const properties = {
     value:"yokubaru",
-    name:"Yokubaru",
+    type:"yokubaru",
     catchphrase:"Yokubaru!",
     chaos_meter:"hex",
 	series:"mahou_tsukai"

@@ -75,15 +75,15 @@ module.exports = {
                     type: 3,
                     required:true,
                     choices:[
-                        {
+                        {//standard ticket
                             name:`Standard Gachapon Ticket`,
                             value:`standard`
                         },
-                        {
+                        {//tropical catch ticket
                             name:`Tropical-Catch! Gachapon Ticket`,
                             value:`tropical-catch`
                         },
-                        {
+                        {//premium ticket
                             name:`Premium Gachapon Ticket`,
                             value:`premium`
                         },
@@ -95,24 +95,20 @@ module.exports = {
     async execute(interaction){
         var command = interaction.options._group;
         var commandSubcommand = interaction.options.getSubcommand();
-        const guildId = interaction.guild.id;
-
-        var discordUser = interaction.user;
-        var userId = discordUser.id;
 
         switch(commandSubcommand){
             case "info":{
-                let gacha = new Gachapon.Listener(userId, discordUser, interaction);
+                let gacha = new Gachapon(interaction);
                 await gacha.info();
                 break;
             }
             case "daily":{
-                let gacha = new Gachapon.Daily(userId, discordUser, interaction);
+                let gacha = new Gachapon.Daily(interaction);
                 await gacha.roll();
                 break;
             }
             case "tropical-catch":{
-                let gacha = new Gachapon.TropicalCatch(userId, discordUser, interaction);
+                let gacha = new Gachapon.TropicalCatch(interaction);
                 await gacha.roll();
                 break;
             }
@@ -120,12 +116,17 @@ module.exports = {
                 let choice = interaction.options.getString("selection");
                 switch(choice){
                     case "standard":{
-                        let gacha = new Gachapon.StandardTicket(userId, discordUser, interaction);
+                        let gacha = new Gachapon.StandardTicket(interaction);
+                        await gacha.roll();
+                        break;
+                    }
+                    case "tropical-catch":{
+                        let gacha = new Gachapon.TropicalCatchTicket(interaction);
                         await gacha.roll();
                         break;
                     }
                     case "premium":{
-                        let gacha = new Gachapon.PremiumTicket(userId, discordUser, interaction);
+                        let gacha = new Gachapon.PremiumTicket(interaction);
                         await gacha.roll();
                         break;
                     }

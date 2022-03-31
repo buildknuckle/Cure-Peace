@@ -18,10 +18,10 @@ const UPDATE_KEY = [
 
 class Currency {
     static arrCurrency = [GCurrency.mofucoin.value, GCurrency.jewel.value];
-    static limit = {
+    static limit = Object.freeze({
         mofucoin:3000,
         jewel:2000
-    }
+    })
 
     mofucoin=0;
     jewel=0;
@@ -40,6 +40,11 @@ class Currency {
             if(this[currency]<0) this[series]= 0;
             if(this[currency]>Currency.limit[currency]) this[currency]= Currency.limit[currency];
         }
+    }
+
+    modifPoint(currency, point){
+        this.jewel+=point;
+        this.validation();
     }
 
     getData(){
@@ -146,6 +151,11 @@ class Color {
         return JSON.stringify(colorData);
     }
 
+    modifPoint(color, point){
+        this[color].point+=point;
+        this.validation();
+    }
+
     static getEmoji(color){
         return GColor[color].emoji;
     }
@@ -214,6 +224,11 @@ class Series {
             if(this[series]<0) this[series]= 0;
             if(this[series]>Series.limit.point) this[series]= Series.limit.point;
         }
+    }
+
+    modifPoint(series, point){
+        this[series]+=point;
+        this.validation();
     }
 
     //get latest color data in stringified json

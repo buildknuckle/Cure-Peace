@@ -56,6 +56,10 @@ class Party {
             }
         }
     }
+
+    isLeaderHaveAvatar(){
+        return this.Series!==null? true:false;
+    }
     
     getTotal(){
         return 1+this.id_member.length;
