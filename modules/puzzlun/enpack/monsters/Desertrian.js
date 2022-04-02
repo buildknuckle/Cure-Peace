@@ -3,7 +3,6 @@ const properties = {
     type:"desertrian",
     catchphrase:"",
     chaos_meter:"wither",
-	series:"heartcatch"
 }
 
 module.exports = {

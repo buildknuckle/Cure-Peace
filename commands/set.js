@@ -40,14 +40,14 @@ module.exports = {
                             name:`${AvatarFormation.formation.main.name}`,
                             value:`${AvatarFormation.formation.main.value}`
                         },
-                        {
-                            name:`${AvatarFormation.formation.support1.name}`,
-                            value:`${AvatarFormation.formation.support1.value}`
-                        },
-                        {
-                            name:`${AvatarFormation.formation.support2.name}`,
-                            value:`${AvatarFormation.formation.support2.value}`
-                        },
+                        // {
+                        //     name:`${AvatarFormation.formation.support1.name}`,
+                        //     value:`${AvatarFormation.formation.support1.value}`
+                        // },
+                        // {
+                        //     name:`${AvatarFormation.formation.support2.name}`,
+                        //     value:`${AvatarFormation.formation.support2.value}`
+                        // },
                     ]
                 },
                 {

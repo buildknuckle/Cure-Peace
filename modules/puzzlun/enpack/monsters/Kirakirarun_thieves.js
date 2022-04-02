@@ -3,7 +3,6 @@ const properties = {
     type:"kirakirarun Thieves",
     catchphrase:"",
     chaos_meter:"manipulation",
-	series:"kirakira"
 }
 
 module.exports = {

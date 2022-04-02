@@ -1,6 +1,4 @@
 const {MessageActionRow, MessageSelectMenu, MessageButton, MessageEmbed, Discord} = require('discord.js');
-const DB = require('../database/DatabaseCore');
-const DBConn = require('../storage/dbconn');
 const DiscordStyles = require('../modules/DiscordStyles');
 const GlobalFunctions = require('../modules/GlobalFunctions');
 const capitalize = GlobalFunctions.capitalize;
@@ -202,37 +200,37 @@ module.exports = {
                 },
             ]
         },
-        {//unset precure avatar
-            name:"unset-avatar",
-            description: "Unset precure avatar",
-            type: 1,
-            options: [
-                {
-                    name: "formation",
-                    description: "Choose the color selection that you want to level up",
-                    type: 3,
-                    required: true,
-                    choices:[
-                        {
-                            name:`all`,
-                            value:`all`
-                        },
-                        {
-                            name:`${AvatarFormation.formation.main.name}`,
-                            value:`${AvatarFormation.formation.main.value}`
-                        },
-                        {
-                            name:`${AvatarFormation.formation.support1.name}`,
-                            value:`${AvatarFormation.formation.support1.value}`
-                        },
-                        {
-                            name:`${AvatarFormation.formation.support2.name}`,
-                            value:`${AvatarFormation.formation.support2.value}`
-                        },
-                    ]
-                }
-            ]
-        },
+        // {//unset precure avatar
+        //     name:"unset-avatar",
+        //     description: "Unset precure avatar",
+        //     type: 1,
+        //     options: [
+        //         {
+        //             name: "formation",
+        //             description: "Choose the color selection that you want to level up",
+        //             type: 3,
+        //             required: true,
+        //             choices:[
+        //                 {
+        //                     name:`all`,
+        //                     value:`all`
+        //                 },
+        //                 {
+        //                     name:`${AvatarFormation.formation.main.name}`,
+        //                     value:`${AvatarFormation.formation.main.value}`
+        //                 },
+        //                 {
+        //                     name:`${AvatarFormation.formation.support1.name}`,
+        //                     value:`${AvatarFormation.formation.support1.value}`
+        //                 },
+        //                 {
+        //                     name:`${AvatarFormation.formation.support2.name}`,
+        //                     value:`${AvatarFormation.formation.support2.value}`
+        //                 },
+        //             ]
+        //         }
+        //     ]
+        // },
         {//convert
             name:"convert-card",
             description: "Convert your precure card into various rewards",

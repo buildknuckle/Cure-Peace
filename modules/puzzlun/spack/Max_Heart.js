@@ -2,6 +2,7 @@ const properties = {
     value:"max_heart",
 	name:"Max Heart",
     icon:"https://cdn.discordapp.com/attachments/793415946738860072/845617394872614942/latest.png",
+    logo:"https://cdn.discordapp.com/attachments/793415946738860072/959708285563453460/01_maxheart.png",
     emoji:{
         mascot:"<:m1_mepple:936237021293322290>",
     },
@@ -24,8 +25,6 @@ const teams = {
     }
 }
 
-const monsters = require("../enpack/monsters/Zakenna");
-
 module.exports = {
-    properties, teams, monsters
+    properties, teams
 }

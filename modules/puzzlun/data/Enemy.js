@@ -1,7 +1,14 @@
 const GlobalFunctions = require('../../GlobalFunctions');
+const DB = require('../../../database/DatabaseCore');
+const DBConn = require('../../../storage/dbconn');
 
-const EnPack = {
-    monster:{
+const {Series, SPack} = require('./Series');
+const DBM_Monster_Data = require('../../../database/model/DBM_Monster_Data');
+
+const Properties = require('../Properties');
+
+class Monster {
+    static type = {
         zakenna: require("../enpack/monsters/Zakenna"),
         uzaina: require("../enpack/monsters/Uzaina"),
         hoshina: require("../enpack/monsters/Hoshina"),
@@ -18,44 +25,69 @@ const EnPack = {
         nottrigger: require("../enpack/monsters/Nottrigger"),
         megabyogen: require("../enpack/monsters/Megabyogen"),
         yaraneeda: require("../enpack/monsters/Yaraneeda"),
-    },
-    tsunagarus:{
-        chokkins: require("../enpack/tsunagarus/Chokkins"),
-    }
-}
+    };
 
-class Monster {
+    static tablename = DBM_Monster_Data.TABLENAME;
+    static columns = DBM_Monster_Data.columns;
+
+    id= null;
+    name= null;
+    type= null;
+    series= null;
+    img_url= null;
+    weakness_color= null;
+    precure_buff_desc= null;
+    precure_buff_effect= null;
+
     properties = {
         value: null,
         type: null,
         catchphrase: null,
-        chaos_meter: null,
-        series: null,
+        chaos_meter: null
     }
-
-    id=null;
-    name=null;
-    series=null;
-
-    
+    // Series;
 
     constructor(monsterData=null){
         if(monsterData!=null){
-
-
-            for(var key in EnPack.monster[monsterType].properties){
-                this.properties[key] = EnPack.monster[monsterType].properties[key];
+            for(var key in monsterData){
+                var val = monsterData[key];
+                this[key] = val;
+                switch(key){
+                    case Monster.columns.type:{
+                        this.properties[key] = Monster.type[val].properties;
+                        break;
+                    }
+                    // case Monster.columns.series:{
+                    //     this.Series = new Series(SPack[val].properties);
+                    //     break;
+                    // }
+                }
             }
         }
     }
 
-    async randomize(){
-
+    static async randomizeMonsterData(){
+        return await DB.selectRandom(Monster.tablename);
     }
 }
 
 class Tsunagarus {
+    static type = {
+        chokkins: require("../enpack/tsunagarus/Chokkins"),
+    }
 
+    properties = {
+        value: null,
+        name: null,
+        icon: null,
+        color: null
+    }
+
+    constructor(type=null){
+        if(type!==null){
+            this.properties = Tsunagarus.type[type].properties;
+        }
+    }
 }
 
 class Parameter {
@@ -77,9 +109,8 @@ class Enemy {
     enemyData;
     monster;
 
-    constructor(enemyData = null, 
-        playerData = {maxHp:0,atk:0}){
-        if(enemyData!=null){
+    constructor(enemyData = null){
+        if(enemyData!==null){
             this.parameter = new Parameter();
             this.monster = new Monster();
         }
@@ -87,5 +118,5 @@ class Enemy {
 }
 
 module.exports = {
-    Enemy, EnPack
+    Enemy, Tsunagarus, Monster
 }

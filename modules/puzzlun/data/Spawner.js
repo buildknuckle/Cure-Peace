@@ -115,14 +115,15 @@ class Spawner {
         } else if(rnd==60){//party act instance
             this.type = Spawner.type.partyAct;
 
-            var rnd = GlobalFunctions.randomPropertyKey(Instance.PartyAct.instanceType);
-            var instance = new Instance.PartyAct();
+            let rnd = GlobalFunctions.randomPropertyKey(Instance.PartyAct.instanceType);
+            let instance = new Instance.PartyAct();
             let instanceType = Instance.PartyAct.instanceType;
             switch(rnd){
-                case instanceType.treasureHunt:
+                case instanceType.treasureHunt:{
                     instance.type = instanceType.treasureHunt;
                     embedSpawn = instance.getEmbedSpawn(this.token);
                     break;
+                }
             }
 
             spawn = instance;
@@ -130,9 +131,17 @@ class Spawner {
             // this.type = Spawner.type.
             this.type = Spawner.type.soloBattle;
 
-            var rnd = GlobalFunctions.randomPropertyKey(Instance.SoloBattle.instanceType);
-            var instance = new Instance.PartyAct();
-            
+            let rnd = GlobalFunctions.randomPropertyKey(Instance.SoloBattle.instanceType);
+            let instance = new Instance.SoloBattle();
+            let instanceType = Instance.SoloBattle.instanceType;
+            switch(rnd){
+                case instanceType.chokkins:{
+                    instance.type = instanceType.chokkins;
+                    embedSpawn = instance.getEmbedSpawn(this.token);
+                }
+            }
+
+            spawn = instance;
         }
 
         this.spawn = spawn;//set spawn

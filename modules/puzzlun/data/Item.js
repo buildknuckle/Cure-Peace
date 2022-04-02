@@ -232,7 +232,7 @@ class ItemInventory extends Item {
     }
 
     static async updateStock(userId, itemId, qty=1){
-        //check if card existed/not
+        //check if item existed/not
         var query = `INSERT INTO ${ItemInventory.tablename} 
         (${ItemInventory.columns.id_user}, ${ItemInventory.columns.id_item})
         SELECT ?, ? FROM dual 

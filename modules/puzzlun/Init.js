@@ -3,9 +3,11 @@ const DBConn = require('../../storage/dbconn');
 const CardModules = require("./Card");
 const Card = require("./data/Card");
 const Guild = require("./data/Guild");
+const {Shikishi} = require("./data/Shikishi");
 const {Character} = require("./data/Character");
 const SpawnerModules  = require("./data/Spawner");
 const Spawner = SpawnerModules.Spawner;
+const Instance = require('./data/Instance');
 const Gachapon = require("./Gachapon");
 const Shop = require("./Shop");
 const Daily = require("./Daily");
@@ -23,6 +25,9 @@ async function init(){
         Character.setTotal(dataCard.pack, cardData[i]["total"]);
     }
 
+    //init shikishi data
+    await Shikishi.init();
+
     //init gachapon data
     await Gachapon.init();
 
@@ -31,6 +36,10 @@ async function init(){
 
     //init daily
     await Daily.init();
+
+    //init instance reward data
+    await Instance.init();
+
 
     // console.log(Gachapon.dailyRollsCardData[1]);
 }

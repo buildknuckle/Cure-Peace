@@ -2,6 +2,7 @@ const properties = {
     value:"smile",
 	name:"Smile",
     icon:"https://cdn.discordapp.com/attachments/793415946738860072/845617680399728690/latest.png",
+    logo:"https://cdn.discordapp.com/attachments/793415946738860072/959708445014110208/07_smile.png",
     emoji:{
         mascot:"<:m7_candy:936237023747014726>",
     },
@@ -23,8 +24,6 @@ const teams = {
         icon:"https://cdn.discordapp.com/attachments/793415946738860072/824151822146207764/image0.png",
     }
 }
-
-const monsters = require("../enpack/monsters/Akanbe");
 
 class Spawner {
     jankenponData = {
@@ -59,5 +58,5 @@ class Spawner {
 }
 
 module.exports = {
-    properties, teams, monsters, Spawner
+    properties, teams, Spawner
 }

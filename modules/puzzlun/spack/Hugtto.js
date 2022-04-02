@@ -2,6 +2,7 @@ const properties = {
     value:"hugtto",
 	name:"HUGtto!",
     icon:"https://cdn.discordapp.com/attachments/793415946738860072/845618022843809842/latest.png",
+    logo:"https://cdn.discordapp.com/attachments/793415946738860072/959708576484577310/13_hugtto.png",
     emoji:{
         mascot:"<:m13_hariham:936237022803275777>",
     },
@@ -24,8 +25,6 @@ const teams = {
     }
 }
 
-const monsters = require("../enpack/monsters/Oshimaida");
-
 module.exports = {
-    properties, teams, monsters
+    properties, teams
 }

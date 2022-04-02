@@ -2,6 +2,8 @@ const properties = {
     value:"dokidoki",
     name:"Doki Doki",
     icon:"https://cdn.discordapp.com/attachments/793415946738860072/845617720019648512/latest.png",
+    logo:"https://cdn.discordapp.com/attachments/793415946738860072/959708461158002698/08_dokidoki.png",
+    logo:"",
     emoji:{
         mascot:"<:m8_davi:936237025609261106>",
     },
@@ -24,8 +26,6 @@ const teams = {
     }
 }
 
-const monsters = require("../enpack/monsters/Jikochuu");
-
 module.exports = {
-    properties, teams, monsters
+    properties, teams
 }

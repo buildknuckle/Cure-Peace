@@ -14,11 +14,14 @@ const Color = Properties.color;
 const Currency = Properties.currency;
 const Emoji = Properties.emoji;
 
+const {Badge} = require("./data/Badge");
 const User = require("./data/User");
 const UserGacha = require("./data/Gacha");
 const Gachapon = require("./Gachapon");
 const Card = require("./data/Card");
+const {Shikishi, ShikishiInventory} = require("./data/Shikishi");
 const CardInventory = require("./data/CardInventory");
+const {Character} = require("./data/Character");
 const {UserQuest, DailyCardQuest} = require("./data/Quest");
 const {AvatarFormation, PrecureAvatar} = require("./data/Avatar");
 
@@ -125,6 +128,7 @@ class Listener extends require("./data/Listener") {
         var objEmbed = Embed.builder(txtMainStatus, author, {
             title:`${Emoji.mofuheart} Main Status:`,
             color:Embed.color[setColor],
+            image:null,
             thumbnail:seriesData.icon,
             fields: [
                 {name: dedent(`${Color.pink.emoji} __${capitalize(Color.pink.value)} Lvl. ${user.Color.getLevel(Color.pink.value)}__
@@ -287,8 +291,8 @@ class Listener extends require("./data/Listener") {
 
         var arrFields = [
             {name:`**${capitalize(AvatarFormation.formation.main.name)}:**`, value:`:x: ${capitalize(AvatarFormation.formation.main.name)} precure avatar has not set yet.`},
-            {name:`**${capitalize(AvatarFormation.formation.support1.name)}:**`, value:`:x: ${capitalize(AvatarFormation.formation.support1.name)} precure avatar has not set yet.`},
-            {name:`**${capitalize(AvatarFormation.formation.support2.name)}:**`, value:`:x: ${capitalize(AvatarFormation.formation.support2.name)} precure avatar has not set yet.`},
+            // {name:`**${capitalize(AvatarFormation.formation.support1.name)}:**`, value:`:x: ${capitalize(AvatarFormation.formation.support1.name)} precure avatar has not set yet.`},
+            // {name:`**${capitalize(AvatarFormation.formation.support2.name)}:**`, value:`:x: ${capitalize(AvatarFormation.formation.support2.name)} precure avatar has not set yet.`},
         ];
 
         var idx = 0;
@@ -564,6 +568,146 @@ class Listener extends require("./data/Listener") {
             
         }
         
+    }
+
+    async viewBadge(){
+        var username = this.interaction.options.getString("username");
+                
+        var userSearchResult = await Validation.User.isAvailable(this.discordUser, username, this.interaction);
+        if(!userSearchResult) return; else this.discordUser = userSearchResult;
+
+        var userId = this.discordUser.id;
+
+        var badge = new Badge(await Badge.getUserData(userId));
+        
+        return this.interaction.reply({embeds:[
+            Embed.builder(dedent(`**About:**
+            `), 
+            this.discordUser, {
+                color:badge.color,
+                thumbnail:`https://cdn.discordapp.com/attachments/795299749745131560/959698873444618330/01_maxheart.png`,
+                fields:[
+                    {
+                        name:`Favorite series:`,
+                        value:`${badge.Series.getMascotEmoji()} ${badge.Series.name}`
+                    },
+                    {
+                        name:`Favorite character:`,
+                        value:`${badge.Character.name}`
+                    }
+                ],
+                image:badge.img_cover
+            })
+        ]});
+    }
+
+    async editBadge(){
+        var badge = new Badge(await Badge.getUserData(this.userId));
+
+        var newNickname = this.interaction.options.getString("nickname");
+        var newAbout = this.interaction.options.getString("about");
+        var newShikishiId = this.interaction.options.getString("set-shikishi-cover");
+
+        var newFavSeries = this.interaction.options.getString("favorite-series")!==null?
+            badge.setFavoriteSeries(this.interaction.options.getString("favorite-series")):null;
+
+        var newFavCharacter = this.interaction.options.getString("favorite-character");
+
+        var newColor = this.interaction.options.getString("color")!==null? 
+            badge.color = this.interaction.options.getString("color"):null;
+
+        if(newNickname==null&&newFavSeries==null&&newColor==null&&
+            newFavCharacter==null&&newAbout==null&&newShikishiId==null){//validation: no given parameter 
+            return this.interaction.reply(
+                Embed.errorMini(`Please enter the badge section that you want to edit`, this.discordUser, true, {
+                    title:`❌ Missing parameter`
+                })
+            );
+        }
+
+        if(newNickname!==null){//validation: nickname
+            if(newNickname.length>20){
+                return this.interaction.reply(
+                    Embed.errorMini(`Please re-enter with shorter nickname`, this.discordUser, true, {
+                        title:`❌ Invalid nickname`
+                    })
+                );
+            } else {
+                badge.nickname = newNickname;
+            }
+        }
+
+        if(newAbout!==null){//validation: about
+            if(newAbout.length>60){
+                return this.interaction.reply(
+                    Embed.errorMini(`Please re-enter with shorter about`, this.discordUser, true, {
+                        title:`❌ Invalid about`
+                    })
+                );
+            } else {
+                badge.about = newAbout;
+            }
+        }
+
+        if(newShikishiId!==null){//validation: shikishi
+            var shikishiDataInventory = await ShikishiInventory.getShikishiInventoryDataById(this.userId, newShikishiId);
+            if(shikishiDataInventory==null) {
+                return this.interaction.reply(
+                    Embed.errorMini(`I cannot find that shikishi id.`,this.discordUser, true, {
+                        title:`❌ Shikishi not found`
+                    })
+                );
+            } else if(shikishiDataInventory.shikishiInventoryData==null) { //validation: if user have shikishi
+                return this.interaction.reply(
+                    Embed.errorMini(`You don't have this shikishi yet.`,this.discordUser, true, {
+                        title:`❌ Shikishi not owned`
+                    })
+                );
+            } else {
+                var shikishi = new ShikishiInventory(shikishiDataInventory.shikishiInventoryData, shikishiDataInventory.shikishiData);
+                badge.img_cover = shikishi.img_url;
+            }
+        }
+
+        if(newFavCharacter!==null){//validation: cheracter
+            if(!Validation.Pack.isAvailable(newFavCharacter)){
+                return this.interaction.reply(Validation.Pack.embedNotFound(this.discordUser));
+            } else {
+                badge.setFavoriteCharacter(newFavCharacter);
+            }  
+        }
+
+        await this.interaction.reply(Embed.successMini(`Your precure badge has successfully updated`, this.discordUser, true, {
+            title:`✅ Precure badge updated`
+        }));
+
+        await badge.update();
+    }
+
+    async removeBadgeSection(){
+        var badge = new Badge(await Badge.getUserData(this.userId));
+
+        var choice = this.interaction.options.getString("section");
+        switch(choice){
+            case "nickname":{
+                badge.nickname=null;
+                break;
+            }
+            case "about":{
+                badge.about=null;
+                break;
+            }
+            case "shikishi-cover":{
+                badge.img_cover=null;
+                break;
+            }
+        }
+
+        await this.interaction.reply(Embed.successMini(`Your precure badge has successfully updated`, this.discordUser, true, {
+            title:`✅ Precure badge updated`
+        }));
+
+        await badge.update();
     }
 
 }

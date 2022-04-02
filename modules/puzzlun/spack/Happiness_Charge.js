@@ -2,6 +2,7 @@ const properties = {
     value:"happiness_charge",
 	name:"Happiness Charge",
     icon:"https://cdn.discordapp.com/attachments/793415946738860072/845617795240034314/latest.png",
+    logo:"https://cdn.discordapp.com/attachments/793415946738860072/959708495408672818/09_happinessi.png",
     emoji:{
         mascot:"<:m9_ribbon:936237024602628096>",
     },
@@ -24,8 +25,6 @@ const teams = {
     }
 }
 
-const monsters = require("../enpack/monsters/Saiarks");
-
 module.exports = {
-    properties, teams, monsters
+    properties, teams
 }

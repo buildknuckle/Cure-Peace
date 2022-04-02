@@ -2,6 +2,7 @@ const properties = {
     value:"star_twinkle",
 	name:"Star Twinkle",
     icon:"https://cdn.discordapp.com/attachments/793415946738860072/845618044655239188/latest.png",
+    logo:"https://cdn.discordapp.com/attachments/793415946738860072/959708599486124063/14_startwinkle.png",
     emoji:{
         mascot:"<:m14_fuwa:936237029157658625>",
     },
@@ -29,8 +30,6 @@ const teams = {
         icon:"https://cdn.discordapp.com/attachments/793415946738860072/824156329014460416/image0.png",
     }
 }
-
-const monsters = require("../enpack/monsters/Nottrigger");
 
 class Spawner {
     static fuwaConstellation = {
@@ -106,5 +105,5 @@ class Spawner {
 }
 
 module.exports = {
-    properties, imgSet, teams, monsters, Spawner
+    properties, imgSet, teams, Spawner
 }

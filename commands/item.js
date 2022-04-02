@@ -25,10 +25,10 @@ module.exports = {
                     type: 3,
                     required:false,
                     choices:[
-                        {
-                            name:`${Shop.category.ingredient_food.name}`,
-                            value:`${Shop.category.ingredient_food.value}`
-                        },
+                        // {
+                        //     name:`${Shop.category.ingredient_food.name}`,
+                        //     value:`${Shop.category.ingredient_food.value}`
+                        // },
                         {
                             name:`${Shop.category.gacha_ticket.name}`,
                             value:`${Shop.category.gacha_ticket.value}`
@@ -68,10 +68,10 @@ module.exports = {
                     type: 3,
                     required:false,
                     choices:[
-                        {
-                            name:`${Shop.category.ingredient_food.name}`,
-                            value:`${Shop.category.ingredient_food.value}`
-                        },
+                        // {
+                        //     name:`${Shop.category.ingredient_food.name}`,
+                        //     value:`${Shop.category.ingredient_food.value}`
+                        // },
                         {
                             name:`${Shop.category.gacha_ticket.name}`,
                             value:`${Shop.category.gacha_ticket.value}`
@@ -102,11 +102,11 @@ module.exports = {
                 },
             ]
         },
-        {//item recipe
-            name: "food-recipe",
-            description: "Open food recipe menu",
-            type: 1
-        }
+        // {//item recipe
+        //     name: "food-recipe",
+        //     description: "Open food recipe menu",
+        //     type: 1
+        // }
     ],
     async execute(interaction){
         var command = interaction.options._group;

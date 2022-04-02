@@ -2,6 +2,7 @@ const properties = {
     value:"kirakira",
 	name:"KiraKira",
     icon:"https://cdn.discordapp.com/attachments/793415946738860072/845617928208515082/latest.png",
+    logo:"https://cdn.discordapp.com/attachments/793415946738860072/959708557392097310/12_kirakira.png",
     emoji:{
         mascot:"<:m12_pekorin:936237024149659689>",
     },
@@ -24,8 +25,6 @@ const teams = {
     }
 }
 
-const monsters = require("../enpack/monsters/Kirakirarun_thieves");
-
 module.exports = {
-    properties, teams, monsters
+    properties, teams, 
 }

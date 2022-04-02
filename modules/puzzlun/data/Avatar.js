@@ -22,16 +22,16 @@ class AvatarFormation {
             value: "main",
             columns: AvatarFormation.columns.id_main
         },
-        support1: {
-            name: "support 1",
-            value:"support1",
-            columns: AvatarFormation.columns.id_support1
-        },
-        support2: {
-            name:"support 2",
-            value:"support2",
-            columns: AvatarFormation.columns.id_support2
-        },
+        // support1: {
+        //     name: "support 1",
+        //     value:"support1",
+        //     columns: AvatarFormation.columns.id_support1
+        // },
+        // support2: {
+        //     name:"support 2",
+        //     value:"support2",
+        //     columns: AvatarFormation.columns.id_support2
+        // },
     }
     static setCost = {
         color(rarity){

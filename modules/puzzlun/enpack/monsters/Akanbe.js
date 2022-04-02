@@ -3,7 +3,6 @@ const properties = {
     type:"akanbe",
     catchphrase:"Akanbe!",
     chaos_meter:"fiasco",
-	series:"smile"
 }
 
 module.exports = {

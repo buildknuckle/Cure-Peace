@@ -41,7 +41,7 @@ class Pack {
     /**
      * @param {string} pack pack in string
      */
-     static isAvailable(pack){
+    static isAvailable(pack){
         return pack in CPack ? true:false;
     }
 
@@ -55,7 +55,7 @@ class Pack {
         }
         
         return {embeds:[
-            Embed.builder(":x: I can't find that card pack. Here are the list for available card pack:", discordUser, {
+            Embed.builder(":x: I can't find that character. Here are the list for available character:", discordUser, {
                 color:EmbedColor.danger,
                 fields:[
                     {

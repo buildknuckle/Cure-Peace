@@ -2,6 +2,7 @@ const properties = {
     value:"suite",
 	name:"Suite",
     icon:"https://cdn.discordapp.com/attachments/793415946738860072/845617647847473160/latest.png",
+    logo:"https://cdn.discordapp.com/attachments/793415946738860072/959708422780100638/06_suite.png",
     emoji:{
         mascot:"<:m6_hummy:936237021716946964>",
     },
@@ -23,8 +24,6 @@ const teams = {
         icon:"https://cdn.discordapp.com/attachments/793415946738860072/824150226645680138/image0.png",
     }
 }
-
-const monsters = require("../enpack/monsters/Negatone");
 
 class Spawner {
     static fairyTones = {
@@ -72,5 +71,5 @@ class Spawner {
 }
 
 module.exports = {
-    properties, teams, monsters, Spawner
+    properties, teams, Spawner
 }

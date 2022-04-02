@@ -2,6 +2,7 @@ const properties = {
     value:"heartcatch",
 	name:"Heartcatch",
     icon:"https://cdn.discordapp.com/attachments/793415946738860072/845617596086878239/latest.png",
+    logo:"https://cdn.discordapp.com/attachments/793415946738860072/959708406317457418/05_heartcatch.png",
     emoji:{
         mascot:"<:m5_cyphre:936237021599518801>",
     },
@@ -24,8 +25,6 @@ const teams = {
     }
 }
 
-const monsters = require("../enpack/monsters/Desertrian");
-
 module.exports = {
-    properties, teams, monsters
+    properties, teams
 }

@@ -2,6 +2,7 @@ const properties = {
     value:"fresh",
 	name:"Fresh",
     icon:"https://cdn.discordapp.com/attachments/793415946738860072/845617558089367552/latest.png",
+    logo:"https://cdn.discordapp.com/attachments/793415946738860072/959708371936759858/04_fresh.png",
     emoji:{
         mascot:"<:m4_chiffon:936237021616275496>",
     },
@@ -24,8 +25,6 @@ const teams = {
     }
 }
 
-const monsters = require("../enpack/monsters/Nakewameke");
-
 module.exports = {
-    properties, teams, monsters
+    properties, teams
 }

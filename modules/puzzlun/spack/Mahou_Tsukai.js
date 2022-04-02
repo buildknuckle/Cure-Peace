@@ -2,6 +2,7 @@ const properties = {
     value:"mahou_tsukai",
 	name:"Mahou Tsukai",
     icon:"https://cdn.discordapp.com/attachments/793415946738860072/845617868665782302/latest.png",
+    logo:"https://cdn.discordapp.com/attachments/793415946738860072/959708532645691422/11_mahoutsukai.png",
     emoji:{
         mascot:"<:m11_mofurun:936237023465984050>",
     },
@@ -24,8 +25,6 @@ const teams = {
     }
 }
 
-const monsters = require("../enpack/monsters/Yokubaru");
-
 module.exports = {
-    properties, teams, monsters
+    properties, teams
 }

@@ -2,6 +2,7 @@ const properties = {
     value:"healin_good",
 	name:"Healin' Good",
     icon:"https://cdn.discordapp.com/attachments/793415946738860072/936266739841372160/healin_good.png",
+    logo:"https://cdn.discordapp.com/attachments/793415946738860072/959708654846750750/15_healingood.png",
     emoji:{
         mascot:"<:m15_rabirin:936237024724262923>",
     },
@@ -24,8 +25,6 @@ const teams = {
     }
 }
 
-const monsters = require("../enpack/monsters/Megabyogen");
-
 module.exports = {
-    properties, teams, monsters
+    properties, teams
 }

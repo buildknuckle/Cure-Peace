@@ -2,6 +2,7 @@ const properties = {
     value:"splash_star",
 	name:"Splash Star",
     icon:"https://cdn.discordapp.com/attachments/793415946738860072/845617466529021962/Puzzlun_data_download_cures_4.png",
+    logo:"https://cdn.discordapp.com/attachments/793415946738860072/959708312860000296/02_splashstar.png",
     emoji:{
         mascot:"<:m2_flappy:936237022111219742>",
     },
@@ -24,8 +25,6 @@ const teams = {
     }
 }
 
-const monsters = require("../enpack/monsters/Uzaina");
-
 module.exports = {
-    properties, teams, monsters
+    properties, teams
 }
