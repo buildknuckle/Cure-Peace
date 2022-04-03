@@ -40,7 +40,7 @@ module.exports = {
 			}
 		} catch(error){
 			console.error(error);
-			GlobalFunctions.errorLogger(error);
+			// await GlobalFunctions.errorLogger(error);
 		}
 
 

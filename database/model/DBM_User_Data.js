@@ -3,10 +3,16 @@ class DBM_User_Data {
 
     static columns = {
         id_user: "id_user",
-        gardening_level: "gardening_level",
-        gardening_point: "gardening_point",
-        gardening_plot_data: "gardening_plot_data",
-        gardening_activity_data: "gardening_activity_data",
+        last_checkIn_date: "last_checkIn_date",
+        token_sale: "token_sale",
+        peace_point: "peace_point",
+        set_color:"set_color",
+        set_series:"set_series",
+        color_data:"color_data",
+        currency_data:"currency_data",
+        series_data:"series_data",
+        gardening_data:"gardening_data",
+        dailyQuest_data:"dailyQuest_data"
     };
 }
 

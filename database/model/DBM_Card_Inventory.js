@@ -9,7 +9,7 @@ class DBM_Card_Inventory {
         level_special: "level_special",
         stock: "stock",
         is_gold: "is_gold",
-        created_at: "created_at"
+        received_at: "received_at"
     };
 }
 

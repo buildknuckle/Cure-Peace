@@ -10,13 +10,11 @@ class DBM_Card_Data {
         name: "name",
         img_url: "img_url",
         img_url_upgrade1: "img_url_upgrade1",
-        max_hp: "max_hp",
-        max_atk: "max_atk",
-        ability1: "ability1",
-        ability2: "ability2",
-        skill1: "skill1",
-        skill2: "skill2",
-        special: "special",
+        hp_base: "hp_base",
+        atk_base: "atk_base",
+        is_spawnable:"is_spawnable",
+        is_tradable:"is_tradable",
+        patch_ver:"patch_ver",
         created_at: "created_at",
     };
 }
