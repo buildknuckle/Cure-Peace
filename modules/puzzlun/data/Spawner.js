@@ -28,8 +28,8 @@ class Embed extends require("../Embed") {
 class Timer {
     //convert mins to seconds
     static minToSec(min){
-        // return (min*60)*1000;
-        return min*1000;//for testing only
+        return (min*60)*1000;
+        // return min*1000;//for testing only
     }
 }
 
@@ -72,19 +72,20 @@ class Spawner {
         this.token = rndSpawnToken;
 
         var rnd = GlobalFunctions.randomNumber(0,100);
-        rnd = 60;//only for testing
+        // rnd = 30;//only for testing
         var spawn;
         var embedSpawn;
-        if(rnd<10){//normal card spawn
+        if(rnd<=20){//normal card spawn
             this.type = Spawner.type.cardNormal;
             spawn = new CardNormal(await CardNormal.getRandomCard());
             embedSpawn = spawn.getEmbedSpawn(this.token);
-        } else if(rnd==20){//activity
+        } else if(rnd<=30){//activity
             this.type = Spawner.type.act;
             // spawn = await Act.randomSubtype(this.token);
 
             //randomize subtype
             var rnd = GlobalFunctions.randomNumber(1,3);
+            // rnd=1;//only for testing
             if(rnd<=1){//jankenpon spawn
                 spawn = new ActJankenpon(await ActJankenpon.getRandomCard());
                 embedSpawn = spawn.getEmbedSpawn(this.token);
@@ -100,19 +101,19 @@ class Spawner {
                 var spawn = new ActSeries(await ActSeries.getRandomCard(series), series);
                 embedSpawn = spawn.getEmbedSpawn(this.token);
             }
-        } else if(rnd==30){//color card
+        } else if(rnd<=45){//color card
             this.type = Spawner.type.cardColor;
             spawn = new CardColor(await CardColor.getAllCardData());
             embedSpawn = spawn.getEmbedSpawn(this.token);
-        } else if(rnd==40){//quiz
+        } else if(rnd<=60){//quiz
             this.type = Spawner.type.quiz;
             spawn = new Quiz(await Quiz.getRandomCard());
             embedSpawn = spawn.getEmbedSpawn(this.token);
-        } else if(rnd==50){//number guess
+        } else if(rnd<=80){//number guess
             this.type = Spawner.type.numberGuess;
             spawn = new NumberGuess(await NumberGuess.getRandomCard());
             embedSpawn = spawn.getEmbedSpawn(this.token);
-        } else if(rnd==60){//party act instance
+        } else {//party act instance
             this.type = Spawner.type.partyAct;
 
             let rnd = GlobalFunctions.randomPropertyKey(Instance.PartyAct.instanceType);
@@ -127,22 +128,23 @@ class Spawner {
             }
 
             spawn = instance;
-        } else if(rnd==70){//solo battle instance
-            // this.type = Spawner.type.
-            this.type = Spawner.type.soloBattle;
-
-            let rnd = GlobalFunctions.randomPropertyKey(Instance.SoloBattle.instanceType);
-            let instance = new Instance.SoloBattle();
-            let instanceType = Instance.SoloBattle.instanceType;
-            switch(rnd){
-                case instanceType.chokkins:{
-                    instance.type = instanceType.chokkins;
-                    embedSpawn = instance.getEmbedSpawn(this.token);
-                }
-            }
-
-            spawn = instance;
         }
+        // else if(rnd==70){//solo battle instance
+        //     // this.type = Spawner.type.
+        //     this.type = Spawner.type.soloBattle;
+
+        //     let rnd = GlobalFunctions.randomPropertyKey(Instance.SoloBattle.instanceType);
+        //     let instance = new Instance.SoloBattle();
+        //     let instanceType = Instance.SoloBattle.instanceType;
+        //     switch(rnd){
+        //         case instanceType.chokkins:{
+        //             instance.type = instanceType.chokkins;
+        //             embedSpawn = instance.getEmbedSpawn(this.token);
+        //         }
+        //     }
+
+        //     spawn = instance;
+        // }
 
         this.spawn = spawn;//set spawn
 
@@ -152,7 +154,7 @@ class Spawner {
         }
 
         this.message = await this.spawnChannel.send(embedSpawn);
-        await this.stopTimer();//only for testing
+        // await this.stopTimer();//only for testing
         // console.log(this.timer);
 
         // return;

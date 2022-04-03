@@ -100,9 +100,7 @@ class Embed extends require('./Embed') {
             dedent(`**${cardInventory.getRarityEmoji()}${cardInventory.rarity} - Level:** ${cardInventory.level}/${cardInventory.getMaxLevel()}
             ─────────────────
             ${CardInventory.emoji.hp} **Hp:** ${cardInventory.maxHp} | ${CardInventory.emoji.atk} **Atk:** ${cardInventory.atk} | ${CardInventory.emoji.sp} **Sp:** ${cardInventory.maxSp}        
-            💖 **Special:** ${character.specialAttack} Lv.${cardInventory.level_special}
-            
-            **Passive Skill:**`),
+            💖 **Special:** ${character.specialAttack} Lv.${cardInventory.level_special}`),
             Embed.builderUser.author(this.discordUser,character.fullname, character.icon),{
                 color:color,
                 image:cardInventory.getImgDisplay(),
@@ -126,9 +124,7 @@ class Embed extends require('./Embed') {
         dedent(`**${cardInventory.getRarityEmoji()}${cardInventory.rarity} - Level:** ${cardInventory.level}/${cardInventory.getMaxLevel()}
         ─────────────────
         ${CardInventory.emoji.hp} **Hp:** ${cardInventory.maxHp} | ${CardInventory.emoji.atk} **Atk:** ${cardInventory.atk} | ${CardInventory.emoji.sp} **Sp:** ${cardInventory.maxSp}        
-        💖 **Special:** ${character.specialAttack} Lv.${cardInventory.level_special}
-        
-        __**Passive Skill:**__`),
+        💖 **Special:** ${character.specialAttack} Lv.${cardInventory.level_special}`),
         Embed.builderUser.author(this.discordUser,character.fullname, character.icon),{
             color:color,
             image:cardInventory.getImgDisplay(),

@@ -130,7 +130,7 @@ class MofuShop extends require("./data/Listener") {
             }
         }
 
-        return paginationEmbed(this.interaction,arrPages,DiscordStyles.Button.pagingButtonList, true);
+        return paginationEmbed(this.interaction,arrPages,DiscordStyles.Button.pagingButtonList);
     }
 
     //init item data that're listed & can be purchased

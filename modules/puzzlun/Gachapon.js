@@ -296,6 +296,7 @@ class Daily extends Listener {
 }
 
 class TropicalCatch extends Listener {
+    static endingDate = "04/31/2022";
     static name = "tropical-catch! gachapon";
     static cardData = {
         1:[], 5:[], 6:[],
@@ -330,12 +331,12 @@ class TropicalCatch extends Listener {
         ─────────────────
         This gachapon includes the limited heartcatch & tropical-rouge series that available with 2 types of roll:
         • 1x (Costs: ${this.cost[1]} ${Currency.jewel.emoji}): will roll 1x card drop
-        • 3x (Costs: ${this.cost[3]} ${Currency.jewel.emoji}): will roll 3x card drop 
+        • 3x (Costs: ${this.cost[3]} ${Currency.jewel.emoji}): will roll 3x card drop
 
         ─────────────────
         **Gachapon duration**
         ─────────────────
-        Up to 04/30 
+        Up to ${this.endingDate} 
 
         ─────────────────
         **Series lineup**
@@ -377,6 +378,17 @@ class TropicalCatch extends Listener {
     }
 
     async roll(){
+        //roll validation date
+        var today = new Date();
+        var endingDate = new Date(TropicalCatch.endingDate);
+        if(today>endingDate){
+            return this.interaction.reply(Embed.errorMini(
+                `❌ This gachapon period has been ended.`,this.discordUser, true, {
+                    title:`Tropical-catch! gachapon has ended`
+                }
+            ));
+        }
+
         //gacha date validation
         var userData = await User.getData(this.userId);
         var userGacha = new UserGacha(await UserGacha.getData(this.userId));
@@ -477,6 +489,7 @@ class StandardTicket extends Listener {
 }
 
 class TropicalCatchTicket extends Listener {
+    static endingDate = "04/31/2022";
     static name ="tropical-catch! ticket roll";
     static cardData = {
         1:[], 6:[],
@@ -485,6 +498,55 @@ class TropicalCatchTicket extends Listener {
     static chance = {
         1: 90,
         6: 10,
+    }
+
+    static info(){
+        var ticket = new Item(this.itemTicketData);
+        var arrSeriesIncludes = ["heartcatch","tropical_rouge"];
+        //rarity 1 & 5
+        var seriesText = ``;
+        for(var key in SPack){
+            if(arrSeriesIncludes.includes(key)){
+                var series = new Series(key);
+                seriesText+=`${series.emoji.mascot} ${series.name}, `;
+            }
+        }
+        seriesText = seriesText.replace(/,\s*$/, "");//remove last comma and any whitespace
+
+        var txtInfo = dedent(`**Command:** /gachapon ticket Tropical-Catch! Gachapon Ticket
+        ─────────────────
+        **Overview**
+        ─────────────────
+        This is a tropical-rouge gachapon that will use: ${ticket.getCategoryEmoji()} ${ticket.getIdItem()} **${ticket.getName()}**
+
+        ─────────────────
+        **Gachapon duration**
+        ─────────────────
+        Up to ${this.endingDate} 
+
+        ─────────────────
+        **Series lineup**
+        ─────────────────
+        The following series lineup will appear on this gachapon:
+        ${Card.emoji.rarity(1)}__**1 (drop rates: 80%)**__
+        ${seriesText}
+
+        ${Card.emoji.rarity(5)}__**5 (drop rates: 18%)**__
+        ${seriesText}
+
+        ${Card.emoji.rarity(6)}__**6 (limited) (drop rates: 2%)**__
+        ${seriesText}
+        
+        ─────────────────
+        **Notes**
+        ─────────────────
+        • This gachapon will be resetted daily.
+        • Precure card that appear in this gachapon may be duplicated.`);
+
+        return Embed.builder(txtInfo, 
+            Embed.builderUser.authorCustom(`Gachapon Info`, Properties.imgSet.mofu.ok), {
+            title:capitalize(this.name)
+        });
     }
 
     static itemTicketData;//ticket data that will be used
@@ -507,6 +569,17 @@ class TropicalCatchTicket extends Listener {
     }
 
     async roll(){
+        //roll validation date
+        var today = new Date();
+        var endingDate = new Date(TropicalCatchTicket.endingDate);
+        if(today>endingDate){
+            return this.interaction.reply(Embed.errorMini(
+                `❌ This gachapon period has been ended.`,this.discordUser, true, {
+                    title:`Tropical-catch! gachapon has ended`
+                }
+            ));
+        }
+
         var ticketRoller = new TicketRoller(this.interaction, 
             TropicalCatchTicket.name, TropicalCatchTicket.cardData, TropicalCatchTicket.chance, TropicalCatchTicket.itemTicketData);
         await ticketRoller.roll(1);
@@ -634,6 +707,7 @@ class Gachapon extends Listener {
             Daily.info(),
             TropicalCatch.info(),
             StandardTicket.info(),
+            TropicalCatchTicket.info(),
             PremiumTicket.info()
         );
 

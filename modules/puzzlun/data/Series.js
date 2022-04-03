@@ -22,6 +22,7 @@ class Series {
     value = null;
 	name = null;
     icon = null;
+    logo = null;
     emoji = {
         mascot: null
     };
@@ -58,6 +59,10 @@ class Series {
     
     getIcon(){
         return this.icon;
+    }
+
+    getLogo(){
+        return this.logo;
     }
     
     getMascotEmoji(){

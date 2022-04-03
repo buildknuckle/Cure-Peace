@@ -92,7 +92,7 @@ class Listener extends require("./data/Listener") {
             cardInventory.addKeyVal("emoji_completion", "");
             if(cardInventory.total>=cardInventory.packTotal){
                 cardInventory.getKeyVal("total_gold")>packTotal ?
-                cardInventory.addKeyVal("emoji_completion", "☑️") : cardInventory.addKeyVal("emoji_completion", "✅");
+                cardInventory.addKeyVal("emoji_completion", "☑️ ") : cardInventory.addKeyVal("emoji_completion", "✅ ");
             }
             objCardInventory[color][pack] = cardInventory;
         }
@@ -171,7 +171,7 @@ class Listener extends require("./data/Listener") {
                 var cardInventory = new CardInventory(obj,obj);
                 
                 objEmbed.fields[idxColor].value += 
-                `${cardInventory.getKeyVal("emoji_completion")} ${GlobalFunctions.capitalize(cardInventory.pack)}: ${cardInventory.total}/${cardInventory.getPackTotal()}\n`;
+                `${cardInventory.getKeyVal("emoji_completion")}${GlobalFunctions.capitalize(cardInventory.pack)}: ${cardInventory.total}/${cardInventory.getPackTotal()}\n`;
             }
             idxColor++;
         }
@@ -252,7 +252,7 @@ class Listener extends require("./data/Listener") {
                 var cardInventory = new CardInventory(obj,obj);
                 
                 objEmbed.fields[idxColor].value += 
-                `${cardInventory.getKeyVal("emoji_completion")} ${GlobalFunctions.capitalize(cardInventory.pack)}: ${cardInventory.getKeyVal("total")}/${CardInventory.limit.card*3}\n`;
+                `${cardInventory.getKeyVal("emoji_completion")}${GlobalFunctions.capitalize(cardInventory.pack)}: ${cardInventory.getKeyVal("total")}/${CardInventory.limit.card*3}\n`;
             }
             idxColor++;
         }
@@ -279,7 +279,7 @@ class Listener extends require("./data/Listener") {
                 var cardInventory = new CardInventory(obj, obj);
                 
                 objEmbed.fields[idxColor].value += 
-                `${cardInventory.getKeyVal("emoji_completion")} ${GlobalFunctions.capitalize(cardInventory.pack)}: ${cardInventory.getKeyVal("total_gold")}/${cardInventory.packTotal}\n`;
+                `${cardInventory.getKeyVal("emoji_completion")}${GlobalFunctions.capitalize(cardInventory.pack)}: ${cardInventory.getKeyVal("total_gold")}/${cardInventory.packTotal}\n`;
             }
             idxColor++;
         }
@@ -462,9 +462,7 @@ class Listener extends require("./data/Listener") {
             **${card.getRarityEmoji()}${card.rarity} - Level:** ${card.level}/${card.getMaxLevel()}
             ─────────────────
             ${CardInventory.emoji.hp} **Hp:** ${card.maxHp} | ${CardInventory.emoji.atk} **Atk:** ${card.atk} | ${CardInventory.emoji.sp} **Sp:** ${card.maxSp}        
-            💖 **Special:** ${character.specialAttack} Lv.${card.level_special}
-            
-            __**Passive Skill:**__`),
+            💖 **Special:** ${character.specialAttack} Lv.${card.level_special}`),
                 Embed.builderUser.authorCustom(`⭐${rarity} ${precureAvatar.character.alter_ego}`, precureAvatar.character.icon),{
                     color: precureAvatar.character.color,
                     thumbnail: precureAvatar.cardInventory.getImgDisplay(),
@@ -577,15 +575,19 @@ class Listener extends require("./data/Listener") {
         if(!userSearchResult) return; else this.discordUser = userSearchResult;
 
         var userId = this.discordUser.id;
-
-        var badge = new Badge(await Badge.getUserData(userId));
+        var authorUser = this.discordUser;
         
+        var badge = new Badge(await Badge.getUserData(userId));
+        if(badge.nickname!==null){
+            authorUser = Embed.builderUser.authorCustom(`${badge.nickname}`, 
+            Embed.builderUser.getAvatarUrl(this.discordUser));
+        }
+
         return this.interaction.reply({embeds:[
-            Embed.builder(dedent(`**About:**
-            `), 
-            this.discordUser, {
+            Embed.builder(dedent(`${badge.about!==null? `**About:**\n${badge.about}`:``}`), 
+            authorUser, {
                 color:badge.color,
-                thumbnail:`https://cdn.discordapp.com/attachments/795299749745131560/959698873444618330/01_maxheart.png`,
+                thumbnail:badge.Series.getLogo(),
                 fields:[
                     {
                         name:`Favorite series:`,
@@ -609,7 +611,11 @@ class Listener extends require("./data/Listener") {
         var newShikishiId = this.interaction.options.getString("set-shikishi-cover");
 
         var newFavSeries = this.interaction.options.getString("favorite-series")!==null?
-            badge.setFavoriteSeries(this.interaction.options.getString("favorite-series")):null;
+            this.interaction.options.getString("favorite-series"):null;
+
+        if(newFavSeries!==null){
+            badge.setFavoriteSeries(this.interaction.options.getString("favorite-series"));
+        }
 
         var newFavCharacter = this.interaction.options.getString("favorite-character");
 

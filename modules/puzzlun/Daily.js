@@ -85,8 +85,10 @@ class Quest extends require("./data/Listener") {
         txtCardQuest+=dedent(`**Quest Completion Bonus:**
         (Received upon completing all card quest)
         • ${Currency.jewel.emoji} ${DailyCardQuest.rewardCompletion.jewel} ${Currency.jewel.name}
-        • 1x ${rewardTicket.getCategoryEmoji()} ${rewardTicket.getIdItem()} ${rewardTicket.name}
-        • 1x ${Item.category.ingredient_food.emoji} random ${Item.category.ingredient_food.name}`);
+        • 1x ${rewardTicket.getCategoryEmoji()} ${rewardTicket.getIdItem()} ${rewardTicket.name}`);
+
+        // on hold:
+        // • 1x ${Item.category.ingredient_food.emoji} random ${Item.category.ingredient_food.name}
 
         return this.interaction.reply({
             embeds:[Embed.builder(dedent(`Submit any of these card to receive various rewards: 
@@ -95,7 +97,8 @@ class Quest extends require("./data/Listener") {
                 title:`Daily card quest (${dailyCardQuest.getTotal()}/${DailyCardQuest.max})`,
                 thumbnail:Properties.imgSet.mofu.ok,
                 footer:Embed.builderUser.footer(`Submit the card quest with: /daily quest submit`)
-            })]
+            })],
+            ephemeral:true
         });
     }
 
@@ -158,7 +161,7 @@ class Quest extends require("./data/Listener") {
             var ticketReward = new Item(DailyCardQuest.rewardCompletion.ticket);//ticket
             var itemReward = new Item(GlobalFunctions.randomProperty(DailyCardQuest.rewardCompletion.item));//food ingredient
             await ItemInventory.updateStock(this.userId, ticketReward.id_item);//update user ticket reward
-            await ItemInventory.updateStock(this.userId, itemReward.id_item);//update user item reward
+            // await ItemInventory.updateStock(this.userId, itemReward.id_item);//update user item reward: on hold
         }
         await user.update();//validate & update user data
 
@@ -183,10 +186,12 @@ class Quest extends require("./data/Listener") {
 
         if(dailyCardQuest.getTotal()<=0){
             txtReward+=`\n`;
+
+            //item reward on hold:
+            // 1x ${itemReward.getCategoryEmoji()} ${itemReward.getIdItem()} ${itemReward.getName()}
             txtReward+=dedent(`**Completion Bonus:** 
             ${Currency.jewel.emoji} ${DailyCardQuest.rewardCompletion.jewel} ${Currency.jewel.name}
-            1x ${ticketReward.getCategoryEmoji()} ${ticketReward.getIdItem()} ${ticketReward.getName()}
-            1x ${itemReward.getCategoryEmoji()} ${itemReward.getIdItem()} ${itemReward.getName()}`);
+            1x ${ticketReward.getCategoryEmoji()} ${ticketReward.getIdItem()} ${ticketReward.getName()}`);
             txtTitle = `✅ Daily card quest completed!`;
             imgThumbnail = Properties.imgSet.mofu.thumbsup;
             txtFooter = "";
@@ -213,7 +218,7 @@ class Daily extends require("./data/Listener") {
     static Quest = Quest;
     static newcomerTicketData = {
         standard:"gt001",
-        premium:"gt002"
+        premium:"gt003"
     };
 
     async checkIn(){
@@ -343,8 +348,10 @@ class Daily extends require("./data/Listener") {
         txtCardQuest+=dedent(`**Quest Completion Bonus:**
         (Received upon completing all card quest)
         • ${Currency.jewel.emoji} ${DailyCardQuest.rewardCompletion.jewel} ${Currency.jewel.name}
-        • 1x ${rewardTicket.getCategoryEmoji()} ${rewardTicket.getIdItem()} ${rewardTicket.name}
-        • 1x ${Item.category.ingredient_food.emoji} random ${Item.category.ingredient_food.name}`);
+        • 1x ${rewardTicket.getCategoryEmoji()} ${rewardTicket.getIdItem()} ${rewardTicket.name}`);
+
+        //on hold inventory:
+        // • 1x ${Item.category.ingredient_food.emoji} random ${Item.category.ingredient_food.name}
 
         arrPages.push(
             Embed.builder(dedent(`Here are the requested cards for today:

@@ -371,7 +371,6 @@ class TreasureHunt {
 
     //advance through next stage
     setNextStage(){
-        this.stage+=1;
         this.currentNumber = this.randomizeStageCurrentNumber();//set new current number
 
         //increment rewards:
@@ -402,14 +401,14 @@ class TreasureHunt {
         await interaction.deferReply();
         
         var rnd = GlobalFunctions.randomNumber(1, instance.getStageMaxNumber());
-        // rnd = 99;//debugging purpose
+        rnd = 99;//debugging purpose
         if(command==TreasureHunt.buttonId.collect){
             await instance.embed.edit(instance.getEmbedCollect(discordUser));
             await instance.distributePartyRewards(); //distribute rewards to party
         } else if((command==TreasureHunt.buttonId.lower && rnd<=instance.currentNumber)||
         (command==TreasureHunt.buttonId.higher && rnd>=instance.currentNumber)){
-            instance.setNextStage();
-            
+            instance.stage+=1;
+
             //check for maximum stage
             if(instance.isWin()){//win
                 instance.reward.mofucoin*=2;
@@ -417,6 +416,7 @@ class TreasureHunt {
                 await instance.embed.edit(instance.getEmbedWin(discordUser, rnd, command));
                 await instance.distributePartyRewards(); //distribute rewards to party
             } else {//on progress
+                instance.setNextStage();
                 await instance.embed.edit(instance.getEmbedCorrect(discordUser, rnd, command, guild.spawner.token));
             }
         } else {
