@@ -9,7 +9,7 @@ const User = require("./data/User");
 const {Item, ItemShop, ItemInventory} = require("./data/Item");
 const Properties = require("./Properties");
 // const Color = Properties.color;
-// const Currency = Properties.currency;
+const Currency = Properties.currency;
 const paginationEmbed = require('../../modules/DiscordPagination');
 const Embed = require('./Embed');
 
@@ -95,6 +95,7 @@ class MofuShop extends require("./data/Listener") {
     }
 
     async menu(){
+        var user = new User(await User.getData(this.userId));
         var category = this.interaction.options.getString("category")!==null? 
             [this.interaction.options.getString("category")]:null;
         var result = await ItemShop.getItemShopData(category);
@@ -115,10 +116,12 @@ class MofuShop extends require("./data/Listener") {
             if(idx>=maxIdx||(idx<maxIdx && i==result.length-1)){
                 let embed = 
                 Embed.builder(dedent(`You can purchase item with: **/item shop buy**
+                **Your currency:**
+                ${Currency.mofucoin.emoji} ${user.getCurrency("mofucoin")} / ${Currency.jewel.emoji} ${user.getCurrency("jewel")}
 
-                **Listed Items:**
+                __**Listed Items:**__
                 ${txtList}`),
-                    Embed.builderUser.authorCustom(`Mofu shop`, Properties.imgSet.mofu.ok),{
+                    Embed.builderUser.authorCustom(`Mofu Shop`, Properties.imgSet.mofu.ok),{
                     title:`Welcome to Mofu Shop!`,
                 })
 
@@ -130,7 +133,7 @@ class MofuShop extends require("./data/Listener") {
             }
         }
 
-        return paginationEmbed(this.interaction,arrPages,DiscordStyles.Button.pagingButtonList);
+        return paginationEmbed(this.interaction,arrPages,DiscordStyles.Button.pagingButtonList, true);
     }
 
     //init item data that're listed & can be purchased

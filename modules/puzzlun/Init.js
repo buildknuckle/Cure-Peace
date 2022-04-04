@@ -7,7 +7,7 @@ const {Shikishi} = require("./data/Shikishi");
 const {Character} = require("./data/Character");
 const SpawnerModules  = require("./data/Spawner");
 const Spawner = SpawnerModules.Spawner;
-const Instance = require('./data/Instance');
+const Instance = SpawnerModules.Instance;
 const Gachapon = require("./Gachapon");
 const Shop = require("./Shop");
 const Daily = require("./Daily");
@@ -39,9 +39,6 @@ async function init(){
 
     //init instance reward data
     await Instance.init();
-
-
-    // console.log(Gachapon.dailyRollsCardData[1]);
 }
 
 async function initGuild(guildId, discordGuild){
@@ -51,7 +48,7 @@ async function initGuild(guildId, discordGuild){
     //init for card spawn
     if(guild.id_channel_spawn!=null&&guild.spawn_interval!=null){
         var assignedChannel = guild.id_channel_spawn;
-    
+
         //check if channel exists/not
         var spawnChannel = discordGuild.channels.cache.find(ch => ch.id === assignedChannel);
         if(spawnChannel){
@@ -65,6 +62,7 @@ async function initGuild(guildId, discordGuild){
             });
 
             // await spawner.startTimer(guildData);
+            await spawner.updateTimer(guild.spawn_interval);
             await spawner.startTimer();
 
             guild.spawner = spawner;//set guild spawner

@@ -95,7 +95,7 @@ class PartyAct {
         var spawner = guild.spawner;
         var partyData = await Party.getData(guild.id_guild, userId);
         //validation: if user in party/not
-        if(partyData==null) return interaction.reply(Embed.validationNotInParty(discordUser));
+        if(partyData==null) return interaction.editReply(Embed.validationNotInParty(discordUser));
         var party = new Party(partyData);
         if(party.isLeaderHaveAvatar()==false) return interaction.editReply(
             Embed.errorMini(`Your party leader need to set main precure avatar`, discordUser, true, {
@@ -305,7 +305,7 @@ class TreasureHunt {
                 {
                     name:`Party commands:`,
                     value:dedent(`• Press Lower/Higher to guess the hidden number
-                    • Press take to take current rewards`)
+                    • Press **collect** to take current rewards`)
                 },
                 {
                     name:`Current party rewards:`,
@@ -401,7 +401,7 @@ class TreasureHunt {
         await interaction.deferReply();
         
         var rnd = GlobalFunctions.randomNumber(1, instance.getStageMaxNumber());
-        rnd = 99;//debugging purpose
+        // rnd = 99;//debugging purpose
         if(command==TreasureHunt.buttonId.collect){
             await instance.embed.edit(instance.getEmbedCollect(discordUser));
             await instance.distributePartyRewards(); //distribute rewards to party
