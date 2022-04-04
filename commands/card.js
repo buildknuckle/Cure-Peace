@@ -200,6 +200,11 @@ module.exports = {
                 },
             ]
         },
+        {//timer spawn
+            name: "timer-spawn",
+            description: "View spawner timer.",
+            type: 1,
+        },
         // {//unset precure avatar
         //     name:"unset-avatar",
         //     description: "Unset precure avatar",
@@ -314,6 +319,11 @@ module.exports = {
             case "convert-card":{
                 let cardListener = new CardListener(interaction);
                 await cardListener.convert();
+                break;
+            }
+            case "timer-spawn": {//spawner timer
+                var spawner = new SpawnerListener(interaction);
+                spawner.getTimer();
                 break;
             }
         }

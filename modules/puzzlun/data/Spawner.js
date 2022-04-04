@@ -26,10 +26,62 @@ class Embed extends require("../Embed") {
 }
 
 class Timer {
+    interval = null;//default interval
+    remainingTime = null;//remaining time in seconds
+    timer;//timer functions
+
+    constructor(Timer=null){
+        if(Timer!=null){
+            for(var key in Timer){
+                this[key] = Timer[key];
+            }
+        }
+    }
+
     //convert mins to seconds
-    static minToSec(min){
+    static intervalMinToSec(min){
         return (min*60)*1000;
         // return min*1000;//for testing only
+    }
+
+    static minToSec(min){
+        return min*60;
+    }
+
+    static getLabelMMSS(second){
+        var minutes = GlobalFunctions.str_pad_left(Math.floor(second / 60),'0',2);
+        var seconds = GlobalFunctions.str_pad_left(second - minutes * 60,'0',2);
+        return {
+            min:minutes,
+            sec:seconds
+        }
+    }
+
+    stop(){
+        //clear timer if exists
+        if(this.timer!==null) clearInterval(this.timer);
+        this.timer = null;
+        this.remainingTime = 0;//reset remainingTime to 0
+    }
+
+    update(newInterval){
+        this.stop();
+        this.interval = newInterval;
+        this.remainingTime = Timer.minToSec(this.interval);
+    }
+
+    start(){
+        if(this.interval==null) return;
+        this.timer = setInterval(async ()=>{
+            this.remainingTime = this.remainingTime>0 ? 
+                this.remainingTime-1:Timer.minToSec(this.interval);
+            // console.log(this.remainingTime);
+        }, 1000);
+    }
+
+    getRemainingTime(){
+        var remainingTime = Timer.getLabelMMSS(this.remainingTime);
+        return `${remainingTime.min}:${remainingTime.sec}`;
     }
 }
 
@@ -47,18 +99,20 @@ class Spawner {
 
     // guildId = null;
     interval = null;//in minutes
-    timer = null;
-    token = null;//contains spawn token
+    timer = null;//spawner timer
+    timerCountdown;//countdown timer
+    token = null;//spawn token
     type = null;
-    spawn = null;//contains class of the spawned
+    spawn = null;//class of the spawned
     idRoleping = {
         cardcatcher:null
     }
-    spawnChannel = null;//contains discord guild channel to send the spawn notif
-    userAttempt = [];//contains list of all user who already used the spawn attempt
-    message = null;
+    spawnChannel = null;//discord guild channel to send the spawn notif
+    userAttempt = [];//list of all user who already used the spawn attempt
+    message = null;//embed/message of spawn
 
     constructor(Spawner=null){
+        this.timerCountdown = new Timer();
         if(Spawner!=null){
             for(var key in Spawner){
                 this[key] = Spawner[key];
@@ -75,11 +129,11 @@ class Spawner {
         // rnd = 30;//only for testing
         var spawn;
         var embedSpawn;
-        if(rnd<=20){//normal card spawn
+        if(rnd<=15){//normal card spawn
             this.type = Spawner.type.cardNormal;
             spawn = new CardNormal(await CardNormal.getRandomCard());
             embedSpawn = spawn.getEmbedSpawn(this.token);
-        } else if(rnd<=30){//activity
+        } else if(rnd<=40){//activity
             this.type = Spawner.type.act;
             // spawn = await Act.randomSubtype(this.token);
 
@@ -101,15 +155,15 @@ class Spawner {
                 var spawn = new ActSeries(await ActSeries.getRandomCard(series), series);
                 embedSpawn = spawn.getEmbedSpawn(this.token);
             }
-        } else if(rnd<=45){//color card
+        } else if(rnd<=55){//color card
             this.type = Spawner.type.cardColor;
             spawn = new CardColor(await CardColor.getAllCardData());
             embedSpawn = spawn.getEmbedSpawn(this.token);
-        } else if(rnd<=60){//quiz
+        } else if(rnd<=70){//quiz
             this.type = Spawner.type.quiz;
             spawn = new Quiz(await Quiz.getRandomCard());
             embedSpawn = spawn.getEmbedSpawn(this.token);
-        } else if(rnd<=80){//number guess
+        } else if(rnd<=90){//number guess
             this.type = Spawner.type.numberGuess;
             spawn = new NumberGuess(await NumberGuess.getRandomCard());
             embedSpawn = spawn.getEmbedSpawn(this.token);
@@ -167,20 +221,29 @@ class Spawner {
     //timer method
     //newInterval in minutes
     async updateTimer(newInterval){
-        await this.stopTimer();
+        await this.stopTimer();//stop spawner timer
         this.interval = newInterval;
+        this.timerCountdown.stop();//stop stopwatch timer
+        this.timerCountdown.update(newInterval);
     }
 
     async stopTimer(){
         //clear timer if exists
         if(this.timer!==null) await clearInterval(this.timer);
         this.timer = null;
+        this.timerCountdown.stop();
     }
 
     async startTimer(){
         if(this.interval==null) return;
-        this.timer = setInterval(async ()=>this.randomizeSpawn()
-        ,Timer.minToSec(this.interval));
+        //start spawn timer
+        this.timer = setInterval(async ()=>{
+            this.randomizeSpawn();//randomize spawn
+        }
+        ,Timer.intervalMinToSec(this.interval));
+        // , 10000);//for testing
+        //start stopwatch timer
+        this.timerCountdown.start();
     }
 
     static validationPeaceBoost(discordUser, userPeacePoint, cost, interaction){
@@ -191,6 +254,23 @@ class Spawner {
 
     async messageCaptured(){
         if(this.message!=null) await this.message.delete();
+    }
+
+    hasActiveSpawn(){
+        return this.spawn!==null? true: false;
+    }
+
+    getSpawnTypeName(){
+        var type = {
+            [Spawner.type.cardNormal]:`normal card spawn`,
+            [Spawner.type.act]:"act",
+            [Spawner.type.cardColor]:"color card",
+            [Spawner.type.quiz]:"quiz",
+            [Spawner.type.numberGuess]:"number guessing",
+            [Spawner.type.partyAct]:"party act",
+        };
+
+        return type[this.type];
     }
 
 }
@@ -306,6 +386,42 @@ class SpawnerListener extends Listener {
             case Spawner.type.quiz:
                 await Quiz.onCapture(this.discordUser, this.Guild, value, this.interaction);
                 break;
+        }
+    }
+
+    async getTimer(){
+        if(this.spawner.hasActiveSpawn()){
+            return this.interaction.reply({embeds:[
+                Embed.builder(
+                    `[Jump to spawn link](${this.spawner.message.url})`, 
+                    this.discordUser, {
+                    title:`Spawner Info`,
+                    fields:[
+                        {
+                            name:`❗Spawn type:`,
+                            value:`${this.spawner.getSpawnTypeName()}`,
+                            inline: true
+                        },
+                        {
+                            name:`⏱️ Next spawn at:`,
+                            value:`${this.spawner.timerCountdown.getRemainingTime()}`,
+                            inline: true
+                        },
+                    ]
+                })
+            ], ephemeral: true});
+        } else {
+            return this.interaction.reply({embeds:[
+                Embed.builder(`No active spawn are available.`, this.discordUser, {
+                    title:`Spawner Info`,
+                    fields:[
+                        {
+                            name:`⏱️ Next spawn at:`,
+                            value:`${this.spawner.timerCountdown.getRemainingTime()}`
+                        },
+                    ]
+                })
+            ], ephemeral: true});
         }
     }
 
@@ -1401,13 +1517,13 @@ class CardColor {
     });
 
     static catchRate = {
-        4:50,
-        5:30
+        4:30,
+        5:20
     }
 
     static bonusCatchRate = {
-        4:60,
-        5:50
+        4:40,
+        5:35
     }
 
     static peacePointCost = {
@@ -1480,25 +1596,6 @@ class CardColor {
             DiscordStyles.Button.base(`card.${Spawner.type.cardColor}_${CardColor.buttonId.catch_boost}_${token}`,"🆙 Boost","SUCCESS"),
         ])]});
     }
-
-    // async initSpawnData(spawnData){
-    //     this.spawnData = JSON.parse(spawnData);
-    //     var cardData = await CardColor.getAllCardData(this.spawnData.rarity);
-    //     for(var i=0;i<cardData.length;i++){
-    //         var color = cardData[i][Card.columns.color];
-    //         this.arrCardData[color].push(cardData[i]);
-    //     }
-    // }
-
-    // setSpawnData(spawnerData){//called during card capture
-    //     for(var key in spawnerData){
-    //         this[key] = spawnerData[key];
-    //     }
-    // }
-
-    // getSpawnData(){
-    //     return JSON.stringify(this.spawnData);
-    // }
 
     static async getAllCardData(rarity = GlobalFunctions.randomNumber(4,5)){
         var query = `SELECT * 
@@ -1975,4 +2072,4 @@ class NumberGuess {
 //     }
 // }
 
-module.exports = { Spawner, SpawnerListener: SpawnerListener };
+module.exports = { Spawner, SpawnerListener: SpawnerListener, Instance };

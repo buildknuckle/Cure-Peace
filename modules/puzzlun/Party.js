@@ -99,7 +99,7 @@ class Listener extends require("./data/Listener") {
         }
         
         return this.interaction.reply({embeds:[
-            Embed.builder(`${Properties.emoji.mofuheart} <@${this.userId}> has joining: **${party.name}**`,this.discordUser, {
+            Embed.builder(`${Properties.emoji.mofuheart} <@${this.userId}> has joined: **${party.name}**`,this.discordUser, {
                 color: party.Color.value,
                 title: `✅ Party Joined! (${party.getTotal()}/${Party.limit.maxUser})`,
                 thumbnail: party.Series!=null? party.Series.icon:"",
