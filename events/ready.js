@@ -94,7 +94,7 @@ module.exports = {
             console.log('Cure Peace Ready!');
         } catch(error){
             console.log(error);
-            // GlobalFunctions.errorLogger(error);
+            GlobalFunctions.errorLogger(error);
         }
 	},
 };
