@@ -93,16 +93,16 @@ module.exports = {
       text = text.replace(/&quot;/g,"\"");
       return text;
    },
-   // async errorLogger(error){
-   //    error = `${this.getCurrentDateTime()}: ${error.toString()}\n`;
-   //    fs.appendFile('error.txt', error, function (err) {
-   //       if (err) throw err;
-   //    });
+   async errorLogger(error){
+      error = `${this.getCurrentDateTime()}: ${error.toString()}\n`;
+      fs.appendFile('error.txt', error, function (err) {
+         if (err) throw err;
+      });
 
-   //    var paramInsert = new Map();
-   //    paramInsert.set(DBM_Log_Error.columns.log,error.toString());
-   //    await DB.insert(DBM_Log_Error.TABLENAME,paramInsert);
-   // },
+      // var paramInsert = new Map();
+      // paramInsert.set(DBM_Log_Error.columns.log,error.toString());
+      // await DB.insert(DBM_Log_Error.TABLENAME,paramInsert);
+   },
    removeArrayItem(arr, value) {
       var index = arr.indexOf(value);
       if (index > -1) {
