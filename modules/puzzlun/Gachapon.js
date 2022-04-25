@@ -489,7 +489,7 @@ class StandardTicket extends Listener {
 }
 
 class TropicalCatchTicket extends Listener {
-    static endingDate = "04/31/2022";
+    static endingDate = "06/30/2022";
     static name ="tropical-catch! ticket roll";
     static cardData = {
         1:[], 6:[],
