@@ -49,18 +49,18 @@ module.exports = {
                     }
                 })();
 
-                // let birthdayGuildData = await Birthday.getGuildConfig(guild.id);
-                // let notif_channel = birthdayGuildData[DBM_Birthday_Guild.columns.id_notification_channel];
-                // let birthdays_enabled_for_guild = birthdayGuildData[DBM_Birthday_Guild.columns.enabled] === 1;
-                // if (notif_channel) {
-                //     let birthdayNotifChannelExists = guild.channels.cache.find(ch => ch.id === birthdayGuildData[DBM_Birthday_Guild.columns.id_notification_channel]);
-                //     if (birthdayNotifChannelExists && birthdays_enabled_for_guild) {
-                //         console.log(`birthday notif channel exists! ${birthdayNotifChannelExists} (${birthdayNotifChannelExists.name})`);
-                //         await Birthday.initBirthdayReportingInstance(guild.id, guild);
-                //     }
-                // } else if (birthdays_enabled_for_guild && notif_channel == null) {
-                //     console.warn(`Birthdays enabled for '${guild.name}' but no notification channel specified!`);
-                // }
+                let birthdayGuildData = await Birthday.getGuildConfig(guild.id);
+                let notif_channel = birthdayGuildData[DBM_Birthday_Guild.columns.id_notification_channel];
+                let birthdays_enabled_for_guild = birthdayGuildData[DBM_Birthday_Guild.columns.enabled] === 1;
+                if (notif_channel) {
+                    let birthdayNotifChannelExists = guild.channels.cache.find(ch => ch.id === birthdayGuildData[DBM_Birthday_Guild.columns.id_notification_channel]);
+                    if (birthdayNotifChannelExists && birthdays_enabled_for_guild) {
+                        console.log(`birthday notif channel exists! ${birthdayNotifChannelExists} (${birthdayNotifChannelExists.name})`);
+                        await Birthday.initBirthdayReportingInstance(guild.id, guild);
+                    }
+                } else if (birthdays_enabled_for_guild && notif_channel == null) {
+                    console.warn(`Birthdays enabled for '${guild.name}' but no notification channel specified!`);
+                }
                 
             });
 
