@@ -19,7 +19,7 @@ const Color = Properties.color;
 const User = require("../modules/puzzlun/data/User");
 const Embed = require("../modules/puzzlun/Embed");
 // const SpawnerEventListener = SpawnerModule.EventListener;
-const {AvatarFormation} = require('../modules/puzzlun/Data/Avatar');
+const {AvatarFormation} = require('../modules/puzzlun/data/Avatar');
 const UserListener = require("../modules/puzzlun/User");
 const {CardListener} = require("../modules/puzzlun/Card");
 

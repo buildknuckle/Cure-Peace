@@ -5,8 +5,8 @@ const { Routes } = require('discord-api-types/v9');
 const { SlashCommandBuilder } = require('@discordjs/builders');
 
 const PuzzlunInit = require("../modules/puzzlun/Init");
-const Birthday = require('../modules/Birthday');
-const DBM_Birthday_Guild = require("../database/model/DBM_Birthday_Guild");
+// const Birthday = require('../modules/Birthday');
+// const DBM_Birthday_Guild = require("../database/model/DBM_Birthday_Guild");
 
 const { prefix, token } = require('../storage/config.json');
 
@@ -17,7 +17,7 @@ module.exports = {
         try {
             const rest = new REST({ version: '9' }).setToken(token);
 
-            await PuzzlunInit.init();//init card modules
+            await PuzzlunInit.init();//init puzzlun modules
 
             // console.log('Ready!');
             // WeatherModules.updateTimerRemaining();
@@ -32,7 +32,6 @@ module.exports = {
             client.guilds.cache.forEach(async guild => {
                 let guildId = guild.id;
                 await PuzzlunInit.initGuild(guildId, guild);//init/one time load for all necessary guild data
-                // await GuildModule.init(guild.id);//init/one time load for all necessary guild data
 
                 console.log(`connected to: ${guild.id} - ${guild.name}`);
                 (async () => {
@@ -49,30 +48,19 @@ module.exports = {
                         // GlobalFunctions.errorLogger(error);
                     }
                 })();
-        
-                //get card spawn guild data
-                // var cardGuildData = await CardGuildModules.getCardGuildData(guild.id);
-                // //set card spawn interval
-                // if(cardGuildData[DBM_Card_Guild.columns.id_channel_spawn]!=null){
-                //     //check if channel exists/not
-                //     var channelExists = guild.channels.cache.find(ch => ch.id === cardGuildData[DBM_Card_Guild.columns.id_channel_spawn])
-                //     if(channelExists){
-                //         await CardGuildModules.initCardSpawnInstance(guild.id,guild);
-                //     }
-                // }
 
-                let birthdayGuildData = await Birthday.getGuildConfig(guild.id);
-                let notif_channel = birthdayGuildData[DBM_Birthday_Guild.columns.id_notification_channel];
-                let birthdays_enabled_for_guild = birthdayGuildData[DBM_Birthday_Guild.columns.enabled] === 1;
-                if (notif_channel) {
-                    let birthdayNotifChannelExists = guild.channels.cache.find(ch => ch.id === birthdayGuildData[DBM_Birthday_Guild.columns.id_notification_channel]);
-                    if (birthdayNotifChannelExists && birthdays_enabled_for_guild) {
-                        console.log(`birthday notif channel exists! ${birthdayNotifChannelExists} (${birthdayNotifChannelExists.name})`);
-                        await Birthday.initBirthdayReportingInstance(guild.id, guild);
-                    }
-                } else if (birthdays_enabled_for_guild && notif_channel == null) {
-                    console.warn(`Birthdays enabled for '${guild.name}' but no notification channel specified!`);
-                }
+                // let birthdayGuildData = await Birthday.getGuildConfig(guild.id);
+                // let notif_channel = birthdayGuildData[DBM_Birthday_Guild.columns.id_notification_channel];
+                // let birthdays_enabled_for_guild = birthdayGuildData[DBM_Birthday_Guild.columns.enabled] === 1;
+                // if (notif_channel) {
+                //     let birthdayNotifChannelExists = guild.channels.cache.find(ch => ch.id === birthdayGuildData[DBM_Birthday_Guild.columns.id_notification_channel]);
+                //     if (birthdayNotifChannelExists && birthdays_enabled_for_guild) {
+                //         console.log(`birthday notif channel exists! ${birthdayNotifChannelExists} (${birthdayNotifChannelExists.name})`);
+                //         await Birthday.initBirthdayReportingInstance(guild.id, guild);
+                //     }
+                // } else if (birthdays_enabled_for_guild && notif_channel == null) {
+                //     console.warn(`Birthdays enabled for '${guild.name}' but no notification channel specified!`);
+                // }
                 
             });
 
@@ -81,7 +69,7 @@ module.exports = {
             //added the activity
             var arrActivity = [
                 'Sparkling, glittering, rock-paper-scissors! Cure Peace!',
-                'Puzzlun Cure!'
+                'Puzzlun Peace!'
             ];
         
             var randIndex = Math.floor(Math.random() * Math.floor(arrActivity.length));

@@ -10,7 +10,7 @@ const Card = require("../modules/puzzlun/data/Card");
 const CardInventory = require("../modules/puzzlun/data/CardInventory");
 const Embed = require('../modules/puzzlun/Embed');
 const Validation = require('../modules/puzzlun/Validation');
-const {AvatarFormation} = require('../modules/puzzlun/Data/Avatar');
+const {AvatarFormation} = require('../modules/puzzlun/data/Avatar');
 const UserListener = require("../modules/puzzlun/User");
 const {CardListener} = require("../modules/puzzlun/Card");
 
