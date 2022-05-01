@@ -29,25 +29,32 @@ module.exports = {
                 client.commands.set(command.name, command);	
             }
 
+            //Global Commands (ONLY USED FOR DEPLOYMENT)
+            await rest.put(
+                Routes.applicationCommands(client.application.id),
+                { body: client.commands },
+            );
+
             client.guilds.cache.forEach(async guild => {
                 let guildId = guild.id;
                 await PuzzlunInit.initGuild(guildId, guild);//init/one time load for all necessary guild data
 
                 console.log(`connected to: ${guild.id} - ${guild.name}`);
-                (async () => {
-                    try {
-                        // console.log('Started refreshing application (/) commands.');
-                        await rest.put(
-                            Routes.applicationGuildCommands(`${client.application.id}`,`${guild.id}`),
-                            { body: client.commands.toJSON() },
-                        );
+                //Guild commands (To be used during development)
+                // (async () => {
+                //     try {
+                //         // console.log('Started refreshing application (/) commands.');
+                //         await rest.put(
+                //             Routes.applicationGuildCommands(`${client.application.id}`,`${guild.id}`),
+                //             { body: client.commands.toJSON() },
+                //         );
                 
-                        // console.log('Successfully reloaded application (/) commands.');
-                    } catch (error) {
-                        console.error(error);
-                        // GlobalFunctions.errorLogger(error);
-                    }
-                })();
+                //         // console.log('Successfully reloaded application (/) commands.');
+                //     } catch (error) {
+                //         console.error(error);
+                //         // GlobalFunctions.errorLogger(error);
+                //     }
+                // })();
 
                 let birthdayGuildData = await Birthday.getGuildConfig(guild.id);
                 let notif_channel = birthdayGuildData[DBM_Birthday_Guild.columns.id_notification_channel];
