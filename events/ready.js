@@ -5,8 +5,8 @@ const { Routes } = require('discord-api-types/v9');
 const { SlashCommandBuilder } = require('@discordjs/builders');
 
 const PuzzlunInit = require("../modules/puzzlun/Init");
-// const Birthday = require('../modules/Birthday');
-// const DBM_Birthday_Guild = require("../database/model/DBM_Birthday_Guild");
+const Birthday = require('../modules/Birthday');
+const DBM_Birthday_Guild = require("../database/model/DBM_Birthday_Guild");
 
 const { prefix, token } = require('../storage/config.json');
 
