@@ -17,6 +17,7 @@ module.exports = {
 						await command.execute(interaction);
 					} catch(error){
 						console.log(error);
+						await GlobalFunctions.errorLogger(error);
 					}
 					break;
 				case "MESSAGE_COMPONENT":
@@ -40,7 +41,7 @@ module.exports = {
 			}
 		} catch(error){
 			console.error(error);
-			GlobalFunctions.errorLogger(error);
+			await GlobalFunctions.errorLogger(error);
 		}
 
 

@@ -1,6 +1,6 @@
 const {MessageEmbed} = require('discord.js');
 const fetch = require('node-fetch');
-const paginationEmbed = require('discordjs-button-pagination');
+const paginationEmbed = require('../modules/DiscordPagination');
 const GlobalFunctions = require('../modules/GlobalFunctions');
 const DiscordStyles = require('../modules/DiscordStyles');
 

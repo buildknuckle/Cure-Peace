@@ -26,7 +26,14 @@ class Button{
         .setStyle('SUCCESS')
     ];
 
-    static basic(id,label,style){
+    static base(id,label,style="PRIMARY"){
+        return new MessageButton()
+        .setCustomId(id)
+        .setLabel(label)
+        .setStyle(style);
+    }
+
+    static basic(id,label,style="PRIMARY"){
         return new MessageActionRow()
         .addComponents(
             new MessageButton()
@@ -36,10 +43,29 @@ class Button{
         );
     }
 
+    static row(arrButton){
+        return new MessageActionRow()
+        .addComponents(arrButton);
+    }
+
 }
 
 class SelectMenus {
+    static options(label, description, value){
+        return{
+            label: label,
+            description: description,
+            value: value,
+        }
+    }
+
     static basic(id,placeholder,arrOptions){
+        //template arrOptions:
+        //{
+        //     label: 'Select me',
+        //     description: 'This is a description',
+        //     value: 'first_option',
+        // }
         return new MessageActionRow()
         .addComponents(
             new MessageSelectMenu()
@@ -47,8 +73,7 @@ class SelectMenus {
                 .setPlaceholder(placeholder)
                 .addOptions(arrOptions)
         );
-    } 
-    
+    }
 }
 
 module.exports = {Color, Button, SelectMenus}
