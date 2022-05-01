@@ -10,7 +10,7 @@ const {Series, SPack} = require('../modules/puzzlun/data/Series');
 const Card = require("../modules/puzzlun/data/Card");
 const CardInventory = require("../modules/puzzlun/data/CardInventory");
 const Embed = require('../modules/puzzlun/Embed');
-const {AvatarFormation, PrecureAvatar} = require('../modules/puzzlun/Data/Avatar');
+const {AvatarFormation, PrecureAvatar} = require('../modules/puzzlun/data/Avatar');
 const {PartyListener} = require('../modules/puzzlun/Party');
 
 module.exports = {
