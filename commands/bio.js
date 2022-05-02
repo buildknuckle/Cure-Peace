@@ -1,12 +1,19 @@
 const {MessageActionRow, MessageButton, MessageEmbed, Discord} = require('discord.js');
 const DiscordStyles = require('../modules/DiscordStyles');
-const paginationEmbed = require('discordjs-button-pagination');
+const paginationEmbed = require('../modules/DiscordPagination');
 const DB = require('../database/DatabaseCore');
 const DBConn = require('../storage/dbconn');
-// const CardModule = require('../modules/Card');
+
+const CardModule = require('../modules/puzzlun/data/Card');
 const GlobalFunctions = require('../modules/GlobalFunctions.js');
 const DBM_Card_Data = require('../database/model/DBM_Card_Data');
 const BioModule = require('../modules/Bio');
+const ValidationModule = require('../modules/puzzlun/Validation');
+
+const {Series, SPack} = require("../modules/puzzlun/data/Series");
+const {Character, CPack} = require("../modules/puzzlun/data/Character");
+
+const Embed = require("../modules/puzzlun/Embed");
 
 module.exports = {
     name: 'bio',
@@ -31,12 +38,12 @@ module.exports = {
 	async executeMessage(message, args) {
 	},
     async execute(interaction){
-        var packName = interaction.options._hoistedOptions[0].value.toLowerCase();
+        var packName = interaction.options.getString("name");
+        // var packName = interaction.options._hoistedOptions[0].value.toLowerCase();
+        var discordUser = interaction.user;
 
         if(!BioModule.Properties.bioDataCore.hasOwnProperty(packName.toLowerCase())){
-            return interaction.reply({
-                content:":x: I cannot search that name. Here are the list of bio that you can search:",
-                embeds:[new MessageEmbed(CardModule.embedCardPackList)]});
+            return interaction.reply(ValidationModule.Pack.embedNotFound(discordUser));
         }
 
         //embedColor in string and will be readed on Properties class: object variable
@@ -44,10 +51,13 @@ module.exports = {
         var imgTransformation = BioModule.Properties.bioDataCore[packName].icon;//default transformation image
         
         //get card data:
-        var parameterWhere = new Map();
-        parameterWhere.set(DBM_Card_Data.columns.pack,packName);
-        var cardData = await DB.select(DBM_Card_Data.TABLENAME,parameterWhere);
-        cardData = cardData[0][0];
+        // var parameterWhere = new Map();
+        // parameterWhere.set(DBM_Card_Data.columns.pack,packName);
+        // var cardData = await DB.select(DBM_Card_Data.TABLENAME,parameterWhere);
+        // cardData = cardData[0][0];
+
+        var character = new Character(packName);
+        var series = new Series(character.series);
 
         var arrFields = [
             {
@@ -57,14 +67,14 @@ module.exports = {
             },
             {
                 name:`Series:`,
-                value:cardData[DBM_Card_Data.columns.series],
+                value:series.name,
                 inline:true
             }
         ];
 
         //prepare the embed
         var objEmbed = {
-            color: CardModule.Properties.dataColorCore[cardData[DBM_Card_Data.columns.color]].color,
+            // color: character.color,
             author: {
                 name: BioModule.Properties.bioDataCore[packName].fullname,
                 icon_url: BioModule.Properties.bioDataCore[packName].icon
@@ -76,12 +86,12 @@ module.exports = {
             }
         }
 
-        //check if description not empty
+        //validation: description not empty
         if(BioModule.Properties.bioDataCore[packName].description!=""){
             objEmbed.description = BioModule.Properties.bioDataCore[packName].description;
         }
 
-        //check if birthday exists
+        //validation: birthday exists
         if(BioModule.Properties.bioDataCore[packName].bio.key1!=""){
             arrFields[arrFields.length] = 
             {
@@ -116,6 +126,21 @@ module.exports = {
             };
         }
 
-        return interaction.reply({embeds:[new MessageEmbed(objEmbed)]});
+        // console.log(objEmbed);
+        // return;
+
+        return interaction.reply({embeds:[
+            Embed.builder("", 
+                Embed.builderUser.authorCustom(
+                    BioModule.Properties.bioDataCore[packName].fullname, BioModule.Properties.bioDataCore[packName].icon
+                ), 
+                {
+                    color: character.color,
+                    title: BioModule.Properties.bioDataCore[packName].henshin_phrase,
+                    fields:arrFields,
+                    image:imgTransformation
+                }
+            )
+        ]});
     }
 };

@@ -1201,7 +1201,83 @@ class Properties {
                 key4:"",
                 value4:""
             }
-        }
+        },
+        manatsu:{
+            icon:"https://waa.ai/f4sL.png",
+            color:"pink",
+            fullname:"Manatsu Natsuumi",
+            alter_ego:"Cure Summer",
+            henshin_phrase:"Pretty Cure, Tropical Change!",
+            transform_quotes:"Joyful Everlasting Summer! Cure Summer!",
+            description:"",
+            bio:{
+                key1:"",
+                value1:"",
+                key2:"",
+                value2:"",
+                key3:"",
+                value3:"",
+                key4:"",
+                value4:""
+            }
+        },
+        sango:{
+            icon:"https://waa.ai/f4BX.png",
+            color:"purple",
+            fullname:"Sango Suzumura",
+            alter_ego:"Cure Coral",
+            henshin_phrase:"Pretty Cure, Tropical Change!",
+            transform_quotes:"Glittering Jewels! Cure Coral!",
+            description:"",
+            bio:{
+                key1:"",
+                value1:"",
+                key2:"",
+                value2:"",
+                key3:"",
+                value3:"",
+                key4:"",
+                value4:""
+            }
+        },
+        minori:{
+            icon:"https://waa.ai/f4wf.png",
+            color:"pink",
+            fullname:"Minori Ichinose",
+            alter_ego:"Cure Papaya",
+            henshin_phrase:"Pretty Cure, Tropical Change!",
+            transform_quotes:"Sparkling Fruits! Cure Papaya!",
+            description:"",
+            bio:{
+                key1:"",
+                value1:"",
+                key2:"",
+                value2:"",
+                key3:"",
+                value3:"",
+                key4:"",
+                value4:""
+            }
+        },
+        asuka:{
+            icon:"https://waa.ai/f4vH.png",
+            color:"red",
+            fullname:"Asuka Takizawa",
+            alter_ego:"Cure Flamingo",
+            henshin_phrase:"Pretty Cure, Tropical Change!",
+            transform_quotes:"Fluttering Wings! Cure Flamingo!",
+            description:"",
+            bio:{
+                key1:"",
+                value1:"",
+                key2:"",
+                value2:"",
+                key3:"",
+                value3:"",
+                key4:"",
+                value4:""
+            }
+        },
     }
 }
 

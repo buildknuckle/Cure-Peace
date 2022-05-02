@@ -266,25 +266,26 @@ module.exports = {
         var userId = discordUser.id;
 
         switch(command){
+            //{"pink":{"level":25,"point":2846},"blue":{"level":20,"point":3011},"red":{"level":18,"point":3112},"yellow":{"level":21,"point":3050},"green":{"level":16,"point":3003},"purple":{"level":18,"point":3015},"white":{"level":17,"point":3089}}
             case "upgrade": {//upgrade command
                 switch(commandSubcommand){
                     case "color-level":{//upgrade color level
-                        let userListener = new UserListener(userId, discordUser, interaction);
+                        let userListener = new UserListener(interaction);
                         await userListener.levelUpColor();
                         break;
                     }
                     case "card-level":{//upgrade card level
-                        let cardListener = new CardListener(userId, discordUser, interaction);
+                        let cardListener = new CardListener(interaction);
                         await cardListener.levelUp();
                         break;
                     }
                     case "card-special-level":{
-                        let cardListener = new CardListener(userId, discordUser, interaction);
+                        let cardListener = new CardListener(interaction);
                         await cardListener.levelUpSpecial();
                         break;
                     }
                     case "gold":{
-                        let cardListener = new CardListener(userId, discordUser, interaction);
+                        let cardListener = new CardListener(interaction);
                         await cardListener.upgradeGold();
                         break;
                     }
