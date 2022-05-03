@@ -163,7 +163,7 @@ class Spawner {
             this.type = Spawner.type.quiz;
             spawn = new Quiz(await Quiz.getRandomCard());
             embedSpawn = spawn.getEmbedSpawn(this.token);
-        } else if(rnd<=90){//number guess
+        } else if(rnd<=85){//number guess
             this.type = Spawner.type.numberGuess;
             spawn = new NumberGuess(await NumberGuess.getRandomCard());
             embedSpawn = spawn.getEmbedSpawn(this.token);
@@ -504,7 +504,7 @@ class RewardsCard extends Rewards {
         var series = this.card.Series;
 
         var notifFront = `${"notifFront" in options ? options.notifFront:""}`;
-        var notifCard = `${Color[color].emoji_card} ${this.value.qty}x card: ${id} ${this.value.qty>1?" ⏫":""}`;//received card
+        var notifCard = `${Color[color].emoji_card} ${this.value.qty}x card: ${this.card.getIdCard()} ${this.value.qty>1?" ⏫":""}`;//received card
         //color points:
         var notifColorPoints = `${User.Color.getEmoji(color)} ${this.value.color} ${color} points (${this.user.Color[color].point}/${User.Color.limit.point}) `;
         if(this.value.boostColor!="") notifColorPoints+=`${this.value.boostColor}`;
@@ -517,12 +517,13 @@ class RewardsCard extends Rewards {
         var optRewards = `${"rewards" in options ? options.rewards:""}`;
 
         var author = Embed.builderUser.author(discordUser, `New ${capitalize(character.name)} Card!`, character.icon);
+        var desc = dedent(`${notifFront}${Properties.emoji.mofuheart} <@${userId}> has received new ${rarity}${Card.emoji.rarity(rarity)} ${capitalize(this.card.pack)} card!`);
+        desc+=`\n\n**__Rewards:__**\n`;
+        desc+= `${notifCard}\n`;
+        desc+= `${notifColorPoints}\n`;
+        desc+= `${notifSeriesPoints}${optRewards}${notifBack}`;
 
-        arrPages[0] = Embed.builder(dedent(`${notifFront}${Properties.emoji.mofuheart} <@${userId}> has received new ${rarity}${Card.emoji.rarity(rarity)} ${capitalize(this.card.pack)} card!\n
-        **Rewards:**
-        ${notifCard}
-        ${notifColorPoints}
-        ${notifSeriesPoints}${optRewards}${notifBack}`), author, {
+        arrPages[0] = Embed.builder(desc, author, {
         color: color,
         title: name,
         fields:[{
@@ -873,14 +874,14 @@ class ActJankenpon {
                 fields:[
                     {
                         name:"Jankenpon Command:",
-                        value:`• Press 🪨 to pick rock\n• Press 📜 to pick paper\n• Press ✂️ to pick scissors`
+                        value:`• Press 🥌 to pick rock\n• Press 📜 to pick paper\n• Press ✂️ to pick scissors`
                     },
                 ]
             })
         ], components:[
             DiscordStyles.Button.row(
                 [
-                    DiscordStyles.Button.base(`card.${Spawner.type.act}_${ActJankenpon.buttonId.jankenpon_rock}_${token}`,"🪨 Rock"),
+                    DiscordStyles.Button.base(`card.${Spawner.type.act}_${ActJankenpon.buttonId.jankenpon_rock}_${token}`,"🥌 Rock"),
                     DiscordStyles.Button.base(`card.${Spawner.type.act}_${ActJankenpon.buttonId.jankenpon_paper}_${token}`,"📜 Paper"),
                     DiscordStyles.Button.base(`card.${Spawner.type.act}_${ActJankenpon.buttonId.jankenpon_scissors}_${token}`,"✂️ Scissors")
                 ]
@@ -1145,7 +1146,7 @@ class ActMiniTsunagarus {
 
             var stock = await CardInventory.updateStock(userId, cardId, rewards.qty, true);
 
-            var txtNotifFront = `\n${Properties.emoji.mofuthumbsup} **Mini Tsunagarus Defeated!**\n Your answer was correct & it's successfully defeat the mini tsunagarus!\n\n`;
+            var txtNotifFront = `\n${Properties.emoji.mofuthumbsup} **Mini Tsunagarus Defeated!**\nYour answer was correct & it's successfully defeat the mini tsunagarus!\n\n`;
 
             if(stock<=-1){
                 var newTotal = await CardInventory.getPackTotal(userId, pack);//get new pack total
