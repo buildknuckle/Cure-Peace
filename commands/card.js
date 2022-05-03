@@ -269,22 +269,22 @@ module.exports = {
             case "upgrade": {//upgrade command
                 switch(commandSubcommand){
                     case "color-level":{//upgrade color level
-                        let userListener = new UserListener(userId, discordUser, interaction);
+                        let userListener = new UserListener(interaction);
                         await userListener.levelUpColor();
                         break;
                     }
                     case "card-level":{//upgrade card level
-                        let cardListener = new CardListener(userId, discordUser, interaction);
+                        let cardListener = new CardListener(interaction);
                         await cardListener.levelUp();
                         break;
                     }
                     case "card-special-level":{
-                        let cardListener = new CardListener(userId, discordUser, interaction);
+                        let cardListener = new CardListener(interaction);
                         await cardListener.levelUpSpecial();
                         break;
                     }
                     case "gold":{
-                        let cardListener = new CardListener(userId, discordUser, interaction);
+                        let cardListener = new CardListener(interaction);
                         await cardListener.upgradeGold();
                         break;
                     }

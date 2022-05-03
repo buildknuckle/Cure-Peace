@@ -159,7 +159,7 @@ class Quest extends require("./data/Listener") {
             user.Currency.jewel+=DailyCardQuest.rewardCompletion.jewel;
 
             var ticketReward = new Item(DailyCardQuest.rewardCompletion.ticket);//ticket
-            var itemReward = new Item(GlobalFunctions.randomProperty(DailyCardQuest.rewardCompletion.item));//food ingredient
+            // var itemReward = new Item(GlobalFunctions.randomProperty(DailyCardQuest.rewardCompletion.item));//food ingredient
             await ItemInventory.updateStock(this.userId, ticketReward.id_item);//update user ticket reward
             // await ItemInventory.updateStock(this.userId, itemReward.id_item);//update user item reward: on hold
         }
