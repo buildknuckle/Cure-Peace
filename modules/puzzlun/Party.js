@@ -240,7 +240,6 @@ class Listener extends require("./data/Listener") {
         for(var i=0;i<partyData.length;i++){
             var party = new Party(partyData[i]);
             if(party.Series!=null) txtList+=`${party.Series.emoji.mascot} `;
-            
             txtList+=dedent(`${party.name} (${party.getTotal()}/${Party.limit.maxUser})
             **Leader:** <@${party.id_leader}>
             ─────────────────`);

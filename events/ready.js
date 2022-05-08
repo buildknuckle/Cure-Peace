@@ -29,7 +29,7 @@ module.exports = {
                 client.commands.set(command.name, command);	
             }
 
-            //Global Commands (ONLY USED FOR DEPLOYMENT)
+            //Global Commands (ONLY USED DURING DEPLOYMENT)
             await rest.put(
                 Routes.applicationCommands(client.application.id),
                 { body: client.commands },
