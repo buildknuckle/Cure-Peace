@@ -48,9 +48,8 @@ class Listener extends require("./data/Listener") {
             txtList+=dedent(`${item.getCategoryEmoji()} ${item.getIdItem()} x${item.stock}/${ItemInventory.limit.stock}
             ${item.getName()}`);
             txtList+=`\n`;
-            if(displayStyle!==Listener.viewStyle.compact){
+            if(displayStyle!==Listener.viewStyle.compact)
                 txtList+=`${item.description}\n`;
-            }
 
             txtList+=`─────────────────\n`;
             
