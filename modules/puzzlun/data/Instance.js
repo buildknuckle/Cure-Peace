@@ -277,6 +277,7 @@ class TreasureHunt {
         Embed.builderUser.authorCustom(`${this.party.name}`, this.party.Series.icon),{
             title: `Treasure hunt cleared!`,
             thumbnail:Properties.imgSet.mofu.ok,
+            image:shikishi.img_url,
             color:Embed.color.success,
             fields:[
                 {
