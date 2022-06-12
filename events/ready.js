@@ -4,7 +4,7 @@ const { REST } = require('@discordjs/rest');
 const { Routes } = require('discord-api-types/v9');
 const { SlashCommandBuilder } = require('@discordjs/builders');
 
-const PuzzlunInit = require("../modules/puzzlun/Init");
+// const PuzzlunInit = require("../modules/puzzlun/Init");
 const Birthday = require('../modules/Birthday');
 const DBM_Birthday_Guild = require("../database/model/DBM_Birthday_Guild");
 
@@ -17,10 +17,9 @@ module.exports = {
         try {
             const rest = new REST({ version: '9' }).setToken(token);
 
-            await PuzzlunInit.init();//init puzzlun modules
+            // await PuzzlunInit.init();//init puzzlun modules
 
             // console.log('Ready!');
-            // WeatherModules.updateTimerRemaining();
             
             const commandFiles = fs.readdirSync('./commands').filter(file => file.endsWith('.js'));
 
@@ -37,7 +36,7 @@ module.exports = {
 
             client.guilds.cache.forEach(async guild => {
                 let guildId = guild.id;
-                await PuzzlunInit.initGuild(guildId, guild);//init/one time load for all necessary guild data
+                // await PuzzlunInit.initGuild(guildId, guild);//init/one time load for all necessary guild data
 
                 console.log(`connected to: ${guild.id} - ${guild.name}`);
                 //Guild commands (To be used during development)
@@ -70,8 +69,6 @@ module.exports = {
                 }
                 
             });
-
-            // await BattleModules.init();//init battle modules
         
             //added the activity
             var arrActivity = [
