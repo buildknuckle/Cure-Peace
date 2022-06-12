@@ -5,16 +5,6 @@ class Color{
 }
 
 class Button{
-    // static prevButton = new MessageButton()
-    // .setCustomId('previousbtn')
-    // .setLabel('⏪')
-    // .setStyle('DANGER');
-
-    // static nextButton = new MessageButton()
-    // .setCustomId('nextbtn')
-    // .setLabel('⏩')
-    // .setStyle('SUCCESS');
-
     static pagingButtonList = [
         new MessageButton()
         .setCustomId('previousbtn')
