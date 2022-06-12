@@ -1,21 +1,21 @@
 const {MessageActionRow, MessageButton, MessageEmbed, Discord, Emoji} = require('discord.js');
 const dedent = require('dedent-js');
-const paginationEmbed = require('../modules/DiscordPagination');
-const DiscordStyles = require('../modules/DiscordStyles');
-const GlobalFunctions = require('../modules/GlobalFunctions.js');
-const DB = require('../database/DatabaseCore');
-const DBConn = require('../storage/dbconn');
+const paginationEmbed = require('../../modules/DiscordPagination');
+const DiscordStyles = require('../../modules/DiscordStyles');
+const GlobalFunctions = require('../../modules/GlobalFunctions.js');
+const DB = require('../../database/DatabaseCore');
+const DBConn = require('../../storage/dbconn');
 // const CardModule = require('../modules/Card');
-const Properties = require("../modules/puzzlun/Properties");
+const Properties = require("../../modules/puzzlun/Properties");
 const Color = Properties.color;
-const User = require("../modules/puzzlun/data/User");
-const {UserQuest, DailyCardQuest} = require("../modules/puzzlun/data/Quest");
-const Card = require("../modules/puzzlun/data/Card");
-const CardInventory = require("../modules/puzzlun/data/CardInventory");
-const {Series, SPack} = require('../modules/puzzlun/data/Series');
-const Embed = require('../modules/puzzlun/Embed');
+const User = require("../../modules/puzzlun/data/User");
+const {UserQuest, DailyCardQuest} = require("../../modules/puzzlun/data/Quest");
+const Card = require("../../modules/puzzlun/data/Card");
+const CardInventory = require("../../modules/puzzlun/data/CardInventory");
+const {Series, SPack} = require('../../modules/puzzlun/data/Series');
+const Embed = require('../../modules/puzzlun/Embed');
 
-const Daily = require('../modules/puzzlun/Daily');
+const Daily = require('../../modules/puzzlun/Daily');
 module.exports = {
 	name: 'daily',
     cooldown: 5,

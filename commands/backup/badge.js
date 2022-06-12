@@ -1,10 +1,10 @@
-const DiscordStyles = require('../modules/DiscordStyles');
-const GlobalFunctions = require('../modules/GlobalFunctions');
+const DiscordStyles = require('../../modules/DiscordStyles');
+const GlobalFunctions = require('../../modules/GlobalFunctions');
 const capitalize = GlobalFunctions.capitalize;
 
-const {Series} = require('../modules/puzzlun/data/Series');
-const UserListener = require("../modules/puzzlun/User");
-const paginationEmbed = require('../modules/DiscordPagination');
+const {Series} = require('../../modules/puzzlun/data/Series');
+const UserListener = require("../../modules/puzzlun/User");
+const paginationEmbed = require('../../modules/DiscordPagination');
 
 module.exports = {
     name: 'badge',

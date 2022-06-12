@@ -1,9 +1,9 @@
 const {MessageActionRow, MessageSelectMenu, MessageButton, MessageEmbed, Discord} = require('discord.js');
-const DiscordStyles = require('../modules/DiscordStyles');
-const GlobalFunctions = require('../modules/GlobalFunctions');
+const DiscordStyles = require('../../modules/DiscordStyles');
+const GlobalFunctions = require('../../modules/GlobalFunctions');
 const capitalize = GlobalFunctions.capitalize;
 
-const paginationEmbed = require('../modules/DiscordPagination');
+const paginationEmbed = require('../../modules/DiscordPagination');
 
 // const DataModule = require("../modules/puzzlun/Data");
 // const Avatar = require("../modules/puzzlun/Avatar");
@@ -12,16 +12,16 @@ const paginationEmbed = require('../modules/DiscordPagination');
 // const BattleModule = require("../modules/puzzlun/Battle");
 // const InstanceBattle = require("../modules/puzzlun/InstanceBattle");
 // const Spawner = require("../modules/puzzlun/Spawner");
-const Validation = require("../modules/puzzlun/Validation");
-const {Spawner, SpawnerListener} = require("../modules/puzzlun/data/Spawner");
-const Properties = require("../modules/puzzlun/Properties");
+const Validation = require("../../modules/puzzlun/Validation");
+const {Spawner, SpawnerListener} = require("../../modules/puzzlun/data/Spawner");
+const Properties = require("../../modules/puzzlun/Properties");
 const Color = Properties.color;
-const User = require("../modules/puzzlun/data/User");
-const Embed = require("../modules/puzzlun/Embed");
+const User = require("../../modules/puzzlun/data/User");
+const Embed = require("../../modules/puzzlun/Embed");
 // const SpawnerEventListener = SpawnerModule.EventListener;
-const {AvatarFormation} = require('../modules/puzzlun/data/Avatar');
-const UserListener = require("../modules/puzzlun/User");
-const {CardListener} = require("../modules/puzzlun/Card");
+const {AvatarFormation} = require('../../modules/puzzlun/data/Avatar');
+const UserListener = require("../../modules/puzzlun/User");
+const {CardListener} = require("../../modules/puzzlun/Card");
 
 module.exports = {
     name: 'card',

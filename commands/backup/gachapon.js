@@ -1,11 +1,11 @@
 const {MessageActionRow, MessageSelectMenu, MessageButton, MessageEmbed, Discord} = require('discord.js');
-const DB = require('../database/DatabaseCore');
-const DBConn = require('../storage/dbconn');
-const DiscordStyles = require('../modules/DiscordStyles');
-const GlobalFunctions = require('../modules/GlobalFunctions');
+const DB = require('../../database/DatabaseCore');
+const DBConn = require('../../storage/dbconn');
+const DiscordStyles = require('../../modules/DiscordStyles');
+const GlobalFunctions = require('../../modules/GlobalFunctions');
 const capitalize = GlobalFunctions.capitalize;
 
-const Gachapon = require("../modules/puzzlun/Gachapon");
+const Gachapon = require("../../modules/puzzlun/Gachapon");
 
 module.exports = {
     name: 'gachapon',

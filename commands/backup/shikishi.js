@@ -1,10 +1,10 @@
-const DiscordStyles = require('../modules/DiscordStyles');
-const GlobalFunctions = require('../modules/GlobalFunctions');
+const DiscordStyles = require('../../modules/DiscordStyles');
+const GlobalFunctions = require('../../modules/GlobalFunctions');
 const capitalize = GlobalFunctions.capitalize;
 
-const {Series} = require('../modules/puzzlun/data/Series');
-const UserListener = require("../modules/puzzlun/User");
-const {ShikishiListener} = require("../modules/puzzlun/Shikishi");
+const {Series} = require('../../modules/puzzlun/data/Series');
+const UserListener = require("../../modules/puzzlun/User");
+const {ShikishiListener} = require("../../modules/puzzlun/Shikishi");
 
 module.exports = {
     name: 'shikishi',

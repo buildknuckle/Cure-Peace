@@ -1,14 +1,14 @@
 const dedent = require('dedent-js');
-const paginationEmbed = require('../modules/DiscordPagination');
-const DiscordStyles = require('../modules/DiscordStyles');
-const GlobalFunctions = require('../modules/GlobalFunctions.js');
-const Properties = require("../modules/puzzlun/Properties");
-const User = require("../modules/puzzlun/data/User");
-const Validation = require("../modules/puzzlun/Validation");
-const Card = require("../modules/puzzlun/data/Card");
-const CardInventory = require("../modules/puzzlun/data/CardInventory");
-const TradeboardListener = require("../modules/puzzlun/Tradeboard");
-const Embed = require('../modules/puzzlun/Embed');
+const paginationEmbed = require('../../modules/DiscordPagination');
+const DiscordStyles = require('../../modules/DiscordStyles');
+const GlobalFunctions = require('../../modules/GlobalFunctions.js');
+const Properties = require("../../modules/puzzlun/Properties");
+const User = require("../../modules/puzzlun/data/User");
+const Validation = require("../../modules/puzzlun/Validation");
+const Card = require("../../modules/puzzlun/data/Card");
+const CardInventory = require("../../modules/puzzlun/data/CardInventory");
+const TradeboardListener = require("../../modules/puzzlun/Tradeboard");
+const Embed = require('../../modules/puzzlun/Embed');
 
 module.exports = {
     name: 'tradeboard',

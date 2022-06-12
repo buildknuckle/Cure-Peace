@@ -1,17 +1,17 @@
 const dedent = require('dedent-js');
-const paginationEmbed = require('../modules/DiscordPagination');
-const DiscordStyles = require('../modules/DiscordStyles');
-const GlobalFunctions = require('../modules/GlobalFunctions.js');
-const Properties = require("../modules/puzzlun/Properties");
+const paginationEmbed = require('../../modules/DiscordPagination');
+const DiscordStyles = require('../../modules/DiscordStyles');
+const GlobalFunctions = require('../../modules/GlobalFunctions.js');
+const Properties = require("../../modules/puzzlun/Properties");
 const Color = Properties.color;
-const User = require("../modules/puzzlun/data/User");
-const {Party} = require("../modules/puzzlun/data/Party");
-const {Series, SPack} = require('../modules/puzzlun/data/Series');
-const Card = require("../modules/puzzlun/data/Card");
-const CardInventory = require("../modules/puzzlun/data/CardInventory");
-const Embed = require('../modules/puzzlun/Embed');
-const {AvatarFormation, PrecureAvatar} = require('../modules/puzzlun/data/Avatar');
-const {PartyListener} = require('../modules/puzzlun/Party');
+const User = require("../../modules/puzzlun/data/User");
+const {Party} = require("../../modules/puzzlun/data/Party");
+const {Series, SPack} = require('../../modules/puzzlun/data/Series');
+const Card = require("../../modules/puzzlun/data/Card");
+const CardInventory = require("../../modules/puzzlun/data/CardInventory");
+const Embed = require('../../modules/puzzlun/Embed');
+const {AvatarFormation, PrecureAvatar} = require('../../modules/puzzlun/data/Avatar');
+const {PartyListener} = require('../../modules/puzzlun/Party');
 
 module.exports = {
     name: 'party',

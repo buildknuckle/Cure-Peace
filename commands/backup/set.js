@@ -1,18 +1,18 @@
 const dedent = require('dedent-js');
-const paginationEmbed = require('../modules/DiscordPagination');
-const DiscordStyles = require('../modules/DiscordStyles');
-const GlobalFunctions = require('../modules/GlobalFunctions.js');
-const Properties = require("../modules/puzzlun/Properties");
+const paginationEmbed = require('../../modules/DiscordPagination');
+const DiscordStyles = require('../../modules/DiscordStyles');
+const GlobalFunctions = require('../../modules/GlobalFunctions.js');
+const Properties = require("../../modules/puzzlun/Properties");
 const Color = Properties.color;
-const User = require("../modules/puzzlun/data/User");
-const {Series, SPack} = require('../modules/puzzlun/data/Series');
-const Card = require("../modules/puzzlun/data/Card");
-const CardInventory = require("../modules/puzzlun/data/CardInventory");
-const Embed = require('../modules/puzzlun/Embed');
-const Validation = require('../modules/puzzlun/Validation');
-const {AvatarFormation} = require('../modules/puzzlun/data/Avatar');
-const UserListener = require("../modules/puzzlun/User");
-const {CardListener} = require("../modules/puzzlun/Card");
+const User = require("../../modules/puzzlun/data/User");
+const {Series, SPack} = require('../../modules/puzzlun/data/Series');
+const Card = require("../../modules/puzzlun/data/Card");
+const CardInventory = require("../../modules/puzzlun/data/CardInventory");
+const Embed = require('../../modules/puzzlun/Embed');
+const Validation = require('../../modules/puzzlun/Validation');
+const {AvatarFormation} = require('../../modules/puzzlun/data/Avatar');
+const UserListener = require("../../modules/puzzlun/User");
+const {CardListener} = require("../../modules/puzzlun/Card");
 
 module.exports = {
     name: 'set',
