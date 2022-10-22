@@ -1,7 +1,27 @@
 const fs = require('fs');
 const {MessageEmbed} = require('discord.js');
+const filename = 'jankenpon.json';
+let peacestats_fileobj;
 
-const peacestats = JSON.parse(fs.readFileSync('storage/peacestats.json', 'utf8'));
+try {
+    // rename peacestats.json to jankenpon.json
+    if (fs.existsSync('storage/peacestats.json')) {
+        fs.renameSync('storage/peacestats.json', `storage/${filename}`);
+    }
+    peacestats_fileobj = fs.readFileSync(`storage/${filename}`, 'utf8');
+} catch (err) {
+    if (err.code === 'ENOENT') {
+        fs.writeFile(`storage/${filename}`, '{}', (err) => {
+            if (err) console.log(err); else {
+                console.log("Found no jankenpon stats file, so one was created.\n");
+            }
+            // new file was created, now load it
+            peacestats_fileobj = fs.readFileSync(`storage/${filename}`, 'utf8');
+        });
+    }
+}
+
+let peacestats = JSON.parse(peacestats_fileobj);
 
 module.exports = {
     name: 'jankenpon',
@@ -15,16 +35,13 @@ module.exports = {
             type: 3,
             choices: [
                 {
-                    name: "rock",
-                    value: "rock"
+                    name: "rock", value: "rock"
                 },
                 {
-                    name: "paper",
-                    value: "paper"
+                    name: "paper", value: "paper"
                 },
                 {
-                    name: "scissors",
-                    value: "scissors"
+                    name: "scissors", value: "scissors"
                 }
             ]
         },
@@ -35,12 +52,10 @@ module.exports = {
             required: false,
             choices: [
                 {
-                    name: "myscore",
-                    value: "myscore"
+                    name: "myscore", value: "myscore"
                 },
                 {
-                    name: "leaderboard",
-                    value: "leaderboard"
+                    name: "leaderboard", value: "leaderboard"
                 }
             ]
         },
@@ -51,16 +66,13 @@ module.exports = {
             required: false,
             choices: [
                 {
-                    name: "rock",
-                    value: "rock"
+                    name: "rock", value: "rock"
                 },
                 {
-                    name: "paper",
-                    value: "paper"
+                    name: "paper", value: "paper"
                 },
                 {
-                    name: "scissors",
-                    value: "scissors"
+                    name: "scissors", value: "scissors"
                 },
             ]
         },
@@ -75,27 +87,23 @@ module.exports = {
         const avatarURL = userObject.avatarURL();
 
         const clientId = interaction.applicationId;
-        const janken = new MessageEmbed()
-            .setColor('#efcc2c')
-            .setTitle('Sparkling, glittering, rock-paper-scissors!');
+        const janken = new MessageEmbed({
+                color: '#efcc2c',
+                title: 'Sparkling, glittering, rock-paper-scissors!'
+            }
+        );
 
-        if (!peacestats[userId]) {
+        if (!(userId in peacestats)) {
+            // if the user playing isn't in the stats, add them
             peacestats[userId] = {
-                name: username,
-                win: 0,
-                draw: 0,
-                loss: 0,
-                points: 0
+                name: username, win: 0, draw: 0, loss: 0, points: 0
             };
         }
 
-        if (!peacestats[clientId]) {
+        // if the bot isn't in the stats, add it
+        if (!(clientId in peacestats)) {
             peacestats[clientId] = {
-                name: "Cure Peace",
-                win: 0,
-                draw: 0,
-                loss: 0,
-                points: 0
+                name: "Cure Peace", win: 0, draw: 0, loss: 0, points: 0
             };
         }
 
@@ -109,8 +117,9 @@ module.exports = {
         let ploss = peacestats[clientId].loss;
         let ppoints = peacestats[clientId].points;
 
-        const command = interaction.options._hoistedOptions.hasOwnProperty(0) ?
-            interaction.options._hoistedOptions[0].name : null; //first param
+        //first param
+        const command = interaction.options._hoistedOptions.hasOwnProperty(0) ? interaction.options._hoistedOptions[0].name : null;
+
         switch (command) {
             case "play":
                 const play_selection = interaction.options._hoistedOptions[0].value;
@@ -180,18 +189,18 @@ module.exports = {
                 switch (state) {
                     case 0:
                         //draw
-                        peacestats[userId] = { name: username, win: uwin + 0, draw: udraw + 1, loss: uloss + 0, points: upoints + 1 }; // Poster's Score Draw
-                        peacestats[clientId] = { name: "Cure Peace", win: pwin + 0, draw: pdraw + 1, loss: ploss + 0, points: ppoints + 1 }; // Cure Peace's Score Draw
+                        peacestats[userId] = {name: username, win: uwin + 0, draw: udraw + 1, loss: uloss + 0, points: upoints + 1}; // Poster's Score Draw
+                        peacestats[clientId] = {name: "Cure Peace", win: pwin + 0, draw: pdraw + 1, loss: ploss + 0, points: ppoints + 1}; // Cure Peace's Score Draw
                         break;
                     case 1:
                         //loss
-                        peacestats[userId] = { name: username, win: uwin + 0, draw: udraw + 0, loss: uloss + 1, points: upoints + 0 }; // Poster's Score Loss
-                        peacestats[clientId] = { name: "Cure Peace", win: pwin + 1, draw: pdraw + 0, loss: ploss + 0, points: ppoints + 3 }; // Cure Peace's Score Win
+                        peacestats[userId] = {name: username, win: uwin + 0, draw: udraw + 0, loss: uloss + 1, points: upoints + 0}; // Poster's Score Loss
+                        peacestats[clientId] = {name: "Cure Peace", win: pwin + 1, draw: pdraw + 0, loss: ploss + 0, points: ppoints + 3}; // Cure Peace's Score Win
                         break;
                     case 2:
                         //win
-                        peacestats[userId] = { name: username, win: uwin + 1, draw: udraw + 0, loss: uloss + 0, points: upoints + 3 }; // Poster's Score Win
-                        peacestats[clientId] = { name: "Cure Peace", win: pwin + 0, draw: pdraw + 0, loss: ploss + 1, points: ppoints + 0 }; // Cure Peace's Score Loss
+                        peacestats[userId] = {name: username, win: uwin + 1, draw: udraw + 0, loss: uloss + 0, points: upoints + 3}; // Poster's Score Win
+                        peacestats[clientId] = {name: "Cure Peace", win: pwin + 0, draw: pdraw + 0, loss: ploss + 1, points: ppoints + 0}; // Cure Peace's Score Loss
                         break;
                 }
 
@@ -203,16 +212,26 @@ module.exports = {
                 const score_selection = interaction.options._hoistedOptions[0].value; //myscore/leaderboard
                 switch (score_selection) {
                     case "myscore":
-                        const scorecard = new MessageEmbed()
-                            .setAuthor(username)
-                            .setThumbnail(avatarURL)
-                            .setColor('#efcc2c')
-                            .setTitle(`Here's your current score, ${username}!`)
-                            .addField(":white_check_mark:", `${uwin} wins`)
-                            .addField(":recycle:", `${udraw} draws`)
-                            .addField(":negative_squared_cross_mark:", `${uloss} losses`)
-                            .addField(":cloud_lightning:", `${upoints} points`);
-
+                        const scorecard = new MessageEmbed({
+                            author: username,
+                            thumbnail: avatarURL,
+                            color: '#efcc2c',
+                            title: `Here's your current score, ${username}!`,
+                            fields: [
+                                {
+                                    name: ':white_check_mark:', value: `${uwin} wins`
+                                },
+                                {
+                                    name: ':recycle:', value: `${udraw} draws`
+                                },
+                                {
+                                    name: ':negative_squared_cross_mark:', value: `${uloss} losses`
+                                },
+                                {
+                                    name: ':cloud_lightning:', value: `${upoints} points`
+                                }
+                            ]
+                        });
                         interaction.reply({embeds: [scorecard]});
                         break;
                     case "leaderboard":
@@ -245,17 +264,23 @@ module.exports = {
 
                         let postarray = newarray.map(x => `${x.name} - W: ${x.win} - D: ${x.draw} - L: ${x.loss} - Pts: ${x.points}`);
 
-                        const leaderboard = new MessageEmbed()
-                            .setAuthor("Top 10")
+                        let leaderboard = new MessageEmbed()
+                            .setAuthor({name: "Top 10"})
                             .setThumbnail("https://cdn.discordapp.com/avatars/764510594153054258/cb309a0c731ca1357cfbe303c39d47a8.png")
                             .setColor('#efcc2c')
                             .setTitle("Here's the current Top 10!");
+
                         let i = 0;
                         while (i < 10) {
                             if (postarray[i] === undefined) {
                                 break;
                             }
-                            leaderboard.addField('#' + (i + 1), postarray[i]);
+
+                            // v14
+                            // leaderboard.addFields([
+                            //     {name: `#${i + 1}`, value: postarray[i]}
+                            // ]);
+                            leaderboard.addField(`#${i + 1}`, postarray[i]);
                             i++;
                         }
                         interaction.reply({embeds: [leaderboard]});
@@ -285,7 +310,7 @@ module.exports = {
                 interaction.reply({embeds: [janken]});
                 break;
             case null:
-                interaction.reply({ content: 'You did not specify a valid option!', ephemeral: true });
+                interaction.reply({content: 'You did not specify a valid option!', ephemeral: true});
                 break;
         }
     }
