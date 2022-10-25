@@ -9,20 +9,22 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@discordjs/rest": "^0.1.0-canary.0",
-    "common-tags": "^1.8.0",
+    "@discordjs/rest": "^1.0.0",
+    "common-tags": "^1.8.2",
     "dedent-js": "^1.0.1",
-    "discord-api-types": "^0.22.0",
-    "discord.js": "^13.1.0",
+    "discord-api-types": "^0.37.14",
+    "discord.js": "^13.12.0",
     "discord.js-pagination": "^1.0.3",
     "discordjs-button-pagination": "^1.0.9",
+    "dotenv": "^16.0.1",
     "forever": "^4.0.3",
     "fs": "0.0.1-security",
-    "mariadb": "^2.5.5",
+    "mariadb": "^2.5.6",
     "mysql": "^2.18.1",
-    "mysql2": "^2.2.5",
-    "node-cron": "^3.0.0",
-    "node-fetch": "^2.6.1",
-    "util": "^0.12.3"
+    "mysql2": "^2.3.3",
+    "node-cron": "^3.0.1",
+    "node-fetch": "^2.6.7",
+    "util": "^0.12.4",
+    "uuid": "^8.3.2"
   }
 }
