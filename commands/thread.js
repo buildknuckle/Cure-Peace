@@ -1,10 +1,8 @@
-const fetch = require('node-fetch');
-
 module.exports = {
-	name: 'thread',
+    name: 'thread',
     args: true,
     description: "Thread related command",
-    required:true,
+    required: true,
     options: [
         {
             name: "join",
@@ -12,10 +10,10 @@ module.exports = {
             type: 1, // 2 is type SUB_COMMAND_GROUP
             options: [
                 {
-                    name: "thread-name",
-                    description: "Join into thread with given thread name",
+                    name: "thread",
+                    description: "Join into thread with given thread (channel) name",
                     type: 7, // 1 is type SUB_COMMAND
-                    required:true
+                    required: true
                 }
             ]
         },
@@ -25,40 +23,34 @@ module.exports = {
             type: 1
         }
     ],
-    async executeMessage(message, args) {
-	},
     async execute(interaction) {
-        var command = interaction.options;
-        if(command._subcommand==null) return;
-        switch(command._subcommand){
+        const subcommand = interaction.options.getSubcommand();
+        switch (subcommand) {
             case "join":
-                //join into thread
-                var threadId = command._hoistedOptions[0].value;
-                var thread = await interaction.channel.threads.cache.find(x => x.id === threadId);
+                // join into thread
+                const thread = interaction.options.getChannel('thread-id').id;
+                const thread_channel = await interaction.channel.threads.cache.find(x => x.id === thread);
                 try {
-                    await thread.join();
-                    interaction.reply(`Successfully joined into: <#${threadId}>`)
+                    await thread_channel.join();
+                    interaction.reply(`Successfully joined into: <#${thread}>`);
+                } catch (err) {
+                    interaction.reply({content: `:x: Invalid thread input`, ephemeral: true});
                 }
-                catch(err) {
-                    interaction.reply(`:x: Invalid thread input`)
-                }
-                
+
                 break;
             case "leave":
-                try {
-                    if(interaction.channel.type.includes("THREAD")){
-                        var threadId = interaction.channel.id;
-                        interaction.reply(`Successfully leaving from: <#${threadId}>`);
-                        await interaction.channel.leave();
-                    } else {
-                        interaction.reply(`:x: I can only leave from thread`);
-                    }
-                }
-                catch(err) {
-                    
+                if (interaction.channel.type.includes("THREAD")) {
+                    const threadId_leave = interaction.channel.id;
+                    interaction.reply(`Successfully left from: <#${threadId_leave}>`);
+                    await interaction.channel.leave();
+                } else {
+                    interaction.reply({
+                        content: `:x: I can only leave if you issue the leave command within a thread`,
+                        ephemeral: true
+                    });
                 }
 
                 break;
         }
     }
-}
+};
