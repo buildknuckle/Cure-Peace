@@ -1,753 +1,763 @@
-/* jshint sub:true */
-const {MessageEmbed} = require('discord.js');
-const fetch = require('node-fetch');
-// const paginationEmbed = require('discord.js-pagination');
-const paginationEmbed = require('../modules/DiscordPagination');
-const GlobalFunctions = require('../modules/GlobalFunctions');
-const DiscordStyles = require('../modules/DiscordStyles');
-
-const graphql = "https://graphql.anilist.co";
-const graphql_method = 'POST';
-const graphql_method_headers = {
-    'Content-Type': 'application/json',
-    'Accept': 'application/json',
-};
-const template_http_options = {
-    method: graphql_method,
-    headers: graphql_method_headers,
-    body: null
-};
+const fetch = require("node-fetch");
+const { ApplicationCommandType, ApplicationCommandOptionType, hyperlink } = require("discord.js");
+const { Pagination, PaginationConfig, PaginationButton } = require("../modules/discord/Pagination");
+const { Embed } = require("../modules/discord/Embed");
+const { errorLog } = require("../modules/Logger");
+const { dateTimeNow } = require("../modules/helper/datetime");
 
 function handleResponse(response) {
-    return response.json().then(function (json) {
-        return response.ok ? json : Promise.reject(json);
-    });
+	return response.json().then(function(json) {
+		return response.ok ? json : Promise.reject(json);
+	});
 }
+
+// returns link of anilist image
+function aniImgLink(id) {
+	return `https://img.anili.st/media/${id}`;
+}
+
+// returns link of anilist staff
+function aniStaffLink(id) {
+	return `https://anilist.co/staff/${id}`;
+}
+
+// returns error message on catch
+function anilistErrorHandler(tag, error, message) {
+	let errMessage = ":x: ";
+	let log = `[${tag}] ${dateTimeNow()} `;
+	if ("errno" in error) {
+		errMessage += "Unexpected error has occured";
+		log += error;
+		errorLog(log);
+	}
+	else {
+		errMessage += `Error ${error.errors[0].status} - ${message}`;
+		log += `Error ${error.errors[0].status} - ${error.errors[0].message}`;
+	}
+
+	console.log(log);
+	return errMessage;
+}
+
 module.exports = {
-    name: 'anilist',
-    args: true,
-    // type: 1,
-    description: "Anilist command",
-    options: [
-        {
-            name: "search",
-            description: "Anilist search command",
-            type: 2, // 2 is type SUB_COMMAND_GROUP
-            options: [
-                {
-                    name: "title",
-                    description: "Search for anime title",
-                    type: 1, // 1 is type SUB_COMMAND
-                    options: [
-                        {
-                            name: "anime-title",
-                            description: "Enter the anime title",
-                            type: 3,
-                            "required": true
-                        }
-                    ]
-                },
-                {
-                    name: "character",
-                    description: "Search for anime character",
-                    type: 1, // 1 is type SUB_COMMAND
-                    options: [
-                        {
-                            name: "anime-character",
-                            description: "Enter the anime character",
-                            type: 3,
-                            required: true
-                        },
-                        {
-                            name: "anime-title",
-                            description: "Enter the anime title",
-                            type: 3,
-                            required: false
-                        }
-                    ]
-                },
-                {
-                    name: "staff",
-                    description: "Search for anime/VA/studio staff",
-                    type: 1, // 1 is type SUB_COMMAND
-                    options: [
-                        {
-                            name: "staff-name",
-                            description: "Enter the staff name",
-                            type: 3,
-                            required: true
-                        },
-                        {
-                            name: "filter",
-                            description: "Search filter based on Staff(by default)/VA",
-                            type: 3,
-                            required: false,
-                            choices: [
-                                {
-                                    name: "staff",
-                                    value: "staff"
-                                },
-                                {
-                                    name: "voice-actor",
-                                    value: "voice-actor"
-                                }
-                            ]
-                        }
-                    ]
-                }
-            ]
-        }
-    ],
-    async executeMessage(message, args) {
-    },
-    execute: async function (interaction) {
+	name: "anilist",
+	args: true,
+	type: ApplicationCommandType.ChatInput,
+	description: "Anilist search command",
+	api_ver:"2",
+	options: [
+		{
+			name: "title",
+			description: "Search for anime title",
+			type: ApplicationCommandOptionType.Subcommand,
+			options: [
+				{
+					name: "anime-title",
+					description: "Anime title keyword",
+					type: ApplicationCommandOptionType.String,
+					required: true,
+				},
+			],
+		},
+		{
+			name: "character",
+			description: "Search for anime character",
+			type: ApplicationCommandOptionType.Subcommand,
+			options: [
+				{
+					name: "anime-character",
+					description: "Anime character keyword",
+					type: ApplicationCommandOptionType.String,
+					required: true,
+				},
+				{
+					name: "anime-title",
+					description: "Provide with anime title keyword",
+					type: ApplicationCommandOptionType.String,
+					required: false,
+				},
+			],
+		},
+		{
+			name: "staff",
+			description: "Search for anime/VA/studio staff",
+			type: ApplicationCommandOptionType.Subcommand,
+			options: [
+				{
+					name: "staff-name",
+					description: "Staff name keyword",
+					type: ApplicationCommandOptionType.String,
+					required: true,
+				},
+				{
+					name: "filter",
+					description: "Filter based on staff/VA",
+					type: ApplicationCommandOptionType.String,
+					required: false,
+					choices: [
+						{
+							name: "staff",
+							value: "staff",
+						},
+						{
+							name: "voice-actor",
+							value: "voice-actor",
+						},
+					],
+				},
+			],
+		},
+	],
+	async execute(interaction) {
+		const fetchUrl = "https://graphql.anilist.co";
+		const fetchOptions = {
+			method: "POST",
+			headers: {
+				"Content-Type": "application/json",
+				"Accept": "application/json",
+			},
+			body: JSON.stringify({
+				"query": null,
+				"variables": null,
+			}),
+		};
+		const embedColor = 0x02A9FF;
 
-        let objEmbed = {
-            color: DiscordStyles.Color.embedColor
-        };
+		switch (interaction.options.getSubcommand()) {
+		case "title": {
+			// search for anime title
+			const aniTitle = interaction.options.getString("anime-title");
 
-        const command = interaction.options;
+			// provide search query
+			let fetchQuery = `query ($title: String) {
+				Media (search: $title, sort: SEARCH_MATCH, type: ANIME, isAdult:false) {
+					id
+					description
+					relations{
+						edges{
+							id
+							relationType(version:2)
+							node{
+								id
+								seasonYear
+								siteUrl
+								title{
+									romaji
+									english
+									native
+								}
+							}
+						}
+					}
+					staff(perPage:6){
+						edges{
+							node{
+								id
+								name{
+									full
+									native
+								}
+							}
+							role
+						}
+					}
+					title{
+						romaji
+						english
+						native
+					}
+					status
+					format
+					bannerImage
+					siteUrl
+					favourites
+				}
+			}`;
 
-        // console.log(command);
-        switch (command._subcommand) {
-            case "title":
-                //search for anime title
-                const media_title = command._hoistedOptions[0].value;
+			// Define our query variables and values that will be used in the query request
+			let fetchVariables = {
+				title: aniTitle,
+				// search by id
+				// id: 15125,
+			};
 
-                const media_query = `query ($title: String) {
-                    Media (search: $title, sort: SEARCH_MATCH, type: ANIME, isAdult:false) {
-                        id
-                        description
-                        staff(perPage:6){
-                            edges{
-                                node{
-                                    id
-                                    name{
-                                        full
-                                        native
-                                    }
-                                }
-                                role
-                            }
-                        }
-                        title{
-                        romaji
-                        english
-                        native
-                        }
-                        bannerImage
-                        siteUrl
-                    }
-                    }`;
+			fetchOptions.body = JSON.stringify({
+				"query": fetchQuery,
+				"variables": fetchVariables,
+			});
 
-                // Define our query variables and values that will be used in the query request
-                const media_variables = {
-                    title: media_title
-                    // id: 15125 //search by id
-                };
+			// main anime info:
+			// Make the HTTP Api request
+			await interaction.deferReply();
 
-                // Define the config we'll need for our Api request
-                let media_http_options = template_http_options;
-                media_http_options.body = JSON.stringify({
-                    query: media_query,
-                    variables: media_variables
-                });
+			const pages = [];
 
-                //main anime info:
-                // Make the HTTP Api request
-                await fetch(graphql, media_http_options).then(handleResponse)
-                    .then(async function handleData(dt) {
-                        if (dt['data'] != null) {
-                            let replacedTitle = dt['data']['Media']['title']['romaji'];
-                            // const regexSymbol = /[-$%^&*()_+|~=`{}\[\]:";'<>?,.\/]/;
-                            const regexSymbol = /[^a-zA-Z\d ]/g;
-                            const regexWhitespace = /\s/g;
-                            replacedTitle = replacedTitle.replace(regexSymbol, "");//replace all symbols
-                            replacedTitle = replacedTitle.replace(regexWhitespace, "-");//replace white space with -
+			await fetch(fetchUrl, fetchOptions).then(handleResponse)
+				.then(async function handleData(dt) {
+					// main page
+					const mainMedia = dt.data.Media;
+					const mainEmbed = new Embed();
+					mainEmbed.color = embedColor;
+					if (mainMedia.description != null) {
+						mainEmbed.description = mainMedia.description;
+						mainEmbed.withReadmore = mainMedia.siteUrl;
+					}
 
-                            objEmbed.description = GlobalFunctions.markupCleaner(dt['data']['Media'].description);
-                            if (dt['data']['Media'].description != null) {
-                                if (dt['data']['Media'].description.length >= 1024) {
-                                    objEmbed.description = dt['data']['Media'].description.substring(0, 1024) + " ...";
-                                }
-                            }
+					const staffNodes = mainMedia.staff.edges;
+					// staff embed fields
+					staffNodes.forEach(function(staff) {
+						let nativeName = "";
+						if (staff.node.name.native != null) {
+							nativeName = ` (${staff.node.name.native})`;
+						}
+						mainEmbed.addFields(`${staff.role}`, `${hyperlink(`${staff.node.name.full}${nativeName}`, `${aniStaffLink(staff.node.id)}`)}`, true);
+					});
 
-                            const staffNodes = dt['data']['Media']['staff']['edges'];
-                            let ctrIndex = 0;
-                            objEmbed.fields = []; //prepare the fields embed
-                            staffNodes.forEach(function (entry) {
-                                let nativeName = "";
-                                if (entry.node.name.native != null) {
-                                    nativeName = ` (${entry.node.name.native})`;
-                                }
-                                objEmbed.fields[ctrIndex] = {
-                                    name: `${entry.node.name.full}${nativeName}`,
-                                    value: `${entry.role}`, inline: true
-                                };
-                                ctrIndex += 1;
-                            });
+					let titleNative = "";
+					if (mainMedia.title.native != null) {
+						titleNative = ` (${mainMedia.title.native})`;
+					}
 
-                            let titleNative = "";
-                            if (dt['data']['Media'].title.native != null) {
-                                titleNative = ` (${dt['data']['Media'].title.native})`;
-                            }
-                            objEmbed.author = {
-                                name: `${dt['data']['Media'].title['romaji']}${titleNative}`,
-                                url: dt['data']['Media']['siteUrl']
-                            };
+					mainEmbed.author = {
+						name:`${mainMedia.title.romaji}${titleNative}`,
+						url:mainMedia.siteUrl,
+					};
 
-                            objEmbed.image = {
-                                url: `https://img.anili.st/media/${dt['data']['Media'].id}`
-                            };
-                            await interaction.channel.send({
-                                content: `Top search results for: **${media_title}**`,
-                                embeds: [new MessageEmbed(objEmbed)]
-                            });
-                        }
-                    })
-                    .catch(async function handleError(error) {
-                        // console.error(error);
-                        return await interaction.reply(`:x: I can't find that **title**. Try to put more specific title/keyword.`);
-                    });
+					mainEmbed.image = aniImgLink(dt.data.Media.id);
+					mainEmbed.setFooter(`❤️${dt.data.Media.favourites}`);
+					pages.push(mainEmbed.build());
 
-                //title list
-                //reset the embed objects:
-                objEmbed = {
-                    color: DiscordStyles.Color.embedColor
-                };
+					// check if anime has relation
+					const relations = (dt.data.Media.relations.edges).slice(0, 20);
+					if (relations.length > 0) {
+						const relationEmbed = new Embed();
+						relationEmbed.color = embedColor;
+						relationEmbed.title = "Relations";
 
-                //send pagination too if exists
-                const titlelist_query = `query ($id: Int, $page: Int, $search: String) {
-                Page (page: $page) {
-                    pageInfo {
-                    total
-                    currentPage
-                    lastPage
-                    hasNextPage
-                    perPage
-                    }
-                    media (id: $id, search: $search, isAdult:false, type: ANIME, sort: START_DATE) {
-                    id
-                    title {
-                        romaji
-                    }
-                    siteUrl
-                    seasonYear
-                    }
-                }
-                }`;
+						for (let i = 0;i < relations.length;i++) {
+							const relationType = relations[i].relationType.replace("_", " ");
+							const relationNode = relations[i].node;
 
-                const titlelist_variables = {
-                    search: media_title,
-                    page: 1
-                };
+							const seasonYear = relationNode.seasonYear ? `(${relationNode.seasonYear})` : "";
 
-                let titlelist_http_options = template_http_options;
-                titlelist_http_options.body = JSON.stringify({
-                    query: titlelist_query,
-                    variables: titlelist_variables
-                });
+							relationEmbed.addFields(`${relationType} ${seasonYear}`, hyperlink(`${relationNode.title.romaji}`, relationNode.siteUrl), true);
+						}
 
-                await fetch(graphql, titlelist_http_options).then(handleResponse)
-                    .then(async function handleData(dt) {
-                        if (dt['data']['Page'].media.length >= 2) {
-                            let titlelist_txtTitle = "";
-                            let titlelist_arrPages = [];
-                            let titlelist_ctr = 0;
-                            const titellist_maxCtr = 3;
-                            let titlelist_pointerMaxData = dt['data']['Page'].media.length;
-                            dt['data']['Page'].media.forEach(function (entry) {
-                                titlelist_txtTitle += `[${entry['title']['romaji']} `;
-                                if (entry['seasonYear'] != null) {
-                                    titlelist_txtTitle += `(${entry['seasonYear']})`;
-                                }
-                                titlelist_txtTitle += `](${entry['siteUrl']})\n`;
-                                if (titlelist_pointerMaxData - 1 <= 0 || titlelist_ctr > titellist_maxCtr) {
-                                    objEmbed.fields = [{
-                                        name: "Top 25 Title Search Results:",
-                                        value: titlelist_txtTitle,
-                                    }];
-                                    titlelist_arrPages.push(new MessageEmbed(objEmbed));
-                                    titlelist_txtTitle = "";
-                                    titlelist_ctr = 0;
-                                } else {
-                                    titlelist_ctr++;
-                                }
-                                titlelist_pointerMaxData--;
-                            });
+						pages.push(relationEmbed.build());
+					}
 
-                            // var pages = arrPages;
-                            // paginationEmbed.
-                            await paginationEmbed(interaction, titlelist_arrPages, DiscordStyles.Button.pagingButtonList);
-                        }
-                    })
-                    .catch(function handleError(error) {
-                        // console.log(error);
-                        return interaction.reply(
-                            {body: `:x: I can't find that **title**. Try to put a more specific title/keyword.`, }
-                        );
-                    });
+				})
+				.catch(async function handleError(error) {
+					interaction.followUp(anilistErrorHandler("ANILIST_TITLE", error, "Cannot found any results for this title"));
+				});
 
+			// search for similar title
+			fetchQuery = `query ($id: Int, $page: Int, $search: String) {
+				Page (page: $page) {
+					pageInfo {
+						total
+						currentPage
+						lastPage
+						hasNextPage
+						perPage
+					}
+					media (id: $id, search: $search, isAdult:false, type: ANIME, sort: START_DATE) {
+						id
+						title {
+							romaji
+							english
+							native
+						}
+						siteUrl
+						seasonYear
+					}
+				}
+				}`;
 
-                break;
-            case "character":
-                //search for character
-                const charName = command._hoistedOptions[0].value; //param: char name
-                const character_title = command._hoistedOptions.hasOwnProperty(1) ? command._hoistedOptions[1].value : false; //param(opt.): anime title
-                let charId = -1;
+			fetchVariables = {
+				search: aniTitle,
+				page: 1,
+			};
 
-                //check if title parameter was given:
-                if (character_title) {
-                    const character_title_query = `query ($title: String) {
-                        Media (search: $title, sort: SEARCH_MATCH, type: ANIME, isAdult:false) {
-                            id
-                            characters(sort: FAVOURITES_DESC){
-                                nodes{
-                                    id
-                                    name{
-                                        first
-                                        last
-                                        full
-                                        native
-                                        alternative
-                                    }
-                                }
-                            }
-                        }
-                        }`;
+			fetchOptions.body = JSON.stringify({
+				"query": fetchQuery,
+				"variables": fetchVariables,
+			});
 
-                    // Define our query variables and values that will be used in the query request
-                    const character_title_variables = {
-                        title: character_title
-                    };
+			await fetch(fetchUrl, fetchOptions).then(handleResponse)
+				.then(async function handleData(dt) {
+					const maxData = dt.data.Page.media.length;
 
-                    // Define the config we'll need for our Api request
-                    let character_title_http_options = template_http_options;
-                    character_title_http_options.body = JSON.stringify({
-                        query: character_title_query,
-                        variables: character_title_variables
-                    });
+					// console.log(dt.data.Page.media);
+					const embed = new Embed();
+					embed.color = embedColor;
+					embed.title = "Similar search results:";
 
-                    // Make the HTTP Api request
-                    await fetch(graphql, character_title_http_options).then(handleResponse)
-                        .then(function handleData(dt) {
-                            if (dt['data'] != null) {
-                                const titleId = dt['data']['Media'].id;
-                                const charNodes = dt['data']['Media']['characters'].nodes;
+					let desc = "";
+					const maxIdx = 15;
+					let ctr = 0; let idx = 0;
 
-                                const filteredData = charNodes.filter(val => {
-                                    // console.log(val)
-                                    return Object.values(val['name']).some(
-                                        first => String(first).toLowerCase().includes(charName.toLowerCase())
-                                    ) || Object.values(val['name']).some(
-                                        last => String(last).toLowerCase().includes(charName.toLowerCase())
-                                    ) || Object.values(val['name']).some(
-                                        full => String(full).toLowerCase().includes(charName.toLowerCase())
-                                    ) || Object.values(val['name']).some(
-                                        alternative => String(alternative).toLowerCase().includes(charName.toLowerCase())
-                                    );
-                                });
-                                charId = filteredData.hasOwnProperty(0) ? filteredData[0].id : -1;
-                            }
-                        })
-                        .catch(function handleError(error) {
-                            // console.log(error);
-                            return interaction.reply(`:x: I can't find that **character** on given **title**. Try to put a more specific keyword.`);
-                        });
-                }
+					dt.data.Page.media.forEach(function(entry) {
+						const seasonYear = entry.seasonYear ? ` (${entry.seasonYear})` : "";
+						desc += `• ${hyperlink(`${entry.title.romaji}${seasonYear}`, entry.siteUrl)}\n`;
+						ctr++;
 
-                //default query:
-                let character_query = `query ($keyword: String) {
-                    Character (search: $keyword) {
-                        id
-                        name{
-                            full
-                            native
-                            alternative
-                        }
-                        image{large,medium}
-                        description
-                        siteUrl
-                        favourites
-                        media(type: ANIME, sort: START_DATE){
-                            edges{
-                                node{
-                                    id
-                                    title{
-                                        romaji
-                                    }
-                                    siteUrl
-                                    seasonYear
-                                }
-                                voiceActors{
-                                    id
-                                    name{
-                                        full
-                                        native
-                                    }
-                                    language
-                                }
-                            }
-                        }
-                    }
-                    }`;
-                // Define our query variables and values that will be used in the query request
-                const character_variables = {
-                    keyword: charName
-                };
+						if (ctr >= maxData || idx > maxIdx) {
+							embed.description = desc;
+							pages.push(embed.build());
+							idx = 0; desc = "";
+						}
+						else {
+							idx++;
+						}
 
-                if (charId !== -1) {
-                    character_query = `query ($keyword: String,$idChar:Int) { # Define which variables will be used in the query (id)
-                        Character (search: $keyword,id:$idChar) {
-                            id
-                            name{
-                                full
-                                native
-                                alternative
-                            }
-                            image{large,medium}
-                            description
-                            siteUrl
-                            favourites
-                            media(type: ANIME, sort: START_DATE){
-                                edges{
-                                    node{
-                                        id
-                                        title{
-                                            romaji
-                                        }
-                                        siteUrl
-                                        seasonYear
-                                    }
-                                    voiceActors{
-                                        id
-                                        name{
-                                            full
-                                            native
-                                        }
-                                        language
-                                    }
-                                }
-                            }
-                        }
-                        }`;
-                    character_variables.idChar = charId;
-                }
+					});
+				})
+				.catch(function handleError() {
+					// console.log(error);
+				});
 
-                // Define the config we'll need for our Api request
-                let character_http_options = template_http_options;
-                character_http_options.body = JSON.stringify({
-                    query: character_query,
-                    variables: character_variables
-                });
+			if (pages.length > 0) {
+				new Pagination().setInterface(interaction)
+					.setPageList(pages)
+					.setButtonList(PaginationButton)
+					.setTimeout(PaginationConfig.timeout)
+					.paginate();
+			}
+			else {
+				interaction.followUp("Cannot found any results for this title");
+			}
 
-                // Make the HTTP Api request
-                fetch(graphql, character_http_options).then(handleResponse)
-                    .then(function handleData(dt) {
-                        if (dt['data'] != null) {
-                            // objEmbed.title = `${dt['data']['Character'].name.full}
-                            // (${dt['data']['Character'].name.native})`;
-                            objEmbed.author = {
-                                iconURL: dt['data']['Character']['image']['medium'],
-                                name: `${dt['data']['Character']['name']['full']}`,
-                                url: dt['data']['Character']['siteUrl']
-                            };
-                            if (dt['data']['Character'].name.native != null) {
-                                objEmbed.author.name += ` (${dt['data']['Character'].name.native})`;
-                            }
-                            objEmbed.thumbnail = {
-                                url: dt['data']['Character'].image.large
-                            };
-                            let appearances = "";
-                            const charEdges = dt['data']['Character']['media']['edges'];
+			break;
+		}
+		case "character": {
+			// search for anime character
+			const charName = interaction.options.getString("anime-character");
+			const aniTitle = interaction.options.getString("anime-title");
+			let charId = null;
 
-                            let character_arrVa = [];
-                            let character_ctr = 0;
-                            let isMore = false;
-                            charEdges.forEach(function (entry) {
-                                //add the va data:
-                                const vaData = entry['voiceActors'];
-                                vaData.forEach(function (entryVa) {
-                                    let tempVaText = `${entryVa.name.full}: ${entryVa.language}`;
-                                    if (!character_arrVa.includes(tempVaText)) {
-                                        character_arrVa.push(tempVaText);
-                                    }
-                                });
-                                //add the appearances of the show:
-                                if (character_ctr <= 5) {
-                                    const node = entry.node;
-                                    appearances += `[${node.title['romaji']} `;
-                                    if (node['seasonYear'] != null) {
-                                        appearances += ` (${node['seasonYear']})`;
-                                    }
-                                    appearances += `](${node['siteUrl']})\n`;
-                                } else {
-                                    isMore = true;
-                                }
-                                character_ctr++;
-                            });
-                            if (isMore) {
-                                appearances += `**& ${character_ctr}+ other anime**`;
-                            }
+			let fetchQuery = "";
+			let fetchVariables = {};
 
-                            objEmbed.fields = [
-                                {
-                                    name: `Appearances:`,
-                                    value: appearances,
-                                    inline: false
-                                },
-                                {
-                                    name: `VA Staff:`,
-                                    value: "-",
-                                    inline: false
-                                },
-                                {
-                                    name: `Alias:`,
-                                    value: '-',
-                                    inline: true
-                                }
-                            ];
-                            objEmbed.footer = {
-                                text: `❤️ ${dt['data']['Character']['favourites']}`
-                            };
-                            //alias checking
-                            if (dt['data']['Character']['name']['alternative'] !== '') {
-                                objEmbed.fields[1] = {
-                                    name: `Alias:`,
-                                    value: dt['data']['Character']['name']['alternative'].join(","),
-                                    inline: true
-                                };
-                            }
+			await interaction.deferReply();
 
-                            const desc = dt['data']['Character'].description;
-                            if (desc != null) {
-                                objEmbed.description = GlobalFunctions.markupCleaner(desc);
-                                if (desc.length >= 1200) {
-                                    objEmbed.description = desc.substring(0, 1200) + " ...";
-                                }
-                            } else {
-                                objEmbed.description = "No description available for this character.";
-                            }
+			// check & search title if parameter was given:
+			if (aniTitle) {
+				fetchQuery = `query ($title: String) {
+					Media (search: $title, sort: SEARCH_MATCH, type: ANIME, isAdult:false) {
+						id
+						characters(sort: FAVOURITES_DESC){
+							nodes{
+								id
+								name{
+									first
+									last
+									full
+									native
+									alternative
+								}
+							}
+						}
+					}
+				}`;
 
-                            if (character_arrVa.length >= 1) {
-                                objEmbed.fields[1] = {
-                                    name: `VA Staff:`,
-                                    value: character_arrVa.join("\n"),
-                                    inline: false
-                                };
-                            }
-                            interaction.reply({embeds: [new MessageEmbed(objEmbed)]});
-                        }
-                    })
-                    .catch(function handleError(error) {
-                        // console.log(error);
-                        return interaction.reply({
-                            body: `:x: I can't find that **character**. Try to put a more specific keyword.`
-                        });
-                    });
+				// Define our query variables and values that will be used in the query request
+				fetchVariables = {
+					title: aniTitle,
+				};
 
-                break;
-            case "staff":
-                const staffName = command._hoistedOptions[0].value;
+				fetchOptions.body = JSON.stringify({
+					"query": fetchQuery,
+					"variables": fetchVariables,
+				});
 
-                const filter = command._hoistedOptions.hasOwnProperty(1) ? command._hoistedOptions[1].value : "staff"; //param(opt.): staff/va
+				await fetch(fetchUrl, fetchOptions).then(handleResponse)
+					.then(function handleData(dt) {
+						const charNodes = dt.data.Media.characters.nodes;
 
-                const staff_query = `query ($keyword: String) {
-                    Staff (search: $keyword) { 
-                        id
-                        name{
-                            full
-                            native
-                            alternative
-                        }
-                        image{large,medium}
-                        description
-                        siteUrl
-                        favourites
-                        staffMedia(type: ANIME){
-                            edges{
-                                node{
-                                    id
-                                    title{
-                                        romaji
-                                    }
-                                    siteUrl
-                                    seasonYear
-                                }
-                                staffRole
-                            }
-                        }
-                        characterMedia{
-                            edges{
-                                node{
-                                   title{
-                                       romaji
-                                   }
-                                   siteUrl
-                                   seasonYear
-                                }
-                                characters{
-                                    siteUrl
-                                    name{
-                                        full
-                                        native
-                                        alternative  
-                                    }
-                                    image{large,medium}
-                                }
-                            }
-                        }
-                    }
-                    }
-                    `;
+						const filteredData = charNodes.filter(val => {
+							// console.log(val)
+							return Object.values(val.name).some(
+								first => String(first).toLowerCase().includes(charName.toLowerCase()),
+							) || Object.values(val.name).some(
+								last => String(last).toLowerCase().includes(charName.toLowerCase()),
+							) || Object.values(val.name).some(
+								full => String(full).toLowerCase().includes(charName.toLowerCase()),
+							) || Object.values(val.name).some(
+								alternative => String(alternative).toLowerCase().includes(charName.toLowerCase()),
+							);
+						});
 
-                // Define our query variables and values that will be used in the query request
-                const staff_variables = {
-                    keyword: staffName
-                };
+						// validate if character not found
+						if (filteredData.length <= 0) {
+							interaction.followUp(":x: Can't find that character on given title");
+						}
+						else {
+							charId = filteredData[0].id;
+						}
 
-                // Define the config we'll need for our Api request
-                let staff_http_options = template_http_options;
-                staff_http_options.body = JSON.stringify({
-                    query: staff_query,
-                    variables: staff_variables
-                });
+					})
+					.catch(async function handleError(error) {
+						return await interaction.followUp(anilistErrorHandler("ANILIST_TITLE", error, "Can't find that character on given title"));
+					});
 
-                // Make the HTTP Api request
-                fetch(graphql, staff_http_options).then(handleResponse)
-                    .then(function handleData(dt) {
-                        if (dt['data'] != null) {
-                            const staffMediaEdges = dt['data'].Staff['staffMedia']['edges'];
+				if (!charId) return;
+			}
 
-                            objEmbed.author = {
-                                iconURL: dt['data'].Staff.image['medium'],
-                                name: `${dt['data'].Staff.name.full} (${dt['data'].Staff.name.native})`,
-                                url: dt['data'].Staff['siteUrl']
-                            };
-                            objEmbed.thumbnail = {
-                                url: dt['data'].Staff.image.large
-                            };
+			fetchVariables = {
+				keyword:charName,
+			};
 
-                            let desc = dt['data'].Staff.description;
+			// if char id was found with title
+			if (charId) {
+				fetchQuery = `query ($keyword: String, $idChar:Int) {
+				Character (search: $keyword, id:$idChar) {
+					id
+					name{
+						full
+						native
+						alternative
+					}
+					image{large,medium}
+					description
+					siteUrl
+					favourites
+					media(type: ANIME, sort: START_DATE){
+						edges{
+							node{
+								id
+								title{
+									romaji
+								}
+								siteUrl
+								seasonYear
+							}
+							voiceActors{
+								id
+								name{
+									full
+									native
+								}
+								language
+							}
+						}
+					}
+				}
+				}`;
 
-                            if (desc) {
-                                if (desc.length >= 1100) {
-                                    desc = desc.substring(0, 1100) + " ...";
-                                }
-                            } else if (desc === null) {
-                                desc = "No description available for this staff.";
+				fetchVariables.idChar = charId;
+			}
+			else {
+				fetchQuery = `query ($keyword: String) {
+				Character (search: $keyword) {
+					id
+					name{
+						full
+						native
+						alternative
+					}
+					image{large,medium}
+					description
+					siteUrl
+					favourites
+					media(type: ANIME, sort: START_DATE){
+						edges{
+							node{
+								id
+								title{
+									romaji
+								}
+								siteUrl
+								seasonYear
+							}
+							voiceActors{
+								id
+								name{
+									full
+									native
+								}
+								language
+							}
+						}
+					}
+				}
+				}`;
+			}
 
-                            }
+			fetchOptions.body = JSON.stringify({
+				"query": fetchQuery,
+				"variables": fetchVariables,
+			});
 
-                            objEmbed.description = GlobalFunctions.markupCleaner(desc);
+			await fetch(fetchUrl, fetchOptions).then(handleResponse)
+				.then(async function handleData(dt) {
+					const character = dt.data.Character;
 
-                            //MAIN STAFF DATA
-                            let staff_txtCharacter = "";
-                            let staff_arrPages = [];
-                            let staff_ctr = 0;
-                            const staff_maxCtr = 4;
-                            let staff_pointerMaxData = staffMediaEdges.length;
-                            objEmbed.fields = [];
-                            switch (filter) {
-                                case "staff":
-                                    staffMediaEdges.forEach(function (entry) {
-                                        // var temp = "";
-                                        const staffMediaNode = entry.node;
-                                        // temp += `${staffMediaNode.title.romaji} : ${entry.staffRole}`;
-                                        let staff_txtTitle = `${staffMediaNode['title']['romaji']}`;
-                                        if (staffMediaNode['seasonYear'] != null) {
-                                            staff_txtTitle += ` (${staffMediaNode['seasonYear']})`;
-                                        }
+					const mainEmbed = new Embed();
+					mainEmbed.color = embedColor;
+					const nativeName = character.name.native ?
+						`(${character.name.native})` : "";
 
-                                        objEmbed.fields[staff_ctr] = {
-                                            name: `${staff_txtTitle}:`,
-                                            value: entry['staffRole'],
-                                            inline: true
-                                        };
+					mainEmbed.authorIcon = character.image.medium,
+					mainEmbed.authorName = `${character.name.full} ${nativeName}`,
+					mainEmbed.authorUrl = character.siteUrl;
 
-                                        if (staff_pointerMaxData - 1 <= 0 || staff_ctr > staff_maxCtr) {
-                                            const msgEmbed = new MessageEmbed(objEmbed);
-                                            staff_arrPages.push(msgEmbed);
-                                            staff_ctr = 0;
-                                        } else {
-                                            staff_ctr++;
-                                        }
-                                        staff_pointerMaxData--;
-                                    });
+					mainEmbed.thumbnail = character.image.large;
+					let appearances = "";
+					const charEdges = character.media.edges;
 
-                                    if (staff_arrPages.length >= 2) {
-                                        paginationEmbed(interaction, staff_arrPages, DiscordStyles.Button.pagingButtonList);
-                                    } else {
-                                        interaction.reply({embeds: [new MessageEmbed(objEmbed)]});
-                                    }
-                                    break;
-                                case "voice-actor":
-                                    //VA DATA
-                                    objEmbed = {
-                                        author: objEmbed.author,
-                                        title: `Top 25 Known VA Works:`,
-                                        color: DiscordStyles.Color.embedColor
-                                    };
+					const arrVa = [];
+					let ctr = 0; let isMore = false;
+					charEdges.forEach(function(entry) {
+						// add the va data:
+						const vaData = entry.voiceActors;
+						vaData.forEach(function(entryVa) {
+							const tempVaText = `${entryVa.name.full} : ${entryVa.language}`;
+							if (!arrVa.includes(tempVaText)) {
+								arrVa.push(tempVaText);
+							}
+						});
+						// add the appearances of the show:
+						if (ctr <= 5) {
+							const node = entry.node;
+							appearances += `[${node.title.romaji} `;
+							if (node.seasonYear) {
+								appearances += ` (${node.seasonYear})`;
+							}
+							appearances += `](${node.siteUrl})\n`;
+						}
+						else {
+							isMore = true;
+						}
+						ctr++;
+					});
 
+					if (isMore) {
+						appearances += `**${ctr - 6}+ other shows**`;
+					}
 
-                                    const charMedia = dt['data'].Staff['characterMedia']['edges'];
+					mainEmbed.objEmbed.fields = [
+						{
+							name:"🎞️ Appearances:",
+							value: appearances,
+							inline: false,
+						},
+					];
 
-                                    let va_txtTitle = "";
-                                    let va_txtCharacter = "";
-                                    let va_arrPages = [];
-                                    let va_ctr = 0;
-                                    let va_maxCtr = 4;
-                                    let va_pointerMaxData = charMedia.length;
-                                    objEmbed.fields = [];
-                                    // objEmbed.title = "Top 25 VA:";
+					// alias checking
+					if (character.name["alternative"] != "") {
+						mainEmbed.addFields("❔Known as:", character.name.alternative.join(", "), true);
+					}
 
-                                    charMedia.forEach(function (entry) {
+					// description
+					if (character.description) {
+						mainEmbed.description = character.description;
+						mainEmbed.withReadmore = character.siteUrl;
+					}
+					else {
+						mainEmbed.description = "This character doesn't have any written description yet";
+					}
 
-                                        const charNodes = entry['characters'];
+					// voice actor
+					if (arrVa.length >= 1) {
+						mainEmbed.addFields("🎙️ VA Staff:", arrVa.join("\n"));
+					}
 
-                                        charNodes.forEach(function (entryCharacters) {
-                                            va_txtCharacter += `[${entryCharacters.name.full}](${entryCharacters['siteUrl']})\n`;
-                                        });
+					mainEmbed.setFooter(`❤️ ${character.favourites}`);
 
-                                        if (va_ctr === 0) {
-                                            objEmbed.thumbnail = {
-                                                url: charNodes[0].image.large
-                                            };
-                                        }
+					return interaction.followUp(mainEmbed.buildEmbed());
 
-                                        objEmbed.fields[va_ctr] = {
-                                            name: `${entry.node.title['romaji']} (${entry.node['seasonYear']}):`,
-                                            value: va_txtCharacter,
-                                            inline: true
-                                        };
-                                        va_txtCharacter = "";
+				})
+				.catch(async function handleError(error) {
+					return interaction.followUp(anilistErrorHandler("ANILIST_CHARACTER", error, "Cannot find that character"));
+				});
 
-                                        if (va_pointerMaxData - 1 <= 0 || va_ctr > va_maxCtr) {
-                                            const va_msgEmbed = new MessageEmbed(objEmbed);
-                                            va_arrPages.push(va_msgEmbed);
-                                            va_txtTitle = "";
-                                            va_txtCharacter = "";
-                                            va_ctr = 0;
-                                        } else {
-                                            va_ctr++;
-                                        }
-                                        va_pointerMaxData--;
-                                    });
+			break;
+		}
+		case "staff": {
+			const staffName = interaction.options.getString("staff-name");
+			const filter = interaction.options.getString("filter") ? interaction.options.getString("filter") : "staff";
 
-                                    if (va_arrPages.length >= 1)
-                                        paginationEmbed(interaction, va_arrPages, DiscordStyles.Button.pagingButtonList);
-                                    else
-                                        interaction.reply("I can't find this **Staff** based on **VA**");
-                                    break;
-                            }
-                        }
-                    })
-                    .catch(function handleError(error) {
-                        // console.log(error);
-                        return interaction.reply(`:x: I can't find this **staff**. Try to put more specific keyword.`);
-                    });
+			const fetchQuery = `query ($keyword: String) {
+			Staff (search: $keyword) {
+				id
+				name{
+					full
+					native
+					alternative
+				}
+				image{large,medium}
+				description
+				siteUrl
+				favourites
+				staffMedia(type: ANIME){
+					edges{
+						node{
+							id
+							title{
+								romaji
+							}
+							siteUrl
+							seasonYear
+						}
+						staffRole
+					}
+				}
+				characterMedia{
+					edges{
+						node{
+							title{
+								romaji
+							}
+							siteUrl
+							seasonYear
+						}
+						characters{
+							siteUrl
+							name{
+								full
+								native
+								alternative
+							}
+							image{large,medium}
+						}
+					}
+				}
+			}
+			}`;
 
-                break;
-        }
-    },
+			// Define our query variables and values that will be used in the query request
+			const fetchVariables = {
+				keyword: staffName,
+			};
+
+			// Define the config we'll need for our Api request
+			fetchOptions.body = JSON.stringify({
+				"query": fetchQuery,
+				"variables": fetchVariables,
+			});
+
+			await interaction.deferReply();
+
+			// Make the HTTP Api request
+			await fetch(fetchUrl, fetchOptions).then(handleResponse)
+				.then(async function handleData(dt) {
+					// main data
+					const staff = dt.data.Staff;
+
+					const mainEmbed = new Embed();
+					mainEmbed.color = embedColor;
+					mainEmbed.authorIcon = staff.image.medium;
+					const staffNativeName = staff.name.native ? ` (${staff.name.native})` : "";
+					mainEmbed.authorName = `${staff.name.full}${staffNativeName}`;
+					mainEmbed.authorUrl = staff.siteUrl;
+					mainEmbed.description = staff.description;
+					mainEmbed.options.readmoreLink = staff.siteUrl;
+					mainEmbed.thumbnail = staff.image.medium;
+
+					let arrFields = [];
+					const pages = []; const maxIdx = 4;
+					let ctr = 0; let idx = 0;
+					switch (filter) {
+					case "staff": {
+						// Staff data
+						const staffMediaEdges = staff.staffMedia.edges;
+						const maxData = staffMediaEdges.length;
+
+						if (maxData <= 0) return interaction.followUp(":x: Cannot find this staff");
+
+						staffMediaEdges.forEach(function(entry) {
+							const staffNode = entry.node;
+
+							const seasonYear = staffNode.seasonYear ?
+								` (${staffNode.seasonYear})` : "";
+
+							arrFields.push({
+								name: `${staffNode.title.romaji}${seasonYear}`,
+								value: `[${entry.staffRole}](${staffNode.siteUrl})`,
+								inline: true,
+							});
+
+							ctr++;
+
+							if (ctr >= maxData || idx > maxIdx) {
+								mainEmbed.fields = arrFields;
+
+								pages.push(mainEmbed.build());
+								idx = 0; arrFields = [];
+							}
+							else {
+								idx++;
+							}
+
+						});
+
+						new Pagination().setInterface(interaction)
+							.setPageList(pages)
+							.setButtonList(PaginationButton)
+							.setTimeout(PaginationConfig.timeout)
+							.paginate();
+
+						break;
+					}
+					case "voice-actor": {
+						// VA data
+						const charMediaEdges = staff.characterMedia.edges;
+						const maxData = charMediaEdges.length;
+
+						if (maxData <= 0) return interaction.followUp(":x: Cannot find that staff as voice actor");
+
+						charMediaEdges.forEach(function(entry) {
+							// console.log(entry);
+							const charNodes = entry.characters;
+
+							let txtCharacter = "";
+							// loop character
+							charNodes.forEach(function(entryCharacters) {
+								txtCharacter += `[${entryCharacters.name.full}](${entryCharacters.siteUrl})\n`;
+							});
+
+							const seasonYear = entry.node.seasonYear ?
+								` (${entry.node.seasonYear})` : "";
+
+							arrFields.push({
+								name: `${entry.node.title.romaji}${seasonYear}`,
+								value: `as ${txtCharacter}`,
+								inline: true,
+							});
+
+							ctr++;
+
+							if (ctr >= maxData || idx > maxIdx) {
+								mainEmbed.thumbnail = charNodes[0].image.large;
+								mainEmbed.fields = arrFields;
+
+								pages.push(mainEmbed.build());
+								idx = 0; arrFields = [];
+							}
+							else {
+								idx++;
+							}
+
+						});
+
+						new Pagination().setInterface(interaction)
+							.setPageList(pages)
+							.setButtonList(PaginationButton)
+							.setTimeout(PaginationConfig.timeout)
+							.paginate();
+
+						break;
+					}
+					}
+
+				})
+				.catch(async function handleError(error) {
+					return interaction.followUp(anilistErrorHandler("ANILIST_STAFF", error, "Cannot find that staff"));
+				});
+
+			break;
+		}
+		}
+	},
 };

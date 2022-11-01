@@ -1,38 +1,28 @@
-const { MessageEmbed } = require('discord.js');
-const DiscordStyles = require('../modules/DiscordStyles');
-const paginationEmbed = require('../modules/DiscordPagination');
+const { ApplicationCommandType } = require("discord.js");
+const { Embed } = require("../modules/discord/Embed");
 
 module.exports = {
-    name: 'help',
-    description: 'Cure Peace help command',
-    options: [
-        {//basic command
-            name: "basic-command",
-            description: "List all basic command",
-            type: 1,
-        },
-    ],
-    executeMessage(message, args) {
+	name: "help",
+	description: "Cure Peace help command",
+	type: ApplicationCommandType.ChatInput,
+	options: [
+		{
+			// basic command
+			name: "command-list",
+			description: "List all basic command of cure Peace",
+			type: 1,
+		},
+	],
+	execute(interaction) {
+		const embed = new Embed();
+		embed.title = "Cure Peace Command List";
+		embed.addFields("/anilist", "Search with Anilist");
+		embed.addFields("/jankenpon", "Play jankenpon with Peace");
+		embed.addFields("/sakugabooru", "Search with Sakugabooru");
+		embed.addFields("/saucenao", "Search image with Saucenao");
+		embed.addFields("/temp", "Convert temperature");
+		embed.addFields("/thread", "Peace will join/leave thread");
 
-    },
-    execute(interaction) {
-        var command = interaction.options._group;
-        var commandSubcommand = interaction.options.getSubcommand();
-
-        const embed = new MessageEmbed()
-        .setColor('#efcc2c')
-        .setTitle('Cure Peace command')
-        .addFields(
-            { name: '/anilist', value: 'Open anilist command' },
-            { name: '/jankenpon', value: 'Play jankenpon with Peace' },
-            { name: '/sakugabooru', value: 'Search with sakugabooru' },
-            { name: '/saucenao', value: 'Search image using saucenao' },
-            { name: '/temp', value: 'Convert temperature' },
-            { name: '/thread', value: 'Join/leave thread' },
-        );
-
-        return interaction.reply({embeds:[embed]});
-
-        
-    }
+		return interaction.reply(embed.buildEmbed());
+	},
 };

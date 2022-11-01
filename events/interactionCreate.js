@@ -1,51 +1,56 @@
-const GlobalFunctions = require('../modules/GlobalFunctions');
-const fs = require('fs');
-const { REST } = require('@discordjs/rest');
-const { Routes } = require('discord-api-types/v9');
-const { SlashCommandBuilder } = require('@discordjs/builders');
+const { InteractionType, ComponentType } = require("discord.js");
+const { PaginationConfig } = require("../modules/discord/Pagination");
+const { errorLog } = require("../modules/Logger");
+const { dateTimeNow } = require("../modules/helper/datetime");
 
 module.exports = {
-	name: 'interactionCreate',
+	name: "interactionCreate",
 	async execute(interaction) {
-		// if (!interaction.isCommand()) return;
-
-		try {
-			switch(interaction.type){
-				case "APPLICATION_COMMAND":
-					try{
-						const command = interaction.client.commands.get(interaction.commandName);
-						await command.execute(interaction);
-					} catch(error){
-						console.log(error);
-						await GlobalFunctions.errorLogger(error);
-					}
-					break;
-				case "MESSAGE_COMPONENT":
-					switch(interaction.componentType){
-						case "SELECT_MENU":
-							var command = interaction.customId.split(".");//split dot and get the command
-							interaction.customId = command[1];//modify the id & remove the command name
-							command = interaction.client.commands.get(command[0]);
-							await command.executeComponentSelectMenu(interaction);
-							break;
-						case "BUTTON":
-							//prevent paging button call
-							if(interaction.customId=="previousbtn"||interaction.customId=="nextbtn") return;
-							var command = interaction.customId.split(".");//split dot and get the command
-							interaction.customId = command[1];//modify the id & remove the command name
-							command = interaction.client.commands.get(command[0]);
-							await command.executeComponentButton(interaction);
-							break;
-					}
-					break;
+		// slash text command
+		if (interaction.isChatInputCommand()) {
+			try {
+				const command = interaction.client.commands.get(interaction.commandName);
+				await command.execute(interaction);
 			}
-		} catch(error){
-			console.error(error);
-			await GlobalFunctions.errorLogger(error);
+			catch (error) {
+				const log = `[INTERACTION_CREATE] ${dateTimeNow()} ${error}`;
+				console.log(log);
+				errorLog(log);
+			}
 		}
 
+		try {
+			switch (interaction.type) {
+			case InteractionType.MessageComponent:{
+				// split dot and get the command
+				let command = interaction.customId.split(".");
 
+				switch (interaction.componentType) {
+				case ComponentType.SelectMenu:
+					// split dot and get the command
+					// modify the id & remove the command name
+					interaction.customId = command[1];
+					command = interaction.client.commands.get(command[0]);
+					await command.executeComponentSelectMenu(interaction);
+					break;
+				case ComponentType.Button:
+					// prevent from pagination button
+					if (interaction.customId == PaginationConfig.prevBtn || interaction.customId == PaginationConfig.nextBtn) return;
 
-		// console.log(`${interaction.user.tag} in #${interaction.channel.name} triggered an interaction.`);
+					// modify the id & remove the command name
+					interaction.customId = command[1];
+					command = interaction.client.commands.get(command[0]);
+					await command.executeComponentButton(interaction);
+					break;
+				}
+				break;
+			}
+			}
+		}
+		catch (error) {
+			const log = `[INTERACTION_CREATE] ${dateTimeNow()} ${error}`;
+			console.error(log);
+			errorLog(log);
+		}
 	},
 };

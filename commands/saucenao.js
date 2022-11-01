@@ -1,191 +1,214 @@
-const {MessageActionRow, MessageButton, MessageEmbed, Discord, Message} = require('discord.js');
-const fetch = require('node-fetch');
-const GlobalFunctions = require('../modules/GlobalFunctions');
-const DiscordStyles = require('../modules/DiscordStyles');
-const paginationEmbed = require('discordjs-button-pagination');
-const { saucenao_key } = require('../storage/config.json');
+const saucenao_key = require("dotenv").config().parsed.saucenao_key;
+const fetch = require("node-fetch");
+
+const { ApplicationCommandType, ApplicationCommandOptionType, hyperlink, bold } = require("discord.js");
+const { Pagination, PaginationConfig, PaginationButton } = require("../modules/discord/Pagination");
+const { Embed } = require("../modules/discord/Embed");
+const { errorLog } = require("../modules/Logger");
+const { dateTimeNow } = require("../modules/helper/datetime");
 
 function handleResponse(response) {
-    return response.json().then(function (json) {
-        return response.ok ? json : Promise.reject(json);
-    });
+	return response.json().then(function(json) {
+		return response.ok ? json : Promise.reject(json);
+	});
+}
+
+// returns error message on catch
+function saucenaoErrorHandler(tag, error, message) {
+	let errMessage = ":x: ";
+	let log = `[${tag}] ${dateTimeNow()} `;
+	if ("errno" in error) {
+		errMessage += "Unexpected error has occured";
+		log += error;
+		errorLog(log);
+	}
+	else {
+		console.log(error);
+		errMessage += `Error ${message}`;
+		log += `Error ${message}`;
+	}
+
+	console.log(log);
+	return errMessage;
 }
 
 module.exports = {
-	name: 'saucenao',
-	description: 'SauceNao command',
+	name: "saucenao",
+	description: "Reverse search image with SauceNAO",
+	type: ApplicationCommandType.ChatInput,
 	options:[
-        {
-            name: "search",
-			description: "Reverse search anime image",
-			type: 1,
-			options:[
+		{
+			name: "image-url",
+			description: "provide the image url",
+			type: ApplicationCommandOptionType.String,
+			required: true,
+		},
+		{
+			name: "search-mode",
+			description: "filterize based on search mode",
+			type: ApplicationCommandOptionType.String,
+			required: false,
+			choices: [
 				{
-					name:"image-url",
-					description:"Enter the image url",
-					type:3,
-					required:true
-				}
-			]
-		}
+					name: "anime",
+					value: "anime",
+				},
+				{
+					name: "art",
+					value: "art",
+				},
+			],
+		},
 	],
-	async executeMessage(message, args) {
-	},
-	async execute(interaction){
-		var command = interaction.options._group;
-        var commandSubcommand = interaction.options._subcommand;
-		var userId = interaction.user.id;
-        var userUsername = interaction.user.username;
-        var userAvatarUrl = interaction.user.avatarURL();
+	async execute(interaction) {
+		const imgUrl = interaction.options.getString("image-url");
+		const searchMode = interaction.options.getString("search-mode") ?
+			interaction.options.getString("search-mode") : "anime";
 
-		var objEmbed = {
-			color:DiscordStyles.Color.embedColor,
-			author:{
-				name: `SauceNao Top Search`,
-			}
+		let embed = new Embed();
+
+		let dbsQuery = "";
+		// list of dbs: https://saucenao.com/tools/examples/api/index_details.txt
+		switch (searchMode) {
+		case "anime":
+		default: {
+			dbsQuery = "dbs[]=21";
+			break;
+		}
+		case "art": {
+			dbsQuery = "dbs[]=5&dbs[]=41";
+			break;
+		}
 		}
 
-		switch(commandSubcommand){
-			case "search":
-				await interaction.deferReply();
-				var imageUrl = interaction.options._hoistedOptions[0].value;
+		const saucenaoUrl = `https://saucenao.com/search.php?${dbsQuery}&output_type=2&testmode=1&numres=15&api_key=${saucenao_key}&url=${imgUrl}&hide=3`;
 
-				var url = `https://saucenao.com/search.php?db=21&output_type=2&testmode=1&numres=5&api_key=${saucenao_key}&url=${imageUrl}`;
-				options = {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Accept': 'application/json',
-                    }
-                };
+		const fetchOptions = {
+			method: "POST",
+			headers: {
+				"Content-Type": "application/json",
+				"Accept": "application/json",
+			},
+		};
 
-				try{
-					await fetch(url, options).then(handleResponse)
-					.then(async function handleData(dt) {
-						//json results example:
-						/*
-							"results":[{"header":{"similarity":"87.97","thumbnail":"https:\/\/img3.saucenao.com\/frames\/?expires=1630436400\u0026init=1d9a2001c8424d23\u0026data=9b9413943490d33b61838c798545615991e4e7aa2996f6de147141d98b322fddd93d45721e6f0a31922700c79b3843d3c0ebc150ed168118d0bcb95a0abd619699a61e6fe431f6a0054b2b3443443d962359f175bcc98a24df50508b1270433b57a195a38bdc7f1cd2f1fcfe2fd8fa17\u0026auth=e99de959c68ef57981b918efe9f25f6f063cdf03","index_id":21,"index_name":"Index #21: Anime* - 21510-80-897105.jpg (31239)","dupes":0},"data":{"ext_urls":["https:\/\/anidb.net\/anime\/1413"],"source":"Futari wa Precure","anidb_aid":1413,"part":"08","year":"2004-2005","est_time":"00:14:57 \/ 00:24:10"}}
-						*/
-						
-						var topResult = dt.results[0];
-	
-						//anilist start:
-						var query = `query ($title: String) {
-						Media (search: $title, sort: SEARCH_MATCH, type: ANIME) {
-							id
-							description
-							staff(perPage:6){
-								edges{
-									node{
-										id
-										name{
-											full
-											native
-										}
-									}
-									role
-								}
-							}
-							title{
-							romaji
-							english
-							native
-							}
-							isAdult
-							bannerImage
-							siteUrl
-						}
-						}`;
-		
-						var urlAnilist = 'https://graphql.anilist.co',
-						options = {
-							method: 'POST',
-							headers: {
-								'Content-Type': 'application/json',
-								'Accept': 'application/json',
-							},
-							body: JSON.stringify({
-								query: query,
-								variables: {
-									title: topResult.data.source //search by id
-								}
-							})
-						};
+		switch (searchMode) {
+		case "anime": {
+			await interaction.deferReply();
+			break;
+		}
+		case "art": {
+			await interaction.deferReply({ ephemeral: true });
+			break;
+		}
+		}
 
-						var similarity = topResult.header.similarity;
-						if(similarity<=70) similarity = "❓";
-						else if(similarity<=80) similarity = "☑️";
-						else similarity = "✅";
+		let saucenaoResults = null;
 
-						objEmbed.fields = [
-							{
-								name:`Episode:`,
-								value:`${String(topResult.data.part)}`,
-								inline:true
-							},
-							{
-								name:`Year`,
-								value:`${String(topResult.data.year)}`,
-								inline:true
-							},
-							{
-								name:`Est Time:`,
-								value:`${String(topResult.data.est_time)}`,
-								inline:true
-							},
-							{
-								name:`Similarity:`,
-								value:`${String(topResult.header.similarity)}%`,
-								inline:true
-							},
-							{
-								name:`External Link:`,
-								value:`[AniDB](${String(topResult.data.ext_urls[0])})`,
-								inline:true
-							},
-						];
+		await fetch(saucenaoUrl, fetchOptions).then(handleResponse)
+			.then(async function handleData(dtSaucenao) {
+				if (dtSaucenao.results) {
+					saucenaoResults = dtSaucenao.results;
+				}
+			})
+			.catch(async function handleError(errorSaucenao) {
+				return interaction.followUp(saucenaoErrorHandler("SAUCENAO", errorSaucenao, "Cannot find any results of this search"));
+			});
 
-						objEmbed.thumbnail = {
-							url:String(imageUrl)
-						}
-		
-						await fetch(urlAnilist, options).then(handleResponse)
-						.then(async function handleData(dtAnilist) {
-							if(!dtAnilist.data.Media.isAdult){
-								objEmbed.author.iconURL = dtAnilist.data.Media.bannerImage;
-								objEmbed.title = `${similarity} ${dtAnilist.data.Media.title.romaji}`;
-								objEmbed.description = GlobalFunctions.cutText(GlobalFunctions.markupCleaner(dtAnilist.data.Media.description),180);
-								objEmbed.description+=`\n\n[View more on Anilist](https://anilist.co/anime/${dtAnilist.data.Media.id})`;
-		
-								objEmbed.image = {
-									url:`https://img.anili.st/media/${dtAnilist.data.Media.id}`
-								}
-							}
-						})
-						.catch(async function handleError(errorAnilist) {
-							objEmbed.title = `${similarity} ${topResult.data.source}`;
-							objEmbed.image = {
-								url:String(imageUrl)
-							}
-							objEmbed.description = "Cannot load anilist information";
-							// console.log(errorAnilist);
-							// return await interaction.editReply(`:x: Error on searching the image.`);
-						});
-						//anilist end
-	
-						return interaction.editReply({embeds:[new MessageEmbed(objEmbed)]});
-						
-					})
-					.catch(async function handleError(err) {
-						console.log(err);
-						// return await interaction.editReply({content:err});
-						return await interaction.editReply(`:x: Error on searching the image.`);
-					});
-				} catch(err){
-					return await interaction.editReply({content:err});
+		if (!saucenaoResults) {
+			return await interaction.followUp(":x: cannot find any results of this search");
+		}
+
+		const pages = [];
+		switch (searchMode) {
+		case "anime": {
+			saucenaoResults.forEach(results => {
+				embed = new Embed();
+				const similarity = results.header.similarity;
+				let description = `${bold("Similarity:")} ${similarity}`;
+
+				if (similarity >= 85) {
+					embed.color = Embed.color.green;
+				}
+				else if (similarity >= 50) {
+					embed.color = Embed.color.yellow;
+				}
+				else {
+					embed.color = Embed.color.red;
 				}
 
-				break;
+				embed.thumbnail = results.header.thumbnail;
+				embed.authorName = results.data.source;
+				embed.authorUrl = `https://anilist.co/anime/${results.data.anilist_id}`;
+
+				if ("year" in results.data) {
+					description += `\\n${bold("Year: ")}${results.data.year}`;
+				}
+
+				if ("part" in results.data) {
+					description += `\\n${bold("Episode: ")} ${results.data.part}`;
+				}
+
+				embed.description = description;
+
+				embed.addFields("est time", `${results.data.est_time}`, true);
+				pages.push(embed.build());
+			});
+
+			return new Pagination().setInterface(interaction)
+				.setPageList(pages)
+				.setButtonList(PaginationButton)
+				.setTimeout(PaginationConfig.timeout)
+				.paginate();
 		}
-	}
+		case "art": {
+			saucenaoResults.forEach(results => {
+				embed = new Embed();
+				const similarity = results.header.similarity;
+				let description = `${bold("Similarity:")} ${similarity}`;
+
+				if (similarity >= 85) {
+					embed.color = Embed.color.green;
+				}
+				else if (similarity >= 50) {
+					embed.color = Embed.color.yellow;
+				}
+				else {
+					embed.color = Embed.color.red;
+				}
+
+				embed.thumbnail = results.header.thumbnail;
+
+				const link = results.data.ext_urls[0];
+				// embed.thumbnail = results.header.thumbnail;
+				if ("pixiv_id" in results.data) {
+					// pixiv:
+					embed.addFields("Source Link", `${hyperlink("Pixiv", link)}`);
+					embed.authorName = results.data.member_name;
+					embed.authorUrl = `https://www.pixiv.net/en/users/${results.data.pixiv_id}`;
+
+					embed.title = results.data.title;
+				}
+				else if ("twitter_user_id" in results.data) {
+					// twitter:
+					embed.addFields("Source Link", `${hyperlink("Twitter", link)}`);
+					embed.authorName = results.data.member_name;
+					embed.authorUrl = `https://www.twitter.com/${results.data.member_name}`;
+					description += `\\nCreated at: ${results.data.created_at}`;
+				}
+
+				embed.description = description;
+
+				if (!results.header.hidden) {
+					pages.push(embed.build());
+				}
+			});
+
+			return new Pagination().setInterface(interaction)
+				.setPageList(pages)
+				.setButtonList(PaginationButton)
+				.setTimeout(PaginationConfig.timeout)
+				.paginate();
+		}
+		}
+	},
 };

@@ -1,16 +1,10 @@
+const { ApplicationCommandType } = require("discord.js");
+
 module.exports = {
-	name: 'hello',
-	description: 'Peace will say hello',
-	options:[
-        {
-            name: "peace",
-			description: "Say hello to cure peace",
-			type: 3
-		}
-	],
-	executeMessage(message, args) {
-	},
-	async execute(interaction){
+	type: ApplicationCommandType.ChatInput,
+	name: "hello",
+	description: "Peace will say hello",
+	async execute(interaction) {
 		await interaction.reply("hello!");
-	}
+	},
 };
