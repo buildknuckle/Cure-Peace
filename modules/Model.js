@@ -9,8 +9,8 @@ class Model {
 	// tablename of the model
 	tableName = "";
 
-	// lists of columns name
-	schema = {};
+	// lists of fields name
+	fields = {};
 
 	// default allowed fields on insert/update
 	allowedFields = [];
@@ -51,7 +51,7 @@ class Model {
 	async deleteByPrimary() {
 		if (!this.hasData()) { return; }
 		const mapWhere = new Map();
-		mapWhere.set(this.schema[this.primaryKey], this[this.primaryKey]);
+		mapWhere.set(this.fields[this.primaryKey], this[this.primaryKey]);
 		await DB.del(this.tableName, mapWhere);
 	}
 
@@ -63,7 +63,7 @@ class Model {
 		}
 		else {
 			this.allowedFields.forEach(item => {
-				mapInsert.set(this.schema[item], this[item]);
+				mapInsert.set(this.fields[item], this[item]);
 			});
 		}
 		const result = await DB.insert(this.tableName, mapInsert);
@@ -77,7 +77,7 @@ class Model {
 		}
 		else {
 			this.allowedFields.forEach(item => {
-				mapSet.set(this.schema[item], this[item]);
+				mapSet.set(this.fields[item], this[item]);
 			});
 		}
 
@@ -87,7 +87,7 @@ class Model {
 		}
 		else {
 			this.updateFields.forEach(item => {
-				mapWhere.set(this.schema[item], this[item]);
+				mapWhere.set(this.fields[item], this[item]);
 			});
 		}
 

@@ -4,7 +4,7 @@ class PeaceStatsModel extends Model {
 	tableName = "peace_stats";
 	primaryKey = "id_user";
 
-	schema = {
+	fields = {
 		id_user: "id_user",
 		name: "name",
 		win: "win",
@@ -13,8 +13,8 @@ class PeaceStatsModel extends Model {
 		points: "points",
 	};
 
-	allowedFields = [this.schema.id_user, this.schema.name, this.schema.win, this.schema.loss, this.schema.draw, this.schema.points];
-	updateFields = [this.schema.id_user];
+	allowedFields = [this.fields.id_user, this.fields.name, this.fields.win, this.fields.loss, this.fields.draw, this.fields.points];
+	updateFields = [this.fields.id_user];
 
 	id_user = null;
 	name = null;

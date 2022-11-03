@@ -4,15 +4,15 @@ class BirthdayGuildModel extends Model {
 	tableName = "birthday_guild";
 	primaryKey = "id_guild";
 
-	schema = {
+	fields = {
 		id_guild: "id_guild",
 		id_notification_channel: "id_notification_channel",
 		notification_hour: "notification_hour",
 		enabled: "enabled",
 	};
 
-	allowedFields = [this.schema.id_guild, this.schema.id_notification_channel, this.schema.notification_hour, this.schema.enabled];
-	updateFields = [this.schema.id_user];
+	allowedFields = [this.fields.id_guild, this.fields.id_notification_channel, this.fields.notification_hour, this.fields.enabled];
+	updateFields = [this.fields.id_user];
 
 	id_guild = null;
 	id_notification_channel = null;

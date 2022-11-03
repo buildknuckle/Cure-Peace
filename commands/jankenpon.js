@@ -110,7 +110,7 @@ module.exports = {
 		// init user peacestats
 		const userPeaceStats = new PeaceStatsModel();
 		let paramWhere = new Map();
-		paramWhere.set(userPeaceStats.schema.id_user, userId);
+		paramWhere.set(userPeaceStats.fields.id_user, userId);
 		await userPeaceStats.find(paramWhere);
 		if (!userPeaceStats.hasData()) {
 			userPeaceStats.id_user = userId;
@@ -131,7 +131,7 @@ module.exports = {
 		// load peacestats
 		const peaceStatsDB = new PeaceStatsModel();
 		paramWhere = new Map();
-		paramWhere.set(peaceStatsDB.schema.id_user, clientId);
+		paramWhere.set(peaceStatsDB.fields.id_user, clientId);
 		await peaceStatsDB.find(paramWhere);
 
 		switch (interaction.options.getSubcommand()) {
@@ -298,7 +298,7 @@ module.exports = {
 				embed.thumbnail = "https://cdn.discordapp.com/avatars/764510594153054258/cb309a0c731ca1357cfbe303c39d47a8.png";
 
 				const paramOrderBy = new Map();
-				paramOrderBy.set(peaceStatsDB.schema.points, "DESC");
+				paramOrderBy.set(peaceStatsDB.fields.points, "DESC");
 				const results = await PeaceStatsModel.DB.selectAll(peaceStatsDB.tableName, null, paramOrderBy, 10);
 				for (let i = 0; i < results.length;i++) {
 					const leaderboardModel = new PeaceStatsModel();

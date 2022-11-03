@@ -4,7 +4,7 @@ class BirthdayModel extends Model {
 	tableName = "birthday";
 	primaryKey = "id";
 
-	schema = {
+	fields = {
 		id: "id",
 		id_guild: "id_guild",
 		id_user: "id_user",
@@ -14,8 +14,8 @@ class BirthdayModel extends Model {
 		enabled: "enabled",
 	};
 
-	allowedFields = [this.schema.id, this.schema.id_guild, this.schema.id_user, this.schema.birthday, this.schema.label, this.schema.notes, this.schema.enabled];
-	updateFields = [this.schema.id];
+	allowedFields = [this.fields.id, this.fields.id_guild, this.fields.id_user, this.fields.birthday, this.fields.label, this.fields.notes, this.fields.enabled];
+	updateFields = [this.fields.id];
 
 	id = null;
 	id_guild = null;

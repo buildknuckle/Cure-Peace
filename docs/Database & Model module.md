@@ -9,8 +9,8 @@ tableName = "";
 // primary key that'll be used on .hasData() & .deleteByPrimary()
 primaryKey = "";
 
-// previously known as columns structure and now changed to schema
-schema = {};
+// previously known as columns and now changed to fields
+fields = {};
 
 // default fields that'll be inserted/updated
 allowedFields = [];
@@ -57,4 +57,7 @@ await peaceStats.deleteByPrimary()
 
 // basic DB operation can also be used through .DB static variable:
 await PeaceStatsModel.DB.select(tableName, parameterWhere)
+
+// basic DB query operation:
+await PeaceStatsModel.DB.query("SELECT * FROM tablename")
 ```
