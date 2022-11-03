@@ -24,13 +24,13 @@ async function initPeaceStats(client) {
 	// check if peace stats exists
 	let peaceStats = new PeaceStatsModel();
 	const paramWhere = new Map();
-	paramWhere.set(peaceStats.schema.id_user, clientId);
+	paramWhere.set(peaceStats.fields.id_user, clientId);
 	await peaceStats.find(paramWhere);
 
 	if (!peaceStats.hasData()) {
 		const paramInsert = new Map();
-		paramInsert.set(peaceStats.schema.id_user, clientId);
-		paramInsert.set(peaceStats.schema.name, "Cure Peace");
+		paramInsert.set(peaceStats.fields.id_user, clientId);
+		paramInsert.set(peaceStats.fields.name, "Cure Peace");
 		peaceStats = new PeaceStatsModel();
 		await peaceStats.insert(paramInsert);
 	}
