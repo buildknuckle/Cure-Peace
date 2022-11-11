@@ -1,20 +1,32 @@
 const Model = require("../modules/Model");
 
 class PeaceStatsModel extends Model {
-	tableName = "peace_stats";
-	primaryKey = "id_user";
+	get tableName() {
+		return "peace_stats";
+	}
 
-	fields = {
-		id_user: "id_user",
-		name: "name",
-		win: "win",
-		loss: "loss",
-		draw: "draw",
-		points: "points",
-	};
+	get primaryKey() {
+		return "id_user";
+	}
 
-	allowedFields = [this.fields.id_user, this.fields.name, this.fields.win, this.fields.loss, this.fields.draw, this.fields.points];
-	updateFields = [this.fields.id_user];
+	get fields() {
+		return {
+			id_user: "id_user",
+			name: "name",
+			win: "win",
+			loss: "loss",
+			draw: "draw",
+			points: "points",
+		};
+	}
+
+	get allowedFields() {
+		return [this.fields.id_user, this.fields.name, this.fields.win, this.fields.loss, this.fields.draw, this.fields.points];
+	}
+
+	get updateFields() {
+		return [this.fields.id_user];
+	}
 
 	id_user = null;
 	name = null;
