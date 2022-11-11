@@ -1,18 +1,30 @@
 const Model = require("../modules/Model");
 
 class BirthdayGuildModel extends Model {
-	tableName = "birthday_guild";
-	primaryKey = "id_guild";
+	get tableName() {
+		return "birthday_guild";
+	}
 
-	fields = {
-		id_guild: "id_guild",
-		id_notification_channel: "id_notification_channel",
-		notification_hour: "notification_hour",
-		enabled: "enabled",
-	};
+	get primaryKey() {
+		return "id_guild";
+	}
 
-	allowedFields = [this.fields.id_guild, this.fields.id_notification_channel, this.fields.notification_hour, this.fields.enabled];
-	updateFields = [this.fields.id_user];
+	get fields() {
+		return {
+			id_guild: "id_guild",
+			id_notification_channel: "id_notification_channel",
+			notification_hour: "notification_hour",
+			enabled: "enabled",
+		};
+	}
+
+	get allowedFields() {
+		return [this.fields.id_guild, this.fields.id_notification_channel, this.fields.notification_hour, this.fields.enabled];
+	}
+
+	get updateFields() {
+		return [this.fields.id_user];
+	}
 
 	id_guild = null;
 	id_notification_channel = null;

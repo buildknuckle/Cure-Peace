@@ -8,6 +8,10 @@ const conn = DB.createPool({
 	password: dotenv.parsed.database_password,
 	database: dotenv.parsed.database_database,
 	multipleStatements: true,
+	insertIdAsNumber: true,
+	decimalAsNumber: true,
+	bigIntAsNumber: true,
+	trace: dotenv.parsed.NODE_ENV == "development" ? true : false,
 });
 
 // basic select functions
@@ -373,7 +377,8 @@ async function count(tableName, parameterWhere = null) {
 	}
 
 	// conn.query(query,arrParameterized,function (err) {});
-	return await conn.query(_query, arrParameterized);
+	const result = await conn.query(_query, arrParameterized);
+	return result[0]["total"];
 }
 
 // basic raw query functions

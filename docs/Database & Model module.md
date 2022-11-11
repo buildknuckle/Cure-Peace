@@ -1,63 +1,137 @@
-# >Database & Model.js Module:
-This module can be used to help up with database CRUD operation and already extends with Model.js and Database.js with. Basic DB CRUD functions can also be used with this module. Model structure example can be seen inside `models/PeaceStatsModel.js` and model usage example can be seen on `jankenpon.js` command.
+# Database & Model.js Module:
+This module can be used to help with database CRUD operation by extending `Model.js`.
 
-Basic model structure:
+### Basic model structure:
+5 getter variable components for model
+- `tableName` : main table name
+- `primaryKey` : primary key that'll be used on `.hasData()` & `.deleteByPrimary()`
+- `fields` : table fields structure
+- `allowedFields` : default set fields that'll be inserted/updated
+- `updateFields` : default where fields during on `.update()`
+
 ```
-// main table name
-tableName = "";
+const Model = require("../modules/Model");
 
-// primary key that'll be used on .hasData() & .deleteByPrimary()
-primaryKey = "";
+class PeaceStatsModel extends Model {
+  get tableName() {
+    return "peace_stats";
+  }
 
-// previously known as columns and now changed to fields
-fields = {};
+  get primaryKey() {
+    return "id_user";
+  }
 
-// default fields that'll be inserted/updated
-allowedFields = [];
+  get fields() {
+    return {
+      id_user: "id_user",
+      name: "name",
+      win: "win",
+      loss: "loss",
+    };
+  }
 
-// default where fields upon data update
-updateFields = [];
+  get allowedFields() {
+    return [this.fields.id_user, this.fields.name, this.fields.win, this.fields.loss];
+  }
 
-// below will be default columns & value that can be called through its model class. e.g:
-id_user = null;
-win = 0;
-lose = 0;
+  get updateFields() {
+    return [this.fields.id_user];
+  }
+
+  // below will be default fields & value that will be used:
+  id_user = null;
+  name = null;
+  win = 0;
+  loss = 0;
+}
 ```
 To use database model simply create its own class:
 
 ```
 const peaceStats = new PeaceStatsModel();
 ```
-
-Usage example:
+___
+### Selecting 1 Data:
 ```
-// manipulate model variable with:
+const paramWhere = new Map();
+paramWhere.set("id_user", 12345);
+await peaceStats.find();
+```
+___
+### Updating Data:
+Updating data can be done with variable or parameter.
+`allowedFields` getter by default will be used as default `paramSet` and `updateFields` getter by defaults will be used as default `paramWhere`.
+
+- With Variable:
+```
+peaceStats.win+=5;
+await peaceStats.update();
+```
+
+- With parameter:
+
+```
+const paramSet = new Map();
+paramSet.set("win", 5);
+const paramWhere = new Map();
+paramWhere.set("id_user", 12345);
+await peaceStats.update();
+```
+
+- With variable and parameter respectively:
+```
+// update data with variable:
 peaceStats.name = "Cure Peace";
-peaceStats.win +=1 ;
+peaceStats.win+=5;
 
-// select 1 data:
-await peaceStats.find(<paramWhere>)
+// assign the paramWhere:
+const paramWhere = new Map();
+paramWhere.set("id_user", 12345);
+await peaceStats.update(null, paramWhere);
+```
 
-// check if data exists:
-peaceStats.hasData()
+___
+### Inserting Data:
 
-// data insertion:
-// if paramInsert was empty then it'll be inserted from assigned variable
-await peaceStats.insert(<paramInsert>)
+- with variable:
+```
+peaceStats.id_user = 12345;
+peaceStats.win = 10;
+const insertedId = await peaceStats.insert();
+// insertedId will be returned after inserting data
+console.log(insertedId);
+```
 
-// if paramSet are not filled then set value will be assigned with allowedFields variable
-// if paramWhere are not filled then where value will be assigned with updateFields variable
-await peaceStats.update(<paramSet>, <paramWhere>)
+- with parameter:
+```
+const paramInsert = new Map();
+paramInsert.set("id_user", 12345);
+paramInsert.set("win", 10);
+await peaceStats.insert();
+```
+___
+### Delete Data:
+- with paramWhere
+```
+const paramWhere = new Map();
+paramWhere.set("id_user", 12345);
+await peaceStats.delete(paramWhere);
+```
 
-// delete data by paramWhere:
-await peaceStats.delete(<paramWhere>)
-
-// delete data by primary key:
-await peaceStats.deleteByPrimary()
-
-// basic DB operation can also be used through .DB static variable:
+- with primaryKey
+```
+await peaceStats.deleteByPrimary();
+```
+___
+### Basic DB Query
+Basic DB operation can also be used with `.DB` static variable:
+```
 await PeaceStatsModel.DB.select(tableName, parameterWhere)
-
-// basic DB query operation:
 await PeaceStatsModel.DB.query("SELECT * FROM tablename")
+```
+
+___
+### Check if Data exists:
+```
+peaceStats.hasData()
 ```

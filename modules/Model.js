@@ -4,20 +4,30 @@ class Model {
 	static DB = DB;
 
 	// default primary key columns
-	primaryKey = "id";
+	get primaryKey() {
+		return "id";
+	}
 
 	// tablename of the model
-	tableName = "";
+	get tableName() {
+		return "";
+	}
 
 	// lists of fields name
-	fields = {};
+	get fields() {
+		return {};
+	}
 
 	// default allowed fields on insert/update
-	allowedFields = [];
+	get allowedFields() {
+		return [];
+	}
 	// default where fields on update
-	updateFields = [
-		this.primaryKey,
-	];
+	get updateFields() {
+		return [
+			this.primaryKey,
+		];
+	}
 
 	// id = null;
 
