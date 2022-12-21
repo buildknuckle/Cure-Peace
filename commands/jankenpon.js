@@ -1,317 +1,329 @@
-const fs = require('fs');
-const {MessageEmbed} = require('discord.js');
-const filename = 'jankenpon.json';
-let peacestats_fileobj;
+const fs = require("fs");
+const { ApplicationCommandType, ApplicationCommandOptionType, bold } = require("discord.js");
+const { Embed } = require("../modules/discord/Embed");
+const { capitalize } = require("../modules/helper/typography");
 
-try {
-    // rename peacestats.json to jankenpon.json
-    if (fs.existsSync('storage/peacestats.json')) {
-        fs.renameSync('storage/peacestats.json', `storage/${filename}`);
-    }
-    peacestats_fileobj = fs.readFileSync(`storage/${filename}`, 'utf8');
-} catch (err) {
-    if (err.code === 'ENOENT') {
-        fs.writeFile(`storage/${filename}`, '{}', (err) => {
-            if (err) console.log(err); else {
-                console.log("Found no jankenpon stats file, so one was created.\n");
-            }
-            // new file was created, now load it
-            peacestats_fileobj = fs.readFileSync(`storage/${filename}`, 'utf8');
-        });
-    }
-}
-
-let peacestats = JSON.parse(peacestats_fileobj);
+const peacestats = JSON.parse(fs.readFileSync("storage/peacestats.json", "utf8"));
+const PeaceStatsModel = require("../models/PeaceStatsModel");
+const { stripIndent } = require("common-tags");
+const { rndProperty } = require("../modules/helper/randomizer");
 
 module.exports = {
-    name: 'jankenpon',
-    cooldown: 5,
-    description: "Rock-Paper-Scissors! with Peace",
-    args: true,
-    options: [
-        {
-            name: "play",
-            description: "Peace will play a game of Rock-Paper-Scissors with you!",
-            type: 3,
-            choices: [
-                {
-                    name: "rock", value: "rock"
-                },
-                {
-                    name: "paper", value: "paper"
-                },
-                {
-                    name: "scissors", value: "scissors"
-                }
-            ]
-        },
-        {
-            name: "score",
-            description: "Peace will show the Rock-Paper-Score scoreboard!",
-            type: 3,
-            required: false,
-            choices: [
-                {
-                    name: "myscore", value: "myscore"
-                },
-                {
-                    name: "leaderboard", value: "leaderboard"
-                }
-            ]
-        },
-        {
-            name: "view",
-            description: "Peace will display the screencap that you ask for",
-            type: 3,
-            required: false,
-            choices: [
-                {
-                    name: "rock", value: "rock"
-                },
-                {
-                    name: "paper", value: "paper"
-                },
-                {
-                    name: "scissors", value: "scissors"
-                },
-            ]
-        },
-    ],
-    executeMessage(message, args) {
-        // slash-only command
-    },
-    execute(interaction) {
-        const userObject = interaction.member.user;
-        const userId = userObject.id;
-        const username = userObject.username;
-        const avatarURL = userObject.avatarURL();
+	name: "jankenpon",
+	description: "Rock-Paper-Scissors! with Peace",
+	args: true,
+	type: ApplicationCommandType.ChatInput,
+	options: [
+		{
+			name: "play",
+			description: "Play jankenpon with peace",
+			type: ApplicationCommandOptionType.Subcommand,
+			options: [
+				{
+					name: "move",
+					description: "Choose your move",
+					type: ApplicationCommandOptionType.String,
+					required: true,
+					choices: [
+						{
+							name: "rock",
+							value: "rock",
+						},
+						{
+							name: "paper",
+							value: "paper",
+						},
+						{
+							name: "scissors",
+							value: "scissors",
+						},
+					],
+				},
+			],
+		},
+		{
+			name: "scoreboard",
+			description: "Peace will show the Rock-Paper-Score scoreboard!",
+			type: ApplicationCommandOptionType.Subcommand,
+			options: [
+				{
+					name: "type",
+					description: "Scoreboard type",
+					type: ApplicationCommandOptionType.String,
+					required: true,
+					choices: [
+						{
+							name: "my-score",
+							value: "my-score",
+						},
+						{
+							name: "leaderboard",
+							value: "leaderboard",
+						},
+					],
+				},
+			],
+		},
+		{
+			name: "view",
+			description: "Peace will display the screencap that you ask for",
+			type: ApplicationCommandOptionType.Subcommand,
+			options: [
+				{
+					name: "pose",
+					description: "Choose the pose that you want to view",
+					type: ApplicationCommandOptionType.String,
+					required: true,
+					choices: [
+						{
+							name: "rock",
+							value: "rock",
+						},
+						{
+							name: "paper",
+							value: "paper",
+						},
+						{
+							name: "scissors",
+							value: "scissors",
+						},
+					],
+				},
+			],
+		},
+	],
+	async execute(interaction) {
+		const user = interaction.member.user;
+		const userId = user.id;
+		const username = user.username;
+		const avatarURL = user.avatarURL();
+		const clientId = interaction.applicationId;
 
-        const clientId = interaction.applicationId;
-        const janken = new MessageEmbed({
-                color: '#efcc2c',
-                title: 'Sparkling, glittering, rock-paper-scissors!'
-            }
-        );
+		const img = {
+			"rock":"https://i.imgur.com/xvAk8aA.png",
+			"paper":"https://i.imgur.com/uQtSfqD.png",
+			"scissors":"https://i.imgur.com/vgqsHN5.png",
+		};
 
-        if (!(userId in peacestats)) {
-            // if the user playing isn't in the stats, add them
-            peacestats[userId] = {
-                name: username, win: 0, draw: 0, loss: 0, points: 0
-            };
-        }
+		await interaction.deferReply();
 
-        // if the bot isn't in the stats, add it
-        if (!(clientId in peacestats)) {
-            peacestats[clientId] = {
-                name: "Cure Peace", win: 0, draw: 0, loss: 0, points: 0
-            };
-        }
+		// init user peacestats
+		const userPeaceStats = new PeaceStatsModel();
+		let paramWhere = new Map();
+		paramWhere.set(userPeaceStats.fields.id_user, userId);
+		await userPeaceStats.find(paramWhere);
+		if (!userPeaceStats.hasData()) {
+			userPeaceStats.id_user = userId;
+			userPeaceStats.name = username;
+			await userPeaceStats.insert();
+		}
 
-        let uwin = peacestats[userId].win;
-        let udraw = peacestats[userId].draw;
-        let uloss = peacestats[userId].loss;
-        let upoints = peacestats[userId].points;
+		if (!peacestats[userId]) {
+			peacestats[userId] = {
+				name: user.username,
+				win: 0,
+				draw: 0,
+				loss: 0,
+				points: 0,
+			};
+		}
 
-        let pwin = peacestats[clientId].win;
-        let pdraw = peacestats[clientId].draw;
-        let ploss = peacestats[clientId].loss;
-        let ppoints = peacestats[clientId].points;
+		// load peacestats
+		const peaceStatsDB = new PeaceStatsModel();
+		paramWhere = new Map();
+		paramWhere.set(peaceStatsDB.fields.id_user, clientId);
+		await peaceStatsDB.find(paramWhere);
 
-        //first param
-        const command = interaction.options._hoistedOptions.hasOwnProperty(0) ? interaction.options._hoistedOptions[0].name : null;
+		switch (interaction.options.getSubcommand()) {
+		case "play":{
+			const embed = new Embed();
+			const selection = interaction.options.getString("move");
 
-        switch (command) {
-            case "play":
-                const play_selection = interaction.options._hoistedOptions[0].value;
-                const peaceChoice = Math.floor(Math.random() * 3) + 1;
+			// enum list of state
+			const State = {
+				Draw: 0,
+				Win: 1,
+				Lose: 2,
+			};
 
-                let state = 0; // 0:draw, 1:loss, 2:win
-                switch (play_selection) {
-                    case "rock":
-                        switch (peaceChoice) {
-                            case 1:
-                                state = 0;
-                                janken.setDescription(`Hey we both went with Rock! It's a draw!`);
-                                janken.setImage('https://i.imgur.com/xvAk8aA.png');
-                                break;
-                            case 2:
-                                state = 1;
-                                janken.setDescription(`I picked Paper! Oh no, you lost.`);
-                                janken.setImage('https://i.imgur.com/uQtSfqD.png');
-                                break;
-                            case 3:
-                                state = 2;
-                                janken.setDescription(`I picked Scissors! Yay yay yay! You win!`);
-                                janken.setImage('https://i.imgur.com/vgqsHN5.png');
-                                break;
-                        }
-                        break;
-                    case "paper":
-                        switch (peaceChoice) {
-                            case 1:
-                                state = 2;
-                                janken.setDescription(`I picked Rock! Yay yay yay! You win!`);
-                                janken.setImage('https://i.imgur.com/xvAk8aA.png');
-                                break;
-                            case 2:
-                                state = 0;
-                                janken.setDescription(`Hey we both went with Paper! It's a draw!`);
-                                janken.setImage('https://i.imgur.com/uQtSfqD.png');
-                                break;
-                            case 3:
-                                state = 1;
-                                janken.setDescription(`I picked Scissors! Oh no, you lost.`);
-                                janken.setImage('https://i.imgur.com/vgqsHN5.png');
-                                break;
-                        }
-                        break;
-                    case "scissors":
-                        switch (peaceChoice) {
-                            case 1:
-                                state = 1;
-                                janken.setDescription(`I picked Rock! Oh no, you lost.`);
-                                janken.setImage('https://i.imgur.com/xvAk8aA.png');
-                                break;
-                            case 2:
-                                state = 2;
-                                janken.setDescription(`I picked Paper! Yay yay yay! You win!`);
-                                janken.setImage('https://i.imgur.com/uQtSfqD.png');
-                                break;
-                            case 3:
-                                state = 0;
-                                janken.setDescription(`Hey we both went with Scissors! It's a draw!`);
-                                janken.setImage('https://i.imgur.com/vgqsHN5.png');
-                                break;
-                        }
-                        break;
-                }
+			const Choice = {
+				Rock: "rock",
+				Paper: "paper",
+				Scissors: "scissors",
+			};
 
-                switch (state) {
-                    case 0:
-                        //draw
-                        peacestats[userId] = {name: username, win: uwin + 0, draw: udraw + 1, loss: uloss + 0, points: upoints + 1}; // Poster's Score Draw
-                        peacestats[clientId] = {name: "Cure Peace", win: pwin + 0, draw: pdraw + 1, loss: ploss + 0, points: ppoints + 1}; // Cure Peace's Score Draw
-                        break;
-                    case 1:
-                        //loss
-                        peacestats[userId] = {name: username, win: uwin + 0, draw: udraw + 0, loss: uloss + 1, points: upoints + 0}; // Poster's Score Loss
-                        peacestats[clientId] = {name: "Cure Peace", win: pwin + 1, draw: pdraw + 0, loss: ploss + 0, points: ppoints + 3}; // Cure Peace's Score Win
-                        break;
-                    case 2:
-                        //win
-                        peacestats[userId] = {name: username, win: uwin + 1, draw: udraw + 0, loss: uloss + 0, points: upoints + 3}; // Poster's Score Win
-                        peacestats[clientId] = {name: "Cure Peace", win: pwin + 0, draw: pdraw + 0, loss: ploss + 1, points: ppoints + 0}; // Cure Peace's Score Loss
-                        break;
-                }
+			const peaceChoice = rndProperty(Choice);
+			let peaceState = State.Draw;
 
-                fs.writeFile('storage/peacestats.json', JSON.stringify(peacestats), (err) => {
-                    if (err) console.error(err);
-                });
-                return interaction.reply({embeds: [janken]});
-            case "score":
-                const score_selection = interaction.options._hoistedOptions[0].value; //myscore/leaderboard
-                switch (score_selection) {
-                    case "myscore":
-                        const scorecard = new MessageEmbed({
-                            author: username,
-                            thumbnail: avatarURL,
-                            color: '#efcc2c',
-                            title: `Here's your current score, ${username}!`,
-                            fields: [
-                                {
-                                    name: ':white_check_mark:', value: `${uwin} wins`
-                                },
-                                {
-                                    name: ':recycle:', value: `${udraw} draws`
-                                },
-                                {
-                                    name: ':negative_squared_cross_mark:', value: `${uloss} losses`
-                                },
-                                {
-                                    name: ':cloud_lightning:', value: `${upoints} points`
-                                }
-                            ]
-                        });
-                        interaction.reply({embeds: [scorecard]});
-                        break;
-                    case "leaderboard":
-                        let lbArray = Object.entries(peacestats);
+			switch (selection) {
+			case "rock":{
+				switch (peaceChoice) {
+				case Choice.Rock:{
+					peaceState = State.Draw;
+					break;
+				}
+				case Choice.Paper:{
+					peaceState = State.Win;
+					break;
+				}
+				case Choice.Scissors:
+				default:{
+					peaceState = State.Lose;
+					break;
+				}
+				}
+				break;
+			}
+			case "paper":{
+				switch (peaceChoice) {
+				case Choice.Rock:{
+					peaceState = State.Lose;
+					break;
+				}
+				case Choice.Paper:{
+					peaceState = State.Draw;
+					break;
+				}
+				case Choice.Scissors:
+				default:{
+					peaceState = State.Win;
+					break;
+				}
+				}
+				break;
+			}
+			case "scissors":
+			default:{
+				switch (peaceChoice) {
+				case Choice.Rock:{
+					peaceState = State.Win;
+					break;
+				}
+				case Choice.Paper:{
+					peaceState = State.Lose;
+					break;
+				}
+				case Choice.Scissors:
+				default:{
+					peaceState = State.Draw;
+					break;
+				}
+				}
+				break;
+			}
+			}
 
-                        for (let i = 0, len = lbArray.length; i < len; i++) {
-                            lbArray[i].splice(0, 1);
-                        }
+			embed.image = img[peaceChoice];
 
-                        let newarray = [];
+			switch (peaceState) {
+			case State.Draw: {
+				embed.title = "♻️ It's a draw!";
+				embed.description = `Hey we both went with ${capitalize(peaceChoice)}! It's a draw!`;
 
-                        for (let i = 0, len = lbArray.length; i < len; i++) {
-                            newarray.push(lbArray[i].pop());
-                        }
+				peacestats[userId].draw++;
+				peacestats[userId].points++;
+				userPeaceStats.draw++;
+				userPeaceStats.points++;
 
-                    function compare(a, b) {
-                        const ptsa = a.points;
-                        const ptsb = b.points;
+				peacestats[clientId].draw++;
+				peacestats[clientId].points++;
+				peaceStatsDB.draw++;
+				peaceStatsDB.points++;
+				break;
+			}
+			case State.Win: {
+				embed.title = ":negative_squared_cross_mark: You lose!";
+				embed.description = `I picked ${capitalize(peaceChoice)}! Oh no, you lose.`;
 
-                        let comparison = 0;
-                        if (ptsa > ptsb) {
-                            comparison = -1;
-                        } else if (ptsa < ptsb) {
-                            comparison = 1;
-                        }
-                        return comparison;
-                    }
+				peacestats[userId].loss++;
+				userPeaceStats.loss++;
 
-                        newarray.sort(compare);
+				peacestats[clientId].win++;
+				peacestats[clientId].points += 3;
+				peaceStatsDB.win++;
+				peaceStatsDB.points += 3;
 
-                        let postarray = newarray.map(x => `${x.name} - W: ${x.win} - D: ${x.draw} - L: ${x.loss} - Pts: ${x.points}`);
+				embed.color = Embed.color.danger;
+				break;
+			}
+			case State.Lose:
+			default: {
+				embed.title = ":white_check_mark: You win!";
+				embed.description = `I picked ${capitalize(peaceChoice)}! Yay yay yay! You win!`;
 
-                        let leaderboard = new MessageEmbed()
-                            .setAuthor({name: "Top 10"})
-                            .setThumbnail("https://cdn.discordapp.com/avatars/764510594153054258/cb309a0c731ca1357cfbe303c39d47a8.png")
-                            .setColor('#efcc2c')
-                            .setTitle("Here's the current Top 10!");
+				peacestats[userId].win++;
+				peacestats[userId].points += 3;
+				userPeaceStats.win++;
+				userPeaceStats.points += 3;
 
-                        let i = 0;
-                        while (i < 10) {
-                            if (postarray[i] === undefined) {
-                                break;
-                            }
+				peacestats[clientId].loss++;
+				peaceStatsDB.loss++;
+				embed.color = Embed.color.success;
+				break;
+			}
+			}
 
-                            // v14
-                            // leaderboard.addFields([
-                            //     {name: `#${i + 1}`, value: postarray[i]}
-                            // ]);
-                            leaderboard.addField(`#${i + 1}`, postarray[i]);
-                            i++;
-                        }
-                        interaction.reply({embeds: [leaderboard]});
-                        break;
-                }
-                break;
-            case "view":
-                const view_selection = interaction.options._hoistedOptions[0].value; // rock/paper/scissors
-                switch (view_selection) {
-                    case "rock":
-                        janken.setTitle('Rock!')
-                            .setDescription('Here I am doing my cool rock pose!')
-                            .setImage('https://i.imgur.com/xvAk8aA.png');
-                        break;
-                    case "paper":
-                        janken.setTitle('Paper!')
-                            .setDescription('Here I am doing my cool paper pose!')
-                            .setImage('https://i.imgur.com/uQtSfqD.png');
-                        break;
-                    case "scissors":
-                        janken.setColor('#efcc2c')
-                            .setTitle('Scissors!')
-                            .setDescription('Here I am doing my cool scissors pose!')
-                            .setImage('https://i.imgur.com/vgqsHN5.png');
-                        break;
-                }
-                interaction.reply({embeds: [janken]});
-                break;
-            case null:
-                interaction.reply({content: 'You did not specify a valid option!', ephemeral: true});
-                break;
-        }
-    }
+			embed.addFields("Your Current Score:", stripIndent`${bold("Win: ")} ${userPeaceStats.win}
+			${bold("Loss: ")} ${userPeaceStats.loss}
+			${bold("Draw: ")} ${userPeaceStats.draw}`, true);
+
+			fs.writeFile("storage/peacestats.json", JSON.stringify(peacestats), (err) => {
+				if (err) console.error(err);
+			});
+
+			// update peacestats
+			await userPeaceStats.update();
+			await peaceStatsDB.update();
+
+			return interaction.followUp(embed.buildEmbed());
+		}
+		case "scoreboard": {
+			const scoreType = interaction.options.getString("type");
+
+			switch (scoreType) {
+			case "my-score": {
+				const embed = new Embed(interaction.member.user);
+				embed.description = `Here's your current score, ${username}!`;
+				embed.thumbnail = avatarURL;
+				embed.addFields(":white_check_mark:", `${userPeaceStats.win} wins`);
+				embed.addFields(":recycle:", `${userPeaceStats.draw} draws`);
+				embed.addFields(":negative_squared_cross_mark:", `${userPeaceStats.loss} losses`);
+				embed.addFields(":cloud_lightning:", `${userPeaceStats.points} points`);
+				return interaction.followUp(embed.buildEmbed());
+			}
+			case "leaderboard": {
+				const embed = new Embed();
+				embed.authorName = "Top 10";
+				embed.title = "Here's the current Top 10!";
+				embed.thumbnail = "https://cdn.discordapp.com/avatars/764510594153054258/cb309a0c731ca1357cfbe303c39d47a8.png";
+
+				const paramOrderBy = new Map();
+				paramOrderBy.set(peaceStatsDB.fields.points, "DESC");
+				const results = await PeaceStatsModel.DB.selectAll(peaceStatsDB.tableName, null, paramOrderBy, 10);
+				for (let i = 0; i < results.length;i++) {
+					const leaderboardModel = new PeaceStatsModel();
+					leaderboardModel.setData(results[i]);
+
+					embed.addFields("#" + (i + 1), `${leaderboardModel.name} - W: ${leaderboardModel.win} - D: ${leaderboardModel.draw} - L: ${leaderboardModel.loss} - Pts: ${leaderboardModel.points}`);
+
+				}
+
+				return interaction.followUp(embed.buildEmbed());
+			}
+			}
+
+			break;
+		}
+		case "view": {
+			const pose = interaction.options.getString("pose");
+
+			const embed = new Embed();
+			embed.title = `${capitalize(pose)}`;
+			embed.description = `Here I am doing my cool ${pose} pose!`;
+			embed.image = img[pose];
+
+			return interaction.followUp(embed.buildEmbed());
+		}
+		}
+	},
 };
