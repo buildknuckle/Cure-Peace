@@ -7,7 +7,7 @@ function messageId(_link) {
 }
 
 function unicodeToEmoji(_unicode) {
-	return String.fromCodePoint("0x" + _unicode);
+	return String.fromCodePoint(parseInt("0x" + _unicode));
 }
 
 function emojiToUnicode(_emoji) {

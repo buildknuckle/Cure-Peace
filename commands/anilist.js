@@ -248,7 +248,7 @@ module.exports = {
 
 				})
 				.catch(async function handleError(error) {
-					interaction.followUp(anilistErrorHandler("ANILIST_TITLE", error, "Cannot found any results for this title"));
+					await interaction.followUp(anilistErrorHandler("ANILIST_TITLE", error, "Cannot found any results for this title"));
 				});
 
 			// search for similar title
@@ -325,7 +325,7 @@ module.exports = {
 					.paginate();
 			}
 			else {
-				interaction.followUp("Cannot found any results for this title");
+				await interaction.followUp("Cannot found any results for this title");
 			}
 
 			break;
@@ -545,7 +545,7 @@ module.exports = {
 					];
 
 					// alias checking
-					if (character.name["alternative"] != "") {
+					if (character.name["alternative"] !== "") {
 						mainEmbed.addFields("❔Known as:", character.name.alternative.join(", "), true);
 					}
 

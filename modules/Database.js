@@ -2,16 +2,16 @@ const dotenv = require("dotenv").config();
 const DB = require("mariadb");
 
 const conn = DB.createPool({
-	host: dotenv.parsed.database_host,
-	port: dotenv.parsed.database_port,
-	user: dotenv.parsed.database_username,
-	password: dotenv.parsed.database_password,
-	database: dotenv.parsed.database_database,
+	host: dotenv.parsed.DATABASE_HOST,
+	port: dotenv.parsed.DATABASE_PORT,
+	user: dotenv.parsed.DATABASE_USERNAME,
+	password: dotenv.parsed.DATABASE_PASSWORD,
+	database: dotenv.parsed.DATABASE_DATABASE,
 	multipleStatements: true,
 	insertIdAsNumber: true,
 	decimalAsNumber: true,
 	bigIntAsNumber: true,
-	trace: dotenv.parsed.NODE_ENV == "development" ? true : false,
+	trace: dotenv.parsed.NODE_ENV === "development" ? true : false,
 });
 
 // basic select functions

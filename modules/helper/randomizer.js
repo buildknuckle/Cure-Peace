@@ -34,8 +34,7 @@ function rng(min, max) {
 
 // generate random crypto number with hex format
 function rndCrypto(min = 16) {
-	const token = require("crypto").randomBytes(min).toString("hex");
-	return token;
+	return require("crypto").randomBytes(min).toString("hex");
 }
 
 function rndProperty(obj) {
