@@ -15,6 +15,11 @@ const conn = DB.createPool({
 });
 
 // basic select functions
+/**
+ * @param tableName
+ * @param parameterWhere
+ * @returns {Promise<*|null>}
+ */
 async function select(tableName, parameterWhere = null) {
 	const arrParameterized = [];
 	let _query = `SELECT * FROM ${tableName} `;
@@ -137,6 +142,13 @@ async function selectIn(tableName, columns, valWhere, limit = null) {
 	return await conn.query(_query, arrParameterized);
 }
 
+/**
+ * @param tableName
+ * @param columns
+ * @param parameterWhere
+ * @param limit
+ * @returns {Promise<void>}
+ */
 async function selectColumnsIn(tableName, columns, parameterWhere, limit = null) {
 	const arrParameterized = [];
 
@@ -154,7 +166,9 @@ async function selectColumnsIn(tableName, columns, parameterWhere, limit = null)
 	if (limit) {
 		_query += ` LIMIT ${limit} `;
 	}
-	return await conn.query(_query, arrParameterized);
+
+	const result = await conn.query(_query, arrParameterized);
+	return result ? result : null;
 }
 
 // basic select functions with like

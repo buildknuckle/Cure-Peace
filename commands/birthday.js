@@ -42,7 +42,7 @@ module.exports = {
 		{
 			type: ApplicationCommandOptionType.Subcommand,
 			name: "list",
-			description: "List",
+			description: "List the known birthdays on this server",
 
 		},
 		{
@@ -52,93 +52,95 @@ module.exports = {
 
 		},
 	],
-	executeMessage: async function(message, args) {
-		const guildId = message.guild.id;
+	// disabled, to be converted manually
 
-		const config = await getGuildConfig(guildId, false);
-		// let canSendInNotifChannel = false;
-		let notif_channel = null;
-		if (config) {
-			notif_channel = message.guild.channels.cache.get(config.id_notification_channel);
-			// canSendInNotifChannel = notif_channel.permissionsFor(message.author).has(Permissions.FLAGS.SEND_MESSAGES);
-		}
-
-		const isAdmin = message.member.permissions.has(PermissionsBitField.Flags.Administrator);
-		const isDev = ["148794707563118593", "145584315839938561", "171225691751317504"];
-		// const planner_role = message.guild.roles.cache.find(role => role.name === "Birthday Planner");
-		// const user_has_planner_role = planner_role && message.author.roles.cache.has(planner_role.id);
-
-		if (isAdmin || isDev.includes(message.author.id)) {
-			switch (args[0]) {
-			case "enable":
-				await setGuildConfig(guildId, null, null, true)
-					.then(async () => {
-						await message.react("✅");
-					}).catch(async () => {
-						await message.react("❌");
-					});
-
-				break;
-			case "disable":
-				await Birthday.setGuildConfig(guildId, null, null, false)
-					.then(async () => {
-						await message.react("✅");
-					}).catch(async () => {
-						await message.react("❌");
-					});
-				break;
-			case "setchannel":
-				const mentioned_channel = message.mentions.channels.first();
-				if (mentioned_channel) {
-					notif_channel = mentioned_channel.id;
-					await Birthday.setGuildConfig(guildId, notif_channel).then(async () => {
-						await message.react("✅");
-					}).catch(async () => {
-						await message.react("❌");
-					});
-
-				}
-				else {
-					const channel_obj = message.guild.channels.cache.find(ch => ch.name === args[1]);
-					if (channel_obj) {
-						await Birthday.setGuildConfig(guildId, channel_obj.id).then(async () => {
-							await message.react("✅");
-						}).catch(async () => {
-							await message.react("❌");
-						});
-					}
-				}
-				break;
-			case "sethour":
-				const hour = parseInt(args[1]);
-				const isValid = hour.toString().match("\\d{1,2}") && hour >= 0 && hour <= 24;
-				if (isValid) {
-					await Birthday.setGuildConfig(guildId, null, hour).then(async () => {
-						await message.react("✅");
-					}).catch(async () => {
-						await message.react("❌");
-					});
-				}
-				else {
-					await message.reply({ content: "Invalid hour specified!", ephemeral: false }).then((msg) => {
-						setTimeout(async () => {
-							await msg.delete();
-						}, 10000);
-					});
-				}
-				break;
-			case "disablebirthday":
-				break;
-			case "removebirthday":
-				break;
-			default:
-				break;
-			}
-		}
-		else {
-			await message.reply({ content: `You are not allowed to use this command. Use /${module.exports.name}` });
-		}
-	},
+	// executeMessage: async function(message, args) {
+	// 	const guildId = message.guild.id;
+	//
+	// 	const config = await getGuildConfig(guildId, false);
+	// 	// let canSendInNotifChannel = false;
+	// 	let notif_channel = null;
+	// 	if (config) {
+	// 		notif_channel = message.guild.channels.cache.get(config.id_notification_channel);
+	// 		// canSendInNotifChannel = notif_channel.permissionsFor(message.author).has(Permissions.FLAGS.SEND_MESSAGES);
+	// 	}
+	//
+	// 	const isAdmin = message.member.permissions.has(PermissionsBitField.Flags.Administrator);
+	// 	const isDev = ["148794707563118593", "145584315839938561", "171225691751317504"];
+	// 	// const planner_role = message.guild.roles.cache.find(role => role.name === "Birthday Planner");
+	// 	// const user_has_planner_role = planner_role && message.author.roles.cache.has(planner_role.id);
+	//
+	// 	if (isAdmin || isDev.includes(message.author.id)) {
+	// 		switch (args[0]) {
+	// 		case "enable":
+	// 			await setGuildConfig(guildId, null, null, true)
+	// 				.then(async () => {
+	// 					await message.react("✅");
+	// 				}).catch(async () => {
+	// 					await message.react("❌");
+	// 				});
+	//
+	// 			break;
+	// 		case "disable":
+	// 			await Birthday.setGuildConfig(guildId, null, null, false)
+	// 				.then(async () => {
+	// 					await message.react("✅");
+	// 				}).catch(async () => {
+	// 					await message.react("❌");
+	// 				});
+	// 			break;
+	// 		case "setchannel":
+	// 			const mentioned_channel = message.mentions.channels.first();
+	// 			if (mentioned_channel) {
+	// 				notif_channel = mentioned_channel.id;
+	// 				await Birthday.setGuildConfig(guildId, notif_channel).then(async () => {
+	// 					await message.react("✅");
+	// 				}).catch(async () => {
+	// 					await message.react("❌");
+	// 				});
+	//
+	// 			}
+	// 			else {
+	// 				const channel_obj = message.guild.channels.cache.find(ch => ch.name === args[1]);
+	// 				if (channel_obj) {
+	// 					await Birthday.setGuildConfig(guildId, channel_obj.id).then(async () => {
+	// 						await message.react("✅");
+	// 					}).catch(async () => {
+	// 						await message.react("❌");
+	// 					});
+	// 				}
+	// 			}
+	// 			break;
+	// 		case "sethour":
+	// 			const hour = parseInt(args[1]);
+	// 			const isValid = hour.toString().match("\\d{1,2}") && hour >= 0 && hour <= 24;
+	// 			if (isValid) {
+	// 				await Birthday.setGuildConfig(guildId, null, hour).then(async () => {
+	// 					await message.react("✅");
+	// 				}).catch(async () => {
+	// 					await message.react("❌");
+	// 				});
+	// 			}
+	// 			else {
+	// 				await message.reply({ content: "Invalid hour specified!", ephemeral: false }).then((msg) => {
+	// 					setTimeout(async () => {
+	// 						await msg.delete();
+	// 					}, 10000);
+	// 				});
+	// 			}
+	// 			break;
+	// 		case "disablebirthday":
+	// 			break;
+	// 		case "removebirthday":
+	// 			break;
+	// 		default:
+	// 			break;
+	// 		}
+	// 	}
+	// 	else {
+	// 		await message.reply({ content: `You are not allowed to use this command. Use /${module.exports.name}` });
+	// 	}
+	// },
 	execute: async function(interaction) {
 		const subcommand = interaction.options._subcommand;
 		const guild_id = interaction.guild.id;
@@ -146,7 +148,7 @@ module.exports = {
 		const author_name = interaction.user.username;
 		const isBirthdayEnabled = await Birthday.isGuildEnabled(guild_id);
 		if (!isBirthdayEnabled) {
-			return interaction.reply({ content: `The birthday module is not enabled for this server.`, ephemeral: false });
+			return interaction.reply({ content: `The birthday module is not enabled for this server.`, ephemeral: true });
 		}
 		// await interaction.deferReply();
 		switch (subcommand) {
@@ -209,6 +211,13 @@ module.exports = {
 			const birthdayList = await Birthday.getListOfBDsForThisServer(guild_id);
 
 			const listSize = birthdayList.length;
+			// const members = [];
+			//
+			// birthdayList.forEach((birthday) => {
+			// 	members.push(birthday.id_user);
+			// });
+			//
+			// await interaction.guild.members.fetch([members]).filter;
 
 			if (listSize > 25) {
 				let pages;
@@ -256,7 +265,7 @@ module.exports = {
 					new ButtonBuilder().setCustomId("previousbtn").setLabel("Previous").setStyle(ButtonStyle.Danger),
 					new ButtonBuilder().setCustomId("nextbtn").setLabel("Next").setStyle(ButtonStyle.Success),
 				];
-				await new Pagination().setInterface(interaction)
+				new Pagination().setInterface(interaction)
 					.setPageList(pages)
 					.setButtonList(buttonList)
 					.setTimeout(PaginationConfig.timeout)
