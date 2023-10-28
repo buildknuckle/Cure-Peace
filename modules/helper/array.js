@@ -30,7 +30,7 @@ function isDuplicate(arr) {
 }
 
 function isArrayValDuplicate(arr, valSearch) {
-	return arr.filter(val => val == valSearch).length >= 1 ? true : false;
+	return arr.filter(val => val === valSearch).length >= 1;
 }
 
 module.exports = { removeArrayItem, sortObject, mergeObjects, isEmptyObject, sumObjectByKey,

@@ -45,7 +45,7 @@ class Model {
 
 	// check if data existed
 	hasData() {
-		return this[this.primaryKey] ? true : false;
+		return !!this[this.primaryKey];
 	}
 
 	async find(paramWhere) {
@@ -77,7 +77,7 @@ class Model {
 			});
 		}
 		const result = await DB.insert(this.tableName, mapInsert);
-		return "insertId" in result ? parseInt(result["insertId"]) : false;
+		return "insertId" in result ? parseInt(result.insertId) : false;
 	}
 
 	async update(paramSet = null, paramWhere = null) {

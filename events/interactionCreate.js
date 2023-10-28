@@ -26,6 +26,7 @@ module.exports = {
 				let command = interaction.customId.split(".");
 
 				switch (interaction.componentType) {
+					//TODO: Replace deprecated SelectMenu
 				case ComponentType.SelectMenu:
 					// split dot and get the command
 					// modify the id & remove the command name
@@ -35,7 +36,7 @@ module.exports = {
 					break;
 				case ComponentType.Button:
 					// prevent from pagination button
-					if (interaction.customId == PaginationConfig.prevBtn || interaction.customId == PaginationConfig.nextBtn) return;
+					if (interaction.customId === PaginationConfig.prevBtn || interaction.customId === PaginationConfig.nextBtn) return;
 
 					// modify the id & remove the command name
 					interaction.customId = command[1];

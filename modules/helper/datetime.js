@@ -57,13 +57,11 @@ function timestampToDateTime(UNIX_timestamp) {
 	const hour = a.getHours() < 10 ? "0" + a.getHours() : a.getHours();
 	const min = a.getMinutes() < 10 ? "0" + a.getMinutes() : a.getMinutes();
 	const sec = a.getSeconds() < 10 ? "0" + a.getSeconds() : a.getSeconds();
-	const time = date + "-" + month + "-" + year + " " + hour + ":" + min + ":" + sec ;
-	return time;
+	return `${date}-${month}-${year} ${hour}:${min}:${sec}`;
 }
 
 function dateTimeDifference(dateStart, dateEnd) {
-	const timeRemaining = (dateStart - dateEnd) / 1000 / 60;
-	const num = timeRemaining;
+	const num = (dateStart - dateEnd) / 1000 / 60;
 	const hours = (num / 60);
 	const rhours = Math.floor(hours);
 	const minutes = (hours - rhours) * 60;
