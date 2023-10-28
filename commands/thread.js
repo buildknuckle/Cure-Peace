@@ -21,8 +21,8 @@ module.exports = {
 		const subcommand = interaction.options.getSubcommand();
 		switch (subcommand) {
 		case "join": {
-			if (interaction.channel.type == ChannelType.PublicThread ||
-				interaction.channel.type == ChannelType.PrivateThread) {
+			if (interaction.channel.type === ChannelType.PublicThread ||
+				interaction.channel.type === ChannelType.PrivateThread) {
 				interaction.reply({ content: "Peace has joined into this thread!", ephemeral: true });
 				await interaction.channel.join();
 			}
@@ -35,8 +35,8 @@ module.exports = {
 		case "leave": {
 			try {
 				// check channel type
-				if (interaction.channel.type == ChannelType.PublicThread ||
-				interaction.channel.type == ChannelType.PrivateThread) {
+				if (interaction.channel.type === ChannelType.PublicThread ||
+				interaction.channel.type === ChannelType.PrivateThread) {
 					interaction.reply({ content: "Peace now leaving from this thread", ephemeral: true });
 					await interaction.channel.leave();
 				}

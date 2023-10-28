@@ -22,4 +22,4 @@ for (const file of eventFiles) {
 	}
 }
 
-client.login(dotenv.parsed.bot_token);
+client.login(dotenv.parsed.BOT_TOKEN);

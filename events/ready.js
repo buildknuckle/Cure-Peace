@@ -22,7 +22,7 @@ module.exports = {
 	once: true,
 	async execute(client) {
 		try {
-			const rest = new REST({ version: "10" }).setToken(dotenv.parsed.bot_token);
+			const rest = new REST({ version: "10" }).setToken(dotenv.parsed.BOT_TOKEN);
 			const commandFiles = fs.readdirSync("./commands").filter(file => file.endsWith(".js"));
 
 			// load all commands
@@ -32,7 +32,7 @@ module.exports = {
 			}
 
 			// check & load commands with production environment
-			if (dotenv.parsed.NODE_ENV == "production") {
+			if (dotenv.parsed.NODE_ENV === "production") {
 				await rest.put(
 					Routes.applicationCommands(client.application.id),
 					{ body: client.commands },
@@ -42,7 +42,7 @@ module.exports = {
 			// init peacestats
 			await Init.initPeaceStats(client);
 
-			client.guilds.cache.forEach(async guild => {
+			client.guilds.cache.forEach(guild => {
 				console.log(`Connected @${guild.id} - ${guild.name}`);
 				// check & load commands with development environment
 				if (dotenv.parsed.NODE_ENV == "development") {

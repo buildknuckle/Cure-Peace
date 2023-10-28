@@ -2,16 +2,16 @@ const dotenv = require("dotenv").config();
 const DB = require("mariadb");
 
 const conn = DB.createPool({
-	host: dotenv.parsed.database_host,
-	port: dotenv.parsed.database_port,
-	user: dotenv.parsed.database_username,
-	password: dotenv.parsed.database_password,
-	database: dotenv.parsed.database_database,
+	host: dotenv.parsed.DATABASE_HOST,
+	port: dotenv.parsed.DATABASE_PORT,
+	user: dotenv.parsed.DATABASE_USERNAME,
+	password: dotenv.parsed.DATABASE_PASSWORD,
+	database: dotenv.parsed.DATABASE_DATABASE,
 	multipleStatements: true,
 	insertIdAsNumber: true,
 	decimalAsNumber: true,
 	bigIntAsNumber: true,
-	trace: dotenv.parsed.NODE_ENV == "development" ? true : false,
+	trace: dotenv.parsed.NODE_ENV === "development" ? true : false,
 });
 
 // basic select functions
@@ -111,7 +111,7 @@ async function selectIn(tableName, columns, valWhere, limit = null) {
 	const arrParameterized = [];
 
 	let _query = `SELECT * FROM ${tableName}
-    WHERE ${columns} IN (`;
+				  WHERE ${columns} IN (`;
 	valWhere.forEach(val => {
 		_query += " ?, ";
 		arrParameterized.push(val);
@@ -134,6 +134,26 @@ async function selectIn(tableName, columns, valWhere, limit = null) {
 		_query += ` LIMIT ${limit} `;
 	}
 
+	return await conn.query(_query, arrParameterized);
+}
+
+async function selectColumnsIn(tableName, columns, parameterWhere, limit = null) {
+	const arrParameterized = [];
+
+	let _query = `SELECT ${columns} FROM ${tableName}`;
+	 _query += " WHERE ";
+
+	for (const [key, value] of parameterWhere.entries()) {
+		_query += ` ${key}=? AND `;
+		arrParameterized.push(value);
+	}
+
+	// remove last AND and any whitespace
+	_query = _query.replace(/AND\s*$/, "");
+
+	if (limit) {
+		_query += ` LIMIT ${limit} `;
+	}
 	return await conn.query(_query, arrParameterized);
 }
 
@@ -387,4 +407,4 @@ async function query(_query, arrParameterized) {
 }
 
 module.exports = { DB, select, selectRandom, selectRandomNonDuplicate, selectAll,
-	selectOr, selectIn, selectLikeOr, selectLikeAnd, insert, insertBatch, update, del, count, query };
+	selectOr, selectIn, selectColumnsIn, selectLikeOr, selectLikeAnd, insert, insertBatch, update, del, count, query };
