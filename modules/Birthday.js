@@ -148,7 +148,8 @@ async function schedulerSetup(birthdays, client, assignedChannel, hour = 9, minu
         }
     }, {
         scheduled: false,
-        timezone: 'Etc/UTC'
+        // Use Etc/UTC if that's easier
+        timezone: 'Europe/London'
     });
 }
 
