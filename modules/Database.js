@@ -3,7 +3,7 @@ const DB = require("mariadb");
 
 const conn = DB.createPool({
 	host: dotenv.parsed.DATABASE_HOST,
-	port: dotenv.parsed.DATABASE_PORT,
+	port: parseInt(dotenv.parsed.DATABASE_PORT),
 	user: dotenv.parsed.DATABASE_USERNAME,
 	password: dotenv.parsed.DATABASE_PASSWORD,
 	database: dotenv.parsed.DATABASE_DATABASE,
@@ -11,10 +11,15 @@ const conn = DB.createPool({
 	insertIdAsNumber: true,
 	decimalAsNumber: true,
 	bigIntAsNumber: true,
-	trace: dotenv.parsed.NODE_ENV === "development" ? true : false,
+	trace: dotenv.parsed.NODE_ENV === "development",
 });
 
 // basic select functions
+/**
+ * @param tableName
+ * @param parameterWhere
+ * @returns {Promise<*|null>}
+ */
 async function select(tableName, parameterWhere = null) {
 	const arrParameterized = [];
 	let _query = `SELECT * FROM ${tableName} `;
@@ -137,7 +142,15 @@ async function selectIn(tableName, columns, valWhere, limit = null) {
 	return await conn.query(_query, arrParameterized);
 }
 
-async function selectColumnsIn(tableName, columns, parameterWhere, limit = null) {
+/**
+ * @param tableName
+ * @param columns
+ * @param parameterWhere
+ * @param parameterOrderBy
+ * @param limit - Limits number of results
+ * @returns {Promise<void>}
+ */
+async function selectColumnsIn(tableName, columns, parameterWhere, parameterOrderBy = null, limit = null ) {
 	const arrParameterized = [];
 
 	let _query = `SELECT ${columns} FROM ${tableName}`;
@@ -154,7 +167,18 @@ async function selectColumnsIn(tableName, columns, parameterWhere, limit = null)
 	if (limit) {
 		_query += ` LIMIT ${limit} `;
 	}
-	return await conn.query(_query, arrParameterized);
+	if (parameterOrderBy != null) {
+		_query += " ORDER BY ";
+		for (const [key, value] of parameterOrderBy.entries()) {
+			_query += ` ${key} ${value}, `;
+		}
+
+		// remove last comma and any whitespace
+		_query = _query.replace(/,\s*$/, "");
+	}
+
+	const result = await conn.query(_query, arrParameterized);
+	return result ? result : null;
 }
 
 // basic select functions with like
@@ -398,7 +422,7 @@ async function count(tableName, parameterWhere = null) {
 
 	// conn.query(query,arrParameterized,function (err) {});
 	const result = await conn.query(_query, arrParameterized);
-	return result[0]["total"];
+	return result[0].total;
 }
 
 // basic raw query functions
@@ -406,5 +430,22 @@ async function query(_query, arrParameterized) {
 	return await conn.query(_query, arrParameterized);
 }
 
-module.exports = { DB, select, selectRandom, selectRandomNonDuplicate, selectAll,
-	selectOr, selectIn, selectColumnsIn, selectLikeOr, selectLikeAnd, insert, insertBatch, update, del, count, query };
+// noinspection JSUnusedGlobalSymbols
+module.exports = {
+	DB,
+	select,
+	selectRandom,
+	selectRandomNonDuplicate,
+	selectAll,
+	selectOr,
+	selectIn,
+	selectColumnsIn,
+	selectLikeOr,
+	selectLikeAnd,
+	insert,
+	insertBatch,
+	update,
+	del,
+	count,
+	query
+};

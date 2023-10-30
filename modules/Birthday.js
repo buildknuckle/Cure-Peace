@@ -27,13 +27,6 @@ async function getGuildConfig(id_guild, insertNew = true) {
     let parameterWhere = new Map();
     parameterWhere.set("id_guild", id_guild);
 
-    let columns = [
-        DBM_BirthdayGuildInst.fields.id_guild,
-        DBM_BirthdayGuildInst.fields.id_notification_channel,
-        `HOUR(${DBM_BirthdayGuildInst.fields.notification_hour}) AS 'hour'`,
-        DBM_BirthdayGuildInst.fields.enabled,
-    ];
-   
     let data = await DB.select(DBM_BirthdayGuildInst.tableName, parameterWhere);
 
     // insert
@@ -81,7 +74,7 @@ async function getListOfBDsForThisServer(guild) {
     let parameterOrderBy = new Map();
     parameterOrderBy.set('month', 'ASC');
     parameterOrderBy.set('day', 'ASC');
-    return await DB.selectColumnsIn(DBM_BirthdayInst.tableName, columns, parameterWhere);
+    return await DB.selectColumnsIn(DBM_BirthdayInst.tableName, columns, parameterWhere, parameterOrderBy, null);
 
 //     const query = `SELECT ${DBM_BirthdayInst.fields.id_user},
 //                           ${DBM_BirthdayInst.fields.birthday},
@@ -118,14 +111,15 @@ async function generateNotification(birthday) {
  * @param client - Discord client object
  * @param assignedChannel - channel ID where to send reminders to
  * @param hour - GMT hour when to send reminders
- // * @type {(client: Discord.client, assignedChannel: string) => ScheduledTask}
+ * @param minute - At what minute should the daily ping be sent
  * @returns {Promise<ScheduledTask>}
  */
-async function schedulerSetup(birthdays, client, assignedChannel, hour) {
-    hour = hour != null ? hour : '9';
-    hour= hour.length === 1 ? `0${hour}}` : hour;
+async function schedulerSetup(birthdays, client, assignedChannel, hour = 9, minute = 0) {
+    hour = hour != null ? hour : 9;
+    minute = minute != null ? minute : 0;
+    let second = 0;
 
-    return new cron.schedule(`0 0 ${hour} * * *`, async () => {
+    return new cron.schedule(`${second} ${minute} ${hour} * * *`, async () => {
 
         let today = new Date();
 
@@ -140,15 +134,21 @@ async function schedulerSetup(birthdays, client, assignedChannel, hour) {
                     console.log('BIRTHDAY!');
                     let message = await generateNotification(birthday);
 
-                    let channel = await client.channels.cache.find(assignedChannel);
+                    const channel = await client.channels.cache.get(assignedChannel);
 
-                    channel.send(message);
+                    channel.send({
+                        content: message,
+                        allowedMentions: {
+                            "users": [],
+                        },
+                    });
                     console.log(message);
                 }
             }
         }
     }, {
         scheduled: false,
+        // Use Etc/UTC if that's easier
         timezone: 'Europe/London'
     });
 }
@@ -229,21 +229,34 @@ async function addBirthday(id_guild, id_user, birthday, label, notes) {
 }
 
 async function initBirthdayReportingInstance(guildId, guild) {
-    let birthdayGuildData = await getGuildConfig(guildId);
+    let birthdayGuildData = await getGuildConfig(guildId, true);
 
 
     if (birthdayGuildData[DBM_BirthdayGuildInst.fields.id_notification_channel] != null) {
-        let assignedChannel = birthdayGuildData[DBM_BirthdayGuildInst.fields.id_notification_channel];
-        let hour = birthdayGuildData[DBM_BirthdayGuildInst.fields.notification_hour];
+        let assignedChannelId = birthdayGuildData[DBM_BirthdayGuildInst.fields.id_notification_channel];
+        // todo: replace with notification_time column name later
+        let time = birthdayGuildData[DBM_BirthdayGuildInst.fields.notification_hour];
+
         let enabled = parseInt(birthdayGuildData[DBM_BirthdayGuildInst.fields.enabled]) === 1;
 
-        const birthdays = await getListOfBDsForThisServer(guildId);
+        // fallback check
+        const valid_time = /(\d{2}):(\d{2}):(\d{2})$/.test(time);
+        if (valid_time) {
+            const arr = time.split(':');
+            let hour = parseInt(arr[0]);
+            let minute = parseInt(arr[1]);
+            // let sec = parseInt(arr[2]);
 
-        if (birthdays.length > 0) {
-            let schedule = await schedulerSetup(birthdays, guild, assignedChannel, hour);
+            const birthdays = await getListOfBDsForThisServer(guildId);
 
-            if (enabled) {
-                schedule.start();
+            if (birthdays.length > 0) {
+                let schedule = await schedulerSetup(birthdays, guild, assignedChannelId, hour, minute);
+
+                if (enabled) {
+                    schedule.start();
+                }
+            } else {
+                console.error("Invalid format for notification time specified");
             }
         }
     }
